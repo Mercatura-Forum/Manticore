@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+  <Fr><FIId><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></FIId></Fr>
+  <To><FIId><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></FIId></To>
+  <BizMsgIdr>P9351915869</BizMsgIdr>
+  <MsgDefIdr>pacs.009.001.08</MsgDefIdr>
+  <BizSvc>swift.cbprplus.02</BizSvc>
+  <CreDt>2026-09-12T10:00:00Z</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.009.001.08">
+  <FICdtTrf>
+    <GrpHdr>
+      <MsgId>P9351915869</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <SttlmInf><SttlmMtd>INDA</SttlmMtd></SttlmInf>
+      
+    </GrpHdr>
+    <CdtTrfTxInf>
+      <PmtId><InstrId>INSTR-1</InstrId><EndToEndId>E2E-878548233</EndToEndId><UETR>a61fe3a7-49e1-4a0b-af01-69bb2deb4dd8</UETR></PmtId>
+      <IntrBkSttlmAmt Ccy="USD">734664.51</IntrBkSttlmAmt>
+      <IntrBkSttlmDt>2026-09-12</IntrBkSttlmDt>
+      <Dbtr><FinInstnId><Nm>Some Bank</Nm></FinInstnId></Dbtr>
+      <DbtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></DbtrAgt>
+      <CdtrAgt><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></CdtrAgt>
+      <Cdtr><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Cdtr>
+    </CdtTrfTxInf>
+  </FICdtTrf>
+</Document>

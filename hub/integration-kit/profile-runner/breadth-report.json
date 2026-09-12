@@ -1,0 +1,618 @@
+{
+  "fixtures": [
+    {
+      "id": "valid/reversal-pacs007-duplicate.xml",
+      "messageKind": "pacs.007",
+      "family": "pacs.007.001.10",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.007.001.10\">\n  <FIToFIPmtRvsl>\n    <GrpHdr>\n      <MsgId>RVSL066731357</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <NbOfTxs>1</NbOfTxs>\n      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>\n    </GrpHdr>\n    <OrgnlGrpInf>\n      <OrgnlMsgId>PACS008-716700</OrgnlMsgId>\n      <OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>\n    </OrgnlGrpInf>\n    <TxInf>\n      <RvslId>RV463166816</RvslId>\n      <OrgnlEndToEndId>E2E-230660839</OrgnlEndToEndId>\n      <OrgnlUETR>f6eca5f9-9f23-4aa7-b7a4-da791e955cf1</OrgnlUETR>\n      <RvsdIntrBkSttlmAmt Ccy=\"EGP\">27393.58</RvsdIntrBkSttlmAmt>\n      <RvslRsnInf><Rsn><Cd>DUPL</Cd></Rsn></RvslRsnInf>\n    </TxInf>\n  </FIToFIPmtRvsl>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pacs.007.001.10",
+        "messageId": "RVSL066731357"
+      }
+    },
+    {
+      "id": "valid/fi-direct-debit-pacs010-two-debtors.xml",
+      "messageKind": "pacs.010",
+      "family": "pacs.010.001.04",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.010.001.04\">\n  <FIDrctDbt>\n    <GrpHdr>\n      <MsgId>FIDD214106463</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <NbOfTxs>2</NbOfTxs>\n    </GrpHdr>\n    <CdtInstr>\n      <CdtId>FIDD214106463-1</CdtId>\n      <Cdtr><FinInstnId><BICFI>NBEGEGCXXXX</BICFI><Nm>National Bank of Egypt</Nm></FinInstnId></Cdtr>\n      <DrctDbtTxInf>\n        <PmtId><InstrId>INSTR-1</InstrId><EndToEndId>E2E-84322438</EndToEndId><UETR>b1362123-8f50-4560-828d-9d737cb4f55c</UETR></PmtId>\n        <IntrBkSttlmAmt Ccy=\"EGP\">220812.92</IntrBkSttlmAmt>\n        <IntrBkSttlmDt>2026-09-12</IntrBkSttlmDt>\n        <Dbtr><FinInstnId><BICFI>CIBEEGCXXXX</BICFI><Nm>Commercial International Bank</Nm></FinInstnId></Dbtr>\n        <DbtrAcct><Id><Othr><Id>SETTLE-CIB</Id></Othr></Id></DbtrAcct>\n      </DrctDbtTxInf>\n      <DrctDbtTxInf>\n        <PmtId><EndToEndId>E2E-635810044</EndToEndId><UETR>b0edbe70-cf3b-4dd6-b548-23a9106c6b4c</UETR></PmtId>\n        <IntrBkSttlmAmt Ccy=\"EGP\">15002.91</IntrBkSttlmAmt>\n        <IntrBkSttlmDt>2026-09-12</IntrBkSttlmDt>\n        <Dbtr><FinInstnId><BICFI>EGCBEGCAXXX</BICFI></FinInstnId></Dbtr>\n      </DrctDbtTxInf>\n    </CdtInstr>\n  </FIDrctDbt>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pacs.010.001.04",
+        "messageId": "FIDD214106463"
+      }
+    },
+    {
+      "id": "valid/settlement-request-pacs029-cycle.xml",
+      "messageKind": "pacs.029",
+      "family": "pacs.029.001.02",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.029.001.02\">\n  <MulSttlmReq>\n    <GrpHdr>\n      <MsgId>MSR978959696</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <NbOfSttlmReqs>1</NbOfSttlmReqs>\n      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>\n    </GrpHdr>\n    <SttlmReq>\n      <InstrId>INSTR547326354</InstrId>\n      <SttlmCycl>2026-09-12-C1</SttlmCycl>\n      <NbOfMvmntRcrds>2</NbOfMvmntRcrds>\n      <MvmntRcrd>\n        <Id>MV1</Id>\n        <Amt>\n          <Amt Ccy=\"EGP\">151743.57</Amt>\n          <CdtDbt>DBIT</CdtDbt>\n        </Amt>\n        <Ptcpt><Id><OrgId><AnyBIC>NBEGEGCXXXX</AnyBIC></OrgId></Id></Ptcpt>\n      </MvmntRcrd>\n      <MvmntRcrd>\n        <Id>MV2</Id>\n        <Amt>\n          <Amt Ccy=\"EGP\">151743.57</Amt>\n          <CdtDbt>CRDT</CdtDbt>\n        </Amt>\n        <Ptcpt><Id><OrgId><AnyBIC>CIBEEGCXXXX</AnyBIC></OrgId></Id></Ptcpt>\n      </MvmntRcrd>\n    </SttlmReq>\n  </MulSttlmReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pacs.029.001.02",
+        "messageId": "MSR978959696"
+      }
+    },
+    {
+      "id": "valid/reversal-pain007-customer.xml",
+      "messageKind": "pain.007",
+      "family": "pain.007.001.10",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.007.001.10\">\n  <CstmrPmtRvsl>\n    <GrpHdr>\n      <MsgId>CRVSL113342466</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <NbOfTxs>1</NbOfTxs>\n      <InitgPty/>\n    </GrpHdr>\n    <OrgnlGrpInf>\n      <OrgnlMsgId>PAIN008-497359</OrgnlMsgId>\n      <OrgnlMsgNmId>pain.008.001.08</OrgnlMsgNmId>\n    </OrgnlGrpInf>\n    <OrgnlPmtInfAndRvsl>\n      <OrgnlPmtInfId>PMTINF-1</OrgnlPmtInfId>\n      <TxInf>\n        <RvslId>RV473035041</RvslId>\n        <OrgnlEndToEndId>E2E-72657847</OrgnlEndToEndId>\n        <RvsdInstdAmt Ccy=\"EGP\">50218.14</RvsdInstdAmt>\n        <RvslRsnInf><Rsn><Cd>AM05</Cd></Rsn></RvslRsnInf>\n      </TxInf>\n    </OrgnlPmtInfAndRvsl>\n  </CstmrPmtRvsl>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pain.007.001.10",
+        "messageId": "CRVSL113342466"
+      }
+    },
+    {
+      "id": "valid/mandate-pain009-initiation.xml",
+      "messageKind": "pain.009",
+      "family": "pain.009.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.009.001.07\">\n  <MndtInitnReq>\n    <GrpHdr>\n      <MsgId>MNDT247436440</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <InitgPty/>\n    </GrpHdr>\n    <Mndt>\n      <MndtId>MANDATE-133570</MndtId>\n      <MndtReqId>REQ605168407</MndtReqId>\n      <Ocrncs><SeqTp>RCUR</SeqTp><FrstColltnDt>2026-10-01</FrstColltnDt></Ocrncs>\n      <TrckgInd>false</TrckgInd>\n      <MaxAmt Ccy=\"EGP\">500.00</MaxAmt>\n      <Cdtr/>\n      <CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt>\n      <Dbtr/>\n      <DbtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></DbtrAcct>\n      <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>\n    </Mndt>\n  </MndtInitnReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pain.009.001.07",
+        "messageId": "MNDT247436440"
+      }
+    },
+    {
+      "id": "valid/mandate-pain009-one-off.xml",
+      "messageKind": "pain.009",
+      "family": "pain.009.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.009.001.07\">\n  <MndtInitnReq>\n    <GrpHdr>\n      <MsgId>MNDT265876209</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <InitgPty/>\n    </GrpHdr>\n    <Mndt>\n      <MndtId>MANDATE-346107</MndtId>\n      <MndtReqId>REQ173687367</MndtReqId>\n      <Ocrncs><SeqTp>OOFF</SeqTp><FrstColltnDt>2026-10-01</FrstColltnDt></Ocrncs>\n      <TrckgInd>false</TrckgInd>\n      <MaxAmt Ccy=\"EGP\">500.00</MaxAmt>\n      <Cdtr/>\n      <CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt>\n      <Dbtr/>\n      <DbtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></DbtrAcct>\n      <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>\n    </Mndt>\n  </MndtInitnReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pain.009.001.07",
+        "messageId": "MNDT265876209"
+      }
+    },
+    {
+      "id": "valid/mandate-pain010-amendment.xml",
+      "messageKind": "pain.010",
+      "family": "pain.010.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.010.001.07\">\n  <MndtAmdmntReq>\n    <GrpHdr>\n      <MsgId>MAMD144242164</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <InitgPty/>\n    </GrpHdr>\n    <UndrlygAmdmntDtls>\n      <AmdmntRsn><Rsn><Cd>MD16</Cd></Rsn></AmdmntRsn>\n      <Mndt>\n        <MndtId>MANDATE-754988</MndtId>\n        <Ocrncs><SeqTp>RCUR</SeqTp></Ocrncs>\n        <TrckgInd>false</TrckgInd>\n        <MaxAmt Ccy=\"EGP\">750.00</MaxAmt>\n      </Mndt>\n      <OrgnlMndt><OrgnlMndtId>MANDATE-754988</OrgnlMndtId></OrgnlMndt>\n    </UndrlygAmdmntDtls>\n  </MndtAmdmntReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pain.010.001.07",
+        "messageId": "MAMD144242164"
+      }
+    },
+    {
+      "id": "valid/mandate-pain011-cancellation.xml",
+      "messageKind": "pain.011",
+      "family": "pain.011.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.011.001.07\">\n  <MndtCxlReq>\n    <GrpHdr>\n      <MsgId>MCXL992548774</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <InitgPty/>\n    </GrpHdr>\n    <UndrlygCxlDtls>\n      <CxlRsn><Rsn><Cd>MD16</Cd></Rsn></CxlRsn>\n      <OrgnlMndt><OrgnlMndtId>MANDATE-111340</OrgnlMndtId></OrgnlMndt>\n    </UndrlygCxlDtls>\n  </MndtCxlReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pain.011.001.07",
+        "messageId": "MCXL992548774"
+      }
+    },
+    {
+      "id": "valid/mandate-pain012-accepted.xml",
+      "messageKind": "pain.012",
+      "family": "pain.012.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.012.001.07\">\n  <MndtAccptncRpt>\n    <GrpHdr>\n      <MsgId>MACC178242805</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <InitgPty/>\n    </GrpHdr>\n    <UndrlygAccptncDtls>\n      <AccptncRslt>\n        <Accptd>true</Accptd>\n      </AccptncRslt>\n      <OrgnlMndt><OrgnlMndtId>MANDATE-234942</OrgnlMndtId></OrgnlMndt>\n    </UndrlygAccptncDtls>\n  </MndtAccptncRpt>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pain.012.001.07",
+        "messageId": "MACC178242805"
+      }
+    },
+    {
+      "id": "valid/mandate-pain012-rejected.xml",
+      "messageKind": "pain.012",
+      "family": "pain.012.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pain.012.001.07\">\n  <MndtAccptncRpt>\n    <GrpHdr>\n      <MsgId>MACC565483041</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <InitgPty/>\n    </GrpHdr>\n    <UndrlygAccptncDtls>\n      <AccptncRslt>\n        <Accptd>false</Accptd>\n        <RjctRsn><Cd>MD01</Cd></RjctRsn>\n      </AccptncRslt>\n      <OrgnlMndt><OrgnlMndtId>MANDATE-850561</OrgnlMndtId></OrgnlMndt>\n    </UndrlygAccptncDtls>\n  </MndtAccptncRpt>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "pain.012.001.07",
+        "messageId": "MACC565483041"
+      }
+    },
+    {
+      "id": "valid/report-camt052-intraday.xml",
+      "messageKind": "camt.052",
+      "family": "camt.052.001.08",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.052.001.08\">\n  <BkToCstmrAcctRpt>\n    <GrpHdr>\n      <MsgId>ARPT484999275</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <OrgnlBizQry><MsgId>ARR117259409</MsgId><MsgNmId>camt.060.001.05</MsgNmId></OrgnlBizQry>\n    </GrpHdr>\n    <Rpt>\n      <Id>RPT293993091</Id>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n      <FrToDt><FrDtTm>2026-09-12T00:00:00Z</FrDtTm><ToDtTm>2026-09-12T10:00:00Z</ToDtTm></FrToDt>\n      <Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id><Ccy>EGP</Ccy></Acct>\n      <Bal>\n        <Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp>\n        <Amt Ccy=\"EGP\">105960.20</Amt>\n        <CdtDbtInd>CRDT</CdtDbtInd>\n        <Dt><Dt>2026-09-12</Dt></Dt>\n      </Bal>\n      <Bal>\n        <Tp><CdOrPrtry><Cd>ITBD</Cd></CdOrPrtry></Tp>\n        <Amt Ccy=\"EGP\">17953.88</Amt>\n        <CdtDbtInd>CRDT</CdtDbtInd>\n        <Dt><Dt>2026-09-12</Dt></Dt>\n      </Bal>\n      <Ntry>\n        <NtryRef>NTRY-1</NtryRef>\n        <Amt Ccy=\"EGP\">12823.87</Amt>\n        <CdtDbtInd>DBIT</CdtDbtInd>\n        <Sts><Cd>BOOK</Cd></Sts>\n        <BookgDt><Dt>2026-09-12</Dt></BookgDt>\n        <ValDt><Dt>2026-09-12</Dt></ValDt>\n        <AcctSvcrRef>4471</AcctSvcrRef>\n        <BkTxCd><Prtry><Cd>PMNT</Cd></Prtry></BkTxCd>\n        <NtryDtls><TxDtls>\n            <Refs>\n              <AcctSvcrRef>4471</AcctSvcrRef>\n              <EndToEndId>E2E-350381325</EndToEndId>\n              <UETR>3baa33ff-bb80-418e-b0af-e6bdf3ac27fa</UETR>\n            </Refs>\n            <RltdPties><Cdtr><Pty><Nm>Cairo Water Utility</Nm></Pty></Cdtr></RltdPties>\n            <RmtInf>\n              <Ustrd>water bill 2026-08</Ustrd>\n            </RmtInf>\n        </TxDtls></NtryDtls>\n      </Ntry>\n      <Ntry>\n        <NtryRef>NTRY-2</NtryRef>\n        <Amt Ccy=\"EGP\">155025.59</Amt>\n        <CdtDbtInd>CRDT</CdtDbtInd>\n        <Sts><Cd>BOOK</Cd></Sts>\n        <BookgDt><Dt>2026-09-12</Dt></BookgDt>\n        <ValDt><Dt>2026-09-12</Dt></ValDt>\n        <AcctSvcrRef>4472</AcctSvcrRef>\n        <BkTxCd><Prtry><Cd>PMNT</Cd></Prtry></BkTxCd>\n        <NtryDtls><TxDtls>\n            <Refs>\n              <AcctSvcrRef>4472</AcctSvcrRef>\n              <UETR>eed0b654-2445-4706-9684-a11211d365ae</UETR>\n            </Refs>\n            <RltdPties><Dbtr><Pty><Nm>Salary Payroll Ltd</Nm></Pty></Dbtr></RltdPties>\n        </TxDtls></NtryDtls>\n      </Ntry>\n    </Rpt>\n  </BkToCstmrAcctRpt>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.052.001.08",
+        "messageId": "ARPT484999275"
+      }
+    },
+    {
+      "id": "valid/notification-camt057-two-items.xml",
+      "messageKind": "camt.057",
+      "family": "camt.057.001.06",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.057.001.06\">\n  <NtfctnToRcv>\n    <GrpHdr>\n      <MsgId>NTR097176387</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </GrpHdr>\n    <Ntfctn>\n      <Id>NTF862788898</Id>\n      <Acct><Id><Othr><Id>ACC28164971</Id></Othr></Id></Acct>\n      <Itm>\n        <Id>ITM1</Id>\n        <EndToEndId>E2E-828857676</EndToEndId>\n        <UETR>acd22b0f-371a-4e1a-b359-446a906cde9c</UETR>\n        <Amt Ccy=\"EGP\">140298.66</Amt>\n        <XpctdValDt>2026-09-12</XpctdValDt>\n        <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>\n      </Itm>\n      <Itm>\n        <Id>ITM2</Id>\n        <EndToEndId>E2E-82899843</EndToEndId>\n        <UETR>31ca5318-30fa-46fb-a1cc-3dcb1613eb48</UETR>\n        <Amt Ccy=\"EGP\">57531.08</Amt>\n        <XpctdValDt>2026-09-12</XpctdValDt>\n        <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>\n      </Itm>\n    </Ntfctn>\n  </NtfctnToRcv>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.057.001.06",
+        "messageId": "NTR097176387"
+      }
+    },
+    {
+      "id": "valid/reporting-request-camt060-intraday.xml",
+      "messageKind": "camt.060",
+      "family": "camt.060.001.05",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.060.001.05\">\n  <AcctRptgReq>\n    <GrpHdr>\n      <MsgId>ARR451098863</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </GrpHdr>\n    <RptgReq>\n      <Id>RQ565360420</Id>\n      <ReqdMsgNmId>camt.052.001.08</ReqdMsgNmId>\n      <Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></Acct>\n      <AcctOwnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></AcctOwnr>\n      <RptgPrd><FrToDt><FrDt>2026-09-12</FrDt><ToDt>2026-09-12</ToDt></FrToDt><Tp>ALLL</Tp></RptgPrd>\n    </RptgReq>\n  </AcctRptgReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.060.001.05",
+        "messageId": "ARR451098863"
+      }
+    },
+    {
+      "id": "valid/reporting-request-camt060-statement.xml",
+      "messageKind": "camt.060",
+      "family": "camt.060.001.05",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.060.001.05\">\n  <AcctRptgReq>\n    <GrpHdr>\n      <MsgId>ARR046657985</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </GrpHdr>\n    <RptgReq>\n      <Id>RQ749586921</Id>\n      <ReqdMsgNmId>camt.053.001.08</ReqdMsgNmId>\n      <Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></Acct>\n      <AcctOwnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></AcctOwnr>\n      <RptgPrd><FrToDt><FrDt>2026-09-12</FrDt><ToDt>2026-09-12</ToDt></FrToDt><Tp>ALLL</Tp></RptgPrd>\n    </RptgReq>\n  </AcctRptgReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.060.001.05",
+        "messageId": "ARR046657985"
+      }
+    },
+    {
+      "id": "valid/liquidity-camt050-transfer.xml",
+      "messageKind": "camt.050",
+      "family": "camt.050.001.05",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.050.001.05\">\n  <LqdtyCdtTrf>\n    <MsgHdr>\n      <MsgId>LQT802332201</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </MsgHdr>\n    <LqdtyCdtTrf>\n      <LqdtyTrfId><EndToEndId>LQ67833206</EndToEndId></LqdtyTrfId>\n      <Cdtr><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Cdtr>\n      <CdtrAcct><Id><Othr><Id>RTGS-NBE</Id></Othr></Id></CdtrAcct>\n      <TrfdAmt>\n        <AmtWthCcy Ccy=\"EGP\">4773112.83</AmtWthCcy>\n      </TrfdAmt>\n      <Dbtr><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Dbtr>\n      <DbtrAcct><Id><Othr><Id>ACH-NBE</Id></Othr></Id></DbtrAcct>\n      <SttlmDt>2026-09-12</SttlmDt>\n    </LqdtyCdtTrf>\n  </LqdtyCdtTrf>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.050.001.05",
+        "messageId": "LQT802332201"
+      }
+    },
+    {
+      "id": "valid/receipt-camt025-accepted.xml",
+      "messageKind": "camt.025",
+      "family": "camt.025.001.05",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.025.001.05\">\n  <Rct>\n    <MsgHdr>\n      <MsgId>RCT605357185</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </MsgHdr>\n    <RctDtls>\n      <OrgnlMsgId><MsgId>LQT936187974</MsgId><MsgNmId>camt.050.001.05</MsgNmId></OrgnlMsgId>\n      <ReqHdlg>\n        <StsCd>ACPT</StsCd>\n        <Desc>liquidity transfer settled</Desc>\n      </ReqHdlg>\n    </RctDtls>\n  </Rct>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.025.001.05",
+        "messageId": "RCT605357185"
+      }
+    },
+    {
+      "id": "valid/receipt-camt025-rejected.xml",
+      "messageKind": "camt.025",
+      "family": "camt.025.001.05",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.025.001.05\">\n  <Rct>\n    <MsgHdr>\n      <MsgId>RCT838849452</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </MsgHdr>\n    <RctDtls>\n      <OrgnlMsgId><MsgId>LQT845183016</MsgId><MsgNmId>camt.050.001.05</MsgNmId></OrgnlMsgId>\n      <ReqHdlg>\n        <StsCd>RJCT</StsCd>\n        <Desc>liquidity transfer settled</Desc>\n      </ReqHdlg>\n    </RctDtls>\n  </Rct>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.025.001.05",
+        "messageId": "RCT838849452"
+      }
+    },
+    {
+      "id": "valid/investigation-camt026-unable-to-apply.xml",
+      "messageKind": "camt.026",
+      "family": "camt.026.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.026.001.07\">\n  <UblToApply>\n    <Assgnmt>\n      <Id>ASG661630910</Id>\n      <Assgnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Assgnr>\n      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </Assgnmt>\n    <Case><Id>CASE229895905</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Cretr></Case>\n    <Undrlyg>\n      <IntrBk>\n        <OrgnlGrpInf><OrgnlMsgId>PACS008-610603</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>\n        <OrgnlEndToEndId>E2E-539471831</OrgnlEndToEndId>\n        <OrgnlUETR>c6f22e72-1a7d-445b-804b-97b5f144c1a6</OrgnlUETR>\n        <OrgnlIntrBkSttlmAmt Ccy=\"EGP\">228229.00</OrgnlIntrBkSttlmAmt>\n        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>\n      </IntrBk>\n    </Undrlyg>\n    <Justfn><MssngOrIncrrctInf><MssngInf><Cd>MS01</Cd></MssngInf><MssngInf><Cd>MS03</Cd></MssngInf></MssngOrIncrrctInf></Justfn>\n  </UblToApply>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.026.001.07",
+        "messageId": "ASG661630910"
+      }
+    },
+    {
+      "id": "valid/investigation-camt027-claim-non-receipt.xml",
+      "messageKind": "camt.027",
+      "family": "camt.027.001.07",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.027.001.07\">\n  <ClmNonRct>\n    <Assgnmt>\n      <Id>ASG394337215</Id>\n      <Assgnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Assgnr>\n      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </Assgnmt>\n    <Case><Id>CASE178829261</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Cretr></Case>\n    <Undrlyg>\n      <IntrBk>\n        <OrgnlGrpInf><OrgnlMsgId>PACS008-681964</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>\n        <OrgnlEndToEndId>E2E-542327076</OrgnlEndToEndId>\n        <OrgnlUETR>361de907-d77d-4687-a62a-dc3087bdf49d</OrgnlUETR>\n        <OrgnlIntrBkSttlmAmt Ccy=\"EGP\">58023.49</OrgnlIntrBkSttlmAmt>\n        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>\n      </IntrBk>\n    </Undrlyg>\n  </ClmNonRct>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.027.001.07",
+        "messageId": "ASG394337215"
+      }
+    },
+    {
+      "id": "valid/investigation-camt028-additional-information.xml",
+      "messageKind": "camt.028",
+      "family": "camt.028.001.09",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.028.001.09\">\n  <AddtlPmtInf>\n    <Assgnmt>\n      <Id>ASG471868884</Id>\n      <Assgnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Assgnr>\n      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </Assgnmt>\n    <Case><Id>CASE41188471</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Cretr></Case>\n    <Undrlyg>\n      <IntrBk>\n        <OrgnlGrpInf><OrgnlMsgId>PACS008-309244</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>\n        <OrgnlEndToEndId>E2E-709774485</OrgnlEndToEndId>\n        <OrgnlUETR>23e61c66-61bf-4a16-a555-6fa5795618cd</OrgnlUETR>\n        <OrgnlIntrBkSttlmAmt Ccy=\"EGP\">22132.27</OrgnlIntrBkSttlmAmt>\n        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>\n      </IntrBk>\n    </Undrlyg>\n    <Inf><InstrForNxtAgt><InstrInf>apply to invoice 4471</InstrInf></InstrForNxtAgt></Inf>\n  </AddtlPmtInf>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.028.001.09",
+        "messageId": "ASG471868884"
+      }
+    },
+    {
+      "id": "valid/investigation-camt087-request-to-modify.xml",
+      "messageKind": "camt.087",
+      "family": "camt.087.001.06",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.087.001.06\">\n  <ReqToModfyPmt>\n    <Assgnmt>\n      <Id>ASG261785335</Id>\n      <Assgnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Assgnr>\n      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </Assgnmt>\n    <Case><Id>CASE836006789</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Cretr></Case>\n    <Undrlyg>\n      <IntrBk>\n        <OrgnlGrpInf><OrgnlMsgId>PACS008-980659</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>\n        <OrgnlEndToEndId>E2E-51604887</OrgnlEndToEndId>\n        <OrgnlUETR>1b539d0a-7300-4f8b-b2a3-ff557c625989</OrgnlUETR>\n        <OrgnlIntrBkSttlmAmt Ccy=\"EGP\">127175.73</OrgnlIntrBkSttlmAmt>\n        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>\n      </IntrBk>\n    </Undrlyg>\n    <Mod>\n      <IntrBkSttlmAmt Ccy=\"EGP\">130890.32</IntrBkSttlmAmt>\n    </Mod>\n  </ReqToModfyPmt>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "camt.087.001.06",
+        "messageId": "ASG261785335"
+      }
+    },
+    {
+      "id": "valid/admin-admi006-resend.xml",
+      "messageKind": "admi.006",
+      "family": "admi.006.001.01",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:admi.006.001.01\">\n  <RsndReq>\n    <MsgHdr>\n      <MsgId>RSND897043760</MsgId>\n      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>\n    </MsgHdr>\n    <RsndSchCrit>\n      <BizDt>2026-09-12</BizDt>\n      <SeqNb>1126</SeqNb>\n      <OrgnlMsgNmId>pacs.002.001.10</OrgnlMsgNmId>\n      <Rcpt><Id><AnyBIC>CIBEEGCXXXX</AnyBIC></Id></Rcpt>\n    </RsndSchCrit>\n  </RsndReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "admi.006.001.01",
+        "messageId": "RSND897043760"
+      }
+    },
+    {
+      "id": "valid/admin-admi017-end-of-day.xml",
+      "messageKind": "admi.017",
+      "family": "admi.017.001.01",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:admi.017.001.01\">\n  <PrcgReq>\n    <MsgId>PRCG572617905</MsgId>\n    <SttlmSsnIdr>S001</SttlmSsnIdr>\n    <Req>\n      <Tp>EODP</Tp>\n      <RqstrId><AnyBIC><AnyBIC>EGCBEGCAXXX</AnyBIC></AnyBIC></RqstrId>\n      <AddtlReqInf>run end of day</AddtlReqInf>\n    </Req>\n  </PrcgReq>\n</Document>\n",
+      "ok": true,
+      "prowide": {
+        "ok": true,
+        "mxId": "admi.017.001.01",
+        "messageId": "PRCG572617905"
+      }
+    },
+    {
+      "id": "valid/file-head002-two-pacs008.xml",
+      "messageKind": "head.002",
+      "family": "head.002.001.01",
+      "schema": "",
+      "business": "ok",
+      "emittedXmllint": "schema-valid",
+      "emitted": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Xchg xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.002.001.01\">\n  <PyldDesc>\n    <PyldData><PyldIdr>FILE638756470</PyldIdr><CreDtAndTm>2026-09-12T10:00:00Z</CreDtAndTm><PssblDplctFlg>false</PssblDplctFlg></PyldData>\n    <ApplSpcfcs><TtlNbOfDocs>2</TtlNbOfDocs></ApplSpcfcs>\n    <PyldTp>pacs.008.001.08</PyldTp>\n    <MnfstData><DocTp>pacs.008.001.08</DocTp><NbOfDocs>2</NbOfDocs></MnfstData>\n  </PyldDesc>\n  <Pyld><Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08\"><FIToFICstmrCdtTrf><GrpHdr><MsgId>P8921117645</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm><NbOfTxs>1</NbOfTxs><SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf></GrpHdr><CdtTrfTxInf><PmtId><EndToEndId>E2E-850150800</EndToEndId><UETR>e5a2b4e4-7a88-4825-a950-7da951ee5ccd</UETR></PmtId><IntrBkSttlmAmt Ccy=\"EGP\">30782.72</IntrBkSttlmAmt><ChrgBr>SLEV</ChrgBr><Dbtr><Nm>Salary Payroll Ltd</Nm></Dbtr><DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt><CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt><Cdtr><Nm>Household 823</Nm></Cdtr><CdtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></CdtrAcct></CdtTrfTxInf></FIToFICstmrCdtTrf></Document></Pyld>\n  <Pyld><Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08\"><FIToFICstmrCdtTrf><GrpHdr><MsgId>P8192666547</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm><NbOfTxs>1</NbOfTxs><SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf></GrpHdr><CdtTrfTxInf><PmtId><EndToEndId>E2E-223320384</EndToEndId><UETR>0f0e6c87-a606-4c05-9796-9228c98658f5</UETR></PmtId><IntrBkSttlmAmt Ccy=\"EGP\">9966.61</IntrBkSttlmAmt><ChrgBr>SLEV</ChrgBr><Dbtr><Nm>Salary Payroll Ltd</Nm></Dbtr><DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt><CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt><Cdtr><Nm>Household 641</Nm></Cdtr><CdtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></CdtrAcct></CdtTrfTxInf></FIToFICstmrCdtTrf></Document></Pyld>\n</Xchg>\n",
+      "ok": true
+    },
+    {
+      "id": "invalid/reversal-pacs007-missing-msgid.xml",
+      "messageKind": "pacs.007",
+      "family": "pacs.007.001.10",
+      "schema": "ISO-XSD-UNEXPECTED@/Document/FIToFIPmtRvsl/GrpHdr/MsgIdX;ISO-XSD-MISSING@/Document/FIToFIPmtRvsl/GrpHdr/MsgId;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-UNEXPECTED",
+      "ok": true
+    },
+    {
+      "id": "invalid/reversal-pacs007-count-mismatch.xml",
+      "messageKind": "pacs.007",
+      "family": "pacs.007.001.10",
+      "schema": "",
+      "business": "ISO-BIZ-COUNT@/Document/FIToFIPmtRvsl/GrpHdr/NbOfTxs;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-COUNT",
+      "ok": true
+    },
+    {
+      "id": "invalid/reversal-pacs007-zero-amount.xml",
+      "messageKind": "pacs.007",
+      "family": "pacs.007.001.10",
+      "schema": "",
+      "business": "ISO-BIZ-AMOUNT@/Document/FIToFIPmtRvsl/TxInf[1]/RvsdIntrBkSttlmAmt;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-AMOUNT",
+      "ok": true
+    },
+    {
+      "id": "invalid/reversal-pacs007-unregistered-currency.xml",
+      "messageKind": "pacs.007",
+      "family": "pacs.007.001.10",
+      "schema": "",
+      "business": "ISO-BIZ-CURRENCY@/Document/FIToFIPmtRvsl/TxInf[1]/RvsdIntrBkSttlmAmt;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-CURRENCY",
+      "ok": true
+    },
+    {
+      "id": "invalid/reversal-pacs007-reason-too-long.xml",
+      "messageKind": "pacs.007",
+      "family": "pacs.007.001.10",
+      "schema": "ISO-XSD-LENGTH@/Document/FIToFIPmtRvsl/TxInf/RvslRsnInf/Rsn/Cd;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-LENGTH",
+      "ok": true
+    },
+    {
+      "id": "invalid/fi-direct-debit-pacs010-no-uetr.xml",
+      "messageKind": "pacs.010",
+      "family": "pacs.010.001.04",
+      "schema": "",
+      "business": "ISO-BIZ-UETR-REQUIRED@/Document/FIDrctDbt/CdtInstr[1]/DrctDbtTxInf[1]/PmtId/UETR;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-UETR-REQUIRED",
+      "ok": true
+    },
+    {
+      "id": "invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+      "messageKind": "pacs.010",
+      "family": "pacs.010.001.04",
+      "schema": "",
+      "business": "ISO-BIZ-AGENT-BIC@/Document/FIDrctDbt/CdtInstr[1]/DrctDbtTxInf[1]/Dbtr;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-AGENT-BIC",
+      "ok": true
+    },
+    {
+      "id": "invalid/settlement-request-pacs029-one-movement.xml",
+      "messageKind": "pacs.029",
+      "family": "pacs.029.001.02",
+      "schema": "ISO-XSD-MISSING@/Document/MulSttlmReq/SttlmReq/MvmntRcrd;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-MISSING",
+      "ok": true
+    },
+    {
+      "id": "invalid/settlement-request-pacs029-movement-count.xml",
+      "messageKind": "pacs.029",
+      "family": "pacs.029.001.02",
+      "schema": "",
+      "business": "ISO-BIZ-COUNT@/Document/MulSttlmReq/SttlmReq[1]/NbOfMvmntRcrds;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-COUNT",
+      "ok": true
+    },
+    {
+      "id": "invalid/reversal-pain007-fraction-digits.xml",
+      "messageKind": "pain.007",
+      "family": "pain.007.001.10",
+      "schema": "",
+      "business": "ISO-BIZ-AMOUNT@/Document/CstmrPmtRvsl/OrgnlPmtInfAndRvsl[1]/TxInf[1]/RvsdInstdAmt;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-AMOUNT",
+      "ok": true
+    },
+    {
+      "id": "invalid/mandate-pain009-bad-sequence.xml",
+      "messageKind": "pain.009",
+      "family": "pain.009.001.07",
+      "schema": "ISO-XSD-ENUM@/Document/MndtInitnReq/Mndt/Ocrncs/SeqTp;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-ENUM",
+      "ok": true
+    },
+    {
+      "id": "invalid/mandate-pain009-debtor-agent-without-bic.xml",
+      "messageKind": "pain.009",
+      "family": "pain.009.001.07",
+      "schema": "",
+      "business": "ISO-BIZ-AGENT-BIC@/Document/MndtInitnReq/Mndt[1]/DbtrAgt;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-AGENT-BIC",
+      "ok": true
+    },
+    {
+      "id": "invalid/mandate-pain009-id-too-long.xml",
+      "messageKind": "pain.009",
+      "family": "pain.009.001.07",
+      "schema": "ISO-XSD-LENGTH@/Document/MndtInitnReq/Mndt/MndtId;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-LENGTH",
+      "ok": true
+    },
+    {
+      "id": "invalid/mandate-pain012-accepted-not-boolean.xml",
+      "messageKind": "pain.012",
+      "family": "pain.012.001.07",
+      "schema": "ISO-XSD-BOOLEAN@/Document/MndtAccptncRpt/UndrlygAccptncDtls/AccptncRslt/Accptd;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-BOOLEAN",
+      "ok": true
+    },
+    {
+      "id": "invalid/report-camt052-bad-side.xml",
+      "messageKind": "camt.052",
+      "family": "camt.052.001.08",
+      "schema": "ISO-XSD-ENUM@/Document/BkToCstmrAcctRpt/Rpt/Bal[2]/CdtDbtInd;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-ENUM",
+      "ok": true
+    },
+    {
+      "id": "invalid/notification-camt057-unregistered-currency.xml",
+      "messageKind": "camt.057",
+      "family": "camt.057.001.06",
+      "schema": "",
+      "business": "ISO-BIZ-CURRENCY@/Document/NtfctnToRcv/Ntfctn/Itm[1]/Amt;ISO-BIZ-CURRENCY@/Document/NtfctnToRcv/Ntfctn/Itm[2]/Amt;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-CURRENCY",
+      "ok": true
+    },
+    {
+      "id": "invalid/reporting-request-camt060-no-owner.xml",
+      "messageKind": "camt.060",
+      "family": "camt.060.001.05",
+      "schema": "ISO-XSD-MISSING@/Document/AcctRptgReq/RptgReq/AcctOwnr;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-MISSING",
+      "ok": true
+    },
+    {
+      "id": "invalid/liquidity-camt050-amount-without-currency.xml",
+      "messageKind": "camt.050",
+      "family": "camt.050.001.05",
+      "schema": "",
+      "business": "ISO-BIZ-CURRENCY@/Document/LqdtyCdtTrf/LqdtyCdtTrf/TrfdAmt;",
+      "expectedTier": "business",
+      "expectedRule": "ISO-BIZ-CURRENCY",
+      "ok": true
+    },
+    {
+      "id": "invalid/receipt-camt025-status-too-long.xml",
+      "messageKind": "camt.025",
+      "family": "camt.025.001.05",
+      "schema": "ISO-XSD-LENGTH@/Document/Rct/RctDtls/ReqHdlg/StsCd;ISO-XSD-PATTERN@/Document/Rct/RctDtls/ReqHdlg/StsCd;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-LENGTH",
+      "ok": true
+    },
+    {
+      "id": "invalid/investigation-camt026-bad-bic.xml",
+      "messageKind": "camt.026",
+      "family": "camt.026.001.07",
+      "schema": "ISO-XSD-PATTERN@/Document/UblToApply/Assgnmt/Assgnr/Agt/FinInstnId/BICFI;ISO-XSD-PATTERN@/Document/UblToApply/Case/Cretr/Agt/FinInstnId/BICFI;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-PATTERN",
+      "ok": true
+    },
+    {
+      "id": "invalid/investigation-camt087-wrong-namespace.xml",
+      "messageKind": "camt.087",
+      "family": "unknown",
+      "schema": "ISO-XSD-ROOT@/Document;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-ROOT",
+      "ok": true
+    },
+    {
+      "id": "invalid/admin-admi006-no-recipient.xml",
+      "messageKind": "admi.006",
+      "family": "admi.006.001.01",
+      "schema": "ISO-XSD-MISSING@/Document/RsndReq/RsndSchCrit/Rcpt;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-MISSING",
+      "ok": true
+    },
+    {
+      "id": "invalid/admin-admi017-session-too-long.xml",
+      "messageKind": "admi.017",
+      "family": "admi.017.001.01",
+      "schema": "ISO-XSD-PATTERN@/Document/PrcgReq/SttlmSsnIdr;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-PATTERN",
+      "ok": true
+    },
+    {
+      "id": "invalid/file-head002-payload-invalid.xml",
+      "messageKind": "head.002",
+      "family": "head.002.001.01",
+      "schema": "ISO-XSD-MISSING@/Xchg/Pyld[1]/Document/FIToFICstmrCdtTrf/CdtTrfTxInf/ChrgBr;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "ISO-XSD-MISSING",
+      "ok": true
+    },
+    {
+      "id": "invalid/file-head002-doctype.xml",
+      "messageKind": "head.002",
+      "family": "unknown",
+      "schema": "XML-UNSAFE-DECL@$xml@39;",
+      "business": "",
+      "expectedTier": "schema",
+      "expectedRule": "XML-UNSAFE-DECL",
+      "ok": true
+    }
+  ],
+  "summary": {
+    "valid": 24,
+    "valid_ok": 24,
+    "invalid": 25,
+    "invalid_ok": 25,
+    "xmllint_emitted_valid": 24,
+    "prowide_parsed": 23,
+    "prowide_checked": 23
+  }
+}

@@ -1,0 +1,8 @@
+[package]
+name = "thebes-lib"
+version = "0.2.0"
+description = "Thebes Protocol Motoko backend library (vendored)."
+license = "Apache-2.0"
+
+[dependencies]
+core = "2.5.0"

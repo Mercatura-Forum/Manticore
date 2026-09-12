@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.057.001.06">
+  <NtfctnToRcv>
+    <GrpHdr>
+      <MsgId>NTR907768687</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+    </GrpHdr>
+    <Ntfctn>
+      <Id>NTF291274754</Id>
+      <Acct><Id><Othr><Id>ACC80043209</Id></Othr></Id></Acct>
+      <Itm>
+        <Id>ITM1</Id>
+        <EndToEndId>E2E-367520496</EndToEndId>
+        <UETR>b431d92d-6682-4ce4-b85b-da94df2f8b1c</UETR>
+        <Amt Ccy="ZZZ">211507.97</Amt>
+        <XpctdValDt>2026-09-12</XpctdValDt>
+        <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>
+      </Itm>
+      <Itm>
+        <Id>ITM2</Id>
+        <EndToEndId>E2E-571772583</EndToEndId>
+        <UETR>e3928148-c5ad-436c-8103-89ccaaf50a4e</UETR>
+        <Amt Ccy="ZZZ">249051.93</Amt>
+        <XpctdValDt>2026-09-12</XpctdValDt>
+        <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>
+      </Itm>
+    </Ntfctn>
+  </NtfctnToRcv>
+</Document>

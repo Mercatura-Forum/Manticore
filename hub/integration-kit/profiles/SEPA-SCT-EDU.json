@@ -1,0 +1,58 @@
+{
+  "id": "SEPA-SCT-EDU",
+  "label": "SEPA Credit Transfer public-source education overlay",
+  "status": "implemented-runtime-overlay",
+  "officialCertification": false,
+  "sourceReferences": [
+    "https://www.europeanpaymentscouncil.eu/what-we-do/epc-payment-schemes/sepa-credit-transfer/sepa-credit-transfer-rulebook-and",
+    "https://www.europeanpaymentscouncil.eu/document-library/implementation-guidelines/sepa-credit-transfer-inter-psp-implementation-1"
+  ],
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setDefaultGuidelineProfile",
+    "setConnectorGuidelineProfile",
+    "validatePain001WithProfile"
+  ],
+  "messageFamilies": [
+    "pain.001",
+    "pain.002",
+    "pacs.008",
+    "pacs.002",
+    "pacs.004",
+    "camt.056",
+    "camt.029",
+    "pacs.028",
+    "camt.053",
+    "camt.054"
+  ],
+  "connectorFormats": [
+    "pain.001.xml",
+    "pain.002.xml",
+    "pacs.008.xml",
+    "pacs.002.xml",
+    "pacs.004.xml",
+    "camt.056.xml",
+    "camt.029.xml",
+    "pacs.028.xml",
+    "camt.053.xml",
+    "camt.054.xml"
+  ],
+  "ruleHighlights": [
+    "public EPC SCT profile tracked as a named overlay",
+    "compact codec can exercise overlapping credit-transfer and status messages",
+    "official EPC XSD/MUG profile enforcement remains external to the canister"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/pain001-eg-domestic.xml",
+      "../xml/valid/status-pain002-accepted.xml",
+      "../xml/valid/status-pacs002-settled.xml",
+      "../xml/valid/status-pacs004-returned.xml"
+    ],
+    "invalid": [
+      "../xml/invalid/status-uetr-mismatch.xml",
+      "../xml/invalid/xml-doctype-entity.xml"
+    ]
+  },
+  "disclaimer": "Education overlay only. It is not an EPC scheme certification or a complete SEPA usage-guideline implementation."
+}

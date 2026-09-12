@@ -1,0 +1,13 @@
+[package]
+name = "mayo2-sign"
+version = "0.1.0"
+edition = "2021"
+description = "MAYO-2 keypair from a seed and a signature over a file's bytes: the connector side of a signed ISO 20022 rail, for the payments battery."
+license = "Apache-2.0"
+
+[dependencies]
+hex = "0.4"
+pq-mayo = "0.2.3"
+rand = "0.10"
+serde_json = "1"
+signature = "2.2"

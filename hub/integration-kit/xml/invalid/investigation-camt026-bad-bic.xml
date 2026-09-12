@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.026.001.07">
+  <UblToApply>
+    <Assgnmt>
+      <Id>ASG87392070</Id>
+      <Assgnr><Agt><FinInstnId><BICFI>CIBEEG</BICFI></FinInstnId></Agt></Assgnr>
+      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+    </Assgnmt>
+    <Case><Id>CASE803104132</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEG</BICFI></FinInstnId></Agt></Cretr></Case>
+    <Undrlyg>
+      <IntrBk>
+        <OrgnlGrpInf><OrgnlMsgId>PACS008-385986</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>
+        <OrgnlEndToEndId>E2E-600151263</OrgnlEndToEndId>
+        <OrgnlUETR>ea26f00b-5570-46a3-a405-4b23cbee1df9</OrgnlUETR>
+        <OrgnlIntrBkSttlmAmt Ccy="EGP">13485.96</OrgnlIntrBkSttlmAmt>
+        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>
+      </IntrBk>
+    </Undrlyg>
+    <Justfn><MssngOrIncrrctInf><MssngInf><Cd>MS01</Cd></MssngInf><MssngInf><Cd>MS03</Cd></MssngInf></MssngOrIncrrctInf></Justfn>
+  </UblToApply>
+</Document>

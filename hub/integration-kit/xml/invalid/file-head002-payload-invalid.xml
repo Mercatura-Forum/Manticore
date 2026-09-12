@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Xchg xmlns="urn:iso:std:iso:20022:tech:xsd:head.002.001.01">
+  <PyldDesc>
+    <PyldData><PyldIdr>FILE485782765</PyldIdr><CreDtAndTm>2026-09-12T10:00:00Z</CreDtAndTm><PssblDplctFlg>false</PssblDplctFlg></PyldData>
+    <ApplSpcfcs><SysUsr>ach-batch</SysUsr><TtlNbOfDocs>1</TtlNbOfDocs></ApplSpcfcs>
+    <PyldTp>pacs.008.001.08</PyldTp>
+    <MnfstData><DocTp>pacs.008.001.08</DocTp><NbOfDocs>1</NbOfDocs></MnfstData>
+  </PyldDesc>
+  <Pyld><Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+  <FIToFICstmrCdtTrf>
+    <GrpHdr>
+      <MsgId>P8599839620</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>
+    </GrpHdr>
+    <CdtTrfTxInf>
+      <PmtId><EndToEndId>E2E-840844695</EndToEndId><UETR>36b912f0-861d-4139-b199-1845a423f708</UETR></PmtId>
+      <IntrBkSttlmAmt Ccy="EGP">16698.54</IntrBkSttlmAmt>
+      
+      <Dbtr><Nm>Salary Payroll Ltd</Nm></Dbtr>
+      <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>
+      <CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt>
+      <Cdtr><Nm>Household 67</Nm></Cdtr>
+      <CdtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></CdtrAcct>
+    </CdtTrfTxInf>
+  </FIToFICstmrCdtTrf>
+</Document></Pyld>
+</Xchg>

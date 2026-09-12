@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:admi.007.001.01">
+  <ReceiptAcknowledgement>
+    <EvtInf>
+      <MsgId>ADMI007-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T11:12:00Z</CreDtTm>
+      <RltdMsgId>PAIN013-20260622-000001</RltdMsgId>
+      <EvtCd>RCVD</EvtCd>
+      <Sts>ACK</Sts>
+      <AddtlInf>Administrative receipt acknowledgement fixture</AddtlInf>
+    </EvtInf>
+  </ReceiptAcknowledgement>
+</Document>

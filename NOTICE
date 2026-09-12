@@ -1,0 +1,76 @@
+Manticore: Thebes Core Banking and Payments
+Copyright 2026 Mercatura Forum contributors (Thebes Core Team)
+
+This repository is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+================================================================================
+THE VENDORED JOURNAL, AND THE MIT CODE IT CARRIES
+================================================================================
+
+`vendor/thebes-ledger-core/` is the double-entry journal this layer consumes
+(`src/journal/`, Apache-2.0, Thebes Core Team) together with the ledger family it
+builds on (`src/ledger/`, MIT) and two derivative works of that family
+(`src/facade/`). It is vendored as source so that this repository builds on its
+own.
+
+MIT-licensed files in `vendor/thebes-ledger-core/src/ledger/`, taken from the
+ICRC-ME ledger (Copyright (c) 2026 Mercatura Forum, MIT):
+
+  Allowances.mo  Archive.mo  BTreeIndex.mo  BlockLog.mo  BloomFilter.mo
+  CBOR.mo  CertifiedTree.mo  IndexedLedger.did  IndexedLedger.mo
+  MerkleMMR.mo  RegionBTree.mo  RegionBalances.mo  StableLog.mo  Types.mo
+
+`MerkleMMR.mo` carries one recorded change in `verifyProof` (the multi-peak fold
+order); every other file above is the upstream file unchanged.
+
+Derivative works of that MIT code, which carry the same MIT copyright and
+permission notice for the derived portions alongside this repository's
+Apache-2.0 licence for what was added:
+
+  vendor/thebes-ledger-core/src/facade/TokenLedger.mo   derived from IndexedLedger.mo
+  vendor/thebes-ledger-core/src/facade/FacadeCert.mo    reproduces CertifiedTree.mo's tip tree
+  vendor/thebes-ledger-core/src/ledger/RegionIndex.mo   derived from RegionBTree.mo: per-index
+                                                        key and value widths, a sibling pointer
+                                                        in the node header, a cursor-resumable
+                                                        range, a page free list, and a
+                                                        right-edge split
+
+Everything else in this repository (`src/`, `test/`, `integration/`, `tools/`,
+`vendor/thebes-ledger-core/src/journal/`, and the two further files in
+`vendor/thebes-ledger-core/src/ledger/`, `ByteBuf.mo` and `RegionRebuild.mo`) is
+original work under Apache-2.0. Where a module reproduces a construction from one of the MIT files
+rather than calling it, the file and the construction are named in that
+module's header comment.
+
+The MIT licence text, which applies to the files listed above:
+
+  MIT License
+
+  Copyright (c) 2026 Mercatura Forum
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+
+================================================================================
+POST-QUANTUM REFERENCE MATERIAL
+================================================================================
+
+`tools/pq/kat_mldsa44.rsp` is the NIST known-answer test file for ML-DSA-44
+(FIPS 204), used only to check `src/pq/`. The ML-DSA and MAYO implementations
+under `src/pq/` are original work under Apache-2.0, checked byte for byte
+against the reference implementations named in `tools/pq/`.

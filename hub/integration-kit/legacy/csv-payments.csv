@@ -1,0 +1,2 @@
+messageId,executionDate,currency,amountMinor,debtorName,debtorIban,debtorBic,creditorName,creditorIban,creditorBic,remittance
+CSV-20260622-000001,2026-06-22,EGP,1250000,Example Debtor SAE,EG380019000500000000263180002,EGBKEGCX,Example Creditor LLC,EG800002000156789012345180002,EXBKEGCX,Invoice INV-2026-001

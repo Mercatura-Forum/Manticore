@@ -1,0 +1,18 @@
+# build output
+*.wasm
+*.did.js
+build/
+.mops/
+# python
+__pycache__/
+*.pyc
+# rust helper build output (the source and the lock are committed)
+integration/bls-verify/target/
+tools/pq/mayo2-sign/target/
+tools/pq/mldsa44-ref/mldsa44_tool
+# local runs
+*.log
+evidence*.json
+# ISO 20022 schemas are fetched, not redistributed: tools/iso20022/fetch_schemas.sh, checksums in schemas.json
+tools/iso20022/schemas/
+hub/motoko/mops.lock

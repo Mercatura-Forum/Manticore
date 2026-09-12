@@ -1,0 +1,198 @@
+{
+  "id": "HVPSPLUS",
+  "name": "HVPS+ (high-value payment systems plus)",
+  "authority": "HVPS+ task force (RTGS operators)",
+  "basis": [
+    "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)",
+    "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods",
+    "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+  ],
+  "reconciliation": "NOT RECONCILED with MyStandards rule identifiers: the HVPS+ usage guidelines are access-controlled and the harness could not fetch them. The rule ids are the hub's; each rule names its public basis.",
+  "ruleCount": 20,
+  "implemented": {
+    "pacs.008": 11,
+    "pacs.009": 11,
+    "pacs.002": 4,
+    "camt.050": 4,
+    "camt.052": 3,
+    "camt.053": 3
+  },
+  "rules": [
+    {
+      "id": "HVPS-BAH-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009",
+        "pacs.002",
+        "camt.050",
+        "camt.052",
+        "camt.053"
+      ],
+      "check": "the head.001 AppHdr travels with the Document",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-MSGID-FINX",
+      "families": [
+        "pacs.008",
+        "pacs.009",
+        "pacs.002"
+      ],
+      "check": "GrpHdr/MsgId in the FIN X character set, no leading '/', no '//'",
+      "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+    },
+    {
+      "id": "HVPS-ONE-TX",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "CdtTrfTxInf occurs exactly 1",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-NBOFTXS-ONE",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "GrpHdr/NbOfTxs = '1'",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-UETR-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "require CdtTrfTxInf/PmtId/UETR",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "HVPS-STTLM-CLRG",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "GrpHdr/SttlmInf/SttlmMtd in {CLRG}",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-CLRSYS-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "require GrpHdr/SttlmInf/ClrSys",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-STTLM-DT-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "require CdtTrfTxInf/IntrBkSttlmDt",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-INSTG-AGT-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "require GrpHdr/InstgAgt",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-INSTD-AGT-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "require GrpHdr/InstdAgt",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-E2E-FINX",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "CdtTrfTxInf/PmtId/EndToEndId in the FIN X character set, no leading '/', no '//'",
+      "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+    },
+    {
+      "id": "HVPS-STS-ONE-TX",
+      "families": [
+        "pacs.002"
+      ],
+      "check": "TxInfAndSts occurs exactly 1",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-STS-ORGNL-UETR",
+      "families": [
+        "pacs.002"
+      ],
+      "check": "require TxInfAndSts/OrgnlUETR",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "HVPS-LQDTY-ID",
+      "families": [
+        "camt.050"
+      ],
+      "check": "require LqdtyCdtTrf/LqdtyTrfId/EndToEndId",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-LQDTY-CCY",
+      "families": [
+        "camt.050"
+      ],
+      "check": "require LqdtyCdtTrf/TrfdAmt/AmtWthCcy",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-LQDTY-ACCOUNTS",
+      "families": [
+        "camt.050"
+      ],
+      "check": "require LqdtyCdtTrf/CdtrAcct",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-RPT-ONE",
+      "families": [
+        "camt.052"
+      ],
+      "check": "Rpt occurs exactly 1",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-RPT-BALANCE",
+      "families": [
+        "camt.052"
+      ],
+      "check": "require Rpt/Bal",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-STMT-ONE",
+      "families": [
+        "camt.053"
+      ],
+      "check": "Stmt occurs exactly 1",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    },
+    {
+      "id": "HVPS-STMT-BALANCES",
+      "families": [
+        "camt.053"
+      ],
+      "check": "Stmt/Bal/Tp/CdOrPrtry/Cd includes {OPBD, CLBD}",
+      "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+    }
+  ]
+}

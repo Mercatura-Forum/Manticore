@@ -1,0 +1,31 @@
+{
+  "manifestVersion": "thebes-iso20022-batch-v1",
+  "connectorId": "bank-eg-001",
+  "batchId": "SFTP-IN-20260622-000001",
+  "createdAt": "2026-06-22T10:00:00Z",
+  "sequenceStart": 0,
+  "sequenceEnd": 1,
+  "files": [
+    {
+      "remoteId": "BANK-EG-001-000000",
+      "sequence": 0,
+      "format": "pain.001.xml",
+      "path": "xml/valid/pain001-eg-domestic.xml",
+      "sha256Hex": "<computed by sha256sum>",
+      "traceId": "TRACE-BANK-EG-001-000000"
+    },
+    {
+      "remoteId": "BANK-EG-001-000001",
+      "sequence": 1,
+      "format": "pacs.002.xml",
+      "path": "xml/valid/status-pacs002-settled.xml",
+      "sha256Hex": "<computed by sha256sum>",
+      "traceId": "TRACE-BANK-EG-001-000001"
+    }
+  ],
+  "replayProtection": {
+    "remoteIdMustBeUnique": true,
+    "sequenceMustBeMonotonic": true,
+    "payloadHashMustMatch": true
+  }
+}

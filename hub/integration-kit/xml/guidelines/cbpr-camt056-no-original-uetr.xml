@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+  <Fr><FIId><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></FIId></Fr>
+  <To><FIId><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></FIId></To>
+  <BizMsgIdr>C56659683703</BizMsgIdr>
+  <MsgDefIdr>camt.056.001.08</MsgDefIdr>
+  <BizSvc>swift.cbprplus.02</BizSvc>
+  <CreDt>2026-09-12T10:00:00Z</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.056.001.08">
+  <FIToFIPmtCxlReq>
+    <Assgnmt><Id>C56659683703</Id><Assgnr><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgnr><Assgne><Agt><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></Agt></Assgne><CreDtTm>2026-09-12T10:00:00Z</CreDtTm></Assgnmt>
+    <Undrlyg><TxInf><CxlId>CXL876849891</CxlId><OrgnlGrpInf><OrgnlMsgId>P8251489011</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf><OrgnlEndToEndId>E2E-1</OrgnlEndToEndId><OrgnlIntrBkSttlmAmt Ccy="USD">198574.13</OrgnlIntrBkSttlmAmt><OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt><CxlRsnInf><Rsn><Cd>DUPL</Cd></Rsn></CxlRsnInf></TxInf></Undrlyg>
+  </FIToFIPmtCxlReq>
+</Document>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.028.001.09">
+  <AddtlPmtInf>
+    <Assgnmt>
+      <Id>ASG471868884</Id>
+      <Assgnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Assgnr>
+      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+    </Assgnmt>
+    <Case><Id>CASE41188471</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Cretr></Case>
+    <Undrlyg>
+      <IntrBk>
+        <OrgnlGrpInf><OrgnlMsgId>PACS008-309244</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>
+        <OrgnlEndToEndId>E2E-709774485</OrgnlEndToEndId>
+        <OrgnlUETR>23e61c66-61bf-4a16-a555-6fa5795618cd</OrgnlUETR>
+        <OrgnlIntrBkSttlmAmt Ccy="EGP">22132.27</OrgnlIntrBkSttlmAmt>
+        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>
+      </IntrBk>
+    </Undrlyg>
+    <Inf><InstrForNxtAgt><InstrInf>apply to invoice 4471</InstrInf></InstrForNxtAgt></Inf>
+  </AddtlPmtInf>
+</Document>

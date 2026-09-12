@@ -1,0 +1,716 @@
+{
+  "version": "thebes-usage-guideline-fixtures-v1",
+  "seed": 20260912,
+  "conforming": [
+    {
+      "id": "cbpr-pacs008-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "xmllint": "schema-valid",
+      "sha256": "d65d8a685425e35b9cc32a6df06779dfc0efaf11af4d61c6913ed0e464edde2b"
+    },
+    {
+      "id": "cbpr-pacs009-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "xmllint": "schema-valid",
+      "sha256": "ff1f197d31bd7b6cd0db0a150b1fa076566bd85c76077a7f478321c0bd2400f2"
+    },
+    {
+      "id": "cbpr-pacs002-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "xmllint": "schema-valid",
+      "sha256": "30762bb4db4715d1308497809a9a1d0787925ce76a2bc8e954d5fbf620346415"
+    },
+    {
+      "id": "cbpr-pacs004-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "xmllint": "schema-valid",
+      "sha256": "3f3757390d703e7e253fb53a4c0690303ae2bf3e2ab2e0c7e65648866ccd74b9"
+    },
+    {
+      "id": "cbpr-camt053-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "xmllint": "schema-valid",
+      "sha256": "9c06106e7da250f5ea57b7e0b9f9bf99960ddc86422b20ff6aa920cd15725f54"
+    },
+    {
+      "id": "cbpr-camt054-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "xmllint": "schema-valid",
+      "sha256": "53b691d39bb5c0e0d22597f7e059340c9fb20f6dd4247b12a2e94f1932a65b06"
+    },
+    {
+      "id": "cbpr-camt056-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "xmllint": "schema-valid",
+      "sha256": "9d59beb60a6c4f17b43f5e3d0e584426d912baf189d3245db3d3f074b2d2812d"
+    },
+    {
+      "id": "cbpr-camt029-conforming",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-conforming.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "xmllint": "schema-valid",
+      "sha256": "36108cae0850d8bf187f2b8eedde170ffba73b50ef8a7ccc18203e3303595727"
+    },
+    {
+      "id": "hvps-pacs008-conforming",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-conforming.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "xmllint": "schema-valid",
+      "sha256": "b4ad795492b08d57a8faab849007f0b84ef2c6b9a9b8c884a8dc599fae541c42"
+    },
+    {
+      "id": "hvps-pacs009-conforming",
+      "path": "integration-kit/xml/guidelines/hvps-pacs009-conforming.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.009",
+      "xmllint": "schema-valid",
+      "sha256": "e5814ac938ea25c2eed23fe1d5500a9c532542f7a6b61c062d0631d9aa0936ab"
+    },
+    {
+      "id": "hvps-pacs002-conforming",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-conforming.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "xmllint": "schema-valid",
+      "sha256": "cc452e6fe3efb4fccbd047c6b77627c490102b0b7b986788c488c07d9d9804db"
+    },
+    {
+      "id": "hvps-camt050-conforming",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-conforming.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "xmllint": "schema-valid",
+      "sha256": "0cce3c2250bfbb87dfa566fa77ef6ad3691d5b62917a7f1fb79fdbb6ffd0261c"
+    },
+    {
+      "id": "hvps-camt052-conforming",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-conforming.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "xmllint": "schema-valid",
+      "sha256": "2b006d7d3d8a0aa6f001ca73bec67f18928ba9c8fd9e1b7a1106990407fa79ce"
+    },
+    {
+      "id": "hvps-camt053-conforming",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-conforming.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "xmllint": "schema-valid",
+      "sha256": "b310527ed7d87aa1ce47fb1ec77ddc7ba28ff0db0b54a64242f47310befe1c51"
+    }
+  ],
+  "violating": [
+    {
+      "id": "cbpr-pacs008-no-header",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-header.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-BAH-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "11706085d893bd8178edb8fae8195bd4f8dd59cfaae18e2af9b2c82fc0f03806"
+    },
+    {
+      "id": "cbpr-pacs008-msgid-charset",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-msgid-charset.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-MSGID-FINX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "60d80a255cf6bc7d5ff611f0992cfe8c8df8f73051703ba0203eca92463a6d5d"
+    },
+    {
+      "id": "cbpr-pacs008-two-transactions",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-two-transactions.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-ONE-TX",
+        "CBPR-NBOFTXS-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "9024b84f5a63a99dfe9b33cd938ccbe967aa6fc104bae8dab74822483f87f187"
+    },
+    {
+      "id": "cbpr-pacs008-nboftxs",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-nboftxs.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-NBOFTXS-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "7d4843206cff17296f7f6e227953982a58a8063d959a44ac6bb0e6996d7c8a97"
+    },
+    {
+      "id": "cbpr-pacs008-no-uetr",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-uetr.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-UETR-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "c60f69d5d08d99ab4c2c4633c8bc6571481d536880154adb74ef68161121e6a0"
+    },
+    {
+      "id": "cbpr-pacs008-clrg",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-clrg.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-STTLM-MTD"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "db348a9c3567361a46125502e72a3566f386ba00e7513082ec0095f4d2ab96dc"
+    },
+    {
+      "id": "cbpr-pacs008-no-settlement-date",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-settlement-date.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-STTLM-DT-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "5653275af2f422e2816d75dcc38855844acaabac8a070404ed66cb704b756f10"
+    },
+    {
+      "id": "cbpr-pacs008-slev",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-slev.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-CHRGBR"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "3cb05010a9d3f92d12f38715cc8cae3099e65b33744b76b73d6f0c50ec931b39"
+    },
+    {
+      "id": "cbpr-pacs008-e2e-charset",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-e2e-charset.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-E2E-FINX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "e408ac5179de3c9c108d69a88e2e6543e7d84a465acc48797167a2c640d22069"
+    },
+    {
+      "id": "cbpr-pacs008-instrid-charset",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-instrid-charset.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-INSTRID-FINX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "da10edc0022ad7189123fc1b2108f02cffb1a958b1d324e181b04ec36037aee6"
+    },
+    {
+      "id": "cbpr-pacs008-debtor-agent-unidentified",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-agent-unidentified.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-DBTR-AGENT-ID"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "86cd2b2e6e3b652c573e38b0863e8da5c57914b60a114e7c6ddda6d01272e80c"
+    },
+    {
+      "id": "cbpr-pacs008-debtor-unstructured-address",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-unstructured-address.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-DBTR-ADDRESS"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "9448dc593cac19636df27d971222aa8d2f535a62101d31dfc9f52dd55162c81b"
+    },
+    {
+      "id": "cbpr-pacs008-creditor-hybrid-three-lines",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-hybrid-three-lines.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-CDTR-ADDRESS"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "568780323b7a121cfee181c8b153b9d8257acdaa3dc0ff4847d46d3e5c82a3cf"
+    },
+    {
+      "id": "cbpr-pacs008-creditor-agent-unidentified",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-agent-unidentified.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "CBPR-CDTR-AGENT-ID"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "48b7f82131746617883bff5cedeb46bfdde1eb25d1ed314a66599b65599703fb"
+    },
+    {
+      "id": "cbpr-pacs009-debtor-unidentified",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-debtor-unidentified.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "rules": [
+        "CBPR-FI-DBTR-ID"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "cb6bea1b020dbcdb83cf462b8dd1933a0a4513bb8e34994323c2eb735277cf44"
+    },
+    {
+      "id": "cbpr-pacs009-creditor-unidentified",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-creditor-unidentified.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "rules": [
+        "CBPR-FI-CDTR-ID"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "f360a35c473bfe4b51c5a650277e4310c933c11d7830031485e6b13e51360e62"
+    },
+    {
+      "id": "cbpr-pacs004-two-transactions",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-two-transactions.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "rules": [
+        "CBPR-RTR-ONE-TX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "ea9837de519fa296d756f152a9f4fd0d9d6b2f9a028534d18487e50378af2988"
+    },
+    {
+      "id": "cbpr-pacs002-two-transactions",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-two-transactions.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "rules": [
+        "CBPR-STS-ONE-TX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "6879d248c8aeba80a59717e97b50737fb2e49f0644e6bf31f8e9face9c224136"
+    },
+    {
+      "id": "cbpr-pacs002-no-original-uetr",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-no-original-uetr.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "rules": [
+        "CBPR-STS-ORGNL-UETR"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "6999d210b70b9c2034478c36d962d478e7a3647d8ee296e6ee86b005974cd7d3"
+    },
+    {
+      "id": "cbpr-pacs002-group-status",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-group-status.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "rules": [
+        "CBPR-STS-NO-GROUP-STATUS"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "fc7f2fd0ee0b54a4f0b05a5c64549b98d2b20490907b20840c2d7d053e015e58"
+    },
+    {
+      "id": "cbpr-pacs004-no-original-uetr",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-original-uetr.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "rules": [
+        "CBPR-RTR-ORGNL-UETR"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "434ca5f81e524db8a9a73f808c224e0f6e7ca337813891f4515ca6d84daf71e0"
+    },
+    {
+      "id": "cbpr-pacs004-no-reason",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-reason.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "rules": [
+        "CBPR-RTR-REASON"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "bcb56b5fbab156d76aabf23a8a288af5f283800e5b1c10e6c666242b51aef0bd"
+    },
+    {
+      "id": "cbpr-pacs004-no-settlement-date",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-settlement-date.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "rules": [
+        "CBPR-RTR-STTLM-DT"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "0f9c5c9a28f73205cec229d332a4a3595514876047343416303124baf6650f5d"
+    },
+    {
+      "id": "cbpr-camt053-two-statements",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-two-statements.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "rules": [
+        "CBPR-STMT-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "79d03e90f92e48d8d21d380daac1400d4917a93b6bd2859caee57ec9334796a7"
+    },
+    {
+      "id": "cbpr-camt053-no-closing-balance",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-no-closing-balance.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "rules": [
+        "CBPR-STMT-BALANCES"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "f83d0f513d54034955adc93d2a7bf306c8bbd600d62e7ccb77a199c93598569f"
+    },
+    {
+      "id": "cbpr-camt053-pending-entry",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-pending-entry.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "rules": [
+        "CBPR-STMT-BOOKED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "16fbab074cc1edb8b3f3da651ad93af14ba19632e9f30b9d73d62e914a0d8ec0"
+    },
+    {
+      "id": "cbpr-camt054-two-notifications",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-two-notifications.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "rules": [
+        "CBPR-NTFCTN-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "7b74b7cd1af9a96f3c23db5c859726eb05c1f62fab8b61a0ed72459cd0062828"
+    },
+    {
+      "id": "cbpr-camt054-pending-entry",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-pending-entry.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "rules": [
+        "CBPR-NTFCTN-BOOKED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "3cd41cefec3fb12fc1614d18b1f1c1c315017d1ee281430fa24f9faaf3ad68ab"
+    },
+    {
+      "id": "cbpr-camt056-two-transactions",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-two-transactions.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "rules": [
+        "CBPR-CXL-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "6b0d41491177f7ba48e5c69c640071a4e807e8113d42a30e2364cd04a1374a05"
+    },
+    {
+      "id": "cbpr-camt056-no-original-uetr",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-no-original-uetr.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "rules": [
+        "CBPR-CXL-ORGNL-UETR"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "40a204b2043a5b87c40f47f044d0dc5a16796fbf9798bde1c1106c1293b98dc4"
+    },
+    {
+      "id": "cbpr-camt056-no-reason",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-no-reason.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "rules": [
+        "CBPR-CXL-REASON"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "b0510bea80f0a73dfa8ee7508632bf89b5fa61fc2febeef7136bb205c7c1fc53"
+    },
+    {
+      "id": "cbpr-camt029-two-transactions",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-two-transactions.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "rules": [
+        "CBPR-RSLTN-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "d08fa75be9953264de7f081e36d2c9a4ef3d114dca45309559d0560173a9f2e5"
+    },
+    {
+      "id": "cbpr-camt029-no-original-uetr",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-no-original-uetr.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "rules": [
+        "CBPR-RSLTN-ORGNL-UETR"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "0aadf00d14243223d6778c4bfb85cd5160087005203b3f1b30dc38931cd0f46e"
+    },
+    {
+      "id": "cbpr-camt029-no-status",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-no-status.xml",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "rules": [
+        "CBPR-RSLTN-STATUS"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "572091f2d26906a4b82a8e4fa8d6c6d2e930cbd567ccb68a6db44f97153f28b7"
+    },
+    {
+      "id": "hvps-pacs008-no-header",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-header.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-BAH-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "103103ec68247e795f2d8628469d7b7ecf16c5127c636f58792a978c1e76aa5f"
+    },
+    {
+      "id": "hvps-pacs008-msgid-charset",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-msgid-charset.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-MSGID-FINX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "dbc9f23b8c591f62fea24d74a86fc0bebd86648f29394df6c2d9955b0510c262"
+    },
+    {
+      "id": "hvps-pacs008-two-transactions",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-two-transactions.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-ONE-TX",
+        "HVPS-NBOFTXS-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "bfb64e0f01b3d75397115913c7761206b8106fb1e2a024fe5c4127851cb2ee24"
+    },
+    {
+      "id": "hvps-pacs008-nboftxs",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-nboftxs.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-NBOFTXS-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "e0893d112349dc40e6df3de956cf921082e60c04ca3c7e6d2d5c81110a46066b"
+    },
+    {
+      "id": "hvps-pacs008-no-uetr",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-uetr.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-UETR-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "bf47de4ee86bcb20da681c213ef1418136ee36da1d293fe79c3a99bb20aafe70"
+    },
+    {
+      "id": "hvps-pacs008-inda",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-inda.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-STTLM-CLRG"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "245cbe3b6663c5c2c9e27c98ef9ee045b136ec9a2f27a997b6f050b102a3d5b9"
+    },
+    {
+      "id": "hvps-pacs008-no-clearing-system",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-clearing-system.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-CLRSYS-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "08038b0f36db9a2984fb2dafee07ae8708b7104a5bd0ea672b716a649da9a31d"
+    },
+    {
+      "id": "hvps-pacs008-no-settlement-date",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-settlement-date.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-STTLM-DT-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "d74afdf458eb5d7ca72c2ecbf412dbfcc4501aaf4cbfb7ee0ac89785afc99a0d"
+    },
+    {
+      "id": "hvps-pacs008-no-instructing-agent",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-instructing-agent.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-INSTG-AGT-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "fb3d81f7828e7ecf2afc1650e1d623df043eee439aa4015097866d0a9dc71d29"
+    },
+    {
+      "id": "hvps-pacs008-no-instructed-agent",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-instructed-agent.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-INSTD-AGT-REQUIRED"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "f21c6b69a258de0508a1db02e09eeffb5d6c39969bb179687e89cb2e9939370a"
+    },
+    {
+      "id": "hvps-pacs008-e2e-charset",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-e2e-charset.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "rules": [
+        "HVPS-E2E-FINX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "b70c5d92a6992a81fbd37c52ff023f894505be6e88ae4172bb1635f0ad06ea84"
+    },
+    {
+      "id": "hvps-pacs002-two-transactions",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-two-transactions.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "rules": [
+        "HVPS-STS-ONE-TX"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "1be41861133d9b0ab581e933d6a03fe318d7763cc1b5b1de8cc8d51c4821e0b3"
+    },
+    {
+      "id": "hvps-pacs002-no-original-uetr",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-no-original-uetr.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "rules": [
+        "HVPS-STS-ORGNL-UETR"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "61cff8f2b19d5574dce1b62c11dfa32efb1b05851b6598d0a6decf2e5f44c420"
+    },
+    {
+      "id": "hvps-camt050-no-id",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-no-id.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "rules": [
+        "HVPS-LQDTY-ID"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "bde2ffed0d59a4a5550a6ba257c47db730cf493056a1fc724b11a0990353ebca"
+    },
+    {
+      "id": "hvps-camt050-amount-without-currency",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-amount-without-currency.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "rules": [
+        "HVPS-LQDTY-CCY"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "b77c12b2920235f8cb6c51884832257d98af408e96f33ba87e02bd7e0059d32e"
+    },
+    {
+      "id": "hvps-camt050-no-creditor-account",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-no-creditor-account.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "rules": [
+        "HVPS-LQDTY-ACCOUNTS"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "2292772ce92bf4553e9194ec3ec3771750357764202eb8c85ae5d7f504fcf97b"
+    },
+    {
+      "id": "hvps-camt052-two-reports",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-two-reports.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "rules": [
+        "HVPS-RPT-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "5e3ae42dde95c7dfc6d9085a13155e594f81c77aec841a9e373614050f95db12"
+    },
+    {
+      "id": "hvps-camt052-no-balance",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-no-balance.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "rules": [
+        "HVPS-RPT-BALANCE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "5508ad410f2dc1db58e7d82f95839cf1ac06e40d2d4a8e134c4a7a4de58085b0"
+    },
+    {
+      "id": "hvps-camt053-two-statements",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-two-statements.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "rules": [
+        "HVPS-STMT-ONE"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "d408517aef0000c0ba12f943a916f0fc5a8dd5bc8ef73b0d9ae6dc2ff03ea083"
+    },
+    {
+      "id": "hvps-camt053-no-opening-balance",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-no-opening-balance.xml",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "rules": [
+        "HVPS-STMT-BALANCES"
+      ],
+      "xmllint": "schema-valid",
+      "sha256": "7772be5e31c7942a801e132d317c253e515e605c2760ca1975c1d79ac2e6f19d"
+    }
+  ]
+}

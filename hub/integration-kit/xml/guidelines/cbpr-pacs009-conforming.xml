@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+  <Fr><FIId><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></FIId></Fr>
+  <To><FIId><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></FIId></To>
+  <BizMsgIdr>P9615566856</BizMsgIdr>
+  <MsgDefIdr>pacs.009.001.08</MsgDefIdr>
+  <BizSvc>swift.cbprplus.02</BizSvc>
+  <CreDt>2026-09-12T10:00:00Z</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.009.001.08">
+  <FICdtTrf>
+    <GrpHdr>
+      <MsgId>P9615566856</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <SttlmInf><SttlmMtd>INDA</SttlmMtd></SttlmInf>
+      
+    </GrpHdr>
+    <CdtTrfTxInf>
+      <PmtId><InstrId>INSTR-1</InstrId><EndToEndId>E2E-728323172</EndToEndId><UETR>e47b77fa-d502-4ca8-b798-22199951c6e7</UETR></PmtId>
+      <IntrBkSttlmAmt Ccy="USD">439281.30</IntrBkSttlmAmt>
+      <IntrBkSttlmDt>2026-09-12</IntrBkSttlmDt>
+      <Dbtr><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Dbtr>
+      <DbtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></DbtrAgt>
+      <CdtrAgt><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></CdtrAgt>
+      <Cdtr><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Cdtr>
+    </CdtTrfTxInf>
+  </FICdtTrf>
+</Document>

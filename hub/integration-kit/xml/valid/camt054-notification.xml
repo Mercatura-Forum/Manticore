@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.08">
+  <BkToCstmrDbtCdtNtfctn>
+    <Ntfctn>
+      <Ntry>
+        <NtryRef>CAMT-42</NtryRef>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Amt Ccy="EGP">12500.00</Amt>
+        <NtryDtls><TxDtls>
+          <PaymentId>42</PaymentId>
+          <UETR>8f2b5e70-1d44-4e6a-9c4a-2d9c87fd0011</UETR>
+          <TxSts>settled</TxSts>
+          <BookedAt>1772000000000000000</BookedAt>
+          <IBAN>EG800002000156789012345180002</IBAN>
+          <RltdPties>Example Debtor SAE</RltdPties>
+          <RmtInf><Ustrd>Invoice INV-2026-001</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+      </Ntry>
+    </Ntfctn>
+  </BkToCstmrDbtCdtNtfctn>
+</Document>

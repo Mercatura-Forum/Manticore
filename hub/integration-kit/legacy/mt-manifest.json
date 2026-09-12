@@ -1,0 +1,372 @@
+{
+  "version": "thebes-mt-bridge-fixtures-v1",
+  "seed": 20260912,
+  "fixtures": [
+    {
+      "id": "mt101-1.fin",
+      "path": "integration-kit/legacy/mt/mt101-1.fin",
+      "mt": "MT101",
+      "iso": "pain.001",
+      "keys": {
+        "20": "MT10108341419"
+      },
+      "writtenKeys": {
+        "20": "TX1-716700"
+      },
+      "sha256": "3f514dca1827f55706f639f61442b58d45e07439b98da720d625d4b56a879fe8"
+    },
+    {
+      "id": "mt101-2.fin",
+      "path": "integration-kit/legacy/mt/mt101-2.fin",
+      "mt": "MT101",
+      "iso": "pain.001",
+      "keys": {
+        "20": "MT10194046123"
+      },
+      "writtenKeys": {
+        "20": "TX1-601139"
+      },
+      "sha256": "8fc0486625d789f0a8903208fc20e7c190a922f242cc7f3238dfb384e1729c30"
+    },
+    {
+      "id": "mt103-1.fin",
+      "path": "integration-kit/legacy/mt/mt103-1.fin",
+      "mt": "MT103",
+      "iso": "pain.001",
+      "keys": {
+        "20": "MT10310957032",
+        "121": "7cb4f55c-141a-421b-b1e7-da1d330c057f"
+      },
+      "writtenKeys": {
+        "20": "MT10310957032",
+        "121": "7cb4f55c-141a-421b-b1e7-da1d330c057f"
+      },
+      "sha256": "7047be2ac9beeeff1965547b1570dc7a3986933c7a46ef22026a60868ca55986"
+    },
+    {
+      "id": "mt103-2.fin",
+      "path": "integration-kit/legacy/mt/mt103-2.fin",
+      "mt": "MT103",
+      "iso": "pain.001",
+      "keys": {
+        "20": "MT10375675235",
+        "121": "106c6b4c-9796-43f3-a877-541e0e3d69d0"
+      },
+      "writtenKeys": {
+        "20": "MT10375675235",
+        "121": "106c6b4c-9796-43f3-a877-541e0e3d69d0"
+      },
+      "sha256": "13774ac3e983208fa66a4626f414a5c0ff0ee5a0496879ee04bee9bb9da451cf"
+    },
+    {
+      "id": "mt104-1.fin",
+      "path": "integration-kit/legacy/mt/mt104-1.fin",
+      "mt": "MT104",
+      "iso": "pain.008",
+      "keys": {
+        "20": "MT10472053869"
+      },
+      "writtenKeys": {
+        "20": "MT10472053869"
+      },
+      "sha256": "27b4673ae233ec28154a6e1347fadcd3a58d6e28b77a79ce20386e9cfbce96f4"
+    },
+    {
+      "id": "mt104-2.fin",
+      "path": "integration-kit/legacy/mt/mt104-2.fin",
+      "mt": "MT104",
+      "iso": "pain.008",
+      "keys": {
+        "20": "MT10420086858"
+      },
+      "writtenKeys": {
+        "20": "MT10420086858"
+      },
+      "sha256": "1cc360471434d99de1e9de62cb74f5375804478467bf015338f7e7b42ce01e1b"
+    },
+    {
+      "id": "mt202-1.fin",
+      "path": "integration-kit/legacy/mt/mt202-1.fin",
+      "mt": "MT202",
+      "iso": "pacs.009",
+      "keys": {
+        "20": "MT20242773940",
+        "121": "1b2ec295-eca4-4e9b-9263-d7d2b852c040"
+      },
+      "writtenKeys": {
+        "20": "MT20242773940",
+        "121": "1b2ec295-eca4-4e9b-9263-d7d2b852c040"
+      },
+      "sha256": "024cb2a490ae7b8b9e264b1d8d1dfb06400d92d7b9e1a292a83c715e40919eec"
+    },
+    {
+      "id": "mt202-2.fin",
+      "path": "integration-kit/legacy/mt/mt202-2.fin",
+      "mt": "MT202",
+      "iso": "pacs.009",
+      "keys": {
+        "20": "MT20260624909",
+        "121": "0db26c50-50d7-487e-8617-ea0f1bf4f245"
+      },
+      "writtenKeys": {
+        "20": "MT20260624909",
+        "121": "0db26c50-50d7-487e-8617-ea0f1bf4f245"
+      },
+      "sha256": "1a24d3254fc65623ade3bd5e924b3fa9fcddefdb5b7808f51ad6d0d99a0b3080"
+    },
+    {
+      "id": "mt202cov-1.fin",
+      "path": "integration-kit/legacy/mt/mt202cov-1.fin",
+      "mt": "MT202COV",
+      "iso": "pacs.009 COV + pacs.008",
+      "keys": {
+        "20": "MT202C7751229",
+        "21": "MT10309345837",
+        "121": "2ba50f56-eed0-4654-8445-f7062684a112"
+      },
+      "writtenKeys": {
+        "20": "MT202C7751229",
+        "21": "MT10309345837",
+        "121": "2ba50f56-eed0-4654-8445-f7062684a112"
+      },
+      "sha256": "0ce898a5d7e4fb51e924bc0fc350e09f24f40215a316d607874ca8fddc569c58"
+    },
+    {
+      "id": "mt202cov-2.fin",
+      "path": "integration-kit/legacy/mt/mt202cov-2.fin",
+      "mt": "MT202COV",
+      "iso": "pacs.009 COV + pacs.008",
+      "keys": {
+        "20": "MT202C1295310",
+        "21": "MT10311575130",
+        "121": "5c8f0e6a-31ca-4318-90fa-a6fbe1cc3dcb"
+      },
+      "writtenKeys": {
+        "20": "MT202C1295310",
+        "21": "MT10311575130",
+        "121": "5c8f0e6a-31ca-4318-90fa-a6fbe1cc3dcb"
+      },
+      "sha256": "89fa03c4d0584a4b9b1449778128d142f47dfe59a1f67174d20663dc44ba447f"
+    },
+    {
+      "id": "mt900-1.fin",
+      "path": "integration-kit/legacy/mt/mt900-1.fin",
+      "mt": "MT900",
+      "iso": "camt.054",
+      "keys": {
+        "20": "MT90005832248"
+      },
+      "writtenKeys": {
+        "20": "MT90005832248"
+      },
+      "sha256": "315a7a62535478975b808d4154f125ba8870cb298f7f040854b5315509c2c385"
+    },
+    {
+      "id": "mt900-2.fin",
+      "path": "integration-kit/legacy/mt/mt900-2.fin",
+      "mt": "MT900",
+      "iso": "camt.054",
+      "keys": {
+        "20": "MT90013888930"
+      },
+      "writtenKeys": {
+        "20": "MT90013888930"
+      },
+      "sha256": "010656bd9a55b8d4996474d790e211e19b4bc859bd4d1e11c8d83425829af6e6"
+    },
+    {
+      "id": "mt910-1.fin",
+      "path": "integration-kit/legacy/mt/mt910-1.fin",
+      "mt": "MT910",
+      "iso": "camt.054",
+      "keys": {
+        "20": "MT91071167908"
+      },
+      "writtenKeys": {
+        "20": "MT91071167908"
+      },
+      "sha256": "6d9419b6be5a22139687fc075b367f122fb395a28de5f9f55d08d81dda22e7ec"
+    },
+    {
+      "id": "mt910-2.fin",
+      "path": "integration-kit/legacy/mt/mt910-2.fin",
+      "mt": "MT910",
+      "iso": "camt.054",
+      "keys": {
+        "20": "MT91084737524"
+      },
+      "writtenKeys": {
+        "20": "MT91084737524"
+      },
+      "sha256": "f8ab1c7bc58ab4ed739bcc4f2ac93bad9d2acceb4af6914084d05715c8d43645"
+    },
+    {
+      "id": "mt940-1.fin",
+      "path": "integration-kit/legacy/mt/mt940-1.fin",
+      "mt": "MT940",
+      "iso": "camt.053",
+      "keys": {
+        "20": "MT94088721810"
+      },
+      "writtenKeys": {
+        "20": "REF1-400369"
+      },
+      "sha256": "bec66a347cdbde261b82f5237b4fb9e637ae57b018c5fd47ecc914ee75956dc6"
+    },
+    {
+      "id": "mt940-2.fin",
+      "path": "integration-kit/legacy/mt/mt940-2.fin",
+      "mt": "MT940",
+      "iso": "camt.053",
+      "keys": {
+        "20": "MT94027915048"
+      },
+      "writtenKeys": {
+        "20": "REF1-204646"
+      },
+      "sha256": "73ed543e5e245c9e4df3d6c7f6d4679ea95c3ddf6dccca82a6ae6c4a69a83acf"
+    },
+    {
+      "id": "mt950-1.fin",
+      "path": "integration-kit/legacy/mt/mt950-1.fin",
+      "mt": "MT950",
+      "iso": "camt.053",
+      "keys": {
+        "20": "MT95012556156"
+      },
+      "writtenKeys": {
+        "20": "REF1-372208"
+      },
+      "sha256": "a2839f19feedd3b9731b601cb32f3cda729d51d60d51ba95b0f9fc81389e25d7"
+    },
+    {
+      "id": "mt950-2.fin",
+      "path": "integration-kit/legacy/mt/mt950-2.fin",
+      "mt": "MT950",
+      "iso": "camt.053",
+      "keys": {
+        "20": "MT95023354137"
+      },
+      "writtenKeys": {
+        "20": "REF1-701045"
+      },
+      "sha256": "28bf997ae6ef1dd8ea2be5168d8245b1c3c1a57cf61e1e2ce77e060cec3cf59b"
+    },
+    {
+      "id": "mt942-1.fin",
+      "path": "integration-kit/legacy/mt/mt942-1.fin",
+      "mt": "MT942",
+      "iso": "camt.052",
+      "keys": {
+        "20": "MT94211091620"
+      },
+      "writtenKeys": {
+        "20": "MT94211091620"
+      },
+      "sha256": "7c7a52b3fc5e71fabf33ebcb7af2b3d1a3aca9099c6f29d535936281626bd979"
+    },
+    {
+      "id": "mt942-2.fin",
+      "path": "integration-kit/legacy/mt/mt942-2.fin",
+      "mt": "MT942",
+      "iso": "camt.052",
+      "keys": {
+        "20": "MT94238735312"
+      },
+      "writtenKeys": {
+        "20": "MT94238735312"
+      },
+      "sha256": "c662d6ab1312b128e0f711c94cb9f32651c56ad3cf0db6d2be678d395bd0f9e7"
+    },
+    {
+      "id": "mt192-1.fin",
+      "path": "integration-kit/legacy/mt/mt192-1.fin",
+      "mt": "MT192",
+      "iso": "camt.056",
+      "keys": {
+        "20": "MT19257012567",
+        "21": "MT10335511878"
+      },
+      "writtenKeys": {
+        "20": "MT19257012567",
+        "21": "MT10335511878"
+      },
+      "sha256": "03b8f6a7f48e9436bdc4c99684c093f5042e3b6671aa72d803361ee81a63aec4"
+    },
+    {
+      "id": "mt192-2.fin",
+      "path": "integration-kit/legacy/mt/mt192-2.fin",
+      "mt": "MT192",
+      "iso": "camt.056",
+      "keys": {
+        "20": "MT19222982057",
+        "21": "MT10354214904"
+      },
+      "writtenKeys": {
+        "20": "MT19222982057",
+        "21": "MT10354214904"
+      },
+      "sha256": "9f4067e93e39d6918c16f98a35edf670303af1c48588bfa69e2e7ffe1202945e"
+    },
+    {
+      "id": "mt196-1.fin",
+      "path": "integration-kit/legacy/mt/mt196-1.fin",
+      "mt": "MT196",
+      "iso": "camt.029",
+      "keys": {
+        "20": "MT19688485559",
+        "21": "MT19203708812"
+      },
+      "writtenKeys": {
+        "20": "MT19688485559",
+        "21": "MT19203708812"
+      },
+      "sha256": "8f26dba41eb89e2a171b1e2213faee88e28de49025a42eaf12357f3a49af2e32"
+    },
+    {
+      "id": "mt196-2.fin",
+      "path": "integration-kit/legacy/mt/mt196-2.fin",
+      "mt": "MT196",
+      "iso": "camt.029",
+      "keys": {
+        "20": "MT19636151556",
+        "21": "MT19240910054"
+      },
+      "writtenKeys": {
+        "20": "MT19636151556",
+        "21": "MT19240910054"
+      },
+      "sha256": "12e4b705ac622d6d43851564f522b19605c4f4b79d39b7c52335bf3d30454be6"
+    },
+    {
+      "id": "mt199-1.fin",
+      "path": "integration-kit/legacy/mt/mt199-1.fin",
+      "mt": "MT199",
+      "iso": "camt.110",
+      "keys": {
+        "20": "MT19993162512",
+        "21": "MT10397198142"
+      },
+      "writtenKeys": {
+        "20": "MT19993162512",
+        "21": "MT10397198142"
+      },
+      "sha256": "166c11317f89074f12a83dd629f27658d47d2625fc11af380eff4ddcfeda8179"
+    },
+    {
+      "id": "mt199-2.fin",
+      "path": "integration-kit/legacy/mt/mt199-2.fin",
+      "mt": "MT199",
+      "iso": "camt.110",
+      "keys": {
+        "20": "MT19935682212",
+        "21": "MT10327931638"
+      },
+      "writtenKeys": {
+        "20": "MT19935682212",
+        "21": "MT10327931638"
+      },
+      "sha256": "4a944f8cf40b10613f52ee7120b195316105d910e00015221e0835a221dab79f"
+    }
+  ]
+}

@@ -1,0 +1,6565 @@
+{
+ "family": "camt.052.001.08",
+ "schemaSha256": "9bb093a0c39cd278d25b40d9ec8c59d1e8f6ab37536c83b84d41bbf5c7f8bd6c",
+ "namespace": "urn:iso:std:iso:20022:tech:xsd:camt.052.001.08",
+ "rootName": "Document",
+ "rootType": "Document",
+ "order": [
+  "AccountIdentification4Choice",
+  "AccountInterest4",
+  "AccountReport25",
+  "AccountSchemeName1Choice",
+  "ActiveCurrencyAndAmount_SimpleType",
+  "ActiveCurrencyAndAmount",
+  "ActiveCurrencyCode",
+  "ActiveOrHistoricCurrencyAnd13DecimalAmount_SimpleType",
+  "ActiveOrHistoricCurrencyAnd13DecimalAmount",
+  "ActiveOrHistoricCurrencyAndAmount_SimpleType",
+  "ActiveOrHistoricCurrencyAndAmount",
+  "ActiveOrHistoricCurrencyAndAmountRange2",
+  "ActiveOrHistoricCurrencyCode",
+  "AddressType2Code",
+  "AddressType3Choice",
+  "AmountAndCurrencyExchange3",
+  "AmountAndCurrencyExchangeDetails3",
+  "AmountAndCurrencyExchangeDetails4",
+  "AmountAndDirection35",
+  "AmountRangeBoundary1",
+  "AnyBICDec2014Identifier",
+  "AttendanceContext1Code",
+  "AuthenticationEntity1Code",
+  "AuthenticationMethod1Code",
+  "BICFIDec2014Identifier",
+  "BalanceSubType1Choice",
+  "BalanceType10Choice",
+  "BalanceType13",
+  "BankToCustomerAccountReportV08",
+  "BankTransactionCodeStructure4",
+  "BankTransactionCodeStructure5",
+  "BankTransactionCodeStructure6",
+  "BaseOneRate",
+  "BatchInformation2",
+  "BranchAndFinancialInstitutionIdentification6",
+  "BranchData3",
+  "CSCManagement1Code",
+  "CardAggregated2",
+  "CardDataReading1Code",
+  "CardEntry4",
+  "CardIndividualTransaction2",
+  "CardPaymentServiceType2Code",
+  "CardSecurityInformation1",
+  "CardSequenceNumberRange1",
+  "CardTransaction17",
+  "CardTransaction3Choice",
+  "CardholderAuthentication2",
+  "CardholderVerificationCapability1Code",
+  "CashAccount38",
+  "CashAccount39",
+  "CashAccountType2Choice",
+  "CashAvailability1",
+  "CashAvailabilityDate1Choice",
+  "CashBalance8",
+  "CashDeposit1",
+  "ChargeBearerType1Code",
+  "ChargeIncludedIndicator",
+  "ChargeType3Choice",
+  "Charges6",
+  "ChargesRecord3",
+  "ClearingSystemIdentification2Choice",
+  "ClearingSystemMemberIdentification2",
+  "Contact4",
+  "CopyDuplicate1Code",
+  "CorporateAction9",
+  "CountryCode",
+  "CreditDebitCode",
+  "CreditLine3",
+  "CreditLineType1Choice",
+  "CreditorReferenceInformation2",
+  "CreditorReferenceType1Choice",
+  "CreditorReferenceType2",
+  "CurrencyExchange5",
+  "DateAndDateTime2Choice",
+  "DateAndPlaceOfBirth1",
+  "DateOrDateTimePeriod1Choice",
+  "DatePeriod2",
+  "DateTimePeriod1",
+  "DecimalNumber",
+  "DiscountAmountAndType1",
+  "DiscountAmountType1Choice",
+  "DisplayCapabilities1",
+  "Document",
+  "DocumentAdjustment1",
+  "DocumentLineIdentification1",
+  "DocumentLineInformation1",
+  "DocumentLineType1",
+  "DocumentLineType1Choice",
+  "DocumentType3Code",
+  "DocumentType6Code",
+  "EntryDetails9",
+  "EntryStatus1Choice",
+  "EntryTransaction10",
+  "Exact1NumericText",
+  "Exact3NumericText",
+  "Exact4AlphaNumericText",
+  "ExternalAccountIdentification1Code",
+  "ExternalBalanceSubType1Code",
+  "ExternalBalanceType1Code",
+  "ExternalBankTransactionDomain1Code",
+  "ExternalBankTransactionFamily1Code",
+  "ExternalBankTransactionSubFamily1Code",
+  "ExternalCardTransactionCategory1Code",
+  "ExternalCashAccountType1Code",
+  "ExternalChargeType1Code",
+  "ExternalClearingSystemIdentification1Code",
+  "ExternalCreditLineType1Code",
+  "ExternalDiscountAmountType1Code",
+  "ExternalDocumentLineType1Code",
+  "ExternalEntryStatus1Code",
+  "ExternalFinancialInstitutionIdentification1Code",
+  "ExternalFinancialInstrumentIdentificationType1Code",
+  "ExternalGarnishmentType1Code",
+  "ExternalLocalInstrument1Code",
+  "ExternalOrganisationIdentification1Code",
+  "ExternalPersonIdentification1Code",
+  "ExternalProxyAccountType1Code",
+  "ExternalPurpose1Code",
+  "ExternalRePresentmentReason1Code",
+  "ExternalReportingSource1Code",
+  "ExternalReturnReason1Code",
+  "ExternalTaxAmountType1Code",
+  "ExternalTechnicalInputChannel1Code",
+  "FinancialIdentificationSchemeName1Choice",
+  "FinancialInstitutionIdentification18",
+  "FinancialInstrumentQuantity1Choice",
+  "FromToAmountRange1",
+  "Garnishment3",
+  "GarnishmentType1",
+  "GarnishmentType1Choice",
+  "GenericAccountIdentification1",
+  "GenericFinancialIdentification1",
+  "GenericIdentification1",
+  "GenericIdentification3",
+  "GenericIdentification30",
+  "GenericIdentification32",
+  "GenericOrganisationIdentification1",
+  "GenericPersonIdentification1",
+  "GroupHeader81",
+  "IBAN2007Identifier",
+  "ISINOct2015Identifier",
+  "ISO2ALanguageCode",
+  "ISODate",
+  "ISODateTime",
+  "ISOYearMonth",
+  "IdentificationSource3Choice",
+  "ImpliedCurrencyAmountRange1Choice",
+  "ImpliedCurrencyAndAmount",
+  "InterestRecord2",
+  "InterestType1Choice",
+  "InterestType1Code",
+  "LEIIdentifier",
+  "LocalInstrument2Choice",
+  "Max1025Text",
+  "Max105Text",
+  "Max128Text",
+  "Max140Text",
+  "Max15NumericText",
+  "Max15PlusSignedNumericText",
+  "Max16Text",
+  "Max2048Text",
+  "Max34Text",
+  "Max350Text",
+  "Max35Text",
+  "Max3NumericText",
+  "Max4Text",
+  "Max500Text",
+  "Max5NumericText",
+  "Max70Text",
+  "MessageIdentification2",
+  "Min2Max3NumericText",
+  "Min3Max4NumericText",
+  "Min8Max28NumericText",
+  "NameAndAddress16",
+  "NamePrefix2Code",
+  "NonNegativeDecimalNumber",
+  "Number",
+  "NumberAndSumOfTransactions1",
+  "NumberAndSumOfTransactions4",
+  "OnLineCapability1Code",
+  "OrganisationIdentification29",
+  "OrganisationIdentificationSchemeName1Choice",
+  "OriginalAndCurrentQuantities1",
+  "OriginalBusinessQuery1",
+  "OtherContact1",
+  "OtherIdentification1",
+  "POIComponentType1Code",
+  "Pagination1",
+  "Party38Choice",
+  "Party40Choice",
+  "PartyIdentification135",
+  "PartyType3Code",
+  "PartyType4Code",
+  "PaymentCard4",
+  "PaymentContext3",
+  "PaymentReturnReason5",
+  "PercentageRate",
+  "PersonIdentification13",
+  "PersonIdentificationSchemeName1Choice",
+  "PhoneNumber",
+  "PlainCardData1",
+  "PointOfInteraction1",
+  "PointOfInteractionCapabilities1",
+  "PointOfInteractionComponent1",
+  "PostalAddress24",
+  "PreferredContactMethod1Code",
+  "Price7",
+  "PriceRateOrAmount3Choice",
+  "PriceValueType1Code",
+  "Product2",
+  "ProprietaryAgent4",
+  "ProprietaryBankTransactionCodeStructure1",
+  "ProprietaryDate3",
+  "ProprietaryParty5",
+  "ProprietaryPrice2",
+  "ProprietaryQuantity1",
+  "ProprietaryReference1",
+  "ProxyAccountIdentification1",
+  "ProxyAccountType1Choice",
+  "Purpose2Choice",
+  "Rate4",
+  "RateType4Choice",
+  "ReferredDocumentInformation7",
+  "ReferredDocumentType3Choice",
+  "ReferredDocumentType4",
+  "RemittanceAmount2",
+  "RemittanceAmount3",
+  "RemittanceInformation16",
+  "RemittanceLocation7",
+  "RemittanceLocationData1",
+  "RemittanceLocationMethod2Code",
+  "ReportEntry10",
+  "ReportingSource1Choice",
+  "ReturnReason5Choice",
+  "SecuritiesAccount19",
+  "SecurityIdentification19",
+  "SequenceRange1",
+  "SequenceRange1Choice",
+  "StructuredRemittanceInformation16",
+  "SupplementaryData1",
+  "SupplementaryDataEnvelope1",
+  "TaxAmount2",
+  "TaxAmountAndType1",
+  "TaxAmountType1Choice",
+  "TaxAuthorisation1",
+  "TaxCharges2",
+  "TaxInformation7",
+  "TaxInformation8",
+  "TaxParty1",
+  "TaxParty2",
+  "TaxPeriod2",
+  "TaxRecord2",
+  "TaxRecordDetails2",
+  "TaxRecordPeriod1Code",
+  "TechnicalInputChannel1Choice",
+  "TotalTransactions6",
+  "TotalsPerBankTransactionCode5",
+  "TrackData1",
+  "TransactionAgents5",
+  "TransactionChannel1Code",
+  "TransactionDates3",
+  "TransactionEnvironment1Code",
+  "TransactionIdentifier1",
+  "TransactionInterest4",
+  "TransactionParties6",
+  "TransactionPrice4Choice",
+  "TransactionQuantities3Choice",
+  "TransactionReferences6",
+  "TrueFalseIndicator",
+  "UUIDv4Identifier",
+  "UnitOfMeasure1Code",
+  "UserInterface2Code",
+  "YesNoIndicator",
+  "YieldedOrValueType1Choice"
+ ],
+ "types": {
+  "AccountIdentification4Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "IBAN",
+     "type": "IBAN2007Identifier",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "GenericAccountIdentification1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "AccountInterest4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "InterestType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rate",
+     "type": "Rate4",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "FrToDt",
+     "type": "DateTimePeriod1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rsn",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tax",
+     "type": "TaxCharges2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "AccountReport25": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "RptPgntn",
+     "type": "Pagination1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ElctrncSeqNb",
+     "type": "Number",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RptgSeq",
+     "type": "SequenceRange1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "LglSeqNb",
+     "type": "Number",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CreDtTm",
+     "type": "ISODateTime",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FrToDt",
+     "type": "DateTimePeriod1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CpyDplctInd",
+     "type": "CopyDuplicate1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RptgSrc",
+     "type": "ReportingSource1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Acct",
+     "type": "CashAccount39",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "RltdAcct",
+     "type": "CashAccount38",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Intrst",
+     "type": "AccountInterest4",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "Bal",
+     "type": "CashBalance8",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "TxsSummry",
+     "type": "TotalTransactions6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ntry",
+     "type": "ReportEntry10",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "AddtlRptInf",
+     "type": "Max500Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "AccountSchemeName1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalAccountIdentification1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ActiveCurrencyAndAmount_SimpleType": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 5,
+   "totalDigits": 18,
+   "minInclusive": "0"
+  },
+  "ActiveCurrencyAndAmount": {
+   "kind": "complex",
+   "model": "simpleContent",
+   "simple": "ActiveCurrencyAndAmount_SimpleType",
+   "attribute": {
+    "name": "Ccy",
+    "type": "ActiveCurrencyCode"
+   }
+  },
+  "ActiveCurrencyCode": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{3,3}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ActiveOrHistoricCurrencyAnd13DecimalAmount_SimpleType": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 13,
+   "totalDigits": 18,
+   "minInclusive": "0"
+  },
+  "ActiveOrHistoricCurrencyAnd13DecimalAmount": {
+   "kind": "complex",
+   "model": "simpleContent",
+   "simple": "ActiveOrHistoricCurrencyAnd13DecimalAmount_SimpleType",
+   "attribute": {
+    "name": "Ccy",
+    "type": "ActiveOrHistoricCurrencyCode"
+   }
+  },
+  "ActiveOrHistoricCurrencyAndAmount_SimpleType": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 5,
+   "totalDigits": 18,
+   "minInclusive": "0"
+  },
+  "ActiveOrHistoricCurrencyAndAmount": {
+   "kind": "complex",
+   "model": "simpleContent",
+   "simple": "ActiveOrHistoricCurrencyAndAmount_SimpleType",
+   "attribute": {
+    "name": "Ccy",
+    "type": "ActiveOrHistoricCurrencyCode"
+   }
+  },
+  "ActiveOrHistoricCurrencyAndAmountRange2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Amt",
+     "type": "ImpliedCurrencyAmountRange1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ccy",
+     "type": "ActiveOrHistoricCurrencyCode",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ActiveOrHistoricCurrencyCode": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{3,3}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "AddressType2Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "ADDR",
+    "PBOX",
+    "HOME",
+    "BIZZ",
+    "MLTO",
+    "DLVY"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "AddressType3Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "AddressType2Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification30",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "AmountAndCurrencyExchange3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "InstdAmt",
+     "type": "AmountAndCurrencyExchangeDetails3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxAmt",
+     "type": "AmountAndCurrencyExchangeDetails3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CntrValAmt",
+     "type": "AmountAndCurrencyExchangeDetails3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AnncdPstngAmt",
+     "type": "AmountAndCurrencyExchangeDetails3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PrtryAmt",
+     "type": "AmountAndCurrencyExchangeDetails4",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "AmountAndCurrencyExchangeDetails3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CcyXchg",
+     "type": "CurrencyExchange5",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "AmountAndCurrencyExchangeDetails4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CcyXchg",
+     "type": "CurrencyExchange5",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "AmountAndDirection35": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Amt",
+     "type": "NonNegativeDecimalNumber",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "AmountRangeBoundary1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "BdryAmt",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Incl",
+     "type": "YesNoIndicator",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "AnyBICDec2014Identifier": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "AttendanceContext1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "ATTD",
+    "SATT",
+    "UATT"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "AuthenticationEntity1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "ICCD",
+    "AGNT",
+    "MERC"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "AuthenticationMethod1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "UKNW",
+    "BYPS",
+    "NPIN",
+    "FPIN",
+    "CPSG",
+    "PPSG",
+    "MANU",
+    "MERC",
+    "SCRT",
+    "SNCT",
+    "SCNL"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "BICFIDec2014Identifier": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "BalanceSubType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalBalanceSubType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "BalanceType10Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalBalanceType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "BalanceType13": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CdOrPrtry",
+     "type": "BalanceType10Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SubTp",
+     "type": "BalanceSubType1Choice",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "BankToCustomerAccountReportV08": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "GrpHdr",
+     "type": "GroupHeader81",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Rpt",
+     "type": "AccountReport25",
+     "min": 1,
+     "max": null
+    },
+    {
+     "name": "SplmtryData",
+     "type": "SupplementaryData1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "BankTransactionCodeStructure4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Domn",
+     "type": "BankTransactionCodeStructure5",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "ProprietaryBankTransactionCodeStructure1",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "BankTransactionCodeStructure5": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalBankTransactionDomain1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Fmly",
+     "type": "BankTransactionCodeStructure6",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "BankTransactionCodeStructure6": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalBankTransactionFamily1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SubFmlyCd",
+     "type": "ExternalBankTransactionSubFamily1Code",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "BaseOneRate": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 10,
+   "totalDigits": 11,
+   "minInclusive": null
+  },
+  "BatchInformation2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "MsgId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PmtInfId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NbOfTxs",
+     "type": "Max15NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "BranchAndFinancialInstitutionIdentification6": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FinInstnId",
+     "type": "FinancialInstitutionIdentification18",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "BrnchId",
+     "type": "BranchData3",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "BranchData3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "LEI",
+     "type": "LEIIdentifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstlAdr",
+     "type": "PostalAddress24",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CSCManagement1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "PRST",
+    "BYPS",
+    "UNRD",
+    "NCSC"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "CardAggregated2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AddtlSvc",
+     "type": "CardPaymentServiceType2Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxCtgy",
+     "type": "ExternalCardTransactionCategory1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SaleRcncltnId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SeqNbRg",
+     "type": "CardSequenceNumberRange1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxDtRg",
+     "type": "DateOrDateTimePeriod1Choice",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CardDataReading1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "TAGC",
+    "PHYS",
+    "BRCD",
+    "MGST",
+    "CICC",
+    "DFLE",
+    "CTLS",
+    "ECTL"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "CardEntry4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Card",
+     "type": "PaymentCard4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "POI",
+     "type": "PointOfInteraction1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AggtdNtry",
+     "type": "CardAggregated2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PrePdAcct",
+     "type": "CashAccount38",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CardIndividualTransaction2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "ICCRltdData",
+     "type": "Max1025Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PmtCntxt",
+     "type": "PaymentContext3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlSvc",
+     "type": "CardPaymentServiceType2Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxCtgy",
+     "type": "ExternalCardTransactionCategory1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SaleRcncltnId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SaleRefNb",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RePresntmntRsn",
+     "type": "ExternalRePresentmentReason1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SeqNb",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxId",
+     "type": "TransactionIdentifier1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Pdct",
+     "type": "Product2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "VldtnDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "VldtnSeqNb",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CardPaymentServiceType2Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "AGGR",
+    "DCCV",
+    "GRTT",
+    "INSP",
+    "LOYT",
+    "NRES",
+    "PUCO",
+    "RECP",
+    "SOAF",
+    "UNAF",
+    "VCAU"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "CardSecurityInformation1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CSCMgmt",
+     "type": "CSCManagement1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CSCVal",
+     "type": "Min3Max4NumericText",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CardSequenceNumberRange1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FrstTx",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "LastTx",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CardTransaction17": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Card",
+     "type": "PaymentCard4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "POI",
+     "type": "PointOfInteraction1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tx",
+     "type": "CardTransaction3Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PrePdAcct",
+     "type": "CashAccount38",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CardTransaction3Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Aggtd",
+     "type": "CardAggregated2",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Indv",
+     "type": "CardIndividualTransaction2",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CardholderAuthentication2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AuthntcnMtd",
+     "type": "AuthenticationMethod1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "AuthntcnNtty",
+     "type": "AuthenticationEntity1Code",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CardholderVerificationCapability1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "MNSG",
+    "NPIN",
+    "FCPN",
+    "FEPN",
+    "FDSG",
+    "FBIO",
+    "MNVR",
+    "FBIG",
+    "APKI",
+    "PKIS",
+    "CHDT",
+    "SCEC"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "CashAccount38": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "AccountIdentification4Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "CashAccountType2Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ccy",
+     "type": "ActiveOrHistoricCurrencyCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prxy",
+     "type": "ProxyAccountIdentification1",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CashAccount39": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "AccountIdentification4Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "CashAccountType2Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ccy",
+     "type": "ActiveOrHistoricCurrencyCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prxy",
+     "type": "ProxyAccountIdentification1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ownr",
+     "type": "PartyIdentification135",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Svcr",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CashAccountType2Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalCashAccountType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CashAvailability1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Dt",
+     "type": "CashAvailabilityDate1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CashAvailabilityDate1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "NbOfDays",
+     "type": "Max15PlusSignedNumericText",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ActlDt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CashBalance8": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "BalanceType13",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtLine",
+     "type": "CreditLine3",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Dt",
+     "type": "DateAndDateTime2Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Avlbty",
+     "type": "CashAvailability1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "CashDeposit1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NoteDnmtn",
+     "type": "ActiveCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "NbOfNotes",
+     "type": "Max15NumericText",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ChargeBearerType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "DEBT",
+    "CRED",
+    "SHAR",
+    "SLEV"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ChargeIncludedIndicator": {
+   "kind": "simple",
+   "base": "boolean",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ChargeType3Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalChargeType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification3",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Charges6": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "TtlChrgsAndTaxAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rcrd",
+     "type": "ChargesRecord3",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "ChargesRecord3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ChrgInclInd",
+     "type": "ChargeIncludedIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "ChargeType3Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rate",
+     "type": "PercentageRate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Br",
+     "type": "ChargeBearerType1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Agt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tax",
+     "type": "TaxCharges2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "ClearingSystemIdentification2Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalClearingSystemIdentification1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ClearingSystemMemberIdentification2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "ClrSysId",
+     "type": "ClearingSystemIdentification2Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MmbId",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Contact4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NmPrfx",
+     "type": "NamePrefix2Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PhneNb",
+     "type": "PhoneNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MobNb",
+     "type": "PhoneNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FaxNb",
+     "type": "PhoneNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "EmailAdr",
+     "type": "Max2048Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "EmailPurp",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "JobTitl",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rspnsblty",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dept",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "OtherContact1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "PrefrdMtd",
+     "type": "PreferredContactMethod1Code",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CopyDuplicate1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "CODU",
+    "COPY",
+    "DUPL"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "CorporateAction9": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "EvtTp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "EvtId",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CountryCode": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{2,2}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "CreditDebitCode": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "CRDT",
+    "DBIT"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "CreditLine3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Incl",
+     "type": "TrueFalseIndicator",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "CreditLineType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dt",
+     "type": "DateAndDateTime2Choice",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CreditLineType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalCreditLineType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CreditorReferenceInformation2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "CreditorReferenceType2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ref",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CreditorReferenceType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "DocumentType3Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "CreditorReferenceType2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CdOrPrtry",
+     "type": "CreditorReferenceType1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CurrencyExchange5": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "SrcCcy",
+     "type": "ActiveOrHistoricCurrencyCode",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "TrgtCcy",
+     "type": "ActiveOrHistoricCurrencyCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "UnitCcy",
+     "type": "ActiveOrHistoricCurrencyCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "XchgRate",
+     "type": "BaseOneRate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CtrctId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "QtnDt",
+     "type": "ISODateTime",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "DateAndDateTime2Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Dt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DtTm",
+     "type": "ISODateTime",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DateAndPlaceOfBirth1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "BirthDt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "PrvcOfBirth",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CityOfBirth",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CtryOfBirth",
+     "type": "CountryCode",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DateOrDateTimePeriod1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Dt",
+     "type": "DatePeriod2",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DtTm",
+     "type": "DateTimePeriod1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DatePeriod2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FrDt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ToDt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DateTimePeriod1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FrDtTm",
+     "type": "ISODateTime",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ToDtTm",
+     "type": "ISODateTime",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DecimalNumber": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 17,
+   "totalDigits": 18,
+   "minInclusive": null
+  },
+  "DiscountAmountAndType1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "DiscountAmountType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DiscountAmountType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalDiscountAmountType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DisplayCapabilities1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "DispTp",
+     "type": "UserInterface2Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "NbOfLines",
+     "type": "Max3NumericText",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "LineWidth",
+     "type": "Max3NumericText",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Document": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "BkToCstmrAcctRpt",
+     "type": "BankToCustomerAccountReportV08",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DocumentAdjustment1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rsn",
+     "type": "Max4Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlInf",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "DocumentLineIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "DocumentLineType1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nb",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "DocumentLineInformation1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "DocumentLineIdentification1",
+     "min": 1,
+     "max": null
+    },
+    {
+     "name": "Desc",
+     "type": "Max2048Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "RemittanceAmount3",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "DocumentLineType1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CdOrPrtry",
+     "type": "DocumentLineType1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "DocumentLineType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalDocumentLineType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DocumentType3Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "RADM",
+    "RPIN",
+    "FXDR",
+    "DISP",
+    "PUOR",
+    "SCOR"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "DocumentType6Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "MSIN",
+    "CNFA",
+    "DNFA",
+    "CINV",
+    "CREN",
+    "DEBN",
+    "HIRI",
+    "SBIN",
+    "CMCN",
+    "SOAC",
+    "DISP",
+    "BOLD",
+    "VCHR",
+    "AROI",
+    "TSUT",
+    "PUOR"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "EntryDetails9": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Btch",
+     "type": "BatchInformation2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxDtls",
+     "type": "EntryTransaction10",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "EntryStatus1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalEntryStatus1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "EntryTransaction10": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Refs",
+     "type": "TransactionReferences6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AmtDtls",
+     "type": "AmountAndCurrencyExchange3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Avlbty",
+     "type": "CashAvailability1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "BkTxCd",
+     "type": "BankTransactionCodeStructure4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Chrgs",
+     "type": "Charges6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Intrst",
+     "type": "TransactionInterest4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdPties",
+     "type": "TransactionParties6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdAgts",
+     "type": "TransactionAgents5",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "LclInstrm",
+     "type": "LocalInstrument2Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Purp",
+     "type": "Purpose2Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdRmtInf",
+     "type": "RemittanceLocation7",
+     "min": 0,
+     "max": 10
+    },
+    {
+     "name": "RmtInf",
+     "type": "RemittanceInformation16",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdDts",
+     "type": "TransactionDates3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdPric",
+     "type": "TransactionPrice4Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdQties",
+     "type": "TransactionQuantities3Choice",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "FinInstrmId",
+     "type": "SecurityIdentification19",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tax",
+     "type": "TaxInformation8",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RtrInf",
+     "type": "PaymentReturnReason5",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CorpActn",
+     "type": "CorporateAction9",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SfkpgAcct",
+     "type": "SecuritiesAccount19",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CshDpst",
+     "type": "CashDeposit1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "CardTx",
+     "type": "CardTransaction17",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlTxInf",
+     "type": "Max500Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SplmtryData",
+     "type": "SupplementaryData1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "Exact1NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Exact3NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]{3}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Exact4AlphaNumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[a-zA-Z0-9]{4}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalAccountIdentification1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalBalanceSubType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalBalanceType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalBankTransactionDomain1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalBankTransactionFamily1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalBankTransactionSubFamily1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalCardTransactionCategory1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalCashAccountType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalChargeType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalClearingSystemIdentification1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 5,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalCreditLineType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalDiscountAmountType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalDocumentLineType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalEntryStatus1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalFinancialInstitutionIdentification1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalFinancialInstrumentIdentificationType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalGarnishmentType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalLocalInstrument1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 35,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalOrganisationIdentification1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalPersonIdentification1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalProxyAccountType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalPurpose1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalRePresentmentReason1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalReportingSource1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalReturnReason1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalTaxAmountType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalTechnicalInputChannel1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "FinancialIdentificationSchemeName1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalFinancialInstitutionIdentification1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "FinancialInstitutionIdentification18": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "BICFI",
+     "type": "BICFIDec2014Identifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ClrSysMmbId",
+     "type": "ClearingSystemMemberIdentification2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "LEI",
+     "type": "LEIIdentifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstlAdr",
+     "type": "PostalAddress24",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "GenericFinancialIdentification1",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "FinancialInstrumentQuantity1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Unit",
+     "type": "DecimalNumber",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "FaceAmt",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "AmtsdVal",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "FromToAmountRange1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FrAmt",
+     "type": "AmountRangeBoundary1",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ToAmt",
+     "type": "AmountRangeBoundary1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Garnishment3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "GarnishmentType1",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Grnshee",
+     "type": "PartyIdentification135",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "GrnshmtAdmstr",
+     "type": "PartyIdentification135",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RefNb",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RmtdAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FmlyMdclInsrncInd",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MplyeeTermntnInd",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GarnishmentType1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CdOrPrtry",
+     "type": "GarnishmentType1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GarnishmentType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalGarnishmentType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "GenericAccountIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max34Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "AccountSchemeName1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericFinancialIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "FinancialIdentificationSchemeName1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericIdentification3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericIdentification30": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Exact4AlphaNumericText",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericIdentification32": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "PartyType3Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "PartyType4Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ShrtNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericOrganisationIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "OrganisationIdentificationSchemeName1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericPersonIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "PersonIdentificationSchemeName1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GroupHeader81": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "MsgId",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CreDtTm",
+     "type": "ISODateTime",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "MsgRcpt",
+     "type": "PartyIdentification135",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MsgPgntn",
+     "type": "Pagination1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "OrgnlBizQry",
+     "type": "OriginalBusinessQuery1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlInf",
+     "type": "Max500Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "IBAN2007Identifier": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ISINOct2015Identifier": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{2,2}[A-Z0-9]{9,9}[0-9]{1,1}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ISO2ALanguageCode": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[a-z]{2,2}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ISODate": {
+   "kind": "simple",
+   "base": "date",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ISODateTime": {
+   "kind": "simple",
+   "base": "dateTime",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ISOYearMonth": {
+   "kind": "simple",
+   "base": "yearMonth",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "IdentificationSource3Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalFinancialInstrumentIdentificationType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ImpliedCurrencyAmountRange1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "FrAmt",
+     "type": "AmountRangeBoundary1",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ToAmt",
+     "type": "AmountRangeBoundary1",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "FrToAmt",
+     "type": "FromToAmountRange1",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "EQAmt",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "NEQAmt",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ImpliedCurrencyAndAmount": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 5,
+   "totalDigits": 18,
+   "minInclusive": "0"
+  },
+  "InterestRecord2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "InterestType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rate",
+     "type": "Rate4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FrToDt",
+     "type": "DateTimePeriod1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rsn",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tax",
+     "type": "TaxCharges2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "InterestType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "InterestType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "InterestType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "INDY",
+    "OVRN"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "LEIIdentifier": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z0-9]{18,18}[0-9]{2,2}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "LocalInstrument2Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalLocalInstrument1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Max1025Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 1025,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max105Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 105,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max128Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 128,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max140Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 140,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max15NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]{1,15}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max15PlusSignedNumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[\\+]{0,1}[0-9]{1,15}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max16Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 16,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max2048Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 2048,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max34Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 34,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max350Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 350,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max35Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 35,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max3NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]{1,3}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max4Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max500Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 500,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max5NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]{1,5}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max70Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 70,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "MessageIdentification2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "MsgNmId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MsgId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "Min2Max3NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]{2,3}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Min3Max4NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]{3,4}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Min8Max28NumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[0-9]{8,28}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "NameAndAddress16": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Adr",
+     "type": "PostalAddress24",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "NamePrefix2Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "DOCT",
+    "MADM",
+    "MISS",
+    "MIST",
+    "MIKS"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "NonNegativeDecimalNumber": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 17,
+   "totalDigits": 18,
+   "minInclusive": "0"
+  },
+  "Number": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 0,
+   "totalDigits": 18,
+   "minInclusive": null
+  },
+  "NumberAndSumOfTransactions1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NbOfNtries",
+     "type": "Max15NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Sum",
+     "type": "DecimalNumber",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "NumberAndSumOfTransactions4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NbOfNtries",
+     "type": "Max15NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Sum",
+     "type": "DecimalNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlNetNtry",
+     "type": "AmountAndDirection35",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "OnLineCapability1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "OFLN",
+    "ONLN",
+    "SMON"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "OrganisationIdentification29": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AnyBIC",
+     "type": "AnyBICDec2014Identifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "LEI",
+     "type": "LEIIdentifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "GenericOrganisationIdentification1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "OrganisationIdentificationSchemeName1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalOrganisationIdentification1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "OriginalAndCurrentQuantities1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FaceAmt",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "AmtsdVal",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "OriginalBusinessQuery1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "MsgId",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "MsgNmId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CreDtTm",
+     "type": "ISODateTime",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "OtherContact1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "ChanlTp",
+     "type": "Max4Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Id",
+     "type": "Max128Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "OtherIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Sfx",
+     "type": "Max16Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "IdentificationSource3Choice",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "POIComponentType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "SOFT",
+    "EMVK",
+    "EMVO",
+    "MRIT",
+    "CHIT",
+    "SECM",
+    "PEDV"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Pagination1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PgNb",
+     "type": "Max5NumericText",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "LastPgInd",
+     "type": "YesNoIndicator",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Party38Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "OrgId",
+     "type": "OrganisationIdentification29",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "PrvtId",
+     "type": "PersonIdentification13",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Party40Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Pty",
+     "type": "PartyIdentification135",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Agt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PartyIdentification135": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstlAdr",
+     "type": "PostalAddress24",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Id",
+     "type": "Party38Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CtryOfRes",
+     "type": "CountryCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CtctDtls",
+     "type": "Contact4",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "PartyType3Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "OPOI",
+    "MERC",
+    "ACCP",
+    "ITAG",
+    "ACQR",
+    "CISS",
+    "DLIS"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "PartyType4Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "MERC",
+    "ACCP",
+    "ITAG",
+    "ACQR",
+    "CISS",
+    "TAXH"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "PaymentCard4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PlainCardData",
+     "type": "PlainCardData1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CardCtryCd",
+     "type": "Exact3NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CardBrnd",
+     "type": "GenericIdentification1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlCardData",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "PaymentContext3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CardPres",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CrdhldrPres",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "OnLineCntxt",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AttndncCntxt",
+     "type": "AttendanceContext1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxEnvt",
+     "type": "TransactionEnvironment1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxChanl",
+     "type": "TransactionChannel1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AttndntMsgCpbl",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AttndntLang",
+     "type": "ISO2ALanguageCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CardDataNtryMd",
+     "type": "CardDataReading1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "FllbckInd",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AuthntcnMtd",
+     "type": "CardholderAuthentication2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "PaymentReturnReason5": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "OrgnlBkTxCd",
+     "type": "BankTransactionCodeStructure4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Orgtr",
+     "type": "PartyIdentification135",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rsn",
+     "type": "ReturnReason5Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlInf",
+     "type": "Max105Text",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "PercentageRate": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 10,
+   "totalDigits": 11,
+   "minInclusive": null
+  },
+  "PersonIdentification13": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "DtAndPlcOfBirth",
+     "type": "DateAndPlaceOfBirth1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "GenericPersonIdentification1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "PersonIdentificationSchemeName1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalPersonIdentification1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PhoneNumber": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "\\+[0-9]{1,3}-[0-9()+\\-]{1,30}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "PlainCardData1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PAN",
+     "type": "Min8Max28NumericText",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CardSeqNb",
+     "type": "Min2Max3NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FctvDt",
+     "type": "ISOYearMonth",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "XpryDt",
+     "type": "ISOYearMonth",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SvcCd",
+     "type": "Exact3NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TrckData",
+     "type": "TrackData1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "CardSctyCd",
+     "type": "CardSecurityInformation1",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "PointOfInteraction1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "GenericIdentification32",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SysNm",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "GrpId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Cpblties",
+     "type": "PointOfInteractionCapabilities1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Cmpnt",
+     "type": "PointOfInteractionComponent1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "PointOfInteractionCapabilities1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CardRdngCpblties",
+     "type": "CardDataReading1Code",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "CrdhldrVrfctnCpblties",
+     "type": "CardholderVerificationCapability1Code",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "OnLineCpblties",
+     "type": "OnLineCapability1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DispCpblties",
+     "type": "DisplayCapabilities1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "PrtLineWidth",
+     "type": "Max3NumericText",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "PointOfInteractionComponent1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "POICmpntTp",
+     "type": "POIComponentType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ManfctrId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Mdl",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "VrsnNb",
+     "type": "Max16Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SrlNb",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ApprvlNb",
+     "type": "Max70Text",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "PostalAddress24": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AdrTp",
+     "type": "AddressType3Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dept",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SubDept",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "StrtNm",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "BldgNb",
+     "type": "Max16Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "BldgNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Flr",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstBx",
+     "type": "Max16Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Room",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstCd",
+     "type": "Max16Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TwnNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TwnLctnNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DstrctNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CtrySubDvsn",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ctry",
+     "type": "CountryCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AdrLine",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 7
+    }
+   ]
+  },
+  "PreferredContactMethod1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "LETT",
+    "MAIL",
+    "PHON",
+    "FAXX",
+    "CELL"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Price7": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "YieldedOrValueType1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Val",
+     "type": "PriceRateOrAmount3Choice",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PriceRateOrAmount3Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Rate",
+     "type": "PercentageRate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAnd13DecimalAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PriceValueType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "DISC",
+    "PREM",
+    "PARV"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Product2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PdctCd",
+     "type": "Max70Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "UnitOfMeasr",
+     "type": "UnitOfMeasure1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PdctQty",
+     "type": "DecimalNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "UnitPric",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PdctAmt",
+     "type": "ImpliedCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxTp",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlPdctInf",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "ProprietaryAgent4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Agt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ProprietaryBankTransactionCodeStructure1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "ProprietaryDate3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Dt",
+     "type": "DateAndDateTime2Choice",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ProprietaryParty5": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Pty",
+     "type": "Party40Choice",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ProprietaryPrice2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Pric",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ProprietaryQuantity1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Qty",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ProprietaryReference1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Ref",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ProxyAccountIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "ProxyAccountType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Id",
+     "type": "Max2048Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ProxyAccountType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalProxyAccountType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Purpose2Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalPurpose1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Rate4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "RateType4Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "VldtyRg",
+     "type": "ActiveOrHistoricCurrencyAndAmountRange2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "RateType4Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Pctg",
+     "type": "PercentageRate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ReferredDocumentInformation7": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "ReferredDocumentType4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nb",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RltdDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "LineDtls",
+     "type": "DocumentLineInformation1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "ReferredDocumentType3Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "DocumentType6Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ReferredDocumentType4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "CdOrPrtry",
+     "type": "ReferredDocumentType3Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "RemittanceAmount2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "DuePyblAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DscntApldAmt",
+     "type": "DiscountAmountAndType1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "CdtNoteAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxAmt",
+     "type": "TaxAmountAndType1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "AdjstmntAmtAndRsn",
+     "type": "DocumentAdjustment1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "RmtdAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "RemittanceAmount3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "DuePyblAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DscntApldAmt",
+     "type": "DiscountAmountAndType1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "CdtNoteAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxAmt",
+     "type": "TaxAmountAndType1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "AdjstmntAmtAndRsn",
+     "type": "DocumentAdjustment1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "RmtdAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "RemittanceInformation16": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Ustrd",
+     "type": "Max140Text",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "Strd",
+     "type": "StructuredRemittanceInformation16",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "RemittanceLocation7": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "RmtId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RmtLctnDtls",
+     "type": "RemittanceLocationData1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "RemittanceLocationData1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Mtd",
+     "type": "RemittanceLocationMethod2Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ElctrncAdr",
+     "type": "Max2048Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstlAdr",
+     "type": "NameAndAddress16",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "RemittanceLocationMethod2Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "FAXI",
+    "EDIC",
+    "URID",
+    "EMAL",
+    "POST",
+    "SMSM"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ReportEntry10": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NtryRef",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CdtDbtInd",
+     "type": "CreditDebitCode",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "RvslInd",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Sts",
+     "type": "EntryStatus1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "BookgDt",
+     "type": "DateAndDateTime2Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ValDt",
+     "type": "DateAndDateTime2Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AcctSvcrRef",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Avlbty",
+     "type": "CashAvailability1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "BkTxCd",
+     "type": "BankTransactionCodeStructure4",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ComssnWvrInd",
+     "type": "YesNoIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlInfInd",
+     "type": "MessageIdentification2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AmtDtls",
+     "type": "AmountAndCurrencyExchange3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Chrgs",
+     "type": "Charges6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TechInptChanl",
+     "type": "TechnicalInputChannel1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Intrst",
+     "type": "TransactionInterest4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CardTx",
+     "type": "CardEntry4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NtryDtls",
+     "type": "EntryDetails9",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "AddtlNtryInf",
+     "type": "Max500Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "ReportingSource1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalReportingSource1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ReturnReason5Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalReturnReason1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "SecuritiesAccount19": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "GenericIdentification30",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "SecurityIdentification19": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "ISIN",
+     "type": "ISINOct2015Identifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "OthrId",
+     "type": "OtherIdentification1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "Desc",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "SequenceRange1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FrSeq",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ToSeq",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "SequenceRange1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "FrSeq",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ToSeq",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "FrToSeq",
+     "type": "SequenceRange1",
+     "min": 1,
+     "max": null
+    },
+    {
+     "name": "EQSeq",
+     "type": "Max35Text",
+     "min": 1,
+     "max": null
+    },
+    {
+     "name": "NEQSeq",
+     "type": "Max35Text",
+     "min": 1,
+     "max": null
+    }
+   ]
+  },
+  "StructuredRemittanceInformation16": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "RfrdDocInf",
+     "type": "ReferredDocumentInformation7",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "RfrdDocAmt",
+     "type": "RemittanceAmount2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CdtrRefInf",
+     "type": "CreditorReferenceInformation2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Invcr",
+     "type": "PartyIdentification135",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Invcee",
+     "type": "PartyIdentification135",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxRmt",
+     "type": "TaxInformation7",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "GrnshmtRmt",
+     "type": "Garnishment3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlRmtInf",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 3
+    }
+   ]
+  },
+  "SupplementaryData1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PlcAndNm",
+     "type": "Max350Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Envlp",
+     "type": "SupplementaryDataEnvelope1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "SupplementaryDataEnvelope1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "*",
+     "type": null,
+     "min": 1,
+     "max": 1,
+     "namespace": "##any"
+    }
+   ]
+  },
+  "TaxAmount2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Rate",
+     "type": "PercentageRate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxblBaseAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dtls",
+     "type": "TaxRecordDetails2",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TaxAmountAndType1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "TaxAmountType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TaxAmountType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalTaxAmountType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TaxAuthorisation1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Titl",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "TaxCharges2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rate",
+     "type": "PercentageRate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "TaxInformation7": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Cdtr",
+     "type": "TaxParty1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dbtr",
+     "type": "TaxParty2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "UltmtDbtr",
+     "type": "TaxParty2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AdmstnZone",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RefNb",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Mtd",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlTaxblBaseAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlTaxAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SeqNb",
+     "type": "Number",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rcrd",
+     "type": "TaxRecord2",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TaxInformation8": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Cdtr",
+     "type": "TaxParty1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dbtr",
+     "type": "TaxParty2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AdmstnZone",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RefNb",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Mtd",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlTaxblBaseAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlTaxAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SeqNb",
+     "type": "Number",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rcrd",
+     "type": "TaxRecord2",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TaxParty1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "TaxId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RegnId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxTp",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "TaxParty2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "TaxId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RegnId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxTp",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Authstn",
+     "type": "TaxAuthorisation1",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "TaxPeriod2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Yr",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Tp",
+     "type": "TaxRecordPeriod1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FrToDt",
+     "type": "DatePeriod2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "TaxRecord2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ctgy",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CtgyDtls",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DbtrSts",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CertId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FrmsCd",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prd",
+     "type": "TaxPeriod2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TaxAmt",
+     "type": "TaxAmount2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlInf",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "TaxRecordDetails2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Prd",
+     "type": "TaxPeriod2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Amt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TaxRecordPeriod1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "MM01",
+    "MM02",
+    "MM03",
+    "MM04",
+    "MM05",
+    "MM06",
+    "MM07",
+    "MM08",
+    "MM09",
+    "MM10",
+    "MM11",
+    "MM12",
+    "QTR1",
+    "QTR2",
+    "QTR3",
+    "QTR4",
+    "HLF1",
+    "HLF2"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "TechnicalInputChannel1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalTechnicalInputChannel1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TotalTransactions6": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "TtlNtries",
+     "type": "NumberAndSumOfTransactions4",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlCdtNtries",
+     "type": "NumberAndSumOfTransactions1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlDbtNtries",
+     "type": "NumberAndSumOfTransactions1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlNtriesPerBkTxCd",
+     "type": "TotalsPerBankTransactionCode5",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TotalsPerBankTransactionCode5": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NbOfNtries",
+     "type": "Max15NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Sum",
+     "type": "DecimalNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlNetNtry",
+     "type": "AmountAndDirection35",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CdtNtries",
+     "type": "NumberAndSumOfTransactions1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DbtNtries",
+     "type": "NumberAndSumOfTransactions1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FcstInd",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "BkTxCd",
+     "type": "BankTransactionCodeStructure4",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Avlbty",
+     "type": "CashAvailability1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "Dt",
+     "type": "DateAndDateTime2Choice",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "TrackData1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "TrckNb",
+     "type": "Exact1NumericText",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TrckVal",
+     "type": "Max140Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TransactionAgents5": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "InstgAgt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "InstdAgt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DbtrAgt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CdtrAgt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "IntrmyAgt1",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "IntrmyAgt2",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "IntrmyAgt3",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "RcvgAgt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DlvrgAgt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "IssgAgt",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SttlmPlc",
+     "type": "BranchAndFinancialInstitutionIdentification6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "ProprietaryAgent4",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TransactionChannel1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "MAIL",
+    "TLPH",
+    "ECOM",
+    "TVPY"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "TransactionDates3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AccptncDtTm",
+     "type": "ISODateTime",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TradActvtyCtrctlSttlmDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TradDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "IntrBkSttlmDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "StartDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "EndDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxDtTm",
+     "type": "ISODateTime",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "ProprietaryDate3",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TransactionEnvironment1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "MERC",
+    "PRIV",
+    "PUBL"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "TransactionIdentifier1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "TxDtTm",
+     "type": "ISODateTime",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "TxRef",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TransactionInterest4": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "TtlIntrstAndTaxAmt",
+     "type": "ActiveOrHistoricCurrencyAndAmount",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Rcrd",
+     "type": "InterestRecord2",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TransactionParties6": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "InitgPty",
+     "type": "Party40Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dbtr",
+     "type": "Party40Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DbtrAcct",
+     "type": "CashAccount38",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "UltmtDbtr",
+     "type": "Party40Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Cdtr",
+     "type": "Party40Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CdtrAcct",
+     "type": "CashAccount38",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "UltmtCdtr",
+     "type": "Party40Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TradgPty",
+     "type": "Party40Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "ProprietaryParty5",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TransactionPrice4Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "DealPric",
+     "type": "Price7",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "ProprietaryPrice2",
+     "min": 1,
+     "max": null
+    }
+   ]
+  },
+  "TransactionQuantities3Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Qty",
+     "type": "FinancialInstrumentQuantity1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "OrgnlAndCurFaceAmt",
+     "type": "OriginalAndCurrentQuantities1",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "ProprietaryQuantity1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TransactionReferences6": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "MsgId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AcctSvcrRef",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PmtInfId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "InstrId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "EndToEndId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "UETR",
+     "type": "UUIDv4Identifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TxId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MndtId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ChqNb",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ClrSysRef",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AcctOwnrTxId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AcctSvcrTxId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MktInfrstrctrTxId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PrcgId",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "ProprietaryReference1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "TrueFalseIndicator": {
+   "kind": "simple",
+   "base": "boolean",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "UUIDv4Identifier": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "UnitOfMeasure1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "PIEC",
+    "TONS",
+    "FOOT",
+    "GBGA",
+    "USGA",
+    "GRAM",
+    "INCH",
+    "KILO",
+    "PUND",
+    "METR",
+    "CMET",
+    "MMET",
+    "LITR",
+    "CELI",
+    "MILI",
+    "GBOU",
+    "USOU",
+    "GBQA",
+    "USQA",
+    "GBPI",
+    "USPI",
+    "MILE",
+    "KMET",
+    "YARD",
+    "SQKI",
+    "HECT",
+    "ARES",
+    "SMET",
+    "SCMT",
+    "SMIL",
+    "SQMI",
+    "SQYA",
+    "SQFO",
+    "SQIN",
+    "ACRE"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "UserInterface2Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "MDSP",
+    "CDSP"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "YesNoIndicator": {
+   "kind": "simple",
+   "base": "boolean",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "YieldedOrValueType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Yldd",
+     "type": "YesNoIndicator",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ValTp",
+     "type": "PriceValueType1Code",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  }
+ }
+}

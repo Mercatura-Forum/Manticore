@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>ISO-HUB-C5-20260624-000001</MsgId>
+      <CreDtTm>2026-06-24T10:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <InitgPty>
+        <Nm>Example Egypt Treasury Desk</Nm>
+        <PstlAdr>
+          <Ctry>EG</Ctry>
+          <TwnNm>Cairo</TwnNm>
+          <PstCd>11511</PstCd>
+          <AdrLine>1 Nile Corniche</AdrLine>
+        </PstlAdr>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>ISO-HUB-C5-20260624-000001</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <ReqdExctnDt>2026-06-24</ReqdExctnDt>
+      <PmtTpInf>
+        <SvcLvl>URGP</SvcLvl>
+        <LclInstrm>RTGS</LclInstrm>
+        <CtgyPurp>CORT</CtgyPurp>
+      </PmtTpInf>
+      <Dbtr>
+        <Nm>Example Debtor SAE</Nm>
+        <PstlAdr>
+          <Ctry>EG</Ctry>
+          <TwnNm>Cairo</TwnNm>
+          <PstCd>11511</PstCd>
+          <AdrLine>1 Nile Corniche</AdrLine>
+        </PstlAdr>
+      </Dbtr>
+      <DbtrAcct>
+        <Id><IBAN>EG380019000500000000263180002</IBAN></Id>
+        <Ccy>EGP</Ccy>
+      </DbtrAcct>
+      <DbtrAgt><FinInstnId>
+        <BICFI>EGBKEGCX</BICFI>
+        <Nm>Egypt Example Bank</Nm>
+      </FinInstnId></DbtrAgt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>E2E-C5-20260624-000001</EndToEndId>
+          <UETR>c5b25e70-1d44-4e6a-9c4a-2d9c87fd0011</UETR>
+        </PmtId>
+        <Amt><InstdAmt Ccy="EGP">12500.00</InstdAmt></Amt>
+        <CdtrAgt><FinInstnId>
+          <BICFI>EXBKEGCX</BICFI>
+          <Nm>Example Bank Egypt</Nm>
+        </FinInstnId></CdtrAgt>
+        <Cdtr>
+          <Nm>Example Creditor LLC</Nm>
+          <PstlAdr>
+            <Ctry>EG</Ctry>
+            <TwnNm>Alexandria</TwnNm>
+            <PstCd>21519</PstCd>
+            <AdrLine>10 Port Road</AdrLine>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id><IBAN>EG800002000156789012345180002</IBAN></Id>
+          <Ccy>EGP</Ccy>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>Invoice INV-C5-001</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

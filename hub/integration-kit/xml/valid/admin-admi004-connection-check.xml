@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:admi.004.001.01">
+  <SystemEventNotification>
+    <EvtInf>
+      <MsgId>ADMI004-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T11:11:00Z</CreDtTm>
+      <EvtCd>CONN</EvtCd>
+      <Sts>INFO</Sts>
+      <AddtlInf>Connection check fixture</AddtlInf>
+    </EvtInf>
+  </SystemEventNotification>
+</Document>

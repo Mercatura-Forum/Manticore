@@ -1,0 +1,720 @@
+[
+  {
+    "mt": "MT101",
+    "iso": "pain.001",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "\u2014",
+        "note": "the batch's sender reference; the compact pain.001 carries one transaction, so it is read and dropped, and written back as the first transaction's reference"
+      },
+      {
+        "field": "28D",
+        "element": "\u2014",
+        "note": "message index/total; written 1/1, not read into the record"
+      },
+      {
+        "field": "30",
+        "element": "PmtInf/ReqdExctnDt",
+        "note": "sequence A"
+      },
+      {
+        "field": "50K / 50H / 50F",
+        "element": "Dbtr, DbtrAcct",
+        "note": "sequence B (or A when the batch has one debtor): /account, name, address lines"
+      },
+      {
+        "field": "52A",
+        "element": "DbtrAgt/FinInstnId/BICFI",
+        "note": "sequence B (or A); absent \u2192 the sender"
+      },
+      {
+        "field": "21",
+        "element": "GrpHdr/MsgId, PmtId/EndToEndId",
+        "note": "sequence B; starts a transaction \u2014 the transaction reference is the initiation's message id, unique in the hub's payment index"
+      },
+      {
+        "field": "32B",
+        "element": "Amt/InstdAmt",
+        "note": "currency and amount, comma decimal"
+      },
+      {
+        "field": "57A",
+        "element": "CdtrAgt/FinInstnId/BICFI",
+        "note": "absent \u2192 the receiver"
+      },
+      {
+        "field": "59 / 59A / 59F",
+        "element": "Cdtr, CdtrAcct",
+        "note": "/account, name, address lines"
+      },
+      {
+        "field": "70",
+        "element": "RmtInf/Ustrd",
+        "note": "one line per Ustrd"
+      },
+      {
+        "field": "71A",
+        "element": "\u2014",
+        "note": "written SHA; pain.001's compact record carries no charge bearer"
+      }
+    ]
+  },
+  {
+    "mt": "MT103",
+    "iso": "pain.001",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "GrpHdr/MsgId, PmtId/EndToEndId",
+        "note": "the hub's bridge convention: MT103 reads into the customer initiation"
+      },
+      {
+        "field": "23B",
+        "element": "\u2014",
+        "note": "written CRED"
+      },
+      {
+        "field": "32A",
+        "element": "ReqdExctnDt, Amt/InstdAmt",
+        "note": "YYMMDD, currency, amount"
+      },
+      {
+        "field": "50K / 50F",
+        "element": "Dbtr, DbtrAcct",
+        "note": ""
+      },
+      {
+        "field": "52A",
+        "element": "DbtrAgt/FinInstnId/BICFI",
+        "note": "absent \u2192 the sender"
+      },
+      {
+        "field": "57A",
+        "element": "CdtrAgt/FinInstnId/BICFI",
+        "note": "absent \u2192 the receiver"
+      },
+      {
+        "field": "59 / 59F",
+        "element": "Cdtr, CdtrAcct",
+        "note": ""
+      },
+      {
+        "field": "70",
+        "element": "RmtInf/Ustrd",
+        "note": ""
+      },
+      {
+        "field": "71A",
+        "element": "\u2014",
+        "note": "written SHA"
+      }
+    ]
+  },
+  {
+    "mt": "MT104",
+    "iso": "pain.008",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "GrpHdr/MsgId",
+        "note": "sequence A"
+      },
+      {
+        "field": "30",
+        "element": "PmtInf/ReqdColltnDt",
+        "note": "sequence A"
+      },
+      {
+        "field": "50K / 50A",
+        "element": "Cdtr, CdtrAcct, InitgPty",
+        "note": "sequence B (or A): the creditor collecting"
+      },
+      {
+        "field": "52A",
+        "element": "CdtrAgt/FinInstnId/BICFI",
+        "note": "sequence B (or A); absent \u2192 the sender"
+      },
+      {
+        "field": "21",
+        "element": "PmtId/EndToEndId",
+        "note": "sequence B; starts a collection"
+      },
+      {
+        "field": "21C",
+        "element": "DrctDbtTx/MndtRltdInf/MndtId",
+        "note": "the mandate reference; required"
+      },
+      {
+        "field": "23E",
+        "element": "PmtTpInf/SeqTp",
+        "note": "AUTH/NAUT/OTHR are not a sequence type: the record reads RCUR; written OTHR"
+      },
+      {
+        "field": "32B",
+        "element": "InstdAmt",
+        "note": ""
+      },
+      {
+        "field": "57A",
+        "element": "DbtrAgt/FinInstnId/BICFI",
+        "note": "absent \u2192 the receiver"
+      },
+      {
+        "field": "59 / 59A",
+        "element": "Dbtr, DbtrAcct",
+        "note": ""
+      },
+      {
+        "field": "70",
+        "element": "RmtInf/Ustrd",
+        "note": ""
+      }
+    ]
+  },
+  {
+    "mt": "MT202",
+    "iso": "pacs.009",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "GrpHdr/MsgId, PmtId/InstrId",
+        "note": ""
+      },
+      {
+        "field": "21",
+        "element": "PmtId/EndToEndId",
+        "note": ""
+      },
+      {
+        "field": "32A",
+        "element": "IntrBkSttlmDt, IntrBkSttlmAmt",
+        "note": ""
+      },
+      {
+        "field": "52A",
+        "element": "Dbtr/FinInstnId/BICFI",
+        "note": "the ordering institution; absent \u2192 the sender"
+      },
+      {
+        "field": "53A",
+        "element": "\u2014",
+        "note": "the sender's correspondent; not carried by the compact record"
+      },
+      {
+        "field": "56A",
+        "element": "IntrmyAgt1/FinInstnId/BICFI",
+        "note": ""
+      },
+      {
+        "field": "57A",
+        "element": "CdtrAgt/FinInstnId/BICFI",
+        "note": "absent \u2192 the receiver"
+      },
+      {
+        "field": "58A",
+        "element": "Cdtr/FinInstnId/BICFI",
+        "note": "the beneficiary institution; required"
+      },
+      {
+        "field": "72",
+        "element": "\u2014",
+        "note": "sender to receiver information; not carried by the compact record"
+      },
+      {
+        "field": "(none)",
+        "element": "ChrgBr",
+        "note": "MT202 carries no charge bearer; the record's is SHAR"
+      },
+      {
+        "field": "(options)",
+        "element": "SttlmInf/SttlmMtd",
+        "note": "the guideline's settlement method"
+      }
+    ]
+  },
+  {
+    "mt": "MT202COV",
+    "iso": "pacs.009 COV + pacs.008",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "{3:119}",
+        "element": "cover flag",
+        "note": "COV"
+      },
+      {
+        "field": "20, 21, 32A, 52A, 56A, 57A, 58A",
+        "element": "the cover pacs.009 as MT202",
+        "note": "sequence A; 21 is also the underlying pacs.008's MsgId and EndToEndId"
+      },
+      {
+        "field": "50K / 50F",
+        "element": "underlying Dbtr, DbtrAcct",
+        "note": "sequence B"
+      },
+      {
+        "field": "52A",
+        "element": "underlying DbtrAgt",
+        "note": "sequence B; absent \u2192 the sender"
+      },
+      {
+        "field": "57A",
+        "element": "underlying CdtrAgt",
+        "note": "sequence B; absent \u2192 the receiver"
+      },
+      {
+        "field": "59 / 59F",
+        "element": "underlying Cdtr, CdtrAcct",
+        "note": "sequence B"
+      },
+      {
+        "field": "70",
+        "element": "underlying RmtInf/Ustrd",
+        "note": "sequence B"
+      },
+      {
+        "field": "33B",
+        "element": "underlying InstdAmt",
+        "note": "sequence B; absent \u2192 the cover amount"
+      }
+    ]
+  },
+  {
+    "mt": "MT900",
+    "iso": "camt.054",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "Ntry/NtryRef",
+        "note": ""
+      },
+      {
+        "field": "21",
+        "element": "\u2014",
+        "note": "the related reference, kept in the narrative only"
+      },
+      {
+        "field": "25",
+        "element": "Acct/Id (IBAN or Othr)",
+        "note": ""
+      },
+      {
+        "field": "32A",
+        "element": "BookgDt, Amt",
+        "note": "CdtDbtInd DBIT"
+      },
+      {
+        "field": "52A",
+        "element": "RltdPties (the ordering institution's BIC as the counterparty name)",
+        "note": "absent \u2192 the sender"
+      },
+      {
+        "field": "72",
+        "element": "RmtInf/Ustrd; /UETR/ token \u2192 UETR",
+        "note": "no UETR \u2192 the placeholder UUID"
+      }
+    ]
+  },
+  {
+    "mt": "MT910",
+    "iso": "camt.054",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "Ntry/NtryRef",
+        "note": ""
+      },
+      {
+        "field": "21",
+        "element": "\u2014",
+        "note": "the related reference, kept in the narrative only"
+      },
+      {
+        "field": "25",
+        "element": "Acct/Id (IBAN or Othr)",
+        "note": ""
+      },
+      {
+        "field": "32A",
+        "element": "BookgDt, Amt",
+        "note": "CdtDbtInd CRDT"
+      },
+      {
+        "field": "50K / 52A",
+        "element": "RltdPties (the ordering party's name)",
+        "note": ""
+      },
+      {
+        "field": "72",
+        "element": "RmtInf/Ustrd; /UETR/ token \u2192 UETR",
+        "note": "no UETR \u2192 the placeholder UUID"
+      }
+    ]
+  },
+  {
+    "mt": "MT940",
+    "iso": "camt.053",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "\u2014",
+        "note": "the compact camt.053 record has no statement id: read and dropped, written back as the first entry's reference"
+      },
+      {
+        "field": "25",
+        "element": "Acct/Id",
+        "note": ""
+      },
+      {
+        "field": "28C",
+        "element": "\u2014",
+        "note": "statement number; written 1/1"
+      },
+      {
+        "field": "60F",
+        "element": "Bal OPBD",
+        "note": "the currency of the entries; the compact camt.053 carries entries only"
+      },
+      {
+        "field": "61",
+        "element": "Ntry: ValDt, CdtDbtInd, Amt, NtryRef (//reference)",
+        "note": ""
+      },
+      {
+        "field": "86",
+        "element": "Ntry/NtryDtls/RmtInf; /UETR/ \u2192 UETR",
+        "note": ""
+      },
+      {
+        "field": "62F",
+        "element": "Bal CLBD",
+        "note": "written from the entries' sum"
+      }
+    ]
+  },
+  {
+    "mt": "MT950",
+    "iso": "camt.053",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20, 25, 28C, 60F, 61, 62F",
+        "element": "as MT940",
+        "note": "MT950 has no field 86: entries carry no remittance and get the placeholder UUID"
+      }
+    ]
+  },
+  {
+    "mt": "MT942",
+    "iso": "camt.052",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "Rpt/Id, GrpHdr/MsgId",
+        "note": ""
+      },
+      {
+        "field": "25",
+        "element": "Rpt/Acct/Id",
+        "note": ""
+      },
+      {
+        "field": "28C",
+        "element": "\u2014",
+        "note": "written 1/1"
+      },
+      {
+        "field": "34F",
+        "element": "Rpt/Acct/Ccy",
+        "note": "the floor limit's currency; the limit itself is not carried"
+      },
+      {
+        "field": "13D",
+        "element": "Rpt/FrToDt/ToDtTm (and FrDtTm at the day's start)",
+        "note": "YYMMDDHHMM+offset \u2192 ISO date-time"
+      },
+      {
+        "field": "61",
+        "element": "Ntry: ValDt, CdtDbtInd, Amt, NtryRef",
+        "note": ""
+      },
+      {
+        "field": "86",
+        "element": "Ntry/NtryDtls/RmtInf, RltdPties",
+        "note": ""
+      },
+      {
+        "field": "90D / 90C",
+        "element": "\u2014",
+        "note": "written from the entries; not read"
+      }
+    ]
+  },
+  {
+    "mt": "MT192",
+    "iso": "camt.056",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "Assgnmt/Id, GrpHdr/MsgId",
+        "note": ""
+      },
+      {
+        "field": "21",
+        "element": "Undrlyg/OrgnlGrpInf/OrgnlMsgId",
+        "note": "the reference of the message to cancel"
+      },
+      {
+        "field": "11S",
+        "element": "\u2014",
+        "note": "MT type and date of the original; written 103 + the creation date"
+      },
+      {
+        "field": "79",
+        "element": "CxlRsnInf/Rsn/Cd (first line, /code/), AddtlInf (the rest)",
+        "note": "/UETR/ token \u2192 OrgnlUETR"
+      }
+    ]
+  },
+  {
+    "mt": "MT196",
+    "iso": "camt.029",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "Assgnmt/Id, GrpHdr/MsgId",
+        "note": ""
+      },
+      {
+        "field": "21",
+        "element": "OrgnlGrpInfAndSts/OrgnlMsgId",
+        "note": ""
+      },
+      {
+        "field": "76",
+        "element": "CxlDtls/TxInfAndSts/CxlStsRsnInf: Rsn/Cd (first line, /code/), the action (/action/), AddtlInf",
+        "note": ""
+      },
+      {
+        "field": "11R",
+        "element": "\u2014",
+        "note": "MT type and date of the message answered; written 192 + the creation date"
+      }
+    ]
+  },
+  {
+    "mt": "MT199",
+    "iso": "camt.110",
+    "fields": [
+      {
+        "field": "{1:} sender LT",
+        "element": "the instructing side's BIC (DbtrAgt / InstgAgt / AcctSvcr)",
+        "note": "block 1, logical terminal address; branch XXX dropped"
+      },
+      {
+        "field": "{2:} receiver LT",
+        "element": "the instructed side's BIC (CdtrAgt / InstdAgt) when no 57a",
+        "note": "block 2 of an input message"
+      },
+      {
+        "field": "{3:121}",
+        "element": "UETR",
+        "note": "absent \u2192 the record's UETR is null (statements: the placeholder UUID)"
+      },
+      {
+        "field": "20",
+        "element": "Assgnmt/Id, GrpHdr/MsgId",
+        "note": ""
+      },
+      {
+        "field": "21",
+        "element": "Undrlyg/OrgnlMsgId",
+        "note": ""
+      },
+      {
+        "field": "79",
+        "element": "Rsn/Cd (first line, /code/), the action (/action/), AddtlInf",
+        "note": "the free-format investigation"
+      }
+    ]
+  }
+]

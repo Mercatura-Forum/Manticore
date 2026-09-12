@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.012.001.07">
+  <MndtAccptncRpt>
+    <GrpHdr>
+      <MsgId>MACC029670502</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <InitgPty><Nm>Commercial International Bank</Nm></InitgPty>
+    </GrpHdr>
+    <UndrlygAccptncDtls>
+      <OrgnlMsgInf><MsgId>MNDT289212452</MsgId><MsgNmId>pain.009.001.07</MsgNmId></OrgnlMsgInf>
+      <AccptncRslt><Accptd>yes</Accptd></AccptncRslt>
+      <OrgnlMndt><OrgnlMndtId>MANDATE-319609</OrgnlMndtId></OrgnlMndt>
+    </UndrlygAccptncDtls>
+  </MndtAccptncRpt>
+</Document>

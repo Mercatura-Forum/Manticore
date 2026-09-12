@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.014.001.10">
+  <CdtrPmtActvtnReqStsRpt>
+    <GrpHdr>
+      <MsgId>PAIN014-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T10:46:00Z</CreDtTm>
+    </GrpHdr>
+    <RTP>
+      <ReqId>RFP-20260622-000001</ReqId>
+      <OrgnlReqId>RFP-20260622-000001</OrgnlReqId>
+      <Dbtr>
+        <Nm>Example Debtor SAE</Nm>
+        <PstlAdr>
+          <Ctry>EG</Ctry>
+          <TwnNm>Cairo</TwnNm>
+          <AdrLine>1 Nile Corniche</AdrLine>
+        </PstlAdr>
+        <LEI>5493001KJTIIGC8Y1R12</LEI>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <IBAN>EG380019000500000000263180002</IBAN>
+        </Id>
+        <Ccy>USD</Ccy>
+      </DbtrAcct>
+      <DbtrAgt><FinInstnId>
+        <BICFI>EGBKEGCX</BICFI>
+        <Nm>Egypt Example Bank</Nm>
+      </FinInstnId></DbtrAgt>
+      <Cdtr>
+        <Nm>Example Creditor GmbH</Nm>
+        <PstlAdr>
+          <Ctry>DE</Ctry>
+          <TwnNm>Berlin</TwnNm>
+          <AdrLine>10 Market Platz</AdrLine>
+        </PstlAdr>
+        <LEI>529900T8BM49AURSDO55</LEI>
+      </Cdtr>
+      <CdtrAcct>
+        <Id>
+          <IBAN>DE89370400440532013000</IBAN>
+        </Id>
+        <Ccy>USD</Ccy>
+      </CdtrAcct>
+      <CdtrAgt><FinInstnId>
+        <BICFI>DEUTDEFF</BICFI>
+        <Nm>Deutsche Example Bank</Nm>
+      </FinInstnId></CdtrAgt>
+      <Amt><ReqdAmt Ccy="USD">2500.00</ReqdAmt></Amt>
+      <ReqdExctnDt>2026-06-24</ReqdExctnDt>
+      <ChrgBr>SHAR</ChrgBr>
+      <ReqSts>ACTC</ReqSts>
+      <RmtInf>
+        <Ustrd>Cross-border education fixture</Ustrd>
+      </RmtInf>
+    </RTP>
+  </CdtrPmtActvtnReqStsRpt>
+</Document>

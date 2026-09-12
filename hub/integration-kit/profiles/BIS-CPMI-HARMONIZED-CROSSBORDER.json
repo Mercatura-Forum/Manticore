@@ -1,0 +1,60 @@
+{
+  "id": "BIS-CPMI-HARMONIZED-CROSSBORDER",
+  "label": "BIS CPMI cross-border harmonisation research overlay",
+  "status": "research-runtime-overlay",
+  "officialCertification": false,
+  "sourceReferences": [
+    "https://www.bis.org/cpmi/publ/d215.pdf",
+    "https://www.bis.org/cpmi/publ/d218.pdf"
+  ],
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setConnectorGuidelineProfile",
+    "docs/PUBLIC_SCHEME_RESEARCH.md"
+  ],
+  "messageFamilies": [
+    "pain.001",
+    "pacs.008",
+    "pacs.009",
+    "pain.013",
+    "pain.014",
+    "camt.055",
+    "camt.029",
+    "camt.056",
+    "pacs.028",
+    "camt.054",
+    "camt.110",
+    "camt.111"
+  ],
+  "implementedCompactFamilies": [
+    "pain.001",
+    "pacs.008",
+    "pacs.009",
+    "pain.013",
+    "pain.014",
+    "camt.055",
+    "camt.029",
+    "camt.056",
+    "pacs.028",
+    "camt.054",
+    "camt.110",
+    "camt.111"
+  ],
+  "ruleHighlights": [
+    "keeps CPMI common-data-element work visible as a research overlay",
+    "RFP family is now represented in the compact XML codec",
+    "case-management E&I messages are represented by compact camt.110/camt.111 fixtures"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/request-pain013-rfp.xml",
+      "../xml/valid/request-pain014-accepted.xml",
+      "../xml/valid/request-camt055-cancel.xml",
+      "../xml/valid/investigation-camt029-resolution.xml",
+      "../xml/valid/investigation-camt110-request.xml",
+      "../xml/valid/investigation-camt111-response.xml"
+    ],
+    "invalid": []
+  },
+  "disclaimer": "Research overlay only. It records public harmonisation targets and does not implement the full CPMI data model."
+}

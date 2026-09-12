@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.002.001.10">
+  <FIToFIPmtStsRpt>
+    <GrpHdr>
+      <MsgId>PACS002-ISO-HUB-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T10:05:00Z</CreDtTm>
+    </GrpHdr>
+    <OrgnlGrpInfAndSts>
+      <OrgnlMsgId>ISO-HUB-20260622-000001</OrgnlMsgId>
+      <OrgnlMsgNmId>pacs.002.001.10</OrgnlMsgNmId>
+    </OrgnlGrpInfAndSts>
+    <TxInfAndSts>
+      <OrgnlUETR>8f2b5e70-1d44-4e6a-9c4a-2d9c87fd0011</OrgnlUETR>
+      <TxSts>ACSC</TxSts>
+    </TxInfAndSts>
+  </FIToFIPmtStsRpt>
+</Document>

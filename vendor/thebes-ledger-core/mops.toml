@@ -1,0 +1,12 @@
+[package]
+name = "thebes-ledger-core"
+version = "0.1.0"
+description = "Double-entry journal beneath the canonical ICRC ledger family, for Thebes Protocol."
+license = "Apache-2.0"
+
+[dependencies]
+core = "2.3.1"
+sha2 = "0.1.9"
+
+[toolchain]
+moc = "1.4.1"

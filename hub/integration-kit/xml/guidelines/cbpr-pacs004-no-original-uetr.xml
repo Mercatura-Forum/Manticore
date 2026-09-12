@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+  <Fr><FIId><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></FIId></Fr>
+  <To><FIId><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></FIId></To>
+  <BizMsgIdr>P4367520496</BizMsgIdr>
+  <MsgDefIdr>pacs.004.001.09</MsgDefIdr>
+  <BizSvc>swift.cbprplus.02</BizSvc>
+  <CreDt>2026-09-12T10:00:00Z</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09">
+  <PmtRtr>
+    <GrpHdr><MsgId>P4367520496</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm><NbOfTxs>1</NbOfTxs><SttlmInf><SttlmMtd>INDA</SttlmMtd></SttlmInf></GrpHdr>
+    <TxInf>
+      <RtrId>RTR936108743</RtrId>
+      <OrgnlEndToEndId>E2E-1</OrgnlEndToEndId>
+      
+      <RtrdIntrBkSttlmAmt Ccy="USD">249051.93</RtrdIntrBkSttlmAmt>
+      <IntrBkSttlmDt>2026-09-12</IntrBkSttlmDt>
+      <RtrRsnInf><Rsn><Cd>AC01</Cd></Rsn></RtrRsnInf>
+    </TxInf>
+  </PmtRtr>
+</Document>

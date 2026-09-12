@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.050.001.05">
+  <LqdtyCdtTrf>
+    <MsgHdr><MsgId>LQT906867575</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm></MsgHdr>
+    <LqdtyCdtTrf>
+      <LqdtyTrfId><EndToEndId>LQ184145385</EndToEndId></LqdtyTrfId>
+      <Cdtr><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Cdtr>
+      <CdtrAcct><Id><Othr><Id>RTGS-NBE</Id></Othr></Id></CdtrAcct>
+      <TrfdAmt><AmtWthtCcy>1000.00</AmtWthtCcy></TrfdAmt>
+      <Dbtr><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Dbtr>
+      <DbtrAcct><Id><Othr><Id>ACH-NBE</Id></Othr></Id></DbtrAcct>
+      <SttlmDt>2026-09-12</SttlmDt>
+    </LqdtyCdtTrf>
+  </LqdtyCdtTrf>
+</Document>

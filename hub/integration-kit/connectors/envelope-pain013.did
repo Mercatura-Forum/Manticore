@@ -1,0 +1,14 @@
+(
+  record {
+    connectorId = "bank-eg-001";
+    remoteId = "BANK-EG-001-000010";
+    sequence = 10 : nat;
+    format = "pain.013.xml";
+    payload = blob "<load integration-kit/xml/valid/request-pain013-rfp.xml bytes>";
+    payloadHash = blob "<sha256 bytes of payload>";
+    signature = null;
+    sentAt = 1_772_000_600_000_000_000 : int;
+    traceId = "TRACE-BANK-EG-001-000010";
+    endpoint = opt "sftp://bank-eg-001/incoming";
+  }
+)

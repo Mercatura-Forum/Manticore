@@ -1,0 +1,58 @@
+{
+  "id": "FEDNOW-ISO20022-EDU",
+  "label": "FedNow ISO 20022 public-source education overlay",
+  "status": "implemented-runtime-overlay",
+  "officialCertification": false,
+  "sourceReferences": [
+    "https://explore.fednow.org/resources/readiness-guide-iso-20022.pdf"
+  ],
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setDefaultGuidelineProfile",
+    "setConnectorGuidelineProfile",
+    "validateRequestToPayWithProfile"
+  ],
+  "messageFamilies": [
+    "pacs.008",
+    "pacs.009",
+    "pacs.002",
+    "pacs.004",
+    "pacs.028",
+    "pain.013",
+    "pain.014",
+    "camt.056",
+    "camt.029",
+    "camt.055",
+    "camt.054"
+  ],
+  "connectorFormats": [
+    "pacs.008.xml",
+    "pacs.009.xml",
+    "pacs.002.xml",
+    "pacs.004.xml",
+    "pacs.028.xml",
+    "pain.013.xml",
+    "pain.014.xml",
+    "camt.056.xml",
+    "camt.029.xml",
+    "camt.055.xml",
+    "camt.054.xml"
+  ],
+  "ruleHighlights": [
+    "request-for-payment forms are implemented for pain.013, pain.014, and camt.055",
+    "instant-payment participant rules, timing, directory, and service controls remain external",
+    "compact codec can replay payment, return, status, RFP, and reporting examples"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/request-pain013-rfp.xml",
+      "../xml/valid/request-pain014-accepted.xml",
+      "../xml/valid/request-camt055-cancel.xml",
+      "../xml/valid/camt054-notification.xml"
+    ],
+    "invalid": [
+      "../xml/invalid/xml-doctype-entity.xml"
+    ]
+  },
+  "disclaimer": "Education overlay only. It is not FedNow certification or production service readiness evidence."
+}

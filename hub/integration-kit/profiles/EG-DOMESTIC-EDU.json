@@ -1,0 +1,56 @@
+{
+  "id": "EG-DOMESTIC-EDU",
+  "label": "Egypt domestic credit transfer education profile",
+  "status": "implemented-compact",
+  "officialCertification": false,
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setDefaultGuidelineProfile",
+    "resetGuidelineToEgyptEducationBaseline"
+  ],
+  "messageFamilies": [
+    "pain.001.001.09",
+    "pain.002.001.10",
+    "head.001.001.02",
+    "pacs.008.001.08",
+    "pacs.002.001.10",
+    "pacs.004.001.09",
+    "camt.053.001.08",
+    "camt.054.001.08"
+  ],
+  "connectorFormats": [
+    "pain.001.xml",
+    "pacs.008.xml",
+    "pain.002.xml",
+    "pacs.002.xml",
+    "pacs.004.xml",
+    "camt.053.xml",
+    "camt.054.xml",
+    "payment.bundle.xml"
+  ],
+  "ruleHighlights": [
+    "EGP enabled",
+    "Egyptian IBAN country required",
+    "Egyptian BIC country required",
+    "Business Application Header required for pacs.008",
+    "UETR required for FI-to-FI lifecycle",
+    "one transaction per pacs.008",
+    "account currency must match instructed amount"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/pain001-eg-domestic.xml",
+      "../xml/valid/pacs008-eg-domestic.xml",
+      "../xml/valid/status-pain002-accepted.xml",
+      "../xml/valid/status-pacs002-settled.xml",
+      "../xml/valid/status-pacs004-returned.xml",
+      "../xml/valid/camt053-statement.xml",
+      "../xml/valid/camt054-notification.xml"
+    ],
+    "invalid": [
+      "../xml/invalid/xml-doctype-entity.xml",
+      "../xml/invalid/status-uetr-mismatch.xml"
+    ]
+  },
+  "disclaimer": "Open education profile only. Replace with bank, rail, or scheme-approved usage guidelines before production."
+}

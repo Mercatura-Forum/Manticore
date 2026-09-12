@@ -1,0 +1,10 @@
+[package]
+name = "thebes-bls-verify"
+version = "0.1.0"
+edition = "2021"
+description = "Verifies an IC BLS12-381 (MinSig) signature; used by the journal's independent proof verifier."
+license = "Apache-2.0"
+
+[dependencies]
+ic-verify-bls-signature = "0.6.0"
+hex = "0.4"

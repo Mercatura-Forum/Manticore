@@ -1,0 +1,77 @@
+{
+  "id": "FEDWIRE-ISO20022-EDU",
+  "label": "Fedwire ISO 20022 public-source education overlay",
+  "status": "implemented-runtime-overlay",
+  "officialCertification": false,
+  "sourceReferences": [
+    "https://www.frbservices.org/resources/financial-services/wires/iso-20022-implementation-center",
+    "https://www.frbservices.org/resources/financial-services/wires/faq/iso-20022/format",
+    "https://www.frbservices.org/resources/financial-services/wires/iso-20022-post-implementation-faq"
+  ],
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setDefaultGuidelineProfile",
+    "setConnectorGuidelineProfile",
+    "validateRequestToPayWithProfile"
+  ],
+  "messageFamilies": [
+    "pacs.008",
+    "pacs.009",
+    "pacs.002",
+    "pacs.004",
+    "pacs.028",
+    "pain.013",
+    "pain.014",
+    "camt.056",
+    "camt.029",
+    "camt.055",
+    "camt.110",
+    "camt.111",
+    "admi.002",
+    "admi.004",
+    "admi.007",
+    "admi.011"
+  ],
+  "connectorFormats": [
+    "pacs.008.xml",
+    "pacs.009.xml",
+    "pacs.002.xml",
+    "pacs.004.xml",
+    "pacs.028.xml",
+    "pain.013.xml",
+    "pain.014.xml",
+    "camt.056.xml",
+    "camt.029.xml",
+    "camt.055.xml",
+    "camt.110.xml",
+    "camt.111.xml",
+    "admi.002.xml",
+    "admi.004.xml",
+    "admi.007.xml",
+    "admi.011.xml"
+  ],
+  "ruleHighlights": [
+    "drawdown/request-to-pay compact forms are implemented for pain.013, pain.014, and camt.055",
+    "pacs.028, camt.056, camt.029, camt.110, and camt.111 are available through the compact investigation route",
+    "admi.002, admi.004, admi.007, and admi.011 are available through the compact administrative route",
+    "Fedwire-specific local instrument, cutoff, character-set, and MyStandards profile checks remain external"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/request-pain013-rfp.xml",
+      "../xml/valid/request-pain014-accepted.xml",
+      "../xml/valid/request-camt055-cancel.xml",
+      "../xml/valid/investigation-camt110-request.xml",
+      "../xml/valid/investigation-camt111-response.xml",
+      "../xml/valid/admin-admi002-reject.xml",
+      "../xml/valid/admin-admi004-connection-check.xml",
+      "../xml/valid/admin-admi007-ack.xml",
+      "../xml/valid/admin-admi011-connection-ack.xml",
+      "../xml/valid/pacs009-cbprplus-core.xml"
+    ],
+    "invalid": [
+      "../xml/invalid/xml-doctype-entity.xml"
+    ]
+  },
+  "disclaimer": "Education overlay only. It is not Fedwire certification, MyStandards validation, or Federal Reserve production readiness evidence."
+}

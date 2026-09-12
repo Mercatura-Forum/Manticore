@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.060.001.05">
+  <AcctRptgReq>
+    <GrpHdr>
+      <MsgId>ARR451098863</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+    </GrpHdr>
+    <RptgReq>
+      <Id>RQ565360420</Id>
+      <ReqdMsgNmId>camt.052.001.08</ReqdMsgNmId>
+      <Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></Acct>
+      <AcctOwnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></AcctOwnr>
+      <RptgPrd><FrToDt><FrDt>2026-09-12</FrDt><ToDt>2026-09-12</ToDt></FrToDt><Tp>ALLL</Tp></RptgPrd>
+    </RptgReq>
+  </AcctRptgReq>
+</Document>

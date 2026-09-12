@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:admi.006.001.01">
+  <RsndReq>
+    <MsgHdr><MsgId>RSND431712858</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm></MsgHdr>
+    <RsndSchCrit>
+      <BizDt>2026-09-12</BizDt>
+      <SeqNb>995</SeqNb>
+      <OrgnlMsgNmId>pacs.002.001.10</OrgnlMsgNmId>
+      
+    </RsndSchCrit>
+  </RsndReq>
+</Document>

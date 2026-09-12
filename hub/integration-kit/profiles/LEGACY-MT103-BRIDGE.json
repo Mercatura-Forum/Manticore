@@ -1,0 +1,75 @@
+{
+  "id": "LEGACY-MT103-BRIDGE",
+  "label": "Legacy MT103 bridge profile",
+  "status": "implemented-partial",
+  "officialCertification": false,
+  "guidelineSurface": [
+    "decodeMt103",
+    "decodeMt940",
+    "decodeMt942",
+    "decodeCsvPayments",
+    "decodeFixedWidthPayments",
+    "parseMt103Fields",
+    "submitTransportEnvelope(format = \"mt103\" | \"mt940\" | \"mt942\" | \"csv.payments\" | \"fixed.payments\")"
+  ],
+  "messageFamilies": [
+    "MT103",
+    "pain.001.001.09",
+    "pain.002.001.10",
+    "pacs.008.001.08",
+    "camt.054.001.08"
+  ],
+  "connectorFormats": [
+    "mt103",
+    "mt940",
+    "mt942",
+    "csv.payments",
+    "fixed.payments",
+    "pain.001.xml",
+    "pain.002.xml",
+    "pacs.002.xml",
+    "payment.bundle.xml"
+  ],
+  "nativeMt103Fields": [
+    "20",
+    "32A",
+    "50A/F/K",
+    "52A",
+    "53A/B/D",
+    "54A/B/D",
+    "56A/D",
+    "57A",
+    "59/F",
+    "70",
+    "71A",
+    "72"
+  ],
+  "adapterSideFields": [
+    "52D",
+    "57D"
+  ],
+  "documentedAdapterInputs": [
+    "MT940 statement file",
+    "MT942 intraday statement file",
+    "CSV payment file",
+    "fixed-width payment file",
+    "SFTP/file-drop batch manifest"
+  ],
+  "fixtures": {
+    "valid": [
+      "../legacy/mt103-basic.txt",
+      "../legacy/mt103-options.txt",
+      "../legacy/csv-payments.csv",
+      "../legacy/fixed-width-payments.txt",
+      "../legacy/mt940-statement.txt",
+      "../legacy/mt942-intraday.txt"
+    ]
+  },
+  "nextNativeParsers": [
+    "MT202",
+    "bank-specific CSV profile packs",
+    "bank-specific fixed-width profile packs",
+    "wider MT103 option mapping"
+  ],
+  "disclaimer": "The native canister routes support education subsets for MT103, MT940, MT942, CSV, and fixed-width files. Production layouts should be pinned by signed bank profile packs."
+}

@@ -1,0 +1,12 @@
+[package]
+name = "thebes-banking-core"
+version = "0.1.0"
+description = "Core banking domain layer on the provable double-entry journal, for Thebes Protocol."
+license = "Apache-2.0"
+
+[dependencies]
+core = "2.3.1"
+sha2 = "0.1.9"
+
+[toolchain]
+moc = "1.4.1"

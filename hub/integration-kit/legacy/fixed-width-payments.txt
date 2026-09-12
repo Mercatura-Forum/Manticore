@@ -1,0 +1,2 @@
+# Layout: messageId[1..35] ccy[36..38] amountMinor[39..50] debtorBic[51..61] creditorBic[62..72] debtorAcct[73..106] creditorAcct[107..140]
+FW-20260622-000001                 EGP000001250000EGBKEGCX   EXBKEGCX   EG380019000500000000263180002     EG800002000156789012345180002     

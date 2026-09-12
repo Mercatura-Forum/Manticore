@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.110.001.01">
+  <InvstgtnReq>
+    <Assgnmt>
+      <Id>CASE-INVESTIGATE-000001</Id>
+      <CreDtTm>2026-06-22T10:50:00Z</CreDtTm>
+    </Assgnmt>
+    <Undrlyg>
+      <MsgId>CAMT110-20260622-000001</MsgId>
+      <OrgnlMsgId>CBPR-EDU-20260622-000001</OrgnlMsgId>
+      <OrgnlUETR>a12b5e70-1d44-4e6a-9c4a-2d9c87fd0011</OrgnlUETR>
+      <RsnCd>INFO</RsnCd>
+      <ReqdActn>INVESTIGATE</ReqdActn>
+      <AddtlInf>Structured case-management investigation request</AddtlInf>
+    </Undrlyg>
+  </InvstgtnReq>
+</Document>

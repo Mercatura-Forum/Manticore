@@ -1,0 +1,14 @@
+(
+  record {
+    connectorId = "bank-eg-001";
+    remoteId = "BANK-EG-001-000030";
+    sequence = 30 : nat;
+    format = "admi.007.xml";
+    payload = blob "<load integration-kit/xml/valid/admin-admi007-ack.xml bytes>";
+    payloadHash = blob "<sha256 bytes of payload>";
+    signature = null;
+    sentAt = 1_772_001_300_000_000_000 : int;
+    traceId = "TRACE-BANK-EG-001-000030";
+    endpoint = opt "sftp://bank-eg-001/incoming";
+  }
+)

@@ -1,0 +1,1364 @@
+{
+  "summary": {
+    "conforming": 14,
+    "conformingOk": 14,
+    "violating": 54,
+    "violatingOk": 54,
+    "rulesExercised": [
+      "CBPR-BAH-REQUIRED",
+      "CBPR-CDTR-ADDRESS",
+      "CBPR-CDTR-AGENT-ID",
+      "CBPR-CHRGBR",
+      "CBPR-CXL-ONE",
+      "CBPR-CXL-ORGNL-UETR",
+      "CBPR-CXL-REASON",
+      "CBPR-DBTR-ADDRESS",
+      "CBPR-DBTR-AGENT-ID",
+      "CBPR-E2E-FINX",
+      "CBPR-FI-CDTR-ID",
+      "CBPR-FI-DBTR-ID",
+      "CBPR-INSTRID-FINX",
+      "CBPR-MSGID-FINX",
+      "CBPR-NBOFTXS-ONE",
+      "CBPR-NTFCTN-BOOKED",
+      "CBPR-NTFCTN-ONE",
+      "CBPR-ONE-TX",
+      "CBPR-RSLTN-ONE",
+      "CBPR-RSLTN-ORGNL-UETR",
+      "CBPR-RSLTN-STATUS",
+      "CBPR-RTR-ONE-TX",
+      "CBPR-RTR-ORGNL-UETR",
+      "CBPR-RTR-REASON",
+      "CBPR-RTR-STTLM-DT",
+      "CBPR-STMT-BALANCES",
+      "CBPR-STMT-BOOKED",
+      "CBPR-STMT-ONE",
+      "CBPR-STS-NO-GROUP-STATUS",
+      "CBPR-STS-ONE-TX",
+      "CBPR-STS-ORGNL-UETR",
+      "CBPR-STTLM-DT-REQUIRED",
+      "CBPR-STTLM-MTD",
+      "CBPR-UETR-REQUIRED",
+      "HVPS-BAH-REQUIRED",
+      "HVPS-CLRSYS-REQUIRED",
+      "HVPS-E2E-FINX",
+      "HVPS-INSTD-AGT-REQUIRED",
+      "HVPS-INSTG-AGT-REQUIRED",
+      "HVPS-LQDTY-ACCOUNTS",
+      "HVPS-LQDTY-CCY",
+      "HVPS-LQDTY-ID",
+      "HVPS-MSGID-FINX",
+      "HVPS-NBOFTXS-ONE",
+      "HVPS-ONE-TX",
+      "HVPS-RPT-BALANCE",
+      "HVPS-RPT-ONE",
+      "HVPS-STMT-BALANCES",
+      "HVPS-STMT-ONE",
+      "HVPS-STS-ONE-TX",
+      "HVPS-STS-ORGNL-UETR",
+      "HVPS-STTLM-CLRG",
+      "HVPS-STTLM-DT-REQUIRED",
+      "HVPS-UETR-REQUIRED"
+    ],
+    "rulesWithoutViolationFixture": []
+  },
+  "sets": [
+    {
+      "id": "CBPRPLUS",
+      "name": "CBPR+ (cross-border payments and reporting plus)",
+      "authority": "Swift",
+      "basis": [
+        "Swift, CBPR+ User Handbook (structure published; content on MyStandards)",
+        "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods",
+        "PMPG market practice: structured and hybrid postal addresses (end of unstructured addresses, November 2026)",
+        "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+      ],
+      "reconciliation": "NOT RECONCILED with MyStandards rule identifiers: the CBPR+ usage guidelines are access-controlled and the harness could not fetch them. The rule ids are the hub's; each rule names its public basis.",
+      "ruleCount": 35,
+      "implemented": {
+        "pacs.008": 14,
+        "pacs.009": 11,
+        "pacs.002": 5,
+        "pacs.004": 6,
+        "camt.053": 4,
+        "camt.054": 3,
+        "camt.056": 4,
+        "camt.029": 4
+      },
+      "rules": [
+        {
+          "id": "CBPR-BAH-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009",
+            "pacs.002",
+            "pacs.004",
+            "camt.053",
+            "camt.054",
+            "camt.056",
+            "camt.029"
+          ],
+          "check": "the head.001 AppHdr travels with the Document",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-MSGID-FINX",
+          "families": [
+            "pacs.008",
+            "pacs.009",
+            "pacs.002",
+            "pacs.004"
+          ],
+          "check": "GrpHdr/MsgId in the FIN X character set, no leading '/', no '//'",
+          "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+        },
+        {
+          "id": "CBPR-ONE-TX",
+          "families": [
+            "pacs.008"
+          ],
+          "check": "CdtTrfTxInf occurs exactly 1",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-ONE-TX",
+          "families": [
+            "pacs.009"
+          ],
+          "check": "CdtTrfTxInf occurs exactly 1",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-NBOFTXS-ONE",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "GrpHdr/NbOfTxs = '1'",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-UETR-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "require CdtTrfTxInf/PmtId/UETR",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-STTLM-MTD",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "GrpHdr/SttlmInf/SttlmMtd in {INDA, INGA, COVE}",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-STTLM-DT-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "require CdtTrfTxInf/IntrBkSttlmDt",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-CHRGBR",
+          "families": [
+            "pacs.008"
+          ],
+          "check": "CdtTrfTxInf/ChrgBr in {DEBT, CRED, SHAR}",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-E2E-FINX",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "CdtTrfTxInf/PmtId/EndToEndId in the FIN X character set, no leading '/', no '//'",
+          "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+        },
+        {
+          "id": "CBPR-INSTRID-FINX",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "CdtTrfTxInf/PmtId/InstrId in the FIN X character set, no leading '/', no '//'",
+          "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+        },
+        {
+          "id": "CBPR-DBTR-AGENT-ID",
+          "families": [
+            "pacs.008"
+          ],
+          "check": "CdtTrfTxInf/DbtrAgt identified by BICFI, clearing member id, or name and address",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-CDTR-AGENT-ID",
+          "families": [
+            "pacs.008"
+          ],
+          "check": "CdtTrfTxInf/CdtrAgt identified by BICFI, clearing member id, or name and address",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-DBTR-ADDRESS",
+          "families": [
+            "pacs.008"
+          ],
+          "check": "CdtTrfTxInf/Dbtr/PstlAdr structured or hybrid (TwnNm, Ctry, at most two AdrLine)",
+          "basis": "PMPG market practice: structured and hybrid postal addresses (end of unstructured addresses, November 2026)"
+        },
+        {
+          "id": "CBPR-CDTR-ADDRESS",
+          "families": [
+            "pacs.008"
+          ],
+          "check": "CdtTrfTxInf/Cdtr/PstlAdr structured or hybrid (TwnNm, Ctry, at most two AdrLine)",
+          "basis": "PMPG market practice: structured and hybrid postal addresses (end of unstructured addresses, November 2026)"
+        },
+        {
+          "id": "CBPR-FI-DBTR-ID",
+          "families": [
+            "pacs.009"
+          ],
+          "check": "CdtTrfTxInf/Dbtr identified by BICFI, clearing member id, or name and address",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-FI-CDTR-ID",
+          "families": [
+            "pacs.009"
+          ],
+          "check": "CdtTrfTxInf/Cdtr identified by BICFI, clearing member id, or name and address",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-STS-ONE-TX",
+          "families": [
+            "pacs.002"
+          ],
+          "check": "TxInfAndSts occurs exactly 1",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-STS-ORGNL-UETR",
+          "families": [
+            "pacs.002"
+          ],
+          "check": "require TxInfAndSts/OrgnlUETR",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-STS-NO-GROUP-STATUS",
+          "families": [
+            "pacs.002"
+          ],
+          "check": "forbid OrgnlGrpInfAndSts/GrpSts",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-RTR-ONE-TX",
+          "families": [
+            "pacs.004"
+          ],
+          "check": "TxInf occurs exactly 1",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-RTR-ORGNL-UETR",
+          "families": [
+            "pacs.004"
+          ],
+          "check": "require TxInf/OrgnlUETR",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-RTR-REASON",
+          "families": [
+            "pacs.004"
+          ],
+          "check": "require TxInf/RtrRsnInf",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-RTR-STTLM-DT",
+          "families": [
+            "pacs.004"
+          ],
+          "check": "require TxInf/IntrBkSttlmDt",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-STMT-ONE",
+          "families": [
+            "camt.053"
+          ],
+          "check": "Stmt occurs exactly 1",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-STMT-BALANCES",
+          "families": [
+            "camt.053"
+          ],
+          "check": "Stmt/Bal/Tp/CdOrPrtry/Cd includes {OPBD, CLBD}",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-STMT-BOOKED",
+          "families": [
+            "camt.053"
+          ],
+          "check": "Stmt/Ntry/Sts/Cd in {BOOK}",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-NTFCTN-ONE",
+          "families": [
+            "camt.054"
+          ],
+          "check": "Ntfctn occurs exactly 1",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-NTFCTN-BOOKED",
+          "families": [
+            "camt.054"
+          ],
+          "check": "Ntfctn/Ntry/Sts/Cd in {BOOK}",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-CXL-ONE",
+          "families": [
+            "camt.056"
+          ],
+          "check": "Undrlyg/TxInf occurs exactly 1",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-CXL-ORGNL-UETR",
+          "families": [
+            "camt.056"
+          ],
+          "check": "require Undrlyg/TxInf/OrgnlUETR",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-CXL-REASON",
+          "families": [
+            "camt.056"
+          ],
+          "check": "require Undrlyg/TxInf/CxlRsnInf",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-RSLTN-ONE",
+          "families": [
+            "camt.029"
+          ],
+          "check": "CxlDtls/TxInfAndSts occurs exactly 1",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        },
+        {
+          "id": "CBPR-RSLTN-ORGNL-UETR",
+          "families": [
+            "camt.029"
+          ],
+          "check": "require CxlDtls/TxInfAndSts/OrgnlUETR",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "CBPR-RSLTN-STATUS",
+          "families": [
+            "camt.029"
+          ],
+          "check": "require CxlDtls/TxInfAndSts/TxCxlSts",
+          "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+        }
+      ]
+    },
+    {
+      "id": "HVPSPLUS",
+      "name": "HVPS+ (high-value payment systems plus)",
+      "authority": "HVPS+ task force (RTGS operators)",
+      "basis": [
+        "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)",
+        "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods",
+        "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+      ],
+      "reconciliation": "NOT RECONCILED with MyStandards rule identifiers: the HVPS+ usage guidelines are access-controlled and the harness could not fetch them. The rule ids are the hub's; each rule names its public basis.",
+      "ruleCount": 20,
+      "implemented": {
+        "pacs.008": 11,
+        "pacs.009": 11,
+        "pacs.002": 4,
+        "camt.050": 4,
+        "camt.052": 3,
+        "camt.053": 3
+      },
+      "rules": [
+        {
+          "id": "HVPS-BAH-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009",
+            "pacs.002",
+            "camt.050",
+            "camt.052",
+            "camt.053"
+          ],
+          "check": "the head.001 AppHdr travels with the Document",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-MSGID-FINX",
+          "families": [
+            "pacs.008",
+            "pacs.009",
+            "pacs.002"
+          ],
+          "check": "GrpHdr/MsgId in the FIN X character set, no leading '/', no '//'",
+          "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+        },
+        {
+          "id": "HVPS-ONE-TX",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "CdtTrfTxInf occurs exactly 1",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-NBOFTXS-ONE",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "GrpHdr/NbOfTxs = '1'",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-UETR-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "require CdtTrfTxInf/PmtId/UETR",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "HVPS-STTLM-CLRG",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "GrpHdr/SttlmInf/SttlmMtd in {CLRG}",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-CLRSYS-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "require GrpHdr/SttlmInf/ClrSys",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-STTLM-DT-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "require CdtTrfTxInf/IntrBkSttlmDt",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-INSTG-AGT-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "require GrpHdr/InstgAgt",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-INSTD-AGT-REQUIRED",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "require GrpHdr/InstdAgt",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-E2E-FINX",
+          "families": [
+            "pacs.008",
+            "pacs.009"
+          ],
+          "check": "CdtTrfTxInf/PmtId/EndToEndId in the FIN X character set, no leading '/', no '//'",
+          "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+        },
+        {
+          "id": "HVPS-STS-ONE-TX",
+          "families": [
+            "pacs.002"
+          ],
+          "check": "TxInfAndSts occurs exactly 1",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-STS-ORGNL-UETR",
+          "families": [
+            "pacs.002"
+          ],
+          "check": "require TxInfAndSts/OrgnlUETR",
+          "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+        },
+        {
+          "id": "HVPS-LQDTY-ID",
+          "families": [
+            "camt.050"
+          ],
+          "check": "require LqdtyCdtTrf/LqdtyTrfId/EndToEndId",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-LQDTY-CCY",
+          "families": [
+            "camt.050"
+          ],
+          "check": "require LqdtyCdtTrf/TrfdAmt/AmtWthCcy",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-LQDTY-ACCOUNTS",
+          "families": [
+            "camt.050"
+          ],
+          "check": "require LqdtyCdtTrf/CdtrAcct",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-RPT-ONE",
+          "families": [
+            "camt.052"
+          ],
+          "check": "Rpt occurs exactly 1",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-RPT-BALANCE",
+          "families": [
+            "camt.052"
+          ],
+          "check": "require Rpt/Bal",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-STMT-ONE",
+          "families": [
+            "camt.053"
+          ],
+          "check": "Stmt occurs exactly 1",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        },
+        {
+          "id": "HVPS-STMT-BALANCES",
+          "families": [
+            "camt.053"
+          ],
+          "check": "Stmt/Bal/Tp/CdOrPrtry/Cd includes {OPBD, CLBD}",
+          "basis": "HVPS+ market practice as published in RTGS operators' ISO 20022 specifications (ECB T2 UDFS, Bank of England CHAPS ISO 20022 schemas, Federal Reserve / TCH)"
+        }
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "cbpr-pacs008-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs009-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs002-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs004-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt053-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt054-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt056-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt029-conforming",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-conforming",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs009-conforming",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.009",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs002-conforming",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "hvps-camt050-conforming",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "hvps-camt052-conforming",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "hvps-camt053-conforming",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "verdict": "conforms",
+      "detail": "-",
+      "xmllint": "schema-valid",
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-no-header",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-BAH-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-BAH-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-msgid-charset",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-MSGID-FINX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-MSGID-FINX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-two-transactions",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-ONE-TX,CBPR-NBOFTXS-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-ONE-TX",
+        "CBPR-NBOFTXS-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-nboftxs",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-NBOFTXS-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-NBOFTXS-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-no-uetr",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-UETR-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-UETR-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-clrg",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-STTLM-MTD",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STTLM-MTD"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-no-settlement-date",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-STTLM-DT-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STTLM-DT-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-slev",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-CHRGBR",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-CHRGBR"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-e2e-charset",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-E2E-FINX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-E2E-FINX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-instrid-charset",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-INSTRID-FINX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-INSTRID-FINX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-debtor-agent-unidentified",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-DBTR-AGENT-ID",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-DBTR-AGENT-ID"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-debtor-unstructured-address",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-DBTR-ADDRESS",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-DBTR-ADDRESS"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-creditor-hybrid-three-lines",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-CDTR-ADDRESS",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-CDTR-ADDRESS"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs008-creditor-agent-unidentified",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "CBPR-CDTR-AGENT-ID",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-CDTR-AGENT-ID"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs009-debtor-unidentified",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "verdict": "violates",
+      "detail": "CBPR-FI-DBTR-ID",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-FI-DBTR-ID"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs009-creditor-unidentified",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "verdict": "violates",
+      "detail": "CBPR-FI-CDTR-ID",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-FI-CDTR-ID"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs004-two-transactions",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "verdict": "violates",
+      "detail": "CBPR-RTR-ONE-TX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-RTR-ONE-TX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs002-two-transactions",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "verdict": "violates",
+      "detail": "CBPR-STS-ONE-TX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STS-ONE-TX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs002-no-original-uetr",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "verdict": "violates",
+      "detail": "CBPR-STS-ORGNL-UETR",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STS-ORGNL-UETR"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs002-group-status",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "verdict": "violates",
+      "detail": "CBPR-STS-NO-GROUP-STATUS",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STS-NO-GROUP-STATUS"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs004-no-original-uetr",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "verdict": "violates",
+      "detail": "CBPR-RTR-ORGNL-UETR",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-RTR-ORGNL-UETR"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs004-no-reason",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "verdict": "violates",
+      "detail": "CBPR-RTR-REASON",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-RTR-REASON"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-pacs004-no-settlement-date",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "verdict": "violates",
+      "detail": "CBPR-RTR-STTLM-DT",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-RTR-STTLM-DT"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt053-two-statements",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "verdict": "violates",
+      "detail": "CBPR-STMT-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STMT-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt053-no-closing-balance",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "verdict": "violates",
+      "detail": "CBPR-STMT-BALANCES",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STMT-BALANCES"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt053-pending-entry",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "verdict": "violates",
+      "detail": "CBPR-STMT-BOOKED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-STMT-BOOKED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt054-two-notifications",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "verdict": "violates",
+      "detail": "CBPR-NTFCTN-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-NTFCTN-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt054-pending-entry",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "verdict": "violates",
+      "detail": "CBPR-NTFCTN-BOOKED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-NTFCTN-BOOKED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt056-two-transactions",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "verdict": "violates",
+      "detail": "CBPR-CXL-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-CXL-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt056-no-original-uetr",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "verdict": "violates",
+      "detail": "CBPR-CXL-ORGNL-UETR",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-CXL-ORGNL-UETR"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt056-no-reason",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "verdict": "violates",
+      "detail": "CBPR-CXL-REASON",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-CXL-REASON"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt029-two-transactions",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "verdict": "violates",
+      "detail": "CBPR-RSLTN-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-RSLTN-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt029-no-original-uetr",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "verdict": "violates",
+      "detail": "CBPR-RSLTN-ORGNL-UETR",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-RSLTN-ORGNL-UETR"
+      ],
+      "ok": true
+    },
+    {
+      "id": "cbpr-camt029-no-status",
+      "ruleSet": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "verdict": "violates",
+      "detail": "CBPR-RSLTN-STATUS",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "CBPR-RSLTN-STATUS"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-no-header",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-BAH-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-BAH-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-msgid-charset",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-MSGID-FINX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-MSGID-FINX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-two-transactions",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-ONE-TX,HVPS-NBOFTXS-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-ONE-TX",
+        "HVPS-NBOFTXS-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-nboftxs",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-NBOFTXS-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-NBOFTXS-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-no-uetr",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-UETR-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-UETR-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-inda",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-STTLM-CLRG",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-STTLM-CLRG"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-no-clearing-system",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-CLRSYS-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-CLRSYS-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-no-settlement-date",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-STTLM-DT-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-STTLM-DT-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-no-instructing-agent",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-INSTG-AGT-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-INSTG-AGT-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-no-instructed-agent",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-INSTD-AGT-REQUIRED",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-INSTD-AGT-REQUIRED"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs008-e2e-charset",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "verdict": "violates",
+      "detail": "HVPS-E2E-FINX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-E2E-FINX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs002-two-transactions",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "verdict": "violates",
+      "detail": "HVPS-STS-ONE-TX",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-STS-ONE-TX"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-pacs002-no-original-uetr",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "verdict": "violates",
+      "detail": "HVPS-STS-ORGNL-UETR",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-STS-ORGNL-UETR"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-camt050-no-id",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "verdict": "violates",
+      "detail": "HVPS-LQDTY-ID",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-LQDTY-ID"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-camt050-amount-without-currency",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "verdict": "violates",
+      "detail": "HVPS-LQDTY-CCY",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-LQDTY-CCY"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-camt050-no-creditor-account",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "verdict": "violates",
+      "detail": "HVPS-LQDTY-ACCOUNTS",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-LQDTY-ACCOUNTS"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-camt052-two-reports",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "verdict": "violates",
+      "detail": "HVPS-RPT-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-RPT-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-camt052-no-balance",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "verdict": "violates",
+      "detail": "HVPS-RPT-BALANCE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-RPT-BALANCE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-camt053-two-statements",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "verdict": "violates",
+      "detail": "HVPS-STMT-ONE",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-STMT-ONE"
+      ],
+      "ok": true
+    },
+    {
+      "id": "hvps-camt053-no-opening-balance",
+      "ruleSet": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "verdict": "violates",
+      "detail": "HVPS-STMT-BALANCES",
+      "xmllint": "schema-valid",
+      "expectedRules": [
+        "HVPS-STMT-BALANCES"
+      ],
+      "ok": true
+    }
+  ]
+}

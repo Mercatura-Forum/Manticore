@@ -1,0 +1,35 @@
+(
+  "bank-eg-001",
+  null,
+  vec {
+    "pain.001.xml";
+    "pain.008.xml";
+    "pacs.003.xml";
+    "pacs.008.xml";
+    "pacs.009.xml";
+    "cover.payment.xml";
+    "pain.002.xml";
+    "pacs.002.xml";
+    "pacs.004.xml";
+    "camt.056.xml";
+    "camt.029.xml";
+    "pacs.028.xml";
+    "camt.110.xml";
+    "camt.111.xml";
+    "pain.013.xml";
+    "pain.014.xml";
+    "camt.055.xml";
+    "admi.002.xml";
+    "admi.004.xml";
+    "admi.007.xml";
+    "admi.011.xml";
+    "camt.053.xml";
+    "camt.054.xml";
+    "mt103";
+    "mt940";
+    "mt942";
+    "csv.payments";
+    "fixed.payments";
+  },
+  vec { "sftp://bank-eg-001/incoming" }
+)

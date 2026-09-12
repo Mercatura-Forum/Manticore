@@ -1,0 +1,1485 @@
+{
+  "version": "thebes-iso20022-profile-map-v2",
+  "schemaDirectoryLayout": "schema files are expected under --schema-dir using the schemaFile values below",
+  "fixtures": [
+    {
+      "id": "valid/pain001-eg-domestic.xml",
+      "path": "integration-kit/xml/valid/pain001-eg-domestic.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "pain.001",
+      "schemaFile": "pain.001.001.09.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/pacs008-eg-domestic.xml",
+      "path": "integration-kit/xml/valid/pacs008-eg-domestic.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/direct-debit-pain008-sdd.xml",
+      "path": "integration-kit/xml/valid/direct-debit-pain008-sdd.xml",
+      "profile": "SEPA-SDD-EDU",
+      "messageKind": "pain.008",
+      "schemaFile": "pain.008.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/direct-debit-pacs003-sdd.xml",
+      "path": "integration-kit/xml/valid/direct-debit-pacs003-sdd.xml",
+      "profile": "SEPA-SDD-EDU",
+      "messageKind": "pacs.003",
+      "schemaFile": "pacs.003.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/pacs009-cbprplus-core.xml",
+      "path": "integration-kit/xml/valid/pacs009-cbprplus-core.xml",
+      "profile": "CBPRPLUS-EDU",
+      "messageKind": "pacs.009",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/status-pain002-accepted.xml",
+      "path": "integration-kit/xml/valid/status-pain002-accepted.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "pain.002",
+      "schemaFile": "pain.002.001.10.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/status-pacs002-settled.xml",
+      "path": "integration-kit/xml/valid/status-pacs002-settled.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/status-pacs004-returned.xml",
+      "path": "integration-kit/xml/valid/status-pacs004-returned.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "pacs.004",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt056-cancel.xml",
+      "path": "integration-kit/xml/valid/investigation-camt056-cancel.xml",
+      "profile": "CBPRPLUS-EDU",
+      "messageKind": "camt.056",
+      "schemaFile": "camt.056.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt029-resolution.xml",
+      "path": "integration-kit/xml/valid/investigation-camt029-resolution.xml",
+      "profile": "CBPRPLUS-EDU",
+      "messageKind": "camt.029",
+      "schemaFile": "camt.029.001.09.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-pacs028-status-request.xml",
+      "path": "integration-kit/xml/valid/investigation-pacs028-status-request.xml",
+      "profile": "CBPRPLUS-EDU",
+      "messageKind": "pacs.028",
+      "schemaFile": "pacs.028.001.03.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt110-request.xml",
+      "path": "integration-kit/xml/valid/investigation-camt110-request.xml",
+      "profile": "BIS-CPMI-HARMONIZED-CROSSBORDER",
+      "messageKind": "camt.110",
+      "schemaFile": "camt.110.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt111-response.xml",
+      "path": "integration-kit/xml/valid/investigation-camt111-response.xml",
+      "profile": "BIS-CPMI-HARMONIZED-CROSSBORDER",
+      "messageKind": "camt.111",
+      "schemaFile": "camt.111.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/request-pain013-rfp.xml",
+      "path": "integration-kit/xml/valid/request-pain013-rfp.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "messageKind": "pain.013",
+      "schemaFile": "pain.013.001.10.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/request-pain014-accepted.xml",
+      "path": "integration-kit/xml/valid/request-pain014-accepted.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "messageKind": "pain.014",
+      "schemaFile": "pain.014.001.10.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/request-camt055-cancel.xml",
+      "path": "integration-kit/xml/valid/request-camt055-cancel.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "messageKind": "camt.055",
+      "schemaFile": "camt.055.001.09.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/admin-admi002-reject.xml",
+      "path": "integration-kit/xml/valid/admin-admi002-reject.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "messageKind": "admi.002",
+      "schemaFile": "admi.002.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/admin-admi004-connection-check.xml",
+      "path": "integration-kit/xml/valid/admin-admi004-connection-check.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "messageKind": "admi.004",
+      "schemaFile": "admi.004.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/admin-admi007-ack.xml",
+      "path": "integration-kit/xml/valid/admin-admi007-ack.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "messageKind": "admi.007",
+      "schemaFile": "admi.007.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/admin-admi011-connection-ack.xml",
+      "path": "integration-kit/xml/valid/admin-admi011-connection-ack.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "messageKind": "admi.011",
+      "schemaFile": "admi.011.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/camt053-statement.xml",
+      "path": "integration-kit/xml/valid/camt053-statement.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/camt054-notification.xml",
+      "path": "integration-kit/xml/valid/camt054-notification.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "camt.054",
+      "schemaFile": "camt.054.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/cover-payment.xml",
+      "path": "integration-kit/xml/valid/cover-payment.xml",
+      "profile": "CBPRPLUS-EDU",
+      "messageKind": "cover.payment",
+      "schemaFile": null,
+      "expected": "custom-profile-valid"
+    },
+    {
+      "id": "invalid/xml-doctype-entity.xml",
+      "path": "integration-kit/xml/invalid/xml-doctype-entity.xml",
+      "profile": "SECURITY",
+      "messageKind": "any",
+      "schemaFile": null,
+      "expected": "canister-rejects",
+      "expectedRuleIds": [
+        "XML-UNSAFE-DECL"
+      ]
+    },
+    {
+      "id": "invalid/status-uetr-mismatch.xml",
+      "path": "integration-kit/xml/invalid/status-uetr-mismatch.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "STATUS-UETR-MISMATCH"
+      ]
+    },
+    {
+      "id": "valid/reversal-pacs007-duplicate.xml",
+      "path": "integration-kit/xml/valid/reversal-pacs007-duplicate.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/fi-direct-debit-pacs010-two-debtors.xml",
+      "path": "integration-kit/xml/valid/fi-direct-debit-pacs010-two-debtors.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.010",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/settlement-request-pacs029-cycle.xml",
+      "path": "integration-kit/xml/valid/settlement-request-pacs029-cycle.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.029",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/reversal-pain007-customer.xml",
+      "path": "integration-kit/xml/valid/reversal-pain007-customer.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.007",
+      "schemaFile": "pain.007.001.10.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/mandate-pain009-initiation.xml",
+      "path": "integration-kit/xml/valid/mandate-pain009-initiation.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/mandate-pain009-one-off.xml",
+      "path": "integration-kit/xml/valid/mandate-pain009-one-off.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/mandate-pain010-amendment.xml",
+      "path": "integration-kit/xml/valid/mandate-pain010-amendment.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.010",
+      "schemaFile": "pain.010.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/mandate-pain011-cancellation.xml",
+      "path": "integration-kit/xml/valid/mandate-pain011-cancellation.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.011",
+      "schemaFile": "pain.011.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/mandate-pain012-accepted.xml",
+      "path": "integration-kit/xml/valid/mandate-pain012-accepted.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.012",
+      "schemaFile": "pain.012.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/mandate-pain012-rejected.xml",
+      "path": "integration-kit/xml/valid/mandate-pain012-rejected.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.012",
+      "schemaFile": "pain.012.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/report-camt052-intraday.xml",
+      "path": "integration-kit/xml/valid/report-camt052-intraday.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.052",
+      "schemaFile": "camt.052.001.08.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/notification-camt057-two-items.xml",
+      "path": "integration-kit/xml/valid/notification-camt057-two-items.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.057",
+      "schemaFile": "camt.057.001.06.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/reporting-request-camt060-intraday.xml",
+      "path": "integration-kit/xml/valid/reporting-request-camt060-intraday.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.060",
+      "schemaFile": "camt.060.001.05.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/reporting-request-camt060-statement.xml",
+      "path": "integration-kit/xml/valid/reporting-request-camt060-statement.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.060",
+      "schemaFile": "camt.060.001.05.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/liquidity-camt050-transfer.xml",
+      "path": "integration-kit/xml/valid/liquidity-camt050-transfer.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/receipt-camt025-accepted.xml",
+      "path": "integration-kit/xml/valid/receipt-camt025-accepted.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.025",
+      "schemaFile": "camt.025.001.05.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/receipt-camt025-rejected.xml",
+      "path": "integration-kit/xml/valid/receipt-camt025-rejected.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.025",
+      "schemaFile": "camt.025.001.05.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt026-unable-to-apply.xml",
+      "path": "integration-kit/xml/valid/investigation-camt026-unable-to-apply.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.026",
+      "schemaFile": "camt.026.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt027-claim-non-receipt.xml",
+      "path": "integration-kit/xml/valid/investigation-camt027-claim-non-receipt.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.027",
+      "schemaFile": "camt.027.001.07.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt028-additional-information.xml",
+      "path": "integration-kit/xml/valid/investigation-camt028-additional-information.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.028",
+      "schemaFile": "camt.028.001.09.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/investigation-camt087-request-to-modify.xml",
+      "path": "integration-kit/xml/valid/investigation-camt087-request-to-modify.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.087",
+      "schemaFile": "camt.087.001.06.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/admin-admi006-resend.xml",
+      "path": "integration-kit/xml/valid/admin-admi006-resend.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "admi.006",
+      "schemaFile": "admi.006.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/admin-admi017-end-of-day.xml",
+      "path": "integration-kit/xml/valid/admin-admi017-end-of-day.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "admi.017",
+      "schemaFile": "admi.017.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "valid/file-head002-two-pacs008.xml",
+      "path": "integration-kit/xml/valid/file-head002-two-pacs008.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "head.002",
+      "schemaFile": "head.002.001.01.xsd",
+      "expected": "valid"
+    },
+    {
+      "id": "invalid/reversal-pacs007-missing-msgid.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-missing-msgid.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-UNEXPECTED"
+      ],
+      "note": "GrpHdr/MsgId renamed: the content model does not allow MsgIdX"
+    },
+    {
+      "id": "invalid/reversal-pacs007-count-mismatch.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-count-mismatch.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-COUNT"
+      ],
+      "note": "NbOfTxs says 2, one TxInf"
+    },
+    {
+      "id": "invalid/reversal-pacs007-zero-amount.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-zero-amount.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-AMOUNT"
+      ],
+      "note": "a reversal of nothing"
+    },
+    {
+      "id": "invalid/reversal-pacs007-unregistered-currency.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-unregistered-currency.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-CURRENCY"
+      ],
+      "note": "XAU is not a currency of the guideline"
+    },
+    {
+      "id": "invalid/reversal-pacs007-reason-too-long.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-reason-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-LENGTH"
+      ],
+      "note": "ExternalReversalReason1Code is Max4Text"
+    },
+    {
+      "id": "invalid/fi-direct-debit-pacs010-no-uetr.xml",
+      "path": "integration-kit/xml/invalid/fi-direct-debit-pacs010-no-uetr.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.010",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-UETR-REQUIRED"
+      ],
+      "note": "every transaction carries its UETR on this rail"
+    },
+    {
+      "id": "invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+      "path": "integration-kit/xml/invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.010",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-AGENT-BIC"
+      ],
+      "note": "the debtor institution is not identified by a BICFI"
+    },
+    {
+      "id": "invalid/settlement-request-pacs029-one-movement.xml",
+      "path": "integration-kit/xml/invalid/settlement-request-pacs029-one-movement.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.029",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-MISSING"
+      ],
+      "note": "the schema asks two movements or more"
+    },
+    {
+      "id": "invalid/settlement-request-pacs029-movement-count.xml",
+      "path": "integration-kit/xml/invalid/settlement-request-pacs029-movement-count.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pacs.029",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-COUNT"
+      ],
+      "note": "NbOfMvmntRcrds says 3, two records"
+    },
+    {
+      "id": "invalid/reversal-pain007-fraction-digits.xml",
+      "path": "integration-kit/xml/invalid/reversal-pain007-fraction-digits.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.007",
+      "schemaFile": "pain.007.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-AMOUNT"
+      ],
+      "note": "three fraction digits in a two-digit currency"
+    },
+    {
+      "id": "invalid/mandate-pain009-bad-sequence.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain009-bad-sequence.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-ENUM"
+      ],
+      "note": "SequenceType2Code is FRST | RCUR | FNAL | OOFF | RPRE"
+    },
+    {
+      "id": "invalid/mandate-pain009-debtor-agent-without-bic.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain009-debtor-agent-without-bic.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-AGENT-BIC"
+      ],
+      "note": "the debtor agent is not identified by a BICFI"
+    },
+    {
+      "id": "invalid/mandate-pain009-id-too-long.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain009-id-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-LENGTH"
+      ],
+      "note": "Max35Text"
+    },
+    {
+      "id": "invalid/mandate-pain012-accepted-not-boolean.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain012-accepted-not-boolean.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "pain.012",
+      "schemaFile": "pain.012.001.07.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-BOOLEAN"
+      ],
+      "note": "YesNoIndicator"
+    },
+    {
+      "id": "invalid/report-camt052-bad-side.xml",
+      "path": "integration-kit/xml/invalid/report-camt052-bad-side.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.052",
+      "schemaFile": "camt.052.001.08.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-ENUM"
+      ],
+      "note": "CreditDebitCode is CRDT | DBIT"
+    },
+    {
+      "id": "invalid/notification-camt057-unregistered-currency.xml",
+      "path": "integration-kit/xml/invalid/notification-camt057-unregistered-currency.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.057",
+      "schemaFile": "camt.057.001.06.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-CURRENCY"
+      ],
+      "note": "ZZZ is not a currency of the guideline"
+    },
+    {
+      "id": "invalid/reporting-request-camt060-no-owner.xml",
+      "path": "integration-kit/xml/invalid/reporting-request-camt060-no-owner.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.060",
+      "schemaFile": "camt.060.001.05.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-MISSING"
+      ],
+      "note": "AcctOwnr is required"
+    },
+    {
+      "id": "invalid/liquidity-camt050-amount-without-currency.xml",
+      "path": "integration-kit/xml/invalid/liquidity-camt050-amount-without-currency.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "ISO-BIZ-CURRENCY"
+      ],
+      "note": "the transferred amount names its currency on this rail"
+    },
+    {
+      "id": "invalid/receipt-camt025-status-too-long.xml",
+      "path": "integration-kit/xml/invalid/receipt-camt025-status-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.025",
+      "schemaFile": "camt.025.001.05.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-LENGTH"
+      ],
+      "note": "Max4AlphaNumericText"
+    },
+    {
+      "id": "invalid/investigation-camt026-bad-bic.xml",
+      "path": "integration-kit/xml/invalid/investigation-camt026-bad-bic.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.026",
+      "schemaFile": "camt.026.001.07.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-PATTERN"
+      ],
+      "note": "BICFIDec2014Identifier"
+    },
+    {
+      "id": "invalid/investigation-camt087-wrong-namespace.xml",
+      "path": "integration-kit/xml/invalid/investigation-camt087-wrong-namespace.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "camt.087",
+      "schemaFile": "camt.087.001.06.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-ROOT"
+      ],
+      "note": "a version this component does not carry"
+    },
+    {
+      "id": "invalid/admin-admi006-no-recipient.xml",
+      "path": "integration-kit/xml/invalid/admin-admi006-no-recipient.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "admi.006",
+      "schemaFile": "admi.006.001.01.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-MISSING"
+      ],
+      "note": "Rcpt is required"
+    },
+    {
+      "id": "invalid/admin-admi017-session-too-long.xml",
+      "path": "integration-kit/xml/invalid/admin-admi017-session-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "admi.017",
+      "schemaFile": "admi.017.001.01.xsd",
+      "expected": "schema-invalid",
+      "expectedRuleIds": [
+        "ISO-XSD-PATTERN"
+      ],
+      "note": "Exact4AlphaNumericText is the pattern [a-zA-Z0-9]{4}"
+    },
+    {
+      "id": "invalid/file-head002-payload-invalid.xml",
+      "path": "integration-kit/xml/invalid/file-head002-payload-invalid.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "head.002",
+      "schemaFile": "head.002.001.01.xsd",
+      "expected": "schema-valid-canister-refuses",
+      "expectedRuleIds": [
+        "ISO-XSD-MISSING"
+      ],
+      "note": "the payload is validated against its own schema: pacs.008 requires ChrgBr (head.002's Pyld is a lax xs:any, so xmllint on the file alone passes; the runner validates each payload against its own XSD)"
+    },
+    {
+      "id": "invalid/file-head002-doctype.xml",
+      "path": "integration-kit/xml/invalid/file-head002-doctype.xml",
+      "profile": "SCHEMA-PROFILE",
+      "messageKind": "head.002",
+      "schemaFile": "head.002.001.01.xsd",
+      "expected": "schema-valid-canister-refuses",
+      "expectedRuleIds": [
+        "XML-UNSAFE-DECL"
+      ],
+      "note": "a DTD is refused before parsing (libxml2 accepts an internal subset; the canister does not)"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-pacs009-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-pacs002-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-pacs004-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-camt053-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-camt054-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "schemaFile": "camt.054.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-camt056-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "schemaFile": "camt.056.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-camt029-conforming.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-conforming.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "schemaFile": "camt.029.001.09.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-conforming.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-conforming.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/hvps-pacs009-conforming.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs009-conforming.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.009",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/hvps-pacs002-conforming.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-conforming.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/hvps-camt050-conforming.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-conforming.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/hvps-camt052-conforming.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-conforming.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "schemaFile": "camt.052.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/hvps-camt053-conforming.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-conforming.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "valid",
+      "note": "AppHdr (head.001.001.02) beside the Document; the runner validates the Document fragment, usage-guideline-check.py validates both"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-no-header.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-header.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-BAH-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-msgid-charset.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-msgid-charset.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-MSGID-FINX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-two-transactions.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-ONE-TX",
+        "CBPR-NBOFTXS-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-nboftxs.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-nboftxs.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-NBOFTXS-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-no-uetr.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-uetr.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-UETR-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-clrg.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-clrg.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STTLM-MTD"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-no-settlement-date.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-settlement-date.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STTLM-DT-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-slev.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-slev.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-CHRGBR"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-e2e-charset.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-e2e-charset.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-E2E-FINX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-instrid-charset.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-instrid-charset.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-INSTRID-FINX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-debtor-agent-unidentified.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-agent-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-DBTR-AGENT-ID"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-debtor-unstructured-address.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-unstructured-address.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-DBTR-ADDRESS"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-creditor-hybrid-three-lines.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-hybrid-three-lines.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-CDTR-ADDRESS"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs008-creditor-agent-unidentified.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-agent-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-CDTR-AGENT-ID"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs009-debtor-unidentified.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-debtor-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-FI-DBTR-ID"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs009-creditor-unidentified.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-creditor-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.009",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-FI-CDTR-ID"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs004-two-transactions.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-RTR-ONE-TX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs002-two-transactions.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STS-ONE-TX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs002-no-original-uetr.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STS-ORGNL-UETR"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs002-group-status.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-group-status.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STS-NO-GROUP-STATUS"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs004-no-original-uetr.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-RTR-ORGNL-UETR"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs004-no-reason.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-reason.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-RTR-REASON"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-pacs004-no-settlement-date.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-settlement-date.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "pacs.004",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-RTR-STTLM-DT"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt053-two-statements.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-two-statements.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STMT-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt053-no-closing-balance.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-no-closing-balance.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STMT-BALANCES"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt053-pending-entry.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-pending-entry.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-STMT-BOOKED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt054-two-notifications.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-two-notifications.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "schemaFile": "camt.054.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-NTFCTN-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt054-pending-entry.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-pending-entry.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.054",
+      "schemaFile": "camt.054.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-NTFCTN-BOOKED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt056-two-transactions.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "schemaFile": "camt.056.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-CXL-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt056-no-original-uetr.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "schemaFile": "camt.056.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-CXL-ORGNL-UETR"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt056-no-reason.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-no-reason.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.056",
+      "schemaFile": "camt.056.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-CXL-REASON"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt029-two-transactions.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "schemaFile": "camt.029.001.09.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-RSLTN-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt029-no-original-uetr.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "schemaFile": "camt.029.001.09.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-RSLTN-ORGNL-UETR"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/cbpr-camt029-no-status.xml",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-no-status.xml",
+      "profile": "CBPRPLUS",
+      "messageKind": "camt.029",
+      "schemaFile": "camt.029.001.09.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "CBPR-RSLTN-STATUS"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-no-header.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-header.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-BAH-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-msgid-charset.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-msgid-charset.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-MSGID-FINX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-two-transactions.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-two-transactions.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-ONE-TX",
+        "HVPS-NBOFTXS-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-nboftxs.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-nboftxs.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-NBOFTXS-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-no-uetr.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-uetr.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-UETR-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-inda.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-inda.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-STTLM-CLRG"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-no-clearing-system.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-clearing-system.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-CLRSYS-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-no-settlement-date.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-settlement-date.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-STTLM-DT-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-no-instructing-agent.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-instructing-agent.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-INSTG-AGT-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-no-instructed-agent.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-instructed-agent.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-INSTD-AGT-REQUIRED"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs008-e2e-charset.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-e2e-charset.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.008",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-E2E-FINX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs002-two-transactions.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-two-transactions.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-STS-ONE-TX"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-pacs002-no-original-uetr.xml",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-no-original-uetr.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "pacs.002",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-STS-ORGNL-UETR"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-camt050-no-id.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-no-id.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-LQDTY-ID"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-camt050-amount-without-currency.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-amount-without-currency.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-LQDTY-CCY"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-camt050-no-creditor-account.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-no-creditor-account.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-LQDTY-ACCOUNTS"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-camt052-two-reports.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-two-reports.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "schemaFile": "camt.052.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-RPT-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-camt052-no-balance.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-no-balance.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.052",
+      "schemaFile": "camt.052.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-RPT-BALANCE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-camt053-two-statements.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-two-statements.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-STMT-ONE"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    },
+    {
+      "id": "guidelines/hvps-camt053-no-opening-balance.xml",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-no-opening-balance.xml",
+      "profile": "HVPSPLUS",
+      "messageKind": "camt.053",
+      "schemaFile": "camt.053.001.08.xsd",
+      "expected": "schema-valid-business-invalid",
+      "expectedRuleIds": [
+        "HVPS-STMT-BALANCES"
+      ],
+      "note": "schema-valid; refused by the rule set under the usageGuideline tier"
+    }
+  ],
+  "profiles": {
+    "SCHEMA-PROFILE": "the schema-profile codec (motoko/iso/IsoBreadth.mo over motoko/iso/IsoProfiles.mo): official-shape messages, validated against the generated XSD profile before reading",
+    "CBPRPLUS": "the CBPR+ rule set (motoko/iso/RuleSets.mo) over official-shape messages with their AppHdr",
+    "HVPSPLUS": "the HVPS+ rule set (motoko/iso/RuleSets.mo) over official-shape messages with their AppHdr"
+  }
+}

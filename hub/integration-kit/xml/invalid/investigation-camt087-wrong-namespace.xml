@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.087.001.99">
+  <ReqToModfyPmt>
+    <Assgnmt>
+      <Id>ASG976620555</Id>
+      <Assgnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Assgnr>
+      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+    </Assgnmt>
+    <Case><Id>CASE640579354</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Cretr></Case>
+    <Undrlyg>
+      <IntrBk>
+        <OrgnlGrpInf><OrgnlMsgId>PACS008-95522</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>
+        <OrgnlEndToEndId>E2E-855978767</OrgnlEndToEndId>
+        <OrgnlUETR>d44f1798-7eeb-4203-a77c-1358d104a3c4</OrgnlUETR>
+        <OrgnlIntrBkSttlmAmt Ccy="EGP">221373.06</OrgnlIntrBkSttlmAmt>
+        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>
+      </IntrBk>
+    </Undrlyg>
+    <Mod>
+      <IntrBkSttlmAmt Ccy="EGP">231517.54</IntrBkSttlmAmt>
+    </Mod>
+  </ReqToModfyPmt>
+</Document>

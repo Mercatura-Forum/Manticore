@@ -1,0 +1,51 @@
+{
+  "id": "SEPA-SDD-EDU",
+  "label": "SEPA Direct Debit public-source education overlay",
+  "status": "implemented-runtime-overlay",
+  "officialCertification": false,
+  "sourceReferences": [
+    "https://www.europeanpaymentscouncil.eu/what-we-do/epc-payment-schemes/sepa-direct-debit/sepa-direct-debit-core-rulebook-and-implementation",
+    "https://www.europeanpaymentscouncil.eu/sites/default/files/kb/file/2024-11/EPC130-08%20SDD%20Core%20C2PSP%20IG%202025%20V1.0%20.pdf",
+    "https://www.europeanpaymentscouncil.eu/sites/default/files/kb/file/2024-11/EPC114-06%20SDD%20Core%20Inter-PSP%20IG%202025%20V1.0.pdf"
+  ],
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setDefaultGuidelineProfile",
+    "setConnectorGuidelineProfile",
+    "validateDirectDebitWithProfile"
+  ],
+  "messageFamilies": [
+    "pain.008",
+    "pacs.003",
+    "pain.002",
+    "pacs.002",
+    "pacs.004",
+    "camt.056",
+    "camt.029",
+    "camt.053",
+    "camt.054"
+  ],
+  "connectorFormats": [
+    "pain.008.xml",
+    "pacs.003.xml",
+    "pain.002.xml",
+    "pacs.002.xml",
+    "pacs.004.xml",
+    "camt.053.xml",
+    "camt.054.xml"
+  ],
+  "ruleHighlights": [
+    "public EPC SDD Core/B2B profile tracked as a named overlay",
+    "compact pain.008 and pacs.003 mandate/collection forms are implemented",
+    "status, return, investigation, and reporting routes can be reused for replay evidence",
+    "official EPC SDD mandate, scheme, and bank profile rules remain external"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/direct-debit-pain008-sdd.xml",
+      "../xml/valid/direct-debit-pacs003-sdd.xml"
+    ],
+    "invalid": []
+  },
+  "disclaimer": "Education overlay only. It is not an EPC SDD scheme certification or a complete mandate-management implementation."
+}

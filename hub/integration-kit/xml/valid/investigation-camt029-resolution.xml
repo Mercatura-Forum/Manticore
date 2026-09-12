@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.029.001.09">
+  <RsltnOfInvstgtn>
+    <Assgnmt>
+      <Id>ASSIGN-RESOLVE-000001</Id>
+      <CreDtTm>2026-06-22T10:35:00Z</CreDtTm>
+    </Assgnmt>
+    <Undrlyg>
+      <MsgId>CAMT029-20260622-000001</MsgId>
+      <OrgnlMsgId>CAMT056-20260622-000001</OrgnlMsgId>
+      <OrgnlUETR>a12b5e70-1d44-4e6a-9c4a-2d9c87fd0011</OrgnlUETR>
+      <RsnCd>ACCP</RsnCd>
+      <ReqdActn>CANCELLATION ACCEPTED</ReqdActn>
+      <AddtlInf>Cancellation accepted by instructed agent</AddtlInf>
+    </Undrlyg>
+  </RsltnOfInvstgtn>
+</Document>

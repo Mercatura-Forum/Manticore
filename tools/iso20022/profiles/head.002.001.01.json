@@ -1,0 +1,230 @@
+{
+ "family": "head.002.001.01",
+ "schemaSha256": "635f3fb3fb0780d1c2e11574dac194cebca320c45eab34047d5fe0dced8eaa2d",
+ "namespace": "urn:iso:std:iso:20022:tech:xsd:head.002.001.01",
+ "rootName": "Xchg",
+ "rootType": "BusinessFileHeaderV01",
+ "order": [
+  "ApplicationSpecifics1",
+  "BusinessFileHeaderV01",
+  "ISODateTime",
+  "LaxPayload",
+  "ManifestData2",
+  "Max140Text",
+  "Max256Text",
+  "Max35Text",
+  "Number",
+  "PayloadData2",
+  "PayloadDescription2",
+  "SignatureEnvelope",
+  "TrueFalseIndicator"
+ ],
+ "types": {
+  "ApplicationSpecifics1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "SysUsr",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Sgntr",
+     "type": "SignatureEnvelope",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TtlNbOfDocs",
+     "type": "Number",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "BusinessFileHeaderV01": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PyldDesc",
+     "type": "PayloadDescription2",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Pyld",
+     "type": "LaxPayload",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "ISODateTime": {
+   "kind": "simple",
+   "base": "dateTime",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "LaxPayload": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "*",
+     "type": null,
+     "min": 1,
+     "max": 1,
+     "namespace": "##any"
+    }
+   ]
+  },
+  "ManifestData2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "DocTp",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "NbOfDocs",
+     "type": "Number",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Max140Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 140,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max256Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 256,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max35Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 35,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Number": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 0,
+   "totalDigits": 18,
+   "minInclusive": null
+  },
+  "PayloadData2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PyldIdr",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CreDtAndTm",
+     "type": "ISODateTime",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "PssblDplctFlg",
+     "type": "TrueFalseIndicator",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "PayloadDescription2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "PyldData",
+     "type": "PayloadData2",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "ApplSpcfcs",
+     "type": "ApplicationSpecifics1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PyldTp",
+     "type": "Max256Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "MnfstData",
+     "type": "ManifestData2",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "SignatureEnvelope": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "*",
+     "type": null,
+     "min": 1,
+     "max": 1,
+     "namespace": "http://www.w3.org/2000/09/xmldsig#"
+    }
+   ]
+  },
+  "TrueFalseIndicator": {
+   "kind": "simple",
+   "base": "boolean",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  }
+ }
+}

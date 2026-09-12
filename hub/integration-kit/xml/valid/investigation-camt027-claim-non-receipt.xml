@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.027.001.07">
+  <ClmNonRct>
+    <Assgnmt>
+      <Id>ASG394337215</Id>
+      <Assgnr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Assgnr>
+      <Assgne><Agt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></Agt></Assgne>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+    </Assgnmt>
+    <Case><Id>CASE178829261</Id><Cretr><Agt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></Agt></Cretr></Case>
+    <Undrlyg>
+      <IntrBk>
+        <OrgnlGrpInf><OrgnlMsgId>PACS008-681964</OrgnlMsgId><OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId></OrgnlGrpInf>
+        <OrgnlEndToEndId>E2E-542327076</OrgnlEndToEndId>
+        <OrgnlUETR>361de907-d77d-4687-a62a-dc3087bdf49d</OrgnlUETR>
+        <OrgnlIntrBkSttlmAmt Ccy="EGP">58023.49</OrgnlIntrBkSttlmAmt>
+        <OrgnlIntrBkSttlmDt>2026-09-12</OrgnlIntrBkSttlmDt>
+      </IntrBk>
+    </Undrlyg>
+  </ClmNonRct>
+</Document>

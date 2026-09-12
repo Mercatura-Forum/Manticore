@@ -1,0 +1,14 @@
+(
+  record {
+    connectorId = "bank-eg-001";
+    remoteId = "BANK-EG-001-000001";
+    sequence = 1 : nat;
+    format = "pacs.002.xml";
+    payload = blob "<load integration-kit/xml/valid/status-pacs002-settled.xml bytes>";
+    payloadHash = blob "<sha256 bytes of payload>";
+    signature = null;
+    sentAt = 1_772_000_300_000_000_000 : int;
+    traceId = "TRACE-BANK-EG-001-000001";
+    endpoint = opt "sftp://bank-eg-001/incoming";
+  }
+)

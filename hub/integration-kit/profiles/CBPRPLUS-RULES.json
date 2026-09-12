@@ -1,0 +1,321 @@
+{
+  "id": "CBPRPLUS",
+  "name": "CBPR+ (cross-border payments and reporting plus)",
+  "authority": "Swift",
+  "basis": [
+    "Swift, CBPR+ User Handbook (structure published; content on MyStandards)",
+    "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods",
+    "PMPG market practice: structured and hybrid postal addresses (end of unstructured addresses, November 2026)",
+    "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+  ],
+  "reconciliation": "NOT RECONCILED with MyStandards rule identifiers: the CBPR+ usage guidelines are access-controlled and the harness could not fetch them. The rule ids are the hub's; each rule names its public basis.",
+  "ruleCount": 35,
+  "implemented": {
+    "pacs.008": 14,
+    "pacs.009": 11,
+    "pacs.002": 5,
+    "pacs.004": 6,
+    "camt.053": 4,
+    "camt.054": 3,
+    "camt.056": 4,
+    "camt.029": 4
+  },
+  "rules": [
+    {
+      "id": "CBPR-BAH-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009",
+        "pacs.002",
+        "pacs.004",
+        "camt.053",
+        "camt.054",
+        "camt.056",
+        "camt.029"
+      ],
+      "check": "the head.001 AppHdr travels with the Document",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-MSGID-FINX",
+      "families": [
+        "pacs.008",
+        "pacs.009",
+        "pacs.002",
+        "pacs.004"
+      ],
+      "check": "GrpHdr/MsgId in the FIN X character set, no leading '/', no '//'",
+      "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+    },
+    {
+      "id": "CBPR-ONE-TX",
+      "families": [
+        "pacs.008"
+      ],
+      "check": "CdtTrfTxInf occurs exactly 1",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-ONE-TX",
+      "families": [
+        "pacs.009"
+      ],
+      "check": "CdtTrfTxInf occurs exactly 1",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-NBOFTXS-ONE",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "GrpHdr/NbOfTxs = '1'",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-UETR-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "require CdtTrfTxInf/PmtId/UETR",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-STTLM-MTD",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "GrpHdr/SttlmInf/SttlmMtd in {INDA, INGA, COVE}",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-STTLM-DT-REQUIRED",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "require CdtTrfTxInf/IntrBkSttlmDt",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-CHRGBR",
+      "families": [
+        "pacs.008"
+      ],
+      "check": "CdtTrfTxInf/ChrgBr in {DEBT, CRED, SHAR}",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-E2E-FINX",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "CdtTrfTxInf/PmtId/EndToEndId in the FIN X character set, no leading '/', no '//'",
+      "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+    },
+    {
+      "id": "CBPR-INSTRID-FINX",
+      "families": [
+        "pacs.008",
+        "pacs.009"
+      ],
+      "check": "CdtTrfTxInf/PmtId/InstrId in the FIN X character set, no leading '/', no '//'",
+      "basis": "CBPR+ restricted FIN X character set for identifiers (Swift public FAQ on character sets in ISO 20022)"
+    },
+    {
+      "id": "CBPR-DBTR-AGENT-ID",
+      "families": [
+        "pacs.008"
+      ],
+      "check": "CdtTrfTxInf/DbtrAgt identified by BICFI, clearing member id, or name and address",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-CDTR-AGENT-ID",
+      "families": [
+        "pacs.008"
+      ],
+      "check": "CdtTrfTxInf/CdtrAgt identified by BICFI, clearing member id, or name and address",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-DBTR-ADDRESS",
+      "families": [
+        "pacs.008"
+      ],
+      "check": "CdtTrfTxInf/Dbtr/PstlAdr structured or hybrid (TwnNm, Ctry, at most two AdrLine)",
+      "basis": "PMPG market practice: structured and hybrid postal addresses (end of unstructured addresses, November 2026)"
+    },
+    {
+      "id": "CBPR-CDTR-ADDRESS",
+      "families": [
+        "pacs.008"
+      ],
+      "check": "CdtTrfTxInf/Cdtr/PstlAdr structured or hybrid (TwnNm, Ctry, at most two AdrLine)",
+      "basis": "PMPG market practice: structured and hybrid postal addresses (end of unstructured addresses, November 2026)"
+    },
+    {
+      "id": "CBPR-FI-DBTR-ID",
+      "families": [
+        "pacs.009"
+      ],
+      "check": "CdtTrfTxInf/Dbtr identified by BICFI, clearing member id, or name and address",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-FI-CDTR-ID",
+      "families": [
+        "pacs.009"
+      ],
+      "check": "CdtTrfTxInf/Cdtr identified by BICFI, clearing member id, or name and address",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-STS-ONE-TX",
+      "families": [
+        "pacs.002"
+      ],
+      "check": "TxInfAndSts occurs exactly 1",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-STS-ORGNL-UETR",
+      "families": [
+        "pacs.002"
+      ],
+      "check": "require TxInfAndSts/OrgnlUETR",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-STS-NO-GROUP-STATUS",
+      "families": [
+        "pacs.002"
+      ],
+      "check": "forbid OrgnlGrpInfAndSts/GrpSts",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-RTR-ONE-TX",
+      "families": [
+        "pacs.004"
+      ],
+      "check": "TxInf occurs exactly 1",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-RTR-ORGNL-UETR",
+      "families": [
+        "pacs.004"
+      ],
+      "check": "require TxInf/OrgnlUETR",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-RTR-REASON",
+      "families": [
+        "pacs.004"
+      ],
+      "check": "require TxInf/RtrRsnInf",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-RTR-STTLM-DT",
+      "families": [
+        "pacs.004"
+      ],
+      "check": "require TxInf/IntrBkSttlmDt",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-STMT-ONE",
+      "families": [
+        "camt.053"
+      ],
+      "check": "Stmt occurs exactly 1",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-STMT-BALANCES",
+      "families": [
+        "camt.053"
+      ],
+      "check": "Stmt/Bal/Tp/CdOrPrtry/Cd includes {OPBD, CLBD}",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-STMT-BOOKED",
+      "families": [
+        "camt.053"
+      ],
+      "check": "Stmt/Ntry/Sts/Cd in {BOOK}",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-NTFCTN-ONE",
+      "families": [
+        "camt.054"
+      ],
+      "check": "Ntfctn occurs exactly 1",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-NTFCTN-BOOKED",
+      "families": [
+        "camt.054"
+      ],
+      "check": "Ntfctn/Ntry/Sts/Cd in {BOOK}",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-CXL-ONE",
+      "families": [
+        "camt.056"
+      ],
+      "check": "Undrlyg/TxInf occurs exactly 1",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-CXL-ORGNL-UETR",
+      "families": [
+        "camt.056"
+      ],
+      "check": "require Undrlyg/TxInf/OrgnlUETR",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-CXL-REASON",
+      "families": [
+        "camt.056"
+      ],
+      "check": "require Undrlyg/TxInf/CxlRsnInf",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-RSLTN-ONE",
+      "families": [
+        "camt.029"
+      ],
+      "check": "CxlDtls/TxInfAndSts occurs exactly 1",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    },
+    {
+      "id": "CBPR-RSLTN-ORGNL-UETR",
+      "families": [
+        "camt.029"
+      ],
+      "check": "require CxlDtls/TxInfAndSts/OrgnlUETR",
+      "basis": "Swift ISO 20022 programme, public CBPR+ pages: UETR, BAH, single transaction, settlement methods"
+    },
+    {
+      "id": "CBPR-RSLTN-STATUS",
+      "families": [
+        "camt.029"
+      ],
+      "check": "require CxlDtls/TxInfAndSts/TxCxlSts",
+      "basis": "Swift, CBPR+ User Handbook (structure published; content on MyStandards)"
+    }
+  ]
+}

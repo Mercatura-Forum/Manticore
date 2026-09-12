@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.052.001.08">
+  <BkToCstmrAcctRpt>
+    <GrpHdr>
+      <MsgId>ARPT871900390</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <OrgnlBizQry><MsgId>ARR745300097</MsgId><MsgNmId>camt.060.001.05</MsgNmId></OrgnlBizQry>
+    </GrpHdr>
+    <Rpt>
+      <Id>RPT978686594</Id>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <FrToDt><FrDtTm>2026-09-12T00:00:00Z</FrDtTm><ToDtTm>2026-09-12T10:00:00Z</ToDtTm></FrToDt>
+      <Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id><Ccy>EGP</Ccy></Acct>
+      <Bal><Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp><Amt Ccy="EGP">242996.35</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-09-12</Dt></Dt></Bal>
+      <Bal><Tp><CdOrPrtry><Cd>ITBD</Cd></CdOrPrtry></Tp><Amt Ccy="EGP">89206.53</Amt><CdtDbtInd>CRED</CdtDbtInd><Dt><Dt>2026-09-12</Dt></Dt></Bal>
+      <Ntry>
+        <NtryRef>NTRY-1</NtryRef>
+        <Amt Ccy="EGP">69830.09</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-12</Dt></BookgDt>
+        <ValDt><Dt>2026-09-12</Dt></ValDt>
+        <AcctSvcrRef>4471</AcctSvcrRef>
+        <BkTxCd><Prtry><Cd>PMNT</Cd></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs>
+            <AcctSvcrRef>4471</AcctSvcrRef>
+            <EndToEndId>E2E-32677069</EndToEndId>
+            <UETR>87ba782b-8663-4357-9f89-e471e3fea268</UETR>
+          </Refs>
+          <RltdPties><Cdtr><Pty><Nm>Cairo Water Utility</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf>
+            <Ustrd>water bill 2026-08</Ustrd>
+          </RmtInf>
+        </TxDtls></NtryDtls>
+      </Ntry>
+      <Ntry>
+        <NtryRef>NTRY-2</NtryRef>
+        <Amt Ccy="EGP">92654.93</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-09-12</Dt></BookgDt>
+        <ValDt><Dt>2026-09-12</Dt></ValDt>
+        <AcctSvcrRef>4472</AcctSvcrRef>
+        <BkTxCd><Prtry><Cd>PMNT</Cd></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs>
+            <AcctSvcrRef>4472</AcctSvcrRef>
+            <UETR>6d4ed90d-664f-420e-b4f9-4a32a0130ee1</UETR>
+          </Refs>
+          <RltdPties><Dbtr><Pty><Nm>Salary Payroll Ltd</Nm></Pty></Dbtr></RltdPties>
+        </TxDtls></NtryDtls>
+      </Ntry>
+    </Rpt>
+  </BkToCstmrAcctRpt>
+</Document>

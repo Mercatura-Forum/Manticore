@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.010.001.07">
+  <MndtAmdmntReq>
+    <GrpHdr>
+      <MsgId>MAMD144242164</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <InitgPty><Nm>Cairo Water Utility</Nm></InitgPty>
+    </GrpHdr>
+    <UndrlygAmdmntDtls>
+      <AmdmntRsn><Rsn><Cd>MD16</Cd></Rsn></AmdmntRsn>
+      <Mndt>
+        <MndtId>MANDATE-754988</MndtId>
+        <TrckgInd>false</TrckgInd>
+        <MaxAmt Ccy="EGP">750.00</MaxAmt>
+      </Mndt>
+      <OrgnlMndt><OrgnlMndtId>MANDATE-754988</OrgnlMndtId></OrgnlMndt>
+    </UndrlygAmdmntDtls>
+  </MndtAmdmntReq>
+</Document>

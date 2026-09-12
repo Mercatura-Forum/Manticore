@@ -1,0 +1,294 @@
+type Value = 
+ variant {
+   Array: vec Value;
+   Blob: blob;
+   Int: int;
+   Map: vec record {
+              text;
+              Value;
+            };
+   Nat: nat;
+   Text: text;
+ };
+type TransferFromError = 
+ variant {
+   BadBurn: record {min_burn_amount: nat;};
+   BadFee: record {expected_fee: nat;};
+   CreatedInFuture: record {ledger_time: nat64;};
+   Duplicate: record {duplicate_of: nat;};
+   GenericError: record {
+                   error_code: nat;
+                   message: text;
+                 };
+   InsufficientAllowance: record {allowance: nat;};
+   InsufficientFunds: record {balance: nat;};
+   TemporarilyUnavailable;
+   TooOld;
+ };
+type TransferFromArgs = 
+ record {
+   amount: nat;
+   created_at_time: opt nat64;
+   fee: opt nat;
+   from: Account;
+   memo: opt blob;
+   spender_subaccount: opt blob;
+   to: Account;
+ };
+type TransferError = 
+ variant {
+   BadBurn: record {min_burn_amount: nat;};
+   BadFee: record {expected_fee: nat;};
+   CreatedInFuture: record {ledger_time: nat64;};
+   Duplicate: record {duplicate_of: nat;};
+   GenericError: record {
+                   error_code: nat;
+                   message: text;
+                 };
+   InsufficientFunds: record {balance: nat;};
+   TemporarilyUnavailable;
+   TooOld;
+ };
+type TransferArgs = 
+ record {
+   amount: nat;
+   created_at_time: opt nat64;
+   fee: opt nat;
+   from_subaccount: opt blob;
+   memo: opt blob;
+   to: Account;
+ };
+type Transaction = 
+ record {
+   amount: nat;
+   fee: opt nat;
+   from: opt Account;
+   index: nat;
+   kind: text;
+   memo: opt blob;
+   spender: opt Account;
+   timestamp: nat64;
+   to: opt Account;
+ };
+type InitArgs = 
+ record {
+   decimals: nat8;
+   fee: nat;
+   initial_balances: vec record {
+                           Account;
+                           nat;
+                         };
+   max_memo_length: opt nat;
+   max_supply: opt nat;
+   minting_account: Account;
+   name: text;
+   symbol: text;
+ };
+type IndexedLedger = 
+ service {
+   /// Query archive status
+   getArchiveStatus: () ->
+    (record {
+       archiveCount: nat;
+       archiveThreshold: nat;
+       localBlockCount: nat;
+       localBlockOffset: nat;
+       totalBlocks: nat;
+     }) query;
+   getShieldStatus: () ->
+    (record {
+       blockCount: nat;
+       cycleBalance: nat;
+       threshold: nat;
+       tripped: bool;
+     }) query;
+   get_account_transactions: (args: GetAccountTransactionsArgs) ->
+    (GetAccountTransactionsResult) query;
+   icrc10_supported_standards: () ->
+    (vec record {
+           name: text;
+           url: text;
+         }) query;
+   icrc1_balance_of: (account: Account) -> (nat) query;
+   icrc1_decimals: () -> (nat8) query;
+   icrc1_fee: () -> (nat) query;
+   icrc1_metadata: () -> (vec record {
+                                text;
+                                Value;
+                              }) query;
+   icrc1_minting_account: () -> (opt Account) query;
+   icrc1_name: () -> (text) query;
+   icrc1_supported_standards: () ->
+    (vec record {
+           name: text;
+           url: text;
+         }) query;
+   icrc1_symbol: () -> (text) query;
+   icrc1_total_supply: () -> (nat) query;
+   icrc1_transfer: (transferArgs: TransferArgs) ->
+    (variant {
+       Err: TransferError;
+       Ok: nat;
+     });
+   icrc2_allowance: (allowanceArgs: AllowanceArgs) -> (Allowance) query;
+   icrc2_approve: (approveArgs: ApproveArgs) ->
+    (variant {
+       Err: ApproveError;
+       Ok: nat;
+     });
+   icrc2_transfer_from: (tfArgs: TransferFromArgs) ->
+    (variant {
+       Err: TransferFromError;
+       Ok: nat;
+     });
+   icrc3_get_archives: (args: record {from: opt principal;}) ->
+    (vec record {
+           canister_id: principal;
+           end: nat;
+           start: nat;
+         }) query;
+   icrc3_get_blocks: (args: vec GetBlocksArgs) ->
+    (record {
+       blocks: vec Block;
+       log_length: nat;
+     }) query;
+   icrc3_get_tip_certificate: () ->
+    (opt record {
+           certificate: blob;
+           hash_tree: blob;
+         }) query;
+   icrc3_get_transactions: (args: record {
+                                    length: nat;
+                                    start: nat;
+                                  }) ->
+    (record {
+       archived_transactions:
+        vec
+         record {
+           args: record {
+                   length: nat;
+                   start: nat;
+                 };
+           callback:
+            func (record {
+                    length: nat;
+                    start: nat;
+                  }) -> (record {transactions: vec Block;}) query;
+         };
+       log_length: nat;
+       transactions: vec Block;
+     }) query;
+   /// ICRC-3: Supported block types
+   icrc3_supported_block_types: () ->
+    (vec record {
+           block_type: text;
+           url: text;
+         }) query;
+   list_subaccounts: (owner: principal, start: opt blob) -> (vec blob) query;
+   /// Generate an inclusion proof for a specific block
+   mmr_proof: (blockIndex: nat) ->
+    (opt record {
+           peakIndex: nat;
+           peaks: vec blob;
+           siblings: vec blob;
+         }) query;
+   /// Get the MMR root hash (commitment over all blocks)
+   mmr_root: () -> (opt blob) query;
+   /// Set archive threshold (admin only). Blocks in the main canister's StableLog
+   /// beyond this count trigger automatic archival.
+   setArchiveThreshold: (threshold: nat) -> ();
+   setCircuitBreakerThreshold: (newThreshold: nat) -> ();
+   set_fee_collector: (fc: opt Account) -> ();
+   status: () ->
+    (record {
+       index_synced: bool;
+       mmr_peaks: nat;
+       total_accounts: nat;
+       total_allowances: nat;
+       total_supply: nat;
+       total_transactions: nat;
+     }) query;
+   /// Manually trigger archive spawning (admin only).
+   /// Spawns a new Archive canister, migrates blocks [localBlockOffset..currentCount-retainCount],
+   /// then updates the archive registry.
+   triggerArchive: (retainCount: nat, archiveCycles: nat) ->
+    (variant {
+       err: text;
+       ok: principal;
+     });
+ };
+type GetBlocksArgs = 
+ record {
+   length: nat;
+   start: nat;
+ };
+type GetAccountTransactionsResult = 
+ record {
+   balance: nat;
+   oldest_tx_id: opt nat;
+   transactions: vec Transaction;
+ };
+type GetAccountTransactionsArgs = 
+ record {
+   account: Account;
+   max_results: nat;
+   start: opt nat;
+ };
+type Block = 
+ record {
+   block: Value;
+   id: nat;
+ };
+type ApproveError = 
+ variant {
+   AllowanceChanged: record {current_allowance: nat;};
+   BadFee: record {expected_fee: nat;};
+   CreatedInFuture: record {ledger_time: nat64;};
+   Duplicate: record {duplicate_of: nat;};
+   Expired: record {ledger_time: nat64;};
+   GenericError: record {
+                   error_code: nat;
+                   message: text;
+                 };
+   InsufficientFunds: record {balance: nat;};
+   TemporarilyUnavailable;
+   TooOld;
+ };
+type ApproveArgs = 
+ record {
+   amount: nat;
+   created_at_time: opt nat64;
+   expected_allowance: opt nat;
+   expires_at: opt nat64;
+   fee: opt nat;
+   from_subaccount: opt blob;
+   memo: opt blob;
+   spender: Account;
+ };
+type AllowanceArgs = 
+ record {
+   account: Account;
+   spender: Account;
+ };
+type Allowance = 
+ record {
+   allowance: nat;
+   expires_at: opt nat64;
+ };
+type Account = 
+ record {
+   owner: principal;
+   subaccount: opt blob;
+ };
+/// IndexedLedger.mo — Self-Indexed ICRC-1/ICRC-2/ICRC-3/ICRC-10 Token Ledger
+/// 
+/// This actor constitutes the entry point of the ICRC-ME ledger. It composes
+/// eleven internal modules into a single canister that provides full ICRC
+/// compliance; account-level transaction indexing; Merkle inclusion proofs;
+/// and cycle drain protection. The separate index canister required by the
+/// reference architecture is eliminated; its function is absorbed here via
+/// a Region-backed account index that incurs zero garbage collection overhead
+/// regardless of the number of accounts or accumulated blocks.
+/// 
+/// All state survives canister upgrades via Enhanced Orthogonal Persistence.
+service : (args: InitArgs) -> IndexedLedger

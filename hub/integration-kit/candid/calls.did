@@ -1,0 +1,62 @@
+// Discovery
+type ValidationIssue = record {
+  severity : text;
+  tier : text;
+  ruleId : text;
+  path : text;
+  message : text;
+};
+
+type ValidationReport = record {
+  ok : bool;
+  guidelineId : text;
+  messageKind : text;
+  messageVersion : text;
+  issueCount : nat;
+  issues : vec ValidationIssue;
+};
+
+type PfmiPrincipleAssessment = record {
+  principle : nat;
+  title : text;
+  applicability : text;
+  status : text;
+  locus : text;
+  codeEnforceable : bool;
+  oraclePhase : opt text;
+  verifierSurface : vec text;
+  evidence : vec text;
+  residualGaps : vec text;
+};
+
+service : {
+  supportedStandards : () -> (vec record { name : text; url : text }) query;
+  capabilities : () -> (vec record { name : text; status : text; notes : text }) query;
+  checkpointMap : () -> (
+    vec record {
+      id : text;
+      layer : text;
+      status : text;
+      codeSurface : vec text;
+      verifierSurface : vec text;
+      currentGate : text;
+      nextGate : text;
+    }
+  ) query;
+  integrationProfilePacks : () -> (
+    vec record {
+      id : text;
+      displayName : text;
+      status : text;
+      guidelineSurface : text;
+      messageFamilies : vec text;
+      connectorFormats : vec text;
+      legacyInputs : vec text;
+      fixturePath : text;
+      notes : text;
+    }
+  ) query;
+  verifyParticipantWorkflowCorrelation : () -> (ValidationReport) query;
+  pfmiSelfAssessment : () -> (vec PfmiPrincipleAssessment) query;
+  verifyPfmiSelfAssessment : () -> (ValidationReport) query;
+}

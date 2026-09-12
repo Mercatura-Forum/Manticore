@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:admi.011.001.01">
+  <SystemEventAcknowledgement>
+    <EvtInf>
+      <MsgId>ADMI011-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T11:13:00Z</CreDtTm>
+      <RltdMsgId>ADMI004-20260622-000001</RltdMsgId>
+      <EvtCd>CONN</EvtCd>
+      <Sts>ACK</Sts>
+      <AddtlInf>Connection check acknowledged fixture</AddtlInf>
+    </EvtInf>
+  </SystemEventAcknowledgement>
+</Document>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:admi.002.001.01">
+  <MessageReject>
+    <EvtInf>
+      <MsgId>ADMI002-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T11:10:00Z</CreDtTm>
+      <RltdMsgId>PACS003-20260622-000001</RltdMsgId>
+      <RltdUETR>b62b5e70-1d44-4e6a-9c4a-2d9c87fd0011</RltdUETR>
+      <EvtCd>RJCT</EvtCd>
+      <Sts>RJCT</Sts>
+      <Rsn>schema or profile validation failed</Rsn>
+      <AddtlInf>Administrative reject fixture</AddtlInf>
+    </EvtInf>
+  </MessageReject>
+</Document>

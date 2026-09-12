@@ -1,0 +1,12 @@
+[package]
+name = "thebes-example-iso20022-backend"
+version = "0.1.0"
+description = "ISO 20022 validation and audit canister for Thebes."
+license = "Apache-2.0"
+
+[dependencies]
+core = "2.5.0"
+thebes-lib = "./thebes-lib"
+
+[toolchain]
+moc = "1.4.1"

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Xchg [<!ENTITY x "y">]>
+<Xchg xmlns="urn:iso:std:iso:20022:tech:xsd:head.002.001.01">
+  <PyldDesc>
+    <PyldData><PyldIdr>FILE49934057</PyldIdr><CreDtAndTm>2026-09-12T10:00:00Z</CreDtAndTm><PssblDplctFlg>false</PssblDplctFlg></PyldData>
+    <ApplSpcfcs><SysUsr>ach-batch</SysUsr><TtlNbOfDocs>2</TtlNbOfDocs></ApplSpcfcs>
+    <PyldTp>pacs.008.001.08</PyldTp>
+    <MnfstData><DocTp>pacs.008.001.08</DocTp><NbOfDocs>2</NbOfDocs></MnfstData>
+  </PyldDesc>
+  <Pyld><Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+  <FIToFICstmrCdtTrf>
+    <GrpHdr>
+      <MsgId>P8918693393</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>
+    </GrpHdr>
+    <CdtTrfTxInf>
+      <PmtId><EndToEndId>E2E-710061669</EndToEndId><UETR>628d323a-c223-4181-9a4a-7720f11e89a9</UETR></PmtId>
+      <IntrBkSttlmAmt Ccy="EGP">180392.45</IntrBkSttlmAmt>
+      <ChrgBr>SLEV</ChrgBr>
+      <Dbtr><Nm>Salary Payroll Ltd</Nm></Dbtr>
+      <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>
+      <CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt>
+      <Cdtr><Nm>Household 685</Nm></Cdtr>
+      <CdtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></CdtrAcct>
+    </CdtTrfTxInf>
+  </FIToFICstmrCdtTrf>
+</Document></Pyld>
+  <Pyld><Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+  <FIToFICstmrCdtTrf>
+    <GrpHdr>
+      <MsgId>P8711883840</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>
+    </GrpHdr>
+    <CdtTrfTxInf>
+      <PmtId><EndToEndId>E2E-319695323</EndToEndId><UETR>2aaa08ad-881f-42fc-8c99-942d34c8737c</UETR></PmtId>
+      <IntrBkSttlmAmt Ccy="EGP">81786.13</IntrBkSttlmAmt>
+      <ChrgBr>SLEV</ChrgBr>
+      <Dbtr><Nm>Salary Payroll Ltd</Nm></Dbtr>
+      <DbtrAgt><FinInstnId><BICFI>CIBEEGCXXXX</BICFI></FinInstnId></DbtrAgt>
+      <CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt>
+      <Cdtr><Nm>Household 210</Nm></Cdtr>
+      <CdtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></CdtrAcct>
+    </CdtTrfTxInf>
+  </FIToFICstmrCdtTrf>
+</Document></Pyld>
+</Xchg>

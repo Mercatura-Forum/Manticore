@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.025.001.05">
+  <Rct>
+    <MsgHdr><MsgId>RCT838849452</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm></MsgHdr>
+    <RctDtls>
+      <OrgnlMsgId><MsgId>LQT845183016</MsgId><MsgNmId>camt.050.001.05</MsgNmId></OrgnlMsgId>
+      <ReqHdlg><StsCd>RJCT</StsCd><Desc>liquidity transfer settled</Desc></ReqHdlg>
+    </RctDtls>
+  </Rct>
+</Document>

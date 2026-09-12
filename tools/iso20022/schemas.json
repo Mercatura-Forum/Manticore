@@ -1,0 +1,176 @@
+{
+ "admi.006.001.01.xsd": {
+  "sha256": "87a46b2ba0797b8f9e47ae74c0d6e3409b51763e8e3a4ef9cf0fcfa892030ff2",
+  "bytes": 8935,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/admi/schemas/admi.006.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "admi.007.001.01.xsd": {
+  "sha256": "11510256bb93def132a6cd20a463204f1482e1e5896fa72b55061c3dde778a82",
+  "bytes": 7216,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/admi/schemas/admi.007.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "admi.017.001.01.xsd": {
+  "sha256": "53172d2149587b911d7e6add410585320eb95f12ca48a172c4957fe8c727b88d",
+  "bytes": 6693,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/admi/schemas/admi.017.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.025.001.05.xsd": {
+  "sha256": "0c507d285b0ac15a8a1823fe86773e34474515b07de476c18377165df794602c",
+  "bytes": 15826,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.025.001.05.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.026.001.07.xsd": {
+  "sha256": "9e4c35a0aaaa6c811f1748aed7894da956c4e895d0890d7f16b2c6b081841e3e",
+  "bytes": 60631,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.026.001.07.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.027.001.07.xsd": {
+  "sha256": "c0d69ee43add47dd5d8066942c21ececc6ffb0e6b3d7b4bdcb4c0221cb42047d",
+  "bytes": 57905,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.027.001.07.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.028.001.09.xsd": {
+  "sha256": "f275be6160ea5ee8359ec77af42ae42e837e6e9d5bdfc9f6325e4194ac336581",
+  "bytes": 61938,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.028.001.09.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.050.001.05.xsd": {
+  "sha256": "0c2ad40974298c1da0492105e37f1adfb81e8f097279ab36296a09cc22bdff13",
+  "bytes": 16040,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.050.001.05.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.052.001.08.xsd": {
+  "sha256": "9bb093a0c39cd278d25b40d9ec8c59d1e8f6ab37536c83b84d41bbf5c7f8bd6c",
+  "bytes": 106104,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.052.001.08.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.053.001.08.xsd": {
+  "sha256": "338e9cb0c9989b5181802a7b773eece070d6815fc9d6483ac0579117bc24ccba",
+  "bytes": 106100,
+  "url": "https://www.iso20022.org/message/12736/download",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.054.001.08.xsd": {
+  "sha256": "13d220337d47e22cf25788807c136794a76955791df612c6947277272d440da6",
+  "bytes": 103313,
+  "url": "https://www.iso20022.org/message/12776/download",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.057.001.06.xsd": {
+  "sha256": "7705d75c931da445d1cd50fdfd687809e49aab13430670335474f53cbd894327",
+  "bytes": 43084,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.057.001.06.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.060.001.05.xsd": {
+  "sha256": "eaeacff34dc08ddd1534a4ba44425d40fbcf87588ac9c2d7bccfb810913f4940",
+  "bytes": 26675,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.060.001.05.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "camt.087.001.06.xsd": {
+  "sha256": "b2852bb9f0fe68252c0811ab8d4c09590b21169bbb763e88b5e5cf589ac09feb",
+  "bytes": 61970,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/camt/schemas/camt.087.001.06.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "head.001.001.02.xsd": {
+  "sha256": "730d4f342859b57be250b4215973adc36c7e60b0c48f171e1b4b5584dc355247",
+  "bytes": 18842,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/head/schemas/head.001.001.02.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "head.002.001.01.xsd": {
+  "sha256": "635f3fb3fb0780d1c2e11574dac194cebca320c45eab34047d5fe0dced8eaa2d",
+  "bytes": 3527,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/head/schemas/head.002.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.002.001.10.xsd": {
+  "sha256": "d14da6304db5178b1afc7d8ed6cc6073e6e1a143fc79d9ba66d3246d4a654e90",
+  "bytes": 58000,
+  "url": "https://www.iso20022.org/message/14061/download",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.003.001.08.xsd": {
+  "sha256": "bc630fdf98e8f617bbafb06913dc9226ef6c622b4a73bba28f861f16cf1eafb0",
+  "bytes": 59704,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pacs/schemas/pacs.003.001.08.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.004.001.09.xsd": {
+  "sha256": "e2b13023bed19429bd8347ed9e13d31e6dec33fa4a8ef07dd03138d5442826b9",
+  "bytes": 62278,
+  "url": "https://www.iso20022.org/message/14146/download",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.007.001.10.xsd": {
+  "sha256": "eb144d8b75df17b164e98286361682be48bcef1b2e6b717632dfd48ca02b944b",
+  "bytes": 63079,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pacs/schemas/pacs.007.001.10.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.008.001.08.xsd": {
+  "sha256": "cf048155f70cacd03f1f1dfadf66cba8752be93c249c267351782fd6adb023f7",
+  "bytes": 58040,
+  "url": "https://www.iso20022.org/message/14231/download",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.009.001.08.xsd": {
+  "sha256": "2f695939eb9be156bf2f14a26fbeb0f3bead73037fb03fd219ad14ceb19905ec",
+  "bytes": 57089,
+  "url": "https://www.iso20022.org/message/14271/download",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.010.001.04.xsd": {
+  "sha256": "fb21aaa2270cb34e42c098ca3b65978c924ecf05ee9675e7ec47aec3a503f13e",
+  "bytes": 24987,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pacs/schemas/pacs.010.001.04.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pacs.029.001.02.xsd": {
+  "sha256": "74a9a73bb09aedd426af6d223e8695d84be12665fc16aace3c622e3137bdcd2a",
+  "bytes": 22821,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pacs/schemas/pacs.029.001.02.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pain.007.001.10.xsd": {
+  "sha256": "3a5ffa1bda6c4f6f82c220885f426417a0279602bdbfc40c7a288cc0669fe13d",
+  "bytes": 60386,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pain/schemas/pain.007.001.10.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pain.009.001.07.xsd": {
+  "sha256": "6233e1d056d268a2a387718a3a36526875e9b461b71cc143b4d76601d6d8b0de",
+  "bytes": 33935,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pain/schemas/pain.009.001.07.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pain.010.001.07.xsd": {
+  "sha256": "76a8aab1288e871336cbc15b407eaa9eacd4bc17cf323e4564a4b7a3d566a354",
+  "bytes": 38938,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pain/schemas/pain.010.001.07.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pain.011.001.07.xsd": {
+  "sha256": "7c8ad27b8617d03348fdec5a7be319d686285af026ddb3cdfbf109e3e6711bbd",
+  "bytes": 36640,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pain/schemas/pain.011.001.07.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "pain.012.001.07.xsd": {
+  "sha256": "3a5071dc26d91534051e1a30933354b386f10c9561ab1852c18205fcffa6dd75",
+  "bytes": 36795,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/pain/schemas/pain.012.001.07.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ }
+}

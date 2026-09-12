@@ -1,0 +1,57 @@
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+  <Fr><FIId><FinInstnId><BICFI>EGBKEGCX</BICFI></FinInstnId></FIId></Fr>
+  <To><FIId><FinInstnId><BICFI>DEUTDEFF</BICFI></FinInstnId></FIId></To>
+  <BizMsgIdr>PACS009-CORE-20260622-000001</BizMsgIdr>
+  <MsgDefIdr>pacs.009.001.08</MsgDefIdr>
+  <BizSvc>CBPRPLUS.EDU</BizSvc>
+  <CreDt>2026-06-22T10:10:00Z</CreDt>
+  <UETR>b22b5e70-1d44-4e6a-9c4a-2d9c87fd0011</UETR>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.009.001.08">
+  <FICdtTrf>
+    <GrpHdr>
+      <MsgId>PACS009-CORE-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T10:10:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <SttlmInf><SttlmMtd>INDA</SttlmMtd></SttlmInf>
+    </GrpHdr>
+    <CdtTrfTxInf>
+      <PmtId>
+        <InstrId>INST-CBPR-20260622-000001</InstrId>
+        <EndToEndId>E2E-CBPR-20260622-000001</EndToEndId>
+        <UETR>b22b5e70-1d44-4e6a-9c4a-2d9c87fd0011</UETR>
+      </PmtId>
+      <Amt><IntrBkSttlmAmt Ccy="USD">2500.00</IntrBkSttlmAmt></Amt>
+      <DbtrAgt><FinInstnId><BICFI>EGBKEGCX</BICFI><Nm>Egypt Example Bank</Nm></FinInstnId></DbtrAgt>
+      <CdtrAgt><FinInstnId><BICFI>DEUTDEFF</BICFI><Nm>Deutsche Example Bank</Nm></FinInstnId></CdtrAgt>
+      <Dbtr><FinInstnId><BICFI>EGBKEGCX</BICFI><Nm>Egypt Example Bank Treasury</Nm></FinInstnId></Dbtr>
+      <Cdtr><FinInstnId><BICFI>DEUTDEFF</BICFI><Nm>Deutsche Example Bank Treasury</Nm></FinInstnId></Cdtr>
+      <CrossBorderRouting>
+        <ChrgBr>SHAR</ChrgBr>
+        <InstgAgt><FinInstnId><BICFI>EGBKEGCX</BICFI><Nm>Egypt Example Bank</Nm></FinInstnId></InstgAgt>
+        <InstdAgt><FinInstnId><BICFI>DEUTDEFF</BICFI><Nm>Deutsche Example Bank</Nm></FinInstnId></InstdAgt>
+        <IntrmyAgt><FinInstnId><BICFI>CHASUS33</BICFI><Nm>US Correspondent Example</Nm></FinInstnId></IntrmyAgt>
+        <IntrBkSttlmDt>2026-06-22</IntrBkSttlmDt>
+        <FX>
+          <SrcCcy>EGP</SrcCcy>
+          <TgtCcy>USD</TgtCcy>
+          <XchgRateE8s>2050000</XchgRateE8s>
+          <QuoteId>FXQ-20260622-000001</QuoteId>
+          <QuoteXpry>2026-06-22T12:00:00Z</QuoteXpry>
+          <Amt><SttlmAmt Ccy="USD">2500.00</SttlmAmt></Amt>
+        </FX>
+        <ChrgsInf>
+          <Amt Ccy="USD">15.00</Amt>
+          <Agt><FinInstnId><BICFI>CHASUS33</BICFI><Nm>US Correspondent Example</Nm></FinInstnId></Agt>
+          <Tp>COMM</Tp>
+        </ChrgsInf>
+        <RgltryRptg>
+          <AuthrtyCtry>EG</AuthrtyCtry>
+          <Cd>CORT</Cd>
+          <Inf>Commercial invoice settlement</Inf>
+        </RgltryRptg>
+      </CrossBorderRouting>
+      <COV>false</COV>
+    </CdtTrfTxInf>
+  </FICdtTrf>
+</Document>

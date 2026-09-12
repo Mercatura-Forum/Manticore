@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.111.001.01">
+  <InvstgtnRspn>
+    <Assgnmt>
+      <Id>CASE-RESPONSE-000001</Id>
+      <CreDtTm>2026-06-22T10:55:00Z</CreDtTm>
+    </Assgnmt>
+    <Undrlyg>
+      <MsgId>CAMT111-20260622-000001</MsgId>
+      <OrgnlMsgId>CAMT110-20260622-000001</OrgnlMsgId>
+      <OrgnlUETR>a12b5e70-1d44-4e6a-9c4a-2d9c87fd0011</OrgnlUETR>
+      <RsnCd>INFO</RsnCd>
+      <ReqdActn>RESPOND</ReqdActn>
+      <AddtlInf>Structured case-management investigation response</AddtlInf>
+    </Undrlyg>
+  </InvstgtnRspn>
+</Document>

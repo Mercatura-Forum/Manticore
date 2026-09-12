@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.028.001.03">
+  <FIToFIPmtStsReq>
+    <Assgnmt>
+      <Id>ASSIGN-STATUS-000001</Id>
+      <CreDtTm>2026-06-22T10:40:00Z</CreDtTm>
+    </Assgnmt>
+    <Undrlyg>
+      <MsgId>PACS028-20260622-000001</MsgId>
+      <OrgnlMsgId>CBPR-EDU-20260622-000001</OrgnlMsgId>
+      <OrgnlUETR>a12b5e70-1d44-4e6a-9c4a-2d9c87fd0011</OrgnlUETR>
+      <RsnCd>STAT</RsnCd>
+      <ReqdActn>REQUEST STATUS</ReqdActn>
+      <AddtlInf>Request latest payment status</AddtlInf>
+    </Undrlyg>
+  </FIToFIPmtStsReq>
+</Document>

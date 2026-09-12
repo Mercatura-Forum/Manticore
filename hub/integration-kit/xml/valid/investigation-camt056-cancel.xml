@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.056.001.08">
+  <FIToFIPmtCxlReq>
+    <Assgnmt>
+      <Id>ASSIGN-CANCEL-000001</Id>
+      <CreDtTm>2026-06-22T10:30:00Z</CreDtTm>
+    </Assgnmt>
+    <Undrlyg>
+      <MsgId>CAMT056-20260622-000001</MsgId>
+      <OrgnlMsgId>CBPR-EDU-20260622-000001</OrgnlMsgId>
+      <OrgnlUETR>a12b5e70-1d44-4e6a-9c4a-2d9c87fd0011</OrgnlUETR>
+      <RsnCd>CUST</RsnCd>
+      <ReqdActn>CANCEL</ReqdActn>
+      <AddtlInf>Customer requested cancellation before settlement</AddtlInf>
+    </Undrlyg>
+  </FIToFIPmtCxlReq>
+</Document>

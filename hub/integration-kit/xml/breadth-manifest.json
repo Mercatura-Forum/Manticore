@@ -1,0 +1,524 @@
+{
+  "version": "thebes-iso20022-breadth-fixtures-v1",
+  "seed": 20260912,
+  "families": {
+    "pacs.007": "pacs.007.001.10",
+    "pacs.010": "pacs.010.001.04",
+    "pacs.029": "pacs.029.001.02",
+    "pain.007": "pain.007.001.10",
+    "pain.009": "pain.009.001.07",
+    "pain.010": "pain.010.001.07",
+    "pain.011": "pain.011.001.07",
+    "pain.012": "pain.012.001.07",
+    "camt.052": "camt.052.001.08",
+    "camt.057": "camt.057.001.06",
+    "camt.060": "camt.060.001.05",
+    "camt.050": "camt.050.001.05",
+    "camt.025": "camt.025.001.05",
+    "camt.026": "camt.026.001.07",
+    "camt.027": "camt.027.001.07",
+    "camt.028": "camt.028.001.09",
+    "camt.087": "camt.087.001.06",
+    "admi.006": "admi.006.001.01",
+    "admi.017": "admi.017.001.01",
+    "head.002": "head.002.001.01",
+    "pacs.008": "pacs.008.001.08",
+    "pacs.003": "pacs.003.001.08"
+  },
+  "valid": [
+    {
+      "id": "valid/reversal-pacs007-duplicate.xml",
+      "path": "integration-kit/xml/valid/reversal-pacs007-duplicate.xml",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "491fa70c8687879aa02d297c55544604429432dad740fd07c215c9d7681a5cdf"
+    },
+    {
+      "id": "valid/fi-direct-debit-pacs010-two-debtors.xml",
+      "path": "integration-kit/xml/valid/fi-direct-debit-pacs010-two-debtors.xml",
+      "messageKind": "pacs.010",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "beb80e3c7db4f3c3f1198145200d85c2b1178731d08333e82d8e50b84afe8cb1"
+    },
+    {
+      "id": "valid/settlement-request-pacs029-cycle.xml",
+      "path": "integration-kit/xml/valid/settlement-request-pacs029-cycle.xml",
+      "messageKind": "pacs.029",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "fb95fd63f9eb9e66d9e03e5754fdaccc74a1c1802ec5b250eb7db923e1d6aa47"
+    },
+    {
+      "id": "valid/reversal-pain007-customer.xml",
+      "path": "integration-kit/xml/valid/reversal-pain007-customer.xml",
+      "messageKind": "pain.007",
+      "schemaFile": "pain.007.001.10.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "0ca6a10e8285e9f71455cfab7a626e9594aef2f7d97915878708cfc23705c827"
+    },
+    {
+      "id": "valid/mandate-pain009-initiation.xml",
+      "path": "integration-kit/xml/valid/mandate-pain009-initiation.xml",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "48667327db670ee03ae62a24f78da7ecfda895eb6566187da26728fe262f9061"
+    },
+    {
+      "id": "valid/mandate-pain009-one-off.xml",
+      "path": "integration-kit/xml/valid/mandate-pain009-one-off.xml",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "84e26e3effff4e0c05c9879950f734317cb9bb47f6cfae1fd589a714d1b01206"
+    },
+    {
+      "id": "valid/mandate-pain010-amendment.xml",
+      "path": "integration-kit/xml/valid/mandate-pain010-amendment.xml",
+      "messageKind": "pain.010",
+      "schemaFile": "pain.010.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "4f23114da40e2f8f7f83e206c8d09d34d70e45301ddfbe3253f017281f1e2cf9"
+    },
+    {
+      "id": "valid/mandate-pain011-cancellation.xml",
+      "path": "integration-kit/xml/valid/mandate-pain011-cancellation.xml",
+      "messageKind": "pain.011",
+      "schemaFile": "pain.011.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "e7ef4dc68ec2fc3a21205edf51b09d9d7c6943181b94a8f27d7f7be0964ad69b"
+    },
+    {
+      "id": "valid/mandate-pain012-accepted.xml",
+      "path": "integration-kit/xml/valid/mandate-pain012-accepted.xml",
+      "messageKind": "pain.012",
+      "schemaFile": "pain.012.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "ba392dc61acee46d76a4d727e093dd88581fdb098c5c9924066ae346f57475cd"
+    },
+    {
+      "id": "valid/mandate-pain012-rejected.xml",
+      "path": "integration-kit/xml/valid/mandate-pain012-rejected.xml",
+      "messageKind": "pain.012",
+      "schemaFile": "pain.012.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "44a0de690b644f2e16a086d70f93c5083aa48ff1c4e0a000a90d258eeb5ef3e2"
+    },
+    {
+      "id": "valid/report-camt052-intraday.xml",
+      "path": "integration-kit/xml/valid/report-camt052-intraday.xml",
+      "messageKind": "camt.052",
+      "schemaFile": "camt.052.001.08.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "cfaf3e481bf088bd937a84db9b74e987c6a114b1c2a3905827f7306f3dfc337d"
+    },
+    {
+      "id": "valid/notification-camt057-two-items.xml",
+      "path": "integration-kit/xml/valid/notification-camt057-two-items.xml",
+      "messageKind": "camt.057",
+      "schemaFile": "camt.057.001.06.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "eb84d97d229de79ae45b90ceb17fdb6ad4df8f09b2871740430999cff12b5051"
+    },
+    {
+      "id": "valid/reporting-request-camt060-intraday.xml",
+      "path": "integration-kit/xml/valid/reporting-request-camt060-intraday.xml",
+      "messageKind": "camt.060",
+      "schemaFile": "camt.060.001.05.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "b9e2bd621977c375c5279d6bcd2864022eeea3e5b17d8f7b8771cd4723ab1147"
+    },
+    {
+      "id": "valid/reporting-request-camt060-statement.xml",
+      "path": "integration-kit/xml/valid/reporting-request-camt060-statement.xml",
+      "messageKind": "camt.060",
+      "schemaFile": "camt.060.001.05.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "354c4eee3f7db0468630aa58702c1a591507b0ddf31007ccb736de00f4e2c159"
+    },
+    {
+      "id": "valid/liquidity-camt050-transfer.xml",
+      "path": "integration-kit/xml/valid/liquidity-camt050-transfer.xml",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "994e4a811265ae3dcde3ea7843c33c845c4d05f94320d8491a379a691f3c3e7e"
+    },
+    {
+      "id": "valid/receipt-camt025-accepted.xml",
+      "path": "integration-kit/xml/valid/receipt-camt025-accepted.xml",
+      "messageKind": "camt.025",
+      "schemaFile": "camt.025.001.05.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "0a5839c0ae3bf968b8a7673fa713063851a35ed783ab73d5ca85a11bcaf76583"
+    },
+    {
+      "id": "valid/receipt-camt025-rejected.xml",
+      "path": "integration-kit/xml/valid/receipt-camt025-rejected.xml",
+      "messageKind": "camt.025",
+      "schemaFile": "camt.025.001.05.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "6b98884d7a5e01ae87f8ac0da8b6a6246984a77a744164b0dc8370f9ebc8fd2f"
+    },
+    {
+      "id": "valid/investigation-camt026-unable-to-apply.xml",
+      "path": "integration-kit/xml/valid/investigation-camt026-unable-to-apply.xml",
+      "messageKind": "camt.026",
+      "schemaFile": "camt.026.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "f38dde5cf10fb0b08914ea70c3e4ff5134467b8f8a22b0d1de5482254c17c4f1"
+    },
+    {
+      "id": "valid/investigation-camt027-claim-non-receipt.xml",
+      "path": "integration-kit/xml/valid/investigation-camt027-claim-non-receipt.xml",
+      "messageKind": "camt.027",
+      "schemaFile": "camt.027.001.07.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "1013b0715bcfab7dee63d20fa83d2d7ec2f3ed0acf97178b17e6f7e3fdd941d3"
+    },
+    {
+      "id": "valid/investigation-camt028-additional-information.xml",
+      "path": "integration-kit/xml/valid/investigation-camt028-additional-information.xml",
+      "messageKind": "camt.028",
+      "schemaFile": "camt.028.001.09.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "bc8946859a492c729790258547113be23c277423b082a0a3c38d362a71d9ac4f"
+    },
+    {
+      "id": "valid/investigation-camt087-request-to-modify.xml",
+      "path": "integration-kit/xml/valid/investigation-camt087-request-to-modify.xml",
+      "messageKind": "camt.087",
+      "schemaFile": "camt.087.001.06.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "65460ffa95c57f4426b103b4e951cff5c05128794a12c24c5459a88baf73645b"
+    },
+    {
+      "id": "valid/admin-admi006-resend.xml",
+      "path": "integration-kit/xml/valid/admin-admi006-resend.xml",
+      "messageKind": "admi.006",
+      "schemaFile": "admi.006.001.01.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "04ead3552b6b1c62d8108ce8d5351364831e5211837369a614e1b6be03bf065d"
+    },
+    {
+      "id": "valid/admin-admi017-end-of-day.xml",
+      "path": "integration-kit/xml/valid/admin-admi017-end-of-day.xml",
+      "messageKind": "admi.017",
+      "schemaFile": "admi.017.001.01.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "b9cb21f4a1d6408fffb92aa7818ede42b794a5314c360884e9863bf01f0a7805"
+    },
+    {
+      "id": "valid/file-head002-two-pacs008.xml",
+      "path": "integration-kit/xml/valid/file-head002-two-pacs008.xml",
+      "messageKind": "head.002",
+      "schemaFile": "head.002.001.01.xsd",
+      "xmllint": "schema-valid",
+      "sha256": "e9da193c1c5455102516bd522cae71d9225fc0abe77f376bf885bccbec34d031"
+    }
+  ],
+  "invalid": [
+    {
+      "id": "invalid/reversal-pacs007-missing-msgid.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-missing-msgid.xml",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-UNEXPECTED",
+      "why": "GrpHdr/MsgId renamed: the content model does not allow MsgIdX",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "c1439fea1db14ae642662b2f8a4818b63dd1b04e8eebd038dd28560649f336ec"
+    },
+    {
+      "id": "invalid/reversal-pacs007-count-mismatch.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-count-mismatch.xml",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-COUNT",
+      "why": "NbOfTxs says 2, one TxInf",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "58269d96fdff75dfe0763aea9f4010f70b0295133fd26bf45c505eaa2221c7b1"
+    },
+    {
+      "id": "invalid/reversal-pacs007-zero-amount.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-zero-amount.xml",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-AMOUNT",
+      "why": "a reversal of nothing",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "080b6005d7697834cac6846064fc35b5ff98eb57bdcec9a97f20883a7de0515d"
+    },
+    {
+      "id": "invalid/reversal-pacs007-unregistered-currency.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-unregistered-currency.xml",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-CURRENCY",
+      "why": "XAU is not a currency of the guideline",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "08a27b315bf8a52c8abd3f9a54fc6f32e31dd6f263c324d72e85b502e989a61d"
+    },
+    {
+      "id": "invalid/reversal-pacs007-reason-too-long.xml",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-reason-too-long.xml",
+      "messageKind": "pacs.007",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-LENGTH",
+      "why": "ExternalReversalReason1Code is Max4Text",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "673149af08416d7df9dee04fb0ca0429c9c1619e205426e02cf57ea3b3d177dd"
+    },
+    {
+      "id": "invalid/fi-direct-debit-pacs010-no-uetr.xml",
+      "path": "integration-kit/xml/invalid/fi-direct-debit-pacs010-no-uetr.xml",
+      "messageKind": "pacs.010",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-UETR-REQUIRED",
+      "why": "every transaction carries its UETR on this rail",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "2c499d92911b95d090e52e6e732dfd6a02f4900b2668538d882d0abd7a05f13e"
+    },
+    {
+      "id": "invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+      "path": "integration-kit/xml/invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+      "messageKind": "pacs.010",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-AGENT-BIC",
+      "why": "the debtor institution is not identified by a BICFI",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "f990f362a29b0a895c1a30d35433984d8cbda5ca4f17e3bbdcb4f17e2ccc67ce"
+    },
+    {
+      "id": "invalid/settlement-request-pacs029-one-movement.xml",
+      "path": "integration-kit/xml/invalid/settlement-request-pacs029-one-movement.xml",
+      "messageKind": "pacs.029",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-MISSING",
+      "why": "the schema asks two movements or more",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "dea883775b4bc483d3ee0058d78ae73e5cff2f4eaecb8d1a23cebd11708182c2"
+    },
+    {
+      "id": "invalid/settlement-request-pacs029-movement-count.xml",
+      "path": "integration-kit/xml/invalid/settlement-request-pacs029-movement-count.xml",
+      "messageKind": "pacs.029",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-COUNT",
+      "why": "NbOfMvmntRcrds says 3, two records",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "e10838e764003031f74fd4e123f1ed21e1402ec288af2131ee223a253a515703"
+    },
+    {
+      "id": "invalid/reversal-pain007-fraction-digits.xml",
+      "path": "integration-kit/xml/invalid/reversal-pain007-fraction-digits.xml",
+      "messageKind": "pain.007",
+      "schemaFile": "pain.007.001.10.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-AMOUNT",
+      "why": "three fraction digits in a two-digit currency",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "84df7ddbe327108e520f9b0ff9fb6c69a884691df106bef1b7f81aca37f97de7"
+    },
+    {
+      "id": "invalid/mandate-pain009-bad-sequence.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain009-bad-sequence.xml",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-ENUM",
+      "why": "SequenceType2Code is FRST | RCUR | FNAL | OOFF | RPRE",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "6d67f6464deaf3bf90f0cf622a9d5b4b97de544c376317a580b086fe92576ae5"
+    },
+    {
+      "id": "invalid/mandate-pain009-debtor-agent-without-bic.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain009-debtor-agent-without-bic.xml",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-AGENT-BIC",
+      "why": "the debtor agent is not identified by a BICFI",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "9c92b7cc7cca1a6d813342b09fc49fe3b3a8d6608ddf6822a1fa25085dd64fb3"
+    },
+    {
+      "id": "invalid/mandate-pain009-id-too-long.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain009-id-too-long.xml",
+      "messageKind": "pain.009",
+      "schemaFile": "pain.009.001.07.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-LENGTH",
+      "why": "Max35Text",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "0c58cb77e22c93fb5d7c0f7200cc9c83969dec6ca70df7a4f761db86f9e67dc7"
+    },
+    {
+      "id": "invalid/mandate-pain012-accepted-not-boolean.xml",
+      "path": "integration-kit/xml/invalid/mandate-pain012-accepted-not-boolean.xml",
+      "messageKind": "pain.012",
+      "schemaFile": "pain.012.001.07.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-BOOLEAN",
+      "why": "YesNoIndicator",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "3e6695b7b94e8a0e6dec711ebd23753cc604f4a724667228b96892fd8dba2249"
+    },
+    {
+      "id": "invalid/report-camt052-bad-side.xml",
+      "path": "integration-kit/xml/invalid/report-camt052-bad-side.xml",
+      "messageKind": "camt.052",
+      "schemaFile": "camt.052.001.08.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-ENUM",
+      "why": "CreditDebitCode is CRDT | DBIT",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "f2d8379329efbad5c9e9290bffdff887a8e52aedda91a78ed86c3e4d6b250740"
+    },
+    {
+      "id": "invalid/notification-camt057-unregistered-currency.xml",
+      "path": "integration-kit/xml/invalid/notification-camt057-unregistered-currency.xml",
+      "messageKind": "camt.057",
+      "schemaFile": "camt.057.001.06.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-CURRENCY",
+      "why": "ZZZ is not a currency of the guideline",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "2228c39a03ec1e745e9d280666686057f6181223d477105a312edba869ae35ac"
+    },
+    {
+      "id": "invalid/reporting-request-camt060-no-owner.xml",
+      "path": "integration-kit/xml/invalid/reporting-request-camt060-no-owner.xml",
+      "messageKind": "camt.060",
+      "schemaFile": "camt.060.001.05.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-MISSING",
+      "why": "AcctOwnr is required",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "30dcf1e6cf6e9a31727cf30c4c048f3213d9643d099a4ab64b53001a97b103ea"
+    },
+    {
+      "id": "invalid/liquidity-camt050-amount-without-currency.xml",
+      "path": "integration-kit/xml/invalid/liquidity-camt050-amount-without-currency.xml",
+      "messageKind": "camt.050",
+      "schemaFile": "camt.050.001.05.xsd",
+      "tier": "business",
+      "rule": "ISO-BIZ-CURRENCY",
+      "why": "the transferred amount names its currency on this rail",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "67429314aa9383a2538600e6f85bd49f6e5a5c7287f063fd36a96ba73269af4d"
+    },
+    {
+      "id": "invalid/receipt-camt025-status-too-long.xml",
+      "path": "integration-kit/xml/invalid/receipt-camt025-status-too-long.xml",
+      "messageKind": "camt.025",
+      "schemaFile": "camt.025.001.05.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-LENGTH",
+      "why": "Max4AlphaNumericText",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "866eee0f60c122ab0fa9a81473ef16fd4133bfa6a06f6ed09b0ae4ff67a4f37a"
+    },
+    {
+      "id": "invalid/investigation-camt026-bad-bic.xml",
+      "path": "integration-kit/xml/invalid/investigation-camt026-bad-bic.xml",
+      "messageKind": "camt.026",
+      "schemaFile": "camt.026.001.07.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-PATTERN",
+      "why": "BICFIDec2014Identifier",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "79a37ce7cce98792aaa5a40d952715c38405ec778b2397e3e7ef488abd0e9319"
+    },
+    {
+      "id": "invalid/investigation-camt087-wrong-namespace.xml",
+      "path": "integration-kit/xml/invalid/investigation-camt087-wrong-namespace.xml",
+      "messageKind": "camt.087",
+      "schemaFile": "camt.087.001.06.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-ROOT",
+      "why": "a version this component does not carry",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "1d22be769080a0d49960b1a93164953a5921b888235c0baa2f4bf07a8c5b9667"
+    },
+    {
+      "id": "invalid/admin-admi006-no-recipient.xml",
+      "path": "integration-kit/xml/invalid/admin-admi006-no-recipient.xml",
+      "messageKind": "admi.006",
+      "schemaFile": "admi.006.001.01.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-MISSING",
+      "why": "Rcpt is required",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "1b4d6d9f2bfbdf41a567b8d698ab0841e97aa950f7969fc094e2dc6b0444dc93"
+    },
+    {
+      "id": "invalid/admin-admi017-session-too-long.xml",
+      "path": "integration-kit/xml/invalid/admin-admi017-session-too-long.xml",
+      "messageKind": "admi.017",
+      "schemaFile": "admi.017.001.01.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-PATTERN",
+      "why": "Exact4AlphaNumericText is the pattern [a-zA-Z0-9]{4}",
+      "xmllint": "schema-invalid",
+      "xmllintExpected": "schema-invalid",
+      "sha256": "a1c84316b763d848f3dd7f04e490ded4ee2a90525c370aeb500e338de7e5732b"
+    },
+    {
+      "id": "invalid/file-head002-payload-invalid.xml",
+      "path": "integration-kit/xml/invalid/file-head002-payload-invalid.xml",
+      "messageKind": "head.002",
+      "schemaFile": "head.002.001.01.xsd",
+      "tier": "schema",
+      "rule": "ISO-XSD-MISSING",
+      "why": "the payload is validated against its own schema: pacs.008 requires ChrgBr (head.002's Pyld is a lax xs:any, so xmllint on the file alone passes; the runner validates each payload against its own XSD)",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "13438242c48fb626b8feee602a263098676e6765179a2d35095a1eadf1c5f105"
+    },
+    {
+      "id": "invalid/file-head002-doctype.xml",
+      "path": "integration-kit/xml/invalid/file-head002-doctype.xml",
+      "messageKind": "head.002",
+      "schemaFile": "head.002.001.01.xsd",
+      "tier": "schema",
+      "rule": "XML-UNSAFE-DECL",
+      "why": "a DTD is refused before parsing (libxml2 accepts an internal subset; the canister does not)",
+      "xmllint": "schema-valid",
+      "xmllintExpected": "schema-valid",
+      "sha256": "14141200a1710e5814510e84dab65423c517025b5e18e80bb6c4de9f71945d14"
+    }
+  ]
+}

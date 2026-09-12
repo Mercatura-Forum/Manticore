@@ -1,0 +1,4101 @@
+{
+  "failingCount": 21,
+  "fixtureCount": 142,
+  "generatedAt": "2026-09-12T15:32:11.973899+00:00",
+  "map": "integration-kit/profile-runner/profile-map.json",
+  "missingSourceMetadata": [
+    "admi.006.001.01.xsd",
+    "admi.017.001.01.xsd",
+    "camt.025.001.05.xsd",
+    "camt.026.001.07.xsd",
+    "camt.027.001.07.xsd",
+    "camt.028.001.09.xsd",
+    "camt.050.001.05.xsd",
+    "camt.052.001.08.xsd",
+    "camt.057.001.06.xsd",
+    "camt.060.001.05.xsd",
+    "camt.087.001.06.xsd",
+    "head.002.001.01.xsd",
+    "pacs.007.001.10.xsd",
+    "pacs.010.001.04.xsd",
+    "pacs.029.001.02.xsd",
+    "pain.007.001.10.xsd",
+    "pain.009.001.07.xsd",
+    "pain.010.001.07.xsd",
+    "pain.011.001.07.xsd",
+    "pain.012.001.07.xsd"
+  ],
+  "ok": false,
+  "requiredSchemaCount": 42,
+  "requiredSchemas": [
+    {
+      "fixtures": [
+        "valid/admin-admi002-reject.xml"
+      ],
+      "messageKinds": [
+        "admi.002"
+      ],
+      "profiles": [
+        "FEDWIRE-ISO20022-EDU"
+      ],
+      "schemaFile": "admi.002.001.01.xsd",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative reject/negative acknowledgement fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "valid/admin-admi004-connection-check.xml"
+      ],
+      "messageKinds": [
+        "admi.004"
+      ],
+      "profiles": [
+        "FEDWIRE-ISO20022-EDU"
+      ],
+      "schemaFile": "admi.004.001.01.xsd",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative connection-check fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/admin-admi006-no-recipient.xml",
+        "valid/admin-admi006-resend.xml"
+      ],
+      "messageKinds": [
+        "admi.006"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "admi.006.001.01.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/admin-admi007-ack.xml"
+      ],
+      "messageKinds": [
+        "admi.007"
+      ],
+      "profiles": [
+        "FEDWIRE-ISO20022-EDU"
+      ],
+      "schemaFile": "admi.007.001.01.xsd",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative receipt acknowledgement fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "valid/admin-admi011-connection-ack.xml"
+      ],
+      "messageKinds": [
+        "admi.011"
+      ],
+      "profiles": [
+        "FEDWIRE-ISO20022-EDU"
+      ],
+      "schemaFile": "admi.011.001.01.xsd",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative connection acknowledgement fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/admin-admi017-session-too-long.xml",
+        "valid/admin-admi017-end-of-day.xml"
+      ],
+      "messageKinds": [
+        "admi.017"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "admi.017.001.01.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "invalid/receipt-camt025-status-too-long.xml",
+        "valid/receipt-camt025-accepted.xml",
+        "valid/receipt-camt025-rejected.xml"
+      ],
+      "messageKinds": [
+        "camt.025"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.025.001.05.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "invalid/investigation-camt026-bad-bic.xml",
+        "valid/investigation-camt026-unable-to-apply.xml"
+      ],
+      "messageKinds": [
+        "camt.026"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.026.001.07.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/investigation-camt027-claim-non-receipt.xml"
+      ],
+      "messageKinds": [
+        "camt.027"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.027.001.07.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/investigation-camt028-additional-information.xml"
+      ],
+      "messageKinds": [
+        "camt.028"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.028.001.09.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-camt029-conforming.xml",
+        "guidelines/cbpr-camt029-no-original-uetr.xml",
+        "guidelines/cbpr-camt029-no-status.xml",
+        "guidelines/cbpr-camt029-two-transactions.xml",
+        "valid/investigation-camt029-resolution.xml"
+      ],
+      "messageKinds": [
+        "camt.029"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "CBPRPLUS-EDU"
+      ],
+      "schemaFile": "camt.029.001.09.xsd",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation resolution. CBPR+/HVPS+/domestic profiles may constrain parties, agents, status, and case references differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "guidelines/hvps-camt050-amount-without-currency.xml",
+        "guidelines/hvps-camt050-conforming.xml",
+        "guidelines/hvps-camt050-no-creditor-account.xml",
+        "guidelines/hvps-camt050-no-id.xml",
+        "invalid/liquidity-camt050-amount-without-currency.xml",
+        "valid/liquidity-camt050-transfer.xml"
+      ],
+      "messageKinds": [
+        "camt.050"
+      ],
+      "profiles": [
+        "HVPSPLUS",
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.050.001.05.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "guidelines/hvps-camt052-conforming.xml",
+        "guidelines/hvps-camt052-no-balance.xml",
+        "guidelines/hvps-camt052-two-reports.xml",
+        "invalid/report-camt052-bad-side.xml",
+        "valid/report-camt052-intraday.xml"
+      ],
+      "messageKinds": [
+        "camt.052"
+      ],
+      "profiles": [
+        "HVPSPLUS",
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.052.001.08.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-camt053-conforming.xml",
+        "guidelines/cbpr-camt053-no-closing-balance.xml",
+        "guidelines/cbpr-camt053-pending-entry.xml",
+        "guidelines/cbpr-camt053-two-statements.xml",
+        "guidelines/hvps-camt053-conforming.xml",
+        "guidelines/hvps-camt053-no-opening-balance.xml",
+        "guidelines/hvps-camt053-two-statements.xml",
+        "valid/camt053-statement.xml"
+      ],
+      "messageKinds": [
+        "camt.053"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "EG-DOMESTIC-EDU",
+        "HVPSPLUS"
+      ],
+      "schemaFile": "camt.053.001.08.xsd",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-camt054-conforming.xml",
+        "guidelines/cbpr-camt054-pending-entry.xml",
+        "guidelines/cbpr-camt054-two-notifications.xml",
+        "valid/camt054-notification.xml"
+      ],
+      "messageKinds": [
+        "camt.054"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "EG-DOMESTIC-EDU"
+      ],
+      "schemaFile": "camt.054.001.08.xsd",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer debit/credit notification. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "valid/request-camt055-cancel.xml"
+      ],
+      "messageKinds": [
+        "camt.055"
+      ],
+      "profiles": [
+        "FEDWIRE-ISO20022-EDU"
+      ],
+      "schemaFile": "camt.055.001.09.xsd",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment cancellation request. Profile rules decide which original-message references and reason codes are acceptable.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-camt056-conforming.xml",
+        "guidelines/cbpr-camt056-no-original-uetr.xml",
+        "guidelines/cbpr-camt056-no-reason.xml",
+        "guidelines/cbpr-camt056-two-transactions.xml",
+        "valid/investigation-camt056-cancel.xml"
+      ],
+      "messageKinds": [
+        "camt.056"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "CBPRPLUS-EDU"
+      ],
+      "schemaFile": "camt.056.001.08.xsd",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI cancellation request. CBPR+/HVPS+/domestic profiles may constrain agents, identifiers, and reason codes differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/notification-camt057-unregistered-currency.xml",
+        "valid/notification-camt057-two-items.xml"
+      ],
+      "messageKinds": [
+        "camt.057"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.057.001.06.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "invalid/reporting-request-camt060-no-owner.xml",
+        "valid/reporting-request-camt060-intraday.xml",
+        "valid/reporting-request-camt060-statement.xml"
+      ],
+      "messageKinds": [
+        "camt.060"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.060.001.05.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "invalid/investigation-camt087-wrong-namespace.xml",
+        "valid/investigation-camt087-request-to-modify.xml"
+      ],
+      "messageKinds": [
+        "camt.087"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "camt.087.001.06.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/investigation-camt110-request.xml"
+      ],
+      "messageKinds": [
+        "camt.110"
+      ],
+      "profiles": [
+        "BIS-CPMI-HARMONIZED-CROSSBORDER"
+      ],
+      "schemaFile": "camt.110.001.01.xsd",
+      "source": {
+        "access": "public catalogue plus market-practice/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation request used by the CPMI harmonisation overlay in this kit.",
+        "profileSources": [
+          "BIS-CPMI-HARMONISATION",
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "valid/investigation-camt111-response.xml"
+      ],
+      "messageKinds": [
+        "camt.111"
+      ],
+      "profiles": [
+        "BIS-CPMI-HARMONIZED-CROSSBORDER"
+      ],
+      "schemaFile": "camt.111.001.01.xsd",
+      "source": {
+        "access": "public catalogue plus market-practice/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation response used by the CPMI harmonisation overlay in this kit.",
+        "profileSources": [
+          "BIS-CPMI-HARMONISATION",
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/file-head002-doctype.xml",
+        "invalid/file-head002-payload-invalid.xml",
+        "valid/file-head002-two-pacs008.xml"
+      ],
+      "messageKinds": [
+        "head.002"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "head.002.001.01.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-pacs002-conforming.xml",
+        "guidelines/cbpr-pacs002-group-status.xml",
+        "guidelines/cbpr-pacs002-no-original-uetr.xml",
+        "guidelines/cbpr-pacs002-two-transactions.xml",
+        "guidelines/hvps-pacs002-conforming.xml",
+        "guidelines/hvps-pacs002-no-original-uetr.xml",
+        "guidelines/hvps-pacs002-two-transactions.xml",
+        "invalid/status-uetr-mismatch.xml",
+        "valid/status-pacs002-settled.xml"
+      ],
+      "messageKinds": [
+        "pacs.002"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "EG-DOMESTIC-EDU",
+        "HVPSPLUS"
+      ],
+      "schemaFile": "pacs.002.001.10.xsd",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "valid/direct-debit-pacs003-sdd.xml"
+      ],
+      "messageKinds": [
+        "pacs.003"
+      ],
+      "profiles": [
+        "SEPA-SDD-EDU"
+      ],
+      "schemaFile": "pacs.003.001.08.xsd",
+      "source": {
+        "access": "public catalogue plus public EPC/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI direct debit. EPC SDD rules are public, but operator/bank mandates can still add constraints.",
+        "profileSources": [
+          "EPC-SEPA-SDD-2025",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-pacs004-conforming.xml",
+        "guidelines/cbpr-pacs004-no-original-uetr.xml",
+        "guidelines/cbpr-pacs004-no-reason.xml",
+        "guidelines/cbpr-pacs004-no-settlement-date.xml",
+        "guidelines/cbpr-pacs004-two-transactions.xml",
+        "valid/status-pacs004-returned.xml"
+      ],
+      "messageKinds": [
+        "pacs.004"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "EG-DOMESTIC-EDU"
+      ],
+      "schemaFile": "pacs.004.001.09.xsd",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/reversal-pacs007-count-mismatch.xml",
+        "invalid/reversal-pacs007-missing-msgid.xml",
+        "invalid/reversal-pacs007-reason-too-long.xml",
+        "invalid/reversal-pacs007-unregistered-currency.xml",
+        "invalid/reversal-pacs007-zero-amount.xml",
+        "valid/reversal-pacs007-duplicate.xml"
+      ],
+      "messageKinds": [
+        "pacs.007"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pacs.007.001.10.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-pacs008-clrg.xml",
+        "guidelines/cbpr-pacs008-conforming.xml",
+        "guidelines/cbpr-pacs008-creditor-agent-unidentified.xml",
+        "guidelines/cbpr-pacs008-creditor-hybrid-three-lines.xml",
+        "guidelines/cbpr-pacs008-debtor-agent-unidentified.xml",
+        "guidelines/cbpr-pacs008-debtor-unstructured-address.xml",
+        "guidelines/cbpr-pacs008-e2e-charset.xml",
+        "guidelines/cbpr-pacs008-instrid-charset.xml",
+        "guidelines/cbpr-pacs008-msgid-charset.xml",
+        "guidelines/cbpr-pacs008-nboftxs.xml",
+        "guidelines/cbpr-pacs008-no-header.xml",
+        "guidelines/cbpr-pacs008-no-settlement-date.xml",
+        "guidelines/cbpr-pacs008-no-uetr.xml",
+        "guidelines/cbpr-pacs008-slev.xml",
+        "guidelines/cbpr-pacs008-two-transactions.xml",
+        "guidelines/hvps-pacs008-conforming.xml",
+        "guidelines/hvps-pacs008-e2e-charset.xml",
+        "guidelines/hvps-pacs008-inda.xml",
+        "guidelines/hvps-pacs008-msgid-charset.xml",
+        "guidelines/hvps-pacs008-nboftxs.xml",
+        "guidelines/hvps-pacs008-no-clearing-system.xml",
+        "guidelines/hvps-pacs008-no-header.xml",
+        "guidelines/hvps-pacs008-no-instructed-agent.xml",
+        "guidelines/hvps-pacs008-no-instructing-agent.xml",
+        "guidelines/hvps-pacs008-no-settlement-date.xml",
+        "guidelines/hvps-pacs008-no-uetr.xml",
+        "guidelines/hvps-pacs008-two-transactions.xml",
+        "valid/pacs008-eg-domestic.xml"
+      ],
+      "messageKinds": [
+        "pacs.008"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "EG-DOMESTIC-EDU",
+        "HVPSPLUS"
+      ],
+      "schemaFile": "pacs.008.001.08.xsd",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "guidelines/cbpr-pacs009-conforming.xml",
+        "guidelines/cbpr-pacs009-creditor-unidentified.xml",
+        "guidelines/cbpr-pacs009-debtor-unidentified.xml",
+        "guidelines/hvps-pacs009-conforming.xml",
+        "valid/pacs009-cbprplus-core.xml"
+      ],
+      "messageKinds": [
+        "pacs.009"
+      ],
+      "profiles": [
+        "CBPRPLUS",
+        "CBPRPLUS-EDU",
+        "HVPSPLUS"
+      ],
+      "schemaFile": "pacs.009.001.08.xsd",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Financial institution credit transfer / cover leg. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+        "invalid/fi-direct-debit-pacs010-no-uetr.xml",
+        "valid/fi-direct-debit-pacs010-two-debtors.xml"
+      ],
+      "messageKinds": [
+        "pacs.010"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pacs.010.001.04.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/investigation-pacs028-status-request.xml"
+      ],
+      "messageKinds": [
+        "pacs.028"
+      ],
+      "profiles": [
+        "CBPRPLUS-EDU"
+      ],
+      "schemaFile": "pacs.028.001.03.xsd",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status request. Profile rules decide the allowed inquiry window and reference set.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/settlement-request-pacs029-movement-count.xml",
+        "invalid/settlement-request-pacs029-one-movement.xml",
+        "valid/settlement-request-pacs029-cycle.xml"
+      ],
+      "messageKinds": [
+        "pacs.029"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pacs.029.001.02.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/pain001-eg-domestic.xml"
+      ],
+      "messageKinds": [
+        "pain.001"
+      ],
+      "profiles": [
+        "EG-DOMESTIC-EDU"
+      ],
+      "schemaFile": "pain.001.001.09.xsd",
+      "source": {
+        "access": "public catalogue plus public/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer initiation. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "valid/status-pain002-accepted.xml"
+      ],
+      "messageKinds": [
+        "pain.002"
+      ],
+      "profiles": [
+        "EG-DOMESTIC-EDU"
+      ],
+      "schemaFile": "pain.002.001.10.xsd",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer payment status report. Profile rules decide status/reason code sets.",
+        "profileSources": [
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/reversal-pain007-fraction-digits.xml",
+        "valid/reversal-pain007-customer.xml"
+      ],
+      "messageKinds": [
+        "pain.007"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pain.007.001.10.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/direct-debit-pain008-sdd.xml"
+      ],
+      "messageKinds": [
+        "pain.008"
+      ],
+      "profiles": [
+        "SEPA-SDD-EDU"
+      ],
+      "schemaFile": "pain.008.001.08.xsd",
+      "source": {
+        "access": "public catalogue plus public EPC/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer direct debit initiation. Official mandate and creditor-scheme rules must come from the selected direct-debit profile.",
+        "profileSources": [
+          "EPC-SEPA-SDD-2025",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "invalid/mandate-pain009-bad-sequence.xml",
+        "invalid/mandate-pain009-debtor-agent-without-bic.xml",
+        "invalid/mandate-pain009-id-too-long.xml",
+        "valid/mandate-pain009-initiation.xml",
+        "valid/mandate-pain009-one-off.xml"
+      ],
+      "messageKinds": [
+        "pain.009"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pain.009.001.07.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/mandate-pain010-amendment.xml"
+      ],
+      "messageKinds": [
+        "pain.010"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pain.010.001.07.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/mandate-pain011-cancellation.xml"
+      ],
+      "messageKinds": [
+        "pain.011"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pain.011.001.07.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "invalid/mandate-pain012-accepted-not-boolean.xml",
+        "valid/mandate-pain012-accepted.xml",
+        "valid/mandate-pain012-rejected.xml"
+      ],
+      "messageKinds": [
+        "pain.012"
+      ],
+      "profiles": [
+        "SCHEMA-PROFILE"
+      ],
+      "schemaFile": "pain.012.001.07.xsd",
+      "sourceStatus": "missing-source-metadata"
+    },
+    {
+      "fixtures": [
+        "valid/request-pain013-rfp.xml"
+      ],
+      "messageKinds": [
+        "pain.013"
+      ],
+      "profiles": [
+        "FEDWIRE-ISO20022-EDU"
+      ],
+      "schemaFile": "pain.013.001.10.xsd",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Creditor payment activation/request for payment. Rail profile decides allowed lifecycle and cancellation semantics.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    },
+    {
+      "fixtures": [
+        "valid/request-pain014-accepted.xml"
+      ],
+      "messageKinds": [
+        "pain.014"
+      ],
+      "profiles": [
+        "FEDWIRE-ISO20022-EDU"
+      ],
+      "schemaFile": "pain.014.001.10.xsd",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Creditor payment activation status report/request response. Rail profile decides allowed status and reason codes.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented"
+    }
+  ],
+  "results": [
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/pain001-eg-domestic.xml:12: element TwnNm: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}TwnNm': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}AdrLine ).\nintegration-kit/xml/valid/pain001-eg-domestic.xml:21: element ReqdExctnDt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}ReqdExctnDt': Character content other than whitespace is not allowed because the content type is 'element-only'.\nintegration-kit/xml/valid/pain001-eg-domestic.xml:21: element ReqdExctnDt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}ReqdExctnDt': Missing child element(s). Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}Dt, {urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}DtTm ).\nintegration-kit/xml/valid/pain001-eg-domestic.xml:22: element PmtTpInf: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}PmtTpInf': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}PoolgAdjstmntDt, {urn:iso:std:iso:20022:tech:xsd:pain.001.001.09}Dbtr ).\nintegration-kit/xml/valid/pain001-eg-domestic.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/pain001-eg-domestic.xml",
+      "messageKind": "pain.001",
+      "path": "integration-kit/xml/valid/pain001-eg-domestic.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "pain.001.001.09.xsd",
+      "sha256": "2718e1b4d092e2f52eba69a0c40ca41f2fb62834f4d1a1d5ed6363d701d6625f",
+      "source": {
+        "access": "public catalogue plus public/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer initiation. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/pacs008-eg-domestic.xml#Document:17: element SvcLvl: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}SvcLvl': Character content other than whitespace is not allowed because the content type is 'element-only'.\nintegration-kit/xml/valid/pacs008-eg-domestic.xml#Document:17: element SvcLvl: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}SvcLvl': Missing child element(s). Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Cd, {urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Prtry ).\nintegration-kit/xml/valid/pacs008-eg-domestic.xml#Document:18: element LclInstrm: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}LclInstrm': Character content other than whitespace is not allowed because the content type is 'element-only'.\nintegration-kit/xml/valid/pacs008-eg-domestic.xml#Document:18: element LclInstrm: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}LclInstrm': Missing child element(s). Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Cd, {urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Prtry ).\nintegration-kit/xml/valid/pacs008-eg-domestic.xml#Document:19: element CtgyPurp: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}CtgyPurp': Character content other than whitespace is not allowed because the content type is 'element-only'.\nintegration-kit/xml/valid/pacs008-eg-domestic.xml#Document:19: element CtgyPurp: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}CtgyPurp': Missing child element(s). Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Cd, {urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Prtry ).\nintegration-kit/xml/valid/pacs008-eg-domestic.xml#Document:21: element Amt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}Amt': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08}IntrBkSttlmAmt ).\nintegration-kit/xml/valid/pacs008-eg-domestic.xml#Document fails to validate",
+      "expected": "valid",
+      "id": "valid/pacs008-eg-domestic.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/valid/pacs008-eg-domestic.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "bc488826003ec95d6fd234dfa1580c427644d43943cc69dab1bd630946d9f07b",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "15d85648c81a98fb9cb0814c69cf0ce90526ea1e75b3fd974f2e8fbd91073414"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/direct-debit-pain008-sdd.xml:12: element TwnNm: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}TwnNm': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}AdrLine ).\nintegration-kit/xml/valid/direct-debit-pain008-sdd.xml:16: element LEI: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}LEI': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}Id, {urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}CtryOfRes, {urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}CtctDtls ).\nintegration-kit/xml/valid/direct-debit-pain008-sdd.xml:23: element PmtTpInf: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}PmtTpInf': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pain.008.001.08}Cdtr ).\nintegration-kit/xml/valid/direct-debit-pain008-sdd.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/direct-debit-pain008-sdd.xml",
+      "messageKind": "pain.008",
+      "path": "integration-kit/xml/valid/direct-debit-pain008-sdd.xml",
+      "profile": "SEPA-SDD-EDU",
+      "schemaFile": "pain.008.001.08.xsd",
+      "sha256": "2a998c15758de7bce2dc6e3c078235827c5282995fa16a5e4ac8cacb41ffe6dc",
+      "source": {
+        "access": "public catalogue plus public EPC/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer direct debit initiation. Official mandate and creditor-scheme rules must come from the selected direct-debit profile.",
+        "profileSources": [
+          "EPC-SEPA-SDD-2025",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/direct-debit-pacs003-sdd.xml#Document:14: element ReqdColltnDt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.003.001.08}ReqdColltnDt': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pacs.003.001.08}PmtTpInf, {urn:iso:std:iso:20022:tech:xsd:pacs.003.001.08}IntrBkSttlmAmt ).\nintegration-kit/xml/valid/direct-debit-pacs003-sdd.xml#Document fails to validate",
+      "expected": "valid",
+      "id": "valid/direct-debit-pacs003-sdd.xml",
+      "messageKind": "pacs.003",
+      "path": "integration-kit/xml/valid/direct-debit-pacs003-sdd.xml",
+      "profile": "SEPA-SDD-EDU",
+      "schemaFile": "pacs.003.001.08.xsd",
+      "sha256": "55e1791bcff8f0c2ccd9dd68ec596af15462f4f826786ea377cb53f2f4388997",
+      "source": {
+        "access": "public catalogue plus public EPC/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI direct debit. EPC SDD rules are public, but operator/bank mandates can still add constraints.",
+        "profileSources": [
+          "EPC-SEPA-SDD-2025",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "7d60796974af514d771e26193c06b4fd8e13cdc030f3299ad906c1521fb4894c"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/pacs009-cbprplus-core.xml#Document:15: element Amt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.009.001.08}Amt': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pacs.009.001.08}PmtTpInf, {urn:iso:std:iso:20022:tech:xsd:pacs.009.001.08}IntrBkSttlmAmt ).\nintegration-kit/xml/valid/pacs009-cbprplus-core.xml#Document fails to validate",
+      "expected": "valid",
+      "id": "valid/pacs009-cbprplus-core.xml",
+      "messageKind": "pacs.009",
+      "path": "integration-kit/xml/valid/pacs009-cbprplus-core.xml",
+      "profile": "CBPRPLUS-EDU",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "sha256": "b2aa804f77e09afc83d746e81d471ab49a6746a297bab82aa582d62cbcd2209b",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Financial institution credit transfer / cover leg. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "d0dfbae31bd0217ceed8c8f01aebaa8636a398c28376d6cc3ad4cb3170633b7c"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/status-pain002-accepted.xml:12: element TxInfAndSts: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.002.001.10}TxInfAndSts': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pain.002.001.10}OrgnlPmtInfAndSts, {urn:iso:std:iso:20022:tech:xsd:pain.002.001.10}SplmtryData ).\nintegration-kit/xml/valid/status-pain002-accepted.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/status-pain002-accepted.xml",
+      "messageKind": "pain.002",
+      "path": "integration-kit/xml/valid/status-pain002-accepted.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "pain.002.001.10.xsd",
+      "sha256": "2ece7d08a3d1f70ab57c9fdfbf247bdf8a8d9d306b25b9027a5d9ca32de56bed",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer payment status report. Profile rules decide status/reason code sets.",
+        "profileSources": [
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/status-pacs002-settled.xml validates",
+      "expected": "valid",
+      "id": "valid/status-pacs002-settled.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/valid/status-pacs002-settled.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "a8b9aebf2c428c6eaec55aa65f5682ad0c9d627f7fa10b09fcab30336e394229",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/status-pacs004-returned.xml:4: element GrpHdr: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}GrpHdr': Missing child element(s). Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}Authstn, {urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}BtchBookg, {urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}NbOfTxs ).\nintegration-kit/xml/valid/status-pacs004-returned.xml:8: element OrgnlGrpInfAndSts: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}OrgnlGrpInfAndSts': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}OrgnlGrpInf, {urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}TxInf, {urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09}SplmtryData ).\nintegration-kit/xml/valid/status-pacs004-returned.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/status-pacs004-returned.xml",
+      "messageKind": "pacs.004",
+      "path": "integration-kit/xml/valid/status-pacs004-returned.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "sha256": "2cf1b53fd8394248d78fc33c6aaa457b3ecff708802d39b2364bfef76c64540c",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/investigation-camt056-cancel.xml:6: element CreDtTm: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.056.001.08}CreDtTm': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.056.001.08}Assgnr ).\nintegration-kit/xml/valid/investigation-camt056-cancel.xml:9: element MsgId: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.056.001.08}MsgId': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:camt.056.001.08}OrgnlGrpInfAndCxl, {urn:iso:std:iso:20022:tech:xsd:camt.056.001.08}TxInf ).\nintegration-kit/xml/valid/investigation-camt056-cancel.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/investigation-camt056-cancel.xml",
+      "messageKind": "camt.056",
+      "path": "integration-kit/xml/valid/investigation-camt056-cancel.xml",
+      "profile": "CBPRPLUS-EDU",
+      "schemaFile": "camt.056.001.08.xsd",
+      "sha256": "be5bca800e54c1a066443fce138d19bd924bef745e2c91f86589e05ce2f5c19f",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI cancellation request. CBPR+/HVPS+/domestic profiles may constrain agents, identifiers, and reason codes differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/investigation-camt029-resolution.xml:6: element CreDtTm: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.029.001.09}CreDtTm': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.029.001.09}Assgnr ).\nintegration-kit/xml/valid/investigation-camt029-resolution.xml:8: element Undrlyg: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.029.001.09}Undrlyg': This element is not expected. Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:camt.029.001.09}RslvdCase, {urn:iso:std:iso:20022:tech:xsd:camt.029.001.09}Sts ).\nintegration-kit/xml/valid/investigation-camt029-resolution.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/investigation-camt029-resolution.xml",
+      "messageKind": "camt.029",
+      "path": "integration-kit/xml/valid/investigation-camt029-resolution.xml",
+      "profile": "CBPRPLUS-EDU",
+      "schemaFile": "camt.029.001.09.xsd",
+      "sha256": "3846b5af793c48bdad33dfb0c6f363dbec9cd0b058c91713bdd2fe5801a8a958",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation resolution. CBPR+/HVPS+/domestic profiles may constrain parties, agents, status, and case references differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/investigation-pacs028-status-request.xml:4: element Assgnmt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.028.001.03}Assgnmt': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pacs.028.001.03}GrpHdr ).\nintegration-kit/xml/valid/investigation-pacs028-status-request.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/investigation-pacs028-status-request.xml",
+      "messageKind": "pacs.028",
+      "path": "integration-kit/xml/valid/investigation-pacs028-status-request.xml",
+      "profile": "CBPRPLUS-EDU",
+      "schemaFile": "pacs.028.001.03.xsd",
+      "sha256": "7efd264ed43fce115e68b31780c67524d133cb9f091b2dd41d5246b780320132",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status request. Profile rules decide the allowed inquiry window and reference set.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/investigation-camt110-request.xml:4: element Assgnmt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.110.001.01}Assgnmt': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.110.001.01}InvstgtnReq ).\nintegration-kit/xml/valid/investigation-camt110-request.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/investigation-camt110-request.xml",
+      "messageKind": "camt.110",
+      "path": "integration-kit/xml/valid/investigation-camt110-request.xml",
+      "profile": "BIS-CPMI-HARMONIZED-CROSSBORDER",
+      "schemaFile": "camt.110.001.01.xsd",
+      "sha256": "dffcb68a2266fcf4ca0cf42318f674177783ebc9b64dd2de7983b6fb6f78eecc",
+      "source": {
+        "access": "public catalogue plus market-practice/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation request used by the CPMI harmonisation overlay in this kit.",
+        "profileSources": [
+          "BIS-CPMI-HARMONISATION",
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/investigation-camt111-response.xml:4: element Assgnmt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.111.001.01}Assgnmt': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.111.001.01}InvstgtnRspn ).\nintegration-kit/xml/valid/investigation-camt111-response.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/investigation-camt111-response.xml",
+      "messageKind": "camt.111",
+      "path": "integration-kit/xml/valid/investigation-camt111-response.xml",
+      "profile": "BIS-CPMI-HARMONIZED-CROSSBORDER",
+      "schemaFile": "camt.111.001.01.xsd",
+      "sha256": "456749a7330fd57525889b8f05c7a979c84bfea8bb4657d37930c67b1b0662b4",
+      "source": {
+        "access": "public catalogue plus market-practice/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation response used by the CPMI harmonisation overlay in this kit.",
+        "profileSources": [
+          "BIS-CPMI-HARMONISATION",
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/request-pain013-rfp.xml:4: element GrpHdr: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.013.001.10}GrpHdr': Missing child element(s). Expected is ( {urn:iso:std:iso:20022:tech:xsd:pain.013.001.10}NbOfTxs ).\nintegration-kit/xml/valid/request-pain013-rfp.xml:8: element RTP: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.013.001.10}RTP': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pain.013.001.10}PmtInf ).\nintegration-kit/xml/valid/request-pain013-rfp.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/request-pain013-rfp.xml",
+      "messageKind": "pain.013",
+      "path": "integration-kit/xml/valid/request-pain013-rfp.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "schemaFile": "pain.013.001.10.xsd",
+      "sha256": "5dde2101905fa3c1e15f77c663335a879bbfdb8289d64df4c2154e3e3890c646",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Creditor payment activation/request for payment. Rail profile decides allowed lifecycle and cancellation semantics.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/request-pain014-accepted.xml:4: element GrpHdr: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.014.001.10}GrpHdr': Missing child element(s). Expected is ( {urn:iso:std:iso:20022:tech:xsd:pain.014.001.10}InitgPty ).\nintegration-kit/xml/valid/request-pain014-accepted.xml:8: element RTP: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.014.001.10}RTP': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pain.014.001.10}OrgnlGrpInfAndSts ).\nintegration-kit/xml/valid/request-pain014-accepted.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/request-pain014-accepted.xml",
+      "messageKind": "pain.014",
+      "path": "integration-kit/xml/valid/request-pain014-accepted.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "schemaFile": "pain.014.001.10.xsd",
+      "sha256": "a30d20c302977f856568194042e688b0e2cd82ec7ca1668b8b8bfba4c5a15493",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Creditor payment activation status report/request response. Rail profile decides allowed status and reason codes.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/request-camt055-cancel.xml:3: element PmtCxlReq: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.055.001.09}PmtCxlReq': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.055.001.09}CstmrPmtCxlReq ).\nintegration-kit/xml/valid/request-camt055-cancel.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/request-camt055-cancel.xml",
+      "messageKind": "camt.055",
+      "path": "integration-kit/xml/valid/request-camt055-cancel.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "schemaFile": "camt.055.001.09.xsd",
+      "sha256": "1089aae3588d887bac1778acb3ae239691f3c73d68de2a0224dac9da4eca02fa",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment cancellation request. Profile rules decide which original-message references and reason codes are acceptable.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/admin-admi002-reject.xml:3: element MessageReject: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:admi.002.001.01}MessageReject': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:admi.002.001.01}admi.002.001.01 ).\nintegration-kit/xml/valid/admin-admi002-reject.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/admin-admi002-reject.xml",
+      "messageKind": "admi.002",
+      "path": "integration-kit/xml/valid/admin-admi002-reject.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "schemaFile": "admi.002.001.01.xsd",
+      "sha256": "686ddfb31566afc81f1be1ff044762fcbd1751b7f82f89dc9fd25bb7bb442643",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative reject/negative acknowledgement fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/admin-admi004-connection-check.xml:3: element SystemEventNotification: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:admi.004.001.01}SystemEventNotification': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:admi.004.001.01}admi.004.001.01 ).\nintegration-kit/xml/valid/admin-admi004-connection-check.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/admin-admi004-connection-check.xml",
+      "messageKind": "admi.004",
+      "path": "integration-kit/xml/valid/admin-admi004-connection-check.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "schemaFile": "admi.004.001.01.xsd",
+      "sha256": "6d98b3104c43fbf64fe17b76832637abcdce1298328d254d1a2c789fed02183b",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative connection-check fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/admin-admi007-ack.xml:3: element ReceiptAcknowledgement: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:admi.007.001.01}ReceiptAcknowledgement': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:admi.007.001.01}RctAck ).\nintegration-kit/xml/valid/admin-admi007-ack.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/admin-admi007-ack.xml",
+      "messageKind": "admi.007",
+      "path": "integration-kit/xml/valid/admin-admi007-ack.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "schemaFile": "admi.007.001.01.xsd",
+      "sha256": "94df03f07813e12c6f07f3b801825e342cc6456b54e28cbf6a099055c7b87b92",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative receipt acknowledgement fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/admin-admi011-connection-ack.xml:3: element SystemEventAcknowledgement: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:admi.011.001.01}SystemEventAcknowledgement': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:admi.011.001.01}SysEvtAck ).\nintegration-kit/xml/valid/admin-admi011-connection-ack.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/admin-admi011-connection-ack.xml",
+      "messageKind": "admi.011",
+      "path": "integration-kit/xml/valid/admin-admi011-connection-ack.xml",
+      "profile": "FEDWIRE-ISO20022-EDU",
+      "schemaFile": "admi.011.001.01.xsd",
+      "sha256": "e8b801bc6b47953f07bc3cf653303c7befb1307dc3f461abaea4d6fafc3ff9b6",
+      "source": {
+        "access": "public catalogue plus account-gated or operator-supplied profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Administrative connection acknowledgement fixture. Use the rail profile actually connected by the operator.",
+        "profileSources": [
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/camt053-statement.xml:4: element Stmt: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.053.001.08}Stmt': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.053.001.08}GrpHdr ).\nintegration-kit/xml/valid/camt053-statement.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/camt053-statement.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/valid/camt053-statement.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "0bac1e753d12338645e93efde60f7c2268d7c288ce9ea8a0de08c05b6081c54e",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": false,
+      "detail": "integration-kit/xml/valid/camt054-notification.xml:4: element Ntfctn: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.054.001.08}Ntfctn': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.054.001.08}GrpHdr ).\nintegration-kit/xml/valid/camt054-notification.xml fails to validate",
+      "expected": "valid",
+      "id": "valid/camt054-notification.xml",
+      "messageKind": "camt.054",
+      "path": "integration-kit/xml/valid/camt054-notification.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "camt.054.001.08.xsd",
+      "sha256": "2db0778c3d00b48ad0a9890812d0114c314e28566521d167fa9914d41fd0f9fc",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer debit/credit notification. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "detail": "no standalone XSD; verify through canister/profile-specific runner",
+      "expected": "custom-profile-valid",
+      "id": "valid/cover-payment.xml",
+      "messageKind": "cover.payment",
+      "path": "integration-kit/xml/valid/cover-payment.xml",
+      "profile": "CBPRPLUS-EDU",
+      "schemaFile": null,
+      "sha256": "bae908fd0c4fcc55ff4b40dd21768d4de21bf727423e2bc0693c541f03de38ed",
+      "source": {
+        "access": "custom canister bundle plus official embedded-message schemas",
+        "notes": "The wrapper is canister-specific. Certification runners should extract and validate the embedded pacs.008 and pacs.009 documents against the chosen CBPR+/HVPS+/bank profile.",
+        "sourceIds": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "custom-profile-documented",
+      "status": "custom-profile"
+    },
+    {
+      "detail": "no standalone XSD; verify through canister/profile-specific runner",
+      "expected": "canister-rejects",
+      "id": "invalid/xml-doctype-entity.xml",
+      "messageKind": "any",
+      "path": "integration-kit/xml/invalid/xml-doctype-entity.xml",
+      "profile": "SECURITY",
+      "schemaFile": null,
+      "sha256": "c994bb00adde7a8ad7dfc2c7fc66ed438d307cdd0ffde0e666efdbca9a909db7",
+      "source": {
+        "access": "repo-local negative fixture",
+        "notes": "Unsafe XML rejection is a canister security gate, not an ISO schema fixture.",
+        "sourceIds": []
+      },
+      "sourceStatus": "custom-profile-documented",
+      "status": "custom-profile"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/status-uetr-mismatch.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/status-uetr-mismatch.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/invalid/status-uetr-mismatch.xml",
+      "profile": "EG-DOMESTIC-EDU",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "592151b008de47e206732b0c80d0accdfb68b9cf2b6d7507706bb680ab165ffc",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/reversal-pacs007-duplicate.xml validates",
+      "expected": "valid",
+      "id": "valid/reversal-pacs007-duplicate.xml",
+      "messageKind": "pacs.007",
+      "path": "integration-kit/xml/valid/reversal-pacs007-duplicate.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "sha256": "491fa70c8687879aa02d297c55544604429432dad740fd07c215c9d7681a5cdf",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/fi-direct-debit-pacs010-two-debtors.xml validates",
+      "expected": "valid",
+      "id": "valid/fi-direct-debit-pacs010-two-debtors.xml",
+      "messageKind": "pacs.010",
+      "path": "integration-kit/xml/valid/fi-direct-debit-pacs010-two-debtors.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "sha256": "beb80e3c7db4f3c3f1198145200d85c2b1178731d08333e82d8e50b84afe8cb1",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/settlement-request-pacs029-cycle.xml validates",
+      "expected": "valid",
+      "id": "valid/settlement-request-pacs029-cycle.xml",
+      "messageKind": "pacs.029",
+      "path": "integration-kit/xml/valid/settlement-request-pacs029-cycle.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "sha256": "fb95fd63f9eb9e66d9e03e5754fdaccc74a1c1802ec5b250eb7db923e1d6aa47",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/reversal-pain007-customer.xml validates",
+      "expected": "valid",
+      "id": "valid/reversal-pain007-customer.xml",
+      "messageKind": "pain.007",
+      "path": "integration-kit/xml/valid/reversal-pain007-customer.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.007.001.10.xsd",
+      "sha256": "0ca6a10e8285e9f71455cfab7a626e9594aef2f7d97915878708cfc23705c827",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/mandate-pain009-initiation.xml validates",
+      "expected": "valid",
+      "id": "valid/mandate-pain009-initiation.xml",
+      "messageKind": "pain.009",
+      "path": "integration-kit/xml/valid/mandate-pain009-initiation.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.009.001.07.xsd",
+      "sha256": "48667327db670ee03ae62a24f78da7ecfda895eb6566187da26728fe262f9061",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/mandate-pain009-one-off.xml validates",
+      "expected": "valid",
+      "id": "valid/mandate-pain009-one-off.xml",
+      "messageKind": "pain.009",
+      "path": "integration-kit/xml/valid/mandate-pain009-one-off.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.009.001.07.xsd",
+      "sha256": "84e26e3effff4e0c05c9879950f734317cb9bb47f6cfae1fd589a714d1b01206",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/mandate-pain010-amendment.xml validates",
+      "expected": "valid",
+      "id": "valid/mandate-pain010-amendment.xml",
+      "messageKind": "pain.010",
+      "path": "integration-kit/xml/valid/mandate-pain010-amendment.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.010.001.07.xsd",
+      "sha256": "4f23114da40e2f8f7f83e206c8d09d34d70e45301ddfbe3253f017281f1e2cf9",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/mandate-pain011-cancellation.xml validates",
+      "expected": "valid",
+      "id": "valid/mandate-pain011-cancellation.xml",
+      "messageKind": "pain.011",
+      "path": "integration-kit/xml/valid/mandate-pain011-cancellation.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.011.001.07.xsd",
+      "sha256": "e7ef4dc68ec2fc3a21205edf51b09d9d7c6943181b94a8f27d7f7be0964ad69b",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/mandate-pain012-accepted.xml validates",
+      "expected": "valid",
+      "id": "valid/mandate-pain012-accepted.xml",
+      "messageKind": "pain.012",
+      "path": "integration-kit/xml/valid/mandate-pain012-accepted.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.012.001.07.xsd",
+      "sha256": "ba392dc61acee46d76a4d727e093dd88581fdb098c5c9924066ae346f57475cd",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/mandate-pain012-rejected.xml validates",
+      "expected": "valid",
+      "id": "valid/mandate-pain012-rejected.xml",
+      "messageKind": "pain.012",
+      "path": "integration-kit/xml/valid/mandate-pain012-rejected.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.012.001.07.xsd",
+      "sha256": "44a0de690b644f2e16a086d70f93c5083aa48ff1c4e0a000a90d258eeb5ef3e2",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/report-camt052-intraday.xml validates",
+      "expected": "valid",
+      "id": "valid/report-camt052-intraday.xml",
+      "messageKind": "camt.052",
+      "path": "integration-kit/xml/valid/report-camt052-intraday.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.052.001.08.xsd",
+      "sha256": "cfaf3e481bf088bd937a84db9b74e987c6a114b1c2a3905827f7306f3dfc337d",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/notification-camt057-two-items.xml validates",
+      "expected": "valid",
+      "id": "valid/notification-camt057-two-items.xml",
+      "messageKind": "camt.057",
+      "path": "integration-kit/xml/valid/notification-camt057-two-items.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.057.001.06.xsd",
+      "sha256": "eb84d97d229de79ae45b90ceb17fdb6ad4df8f09b2871740430999cff12b5051",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/reporting-request-camt060-intraday.xml validates",
+      "expected": "valid",
+      "id": "valid/reporting-request-camt060-intraday.xml",
+      "messageKind": "camt.060",
+      "path": "integration-kit/xml/valid/reporting-request-camt060-intraday.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.060.001.05.xsd",
+      "sha256": "b9e2bd621977c375c5279d6bcd2864022eeea3e5b17d8f7b8771cd4723ab1147",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/reporting-request-camt060-statement.xml validates",
+      "expected": "valid",
+      "id": "valid/reporting-request-camt060-statement.xml",
+      "messageKind": "camt.060",
+      "path": "integration-kit/xml/valid/reporting-request-camt060-statement.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.060.001.05.xsd",
+      "sha256": "354c4eee3f7db0468630aa58702c1a591507b0ddf31007ccb736de00f4e2c159",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/liquidity-camt050-transfer.xml validates",
+      "expected": "valid",
+      "id": "valid/liquidity-camt050-transfer.xml",
+      "messageKind": "camt.050",
+      "path": "integration-kit/xml/valid/liquidity-camt050-transfer.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.050.001.05.xsd",
+      "sha256": "994e4a811265ae3dcde3ea7843c33c845c4d05f94320d8491a379a691f3c3e7e",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/receipt-camt025-accepted.xml validates",
+      "expected": "valid",
+      "id": "valid/receipt-camt025-accepted.xml",
+      "messageKind": "camt.025",
+      "path": "integration-kit/xml/valid/receipt-camt025-accepted.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.025.001.05.xsd",
+      "sha256": "0a5839c0ae3bf968b8a7673fa713063851a35ed783ab73d5ca85a11bcaf76583",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/receipt-camt025-rejected.xml validates",
+      "expected": "valid",
+      "id": "valid/receipt-camt025-rejected.xml",
+      "messageKind": "camt.025",
+      "path": "integration-kit/xml/valid/receipt-camt025-rejected.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.025.001.05.xsd",
+      "sha256": "6b98884d7a5e01ae87f8ac0da8b6a6246984a77a744164b0dc8370f9ebc8fd2f",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/investigation-camt026-unable-to-apply.xml validates",
+      "expected": "valid",
+      "id": "valid/investigation-camt026-unable-to-apply.xml",
+      "messageKind": "camt.026",
+      "path": "integration-kit/xml/valid/investigation-camt026-unable-to-apply.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.026.001.07.xsd",
+      "sha256": "f38dde5cf10fb0b08914ea70c3e4ff5134467b8f8a22b0d1de5482254c17c4f1",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/investigation-camt027-claim-non-receipt.xml validates",
+      "expected": "valid",
+      "id": "valid/investigation-camt027-claim-non-receipt.xml",
+      "messageKind": "camt.027",
+      "path": "integration-kit/xml/valid/investigation-camt027-claim-non-receipt.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.027.001.07.xsd",
+      "sha256": "1013b0715bcfab7dee63d20fa83d2d7ec2f3ed0acf97178b17e6f7e3fdd941d3",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/investigation-camt028-additional-information.xml validates",
+      "expected": "valid",
+      "id": "valid/investigation-camt028-additional-information.xml",
+      "messageKind": "camt.028",
+      "path": "integration-kit/xml/valid/investigation-camt028-additional-information.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.028.001.09.xsd",
+      "sha256": "bc8946859a492c729790258547113be23c277423b082a0a3c38d362a71d9ac4f",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/investigation-camt087-request-to-modify.xml validates",
+      "expected": "valid",
+      "id": "valid/investigation-camt087-request-to-modify.xml",
+      "messageKind": "camt.087",
+      "path": "integration-kit/xml/valid/investigation-camt087-request-to-modify.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.087.001.06.xsd",
+      "sha256": "65460ffa95c57f4426b103b4e951cff5c05128794a12c24c5459a88baf73645b",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/admin-admi006-resend.xml validates",
+      "expected": "valid",
+      "id": "valid/admin-admi006-resend.xml",
+      "messageKind": "admi.006",
+      "path": "integration-kit/xml/valid/admin-admi006-resend.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "admi.006.001.01.xsd",
+      "sha256": "04ead3552b6b1c62d8108ce8d5351364831e5211837369a614e1b6be03bf065d",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/admin-admi017-end-of-day.xml validates",
+      "expected": "valid",
+      "id": "valid/admin-admi017-end-of-day.xml",
+      "messageKind": "admi.017",
+      "path": "integration-kit/xml/valid/admin-admi017-end-of-day.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "admi.017.001.01.xsd",
+      "sha256": "b9cb21f4a1d6408fffb92aa7818ede42b794a5314c360884e9863bf01f0a7805",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/valid/file-head002-two-pacs008.xml validates",
+      "expected": "valid",
+      "id": "valid/file-head002-two-pacs008.xml",
+      "messageKind": "head.002",
+      "path": "integration-kit/xml/valid/file-head002-two-pacs008.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "head.002.001.01.xsd",
+      "sha256": "e9da193c1c5455102516bd522cae71d9225fc0abe77f376bf885bccbec34d031",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/reversal-pacs007-missing-msgid.xml:5: element MsgIdX: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.007.001.10}MsgIdX': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:pacs.007.001.10}MsgId ).\nintegration-kit/xml/invalid/reversal-pacs007-missing-msgid.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/reversal-pacs007-missing-msgid.xml",
+      "messageKind": "pacs.007",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-missing-msgid.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "sha256": "c1439fea1db14ae642662b2f8a4818b63dd1b04e8eebd038dd28560649f336ec",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/reversal-pacs007-count-mismatch.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/reversal-pacs007-count-mismatch.xml",
+      "messageKind": "pacs.007",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-count-mismatch.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "sha256": "58269d96fdff75dfe0763aea9f4010f70b0295133fd26bf45c505eaa2221c7b1",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/reversal-pacs007-zero-amount.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/reversal-pacs007-zero-amount.xml",
+      "messageKind": "pacs.007",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-zero-amount.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "sha256": "080b6005d7697834cac6846064fc35b5ff98eb57bdcec9a97f20883a7de0515d",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/reversal-pacs007-unregistered-currency.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/reversal-pacs007-unregistered-currency.xml",
+      "messageKind": "pacs.007",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-unregistered-currency.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "sha256": "08a27b315bf8a52c8abd3f9a54fc6f32e31dd6f263c324d72e85b502e989a61d",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/reversal-pacs007-reason-too-long.xml:16: element Cd: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.007.001.10}Cd': [facet 'maxLength'] The value has a length of '9'; this exceeds the allowed maximum length of '4'.\nintegration-kit/xml/invalid/reversal-pacs007-reason-too-long.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/reversal-pacs007-reason-too-long.xml",
+      "messageKind": "pacs.007",
+      "path": "integration-kit/xml/invalid/reversal-pacs007-reason-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.007.001.10.xsd",
+      "sha256": "673149af08416d7df9dee04fb0ca0429c9c1619e205426e02cf57ea3b3d177dd",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/fi-direct-debit-pacs010-no-uetr.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/fi-direct-debit-pacs010-no-uetr.xml",
+      "messageKind": "pacs.010",
+      "path": "integration-kit/xml/invalid/fi-direct-debit-pacs010-no-uetr.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "sha256": "2c499d92911b95d090e52e6e732dfd6a02f4900b2668538d882d0abd7a05f13e",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/fi-direct-debit-pacs010-debtor-without-bic.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+      "messageKind": "pacs.010",
+      "path": "integration-kit/xml/invalid/fi-direct-debit-pacs010-debtor-without-bic.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.010.001.04.xsd",
+      "sha256": "f990f362a29b0a895c1a30d35433984d8cbda5ca4f17e3bbdcb4f17e2ccc67ce",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/settlement-request-pacs029-one-movement.xml:10: element SttlmReq: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pacs.029.001.02}SttlmReq': Missing child element(s). Expected is ( {urn:iso:std:iso:20022:tech:xsd:pacs.029.001.02}MvmntRcrd ).\nintegration-kit/xml/invalid/settlement-request-pacs029-one-movement.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/settlement-request-pacs029-one-movement.xml",
+      "messageKind": "pacs.029",
+      "path": "integration-kit/xml/invalid/settlement-request-pacs029-one-movement.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "sha256": "dea883775b4bc483d3ee0058d78ae73e5cff2f4eaecb8d1a23cebd11708182c2",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/settlement-request-pacs029-movement-count.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/settlement-request-pacs029-movement-count.xml",
+      "messageKind": "pacs.029",
+      "path": "integration-kit/xml/invalid/settlement-request-pacs029-movement-count.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pacs.029.001.02.xsd",
+      "sha256": "e10838e764003031f74fd4e123f1ed21e1402ec288af2131ee223a253a515703",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/reversal-pain007-fraction-digits.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/reversal-pain007-fraction-digits.xml",
+      "messageKind": "pain.007",
+      "path": "integration-kit/xml/invalid/reversal-pain007-fraction-digits.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.007.001.10.xsd",
+      "sha256": "84df7ddbe327108e520f9b0ff9fb6c69a884691df106bef1b7f81aca37f97de7",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/mandate-pain009-bad-sequence.xml:13: element SeqTp: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.009.001.07}SeqTp': [facet 'enumeration'] The value 'WEEKLY' is not an element of the set {'RCUR', 'OOFF'}.\nintegration-kit/xml/invalid/mandate-pain009-bad-sequence.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/mandate-pain009-bad-sequence.xml",
+      "messageKind": "pain.009",
+      "path": "integration-kit/xml/invalid/mandate-pain009-bad-sequence.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.009.001.07.xsd",
+      "sha256": "6d67f6464deaf3bf90f0cf622a9d5b4b97de544c376317a580b086fe92576ae5",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/mandate-pain009-debtor-agent-without-bic.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/mandate-pain009-debtor-agent-without-bic.xml",
+      "messageKind": "pain.009",
+      "path": "integration-kit/xml/invalid/mandate-pain009-debtor-agent-without-bic.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.009.001.07.xsd",
+      "sha256": "9c92b7cc7cca1a6d813342b09fc49fe3b3a8d6608ddf6822a1fa25085dd64fb3",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/mandate-pain009-id-too-long.xml:10: element MndtId: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.009.001.07}MndtId': [facet 'maxLength'] The value has a length of '36'; this exceeds the allowed maximum length of '35'.\nintegration-kit/xml/invalid/mandate-pain009-id-too-long.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/mandate-pain009-id-too-long.xml",
+      "messageKind": "pain.009",
+      "path": "integration-kit/xml/invalid/mandate-pain009-id-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.009.001.07.xsd",
+      "sha256": "0c58cb77e22c93fb5d7c0f7200cc9c83969dec6ca70df7a4f761db86f9e67dc7",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/mandate-pain012-accepted-not-boolean.xml:11: element Accptd: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:pain.012.001.07}Accptd': 'yes' is not a valid value of the atomic type '{urn:iso:std:iso:20022:tech:xsd:pain.012.001.07}YesNoIndicator'.\nintegration-kit/xml/invalid/mandate-pain012-accepted-not-boolean.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/mandate-pain012-accepted-not-boolean.xml",
+      "messageKind": "pain.012",
+      "path": "integration-kit/xml/invalid/mandate-pain012-accepted-not-boolean.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "pain.012.001.07.xsd",
+      "sha256": "3e6695b7b94e8a0e6dec711ebd23753cc604f4a724667228b96892fd8dba2249",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/report-camt052-bad-side.xml:15: element CdtDbtInd: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.052.001.08}CdtDbtInd': [facet 'enumeration'] The value 'CRED' is not an element of the set {'CRDT', 'DBIT'}.\nintegration-kit/xml/invalid/report-camt052-bad-side.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/report-camt052-bad-side.xml",
+      "messageKind": "camt.052",
+      "path": "integration-kit/xml/invalid/report-camt052-bad-side.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.052.001.08.xsd",
+      "sha256": "f2d8379329efbad5c9e9290bffdff887a8e52aedda91a78ed86c3e4d6b250740",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/notification-camt057-unregistered-currency.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/notification-camt057-unregistered-currency.xml",
+      "messageKind": "camt.057",
+      "path": "integration-kit/xml/invalid/notification-camt057-unregistered-currency.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.057.001.06.xsd",
+      "sha256": "2228c39a03ec1e745e9d280666686057f6181223d477105a312edba869ae35ac",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/reporting-request-camt060-no-owner.xml:13: element RptgPrd: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.060.001.05}RptgPrd': This element is not expected. Expected is ( {urn:iso:std:iso:20022:tech:xsd:camt.060.001.05}AcctOwnr ).\nintegration-kit/xml/invalid/reporting-request-camt060-no-owner.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/reporting-request-camt060-no-owner.xml",
+      "messageKind": "camt.060",
+      "path": "integration-kit/xml/invalid/reporting-request-camt060-no-owner.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.060.001.05.xsd",
+      "sha256": "30dcf1e6cf6e9a31727cf30c4c048f3213d9643d099a4ab64b53001a97b103ea",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/liquidity-camt050-amount-without-currency.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "invalid/liquidity-camt050-amount-without-currency.xml",
+      "messageKind": "camt.050",
+      "path": "integration-kit/xml/invalid/liquidity-camt050-amount-without-currency.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.050.001.05.xsd",
+      "sha256": "67429314aa9383a2538600e6f85bd49f6e5a5c7287f063fd36a96ba73269af4d",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/receipt-camt025-status-too-long.xml:7: element StsCd: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.025.001.05}StsCd': [facet 'maxLength'] The value has a length of '8'; this exceeds the allowed maximum length of '4'.\nintegration-kit/xml/invalid/receipt-camt025-status-too-long.xml:7: element StsCd: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.025.001.05}StsCd': [facet 'pattern'] The value 'ACCEPTED' is not accepted by the pattern '[a-zA-Z0-9]{1,4}'.\nintegration-kit/xml/invalid/receipt-camt025-status-too-long.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/receipt-camt025-status-too-long.xml",
+      "messageKind": "camt.025",
+      "path": "integration-kit/xml/invalid/receipt-camt025-status-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.025.001.05.xsd",
+      "sha256": "866eee0f60c122ab0fa9a81473ef16fd4133bfa6a06f6ed09b0ae4ff67a4f37a",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/investigation-camt026-bad-bic.xml:6: element BICFI: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.026.001.07}BICFI': [facet 'pattern'] The value 'CIBEEG' is not accepted by the pattern '[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}'.\nintegration-kit/xml/invalid/investigation-camt026-bad-bic.xml:10: element BICFI: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.026.001.07}BICFI': [facet 'pattern'] The value 'CIBEEG' is not accepted by the pattern '[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}'.\nintegration-kit/xml/invalid/investigation-camt026-bad-bic.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/investigation-camt026-bad-bic.xml",
+      "messageKind": "camt.026",
+      "path": "integration-kit/xml/invalid/investigation-camt026-bad-bic.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.026.001.07.xsd",
+      "sha256": "79a37ce7cce98792aaa5a40d952715c38405ec778b2397e3e7ef488abd0e9319",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/investigation-camt087-wrong-namespace.xml:2: element Document: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:camt.087.001.99}Document': No matching global declaration available for the validation root.\nintegration-kit/xml/invalid/investigation-camt087-wrong-namespace.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/investigation-camt087-wrong-namespace.xml",
+      "messageKind": "camt.087",
+      "path": "integration-kit/xml/invalid/investigation-camt087-wrong-namespace.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "camt.087.001.06.xsd",
+      "sha256": "1d22be769080a0d49960b1a93164953a5921b888235c0baa2f4bf07a8c5b9667",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/admin-admi006-no-recipient.xml:5: element RsndSchCrit: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:admi.006.001.01}RsndSchCrit': Missing child element(s). Expected is one of ( {urn:iso:std:iso:20022:tech:xsd:admi.006.001.01}FileRef, {urn:iso:std:iso:20022:tech:xsd:admi.006.001.01}Rcpt ).\nintegration-kit/xml/invalid/admin-admi006-no-recipient.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/admin-admi006-no-recipient.xml",
+      "messageKind": "admi.006",
+      "path": "integration-kit/xml/invalid/admin-admi006-no-recipient.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "admi.006.001.01.xsd",
+      "sha256": "1b4d6d9f2bfbdf41a567b8d698ab0841e97aa950f7969fc094e2dc6b0444dc93",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/admin-admi017-session-too-long.xml:5: element SttlmSsnIdr: Schemas validity error : Element '{urn:iso:std:iso:20022:tech:xsd:admi.017.001.01}SttlmSsnIdr': [facet 'pattern'] The value 'SESSION1' is not accepted by the pattern '[a-zA-Z0-9]{4}'.\nintegration-kit/xml/invalid/admin-admi017-session-too-long.xml fails to validate",
+      "expected": "schema-invalid",
+      "id": "invalid/admin-admi017-session-too-long.xml",
+      "messageKind": "admi.017",
+      "path": "integration-kit/xml/invalid/admin-admi017-session-too-long.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "admi.017.001.01.xsd",
+      "sha256": "a1c84316b763d848f3dd7f04e490ded4ee2a90525c370aeb500e338de7e5732b",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-invalid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/file-head002-payload-invalid.xml validates",
+      "expected": "schema-valid-canister-refuses",
+      "id": "invalid/file-head002-payload-invalid.xml",
+      "messageKind": "head.002",
+      "path": "integration-kit/xml/invalid/file-head002-payload-invalid.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "head.002.001.01.xsd",
+      "sha256": "13438242c48fb626b8feee602a263098676e6765179a2d35095a1eadf1c5f105",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/invalid/file-head002-doctype.xml validates",
+      "expected": "schema-valid-canister-refuses",
+      "id": "invalid/file-head002-doctype.xml",
+      "messageKind": "head.002",
+      "path": "integration-kit/xml/invalid/file-head002-doctype.xml",
+      "profile": "SCHEMA-PROFILE",
+      "schemaFile": "head.002.001.01.xsd",
+      "sha256": "14141200a1710e5814510e84dab65423c517025b5e18e80bb6c4de9f71945d14",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-pacs008-conforming.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "d65d8a685425e35b9cc32a6df06779dfc0efaf11af4d61c6913ed0e464edde2b",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "f0accdef99e46164171529ec638d1c5dda79ddb14399b222d9221c1c2de74281"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs009-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-pacs009-conforming.xml",
+      "messageKind": "pacs.009",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "sha256": "ff1f197d31bd7b6cd0db0a150b1fa076566bd85c76077a7f478321c0bd2400f2",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Financial institution credit transfer / cover leg. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "f4e10e8ec1e903ff405871e0810c636f466e43423ab768c55f819e0b67488500"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs002-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-pacs002-conforming.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "30762bb4db4715d1308497809a9a1d0787925ce76a2bc8e954d5fbf620346415",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "f48b726e771288015547f206986039bf0167ff752a184e90ea1a4882bff70db5"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs004-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-pacs004-conforming.xml",
+      "messageKind": "pacs.004",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "sha256": "3f3757390d703e7e253fb53a4c0690303ae2bf3e2ab2e0c7e65648866ccd74b9",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "2e39dc3a2c8c38b0cf256a460ca4d69acd6b45c248ea0e32110a10a7f3c7e5f2"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt053-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-camt053-conforming.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "9c06106e7da250f5ea57b7e0b9f9bf99960ddc86422b20ff6aa920cd15725f54",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "ff660ac9d9d03bf086e06662f7293189400340778a3f9a5ccde418ab4819a210"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt054-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-camt054-conforming.xml",
+      "messageKind": "camt.054",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.054.001.08.xsd",
+      "sha256": "53b691d39bb5c0e0d22597f7e059340c9fb20f6dd4247b12a2e94f1932a65b06",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer debit/credit notification. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "4402a3d614fd4701a8a065be536486067610afba935387f90d38e01cebdbeed9"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt056-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-camt056-conforming.xml",
+      "messageKind": "camt.056",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.056.001.08.xsd",
+      "sha256": "9d59beb60a6c4f17b43f5e3d0e584426d912baf189d3245db3d3f074b2d2812d",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI cancellation request. CBPR+/HVPS+/domestic profiles may constrain agents, identifiers, and reason codes differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "656c1cad87375f4b766201a5c0b8e798431bbc274fb4d802051975fea1bc0764"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt029-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/cbpr-camt029-conforming.xml",
+      "messageKind": "camt.029",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-conforming.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.029.001.09.xsd",
+      "sha256": "36108cae0850d8bf187f2b8eedde170ffba73b50ef8a7ccc18203e3303595727",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation resolution. CBPR+/HVPS+/domestic profiles may constrain parties, agents, status, and case references differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "550640303d2974094e9564f195c78d3cad9cdfa4e9607609c2107b711377fc60"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/hvps-pacs008-conforming.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-conforming.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "b4ad795492b08d57a8faab849007f0b84ef2c6b9a9b8c884a8dc599fae541c42",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "ad31c22f6486227ff1cc20a4b4dd1d7df3962b66bb39d07ade02f180029bbd75"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs009-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/hvps-pacs009-conforming.xml",
+      "messageKind": "pacs.009",
+      "path": "integration-kit/xml/guidelines/hvps-pacs009-conforming.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "sha256": "e5814ac938ea25c2eed23fe1d5500a9c532542f7a6b61c062d0631d9aa0936ab",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Financial institution credit transfer / cover leg. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "9689a6c4ed90502c0ed5c91794a492349a28efd59f690c3292f5eff535aa62f0"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs002-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/hvps-pacs002-conforming.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-conforming.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "cc452e6fe3efb4fccbd047c6b77627c490102b0b7b986788c488c07d9d9804db",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "a8af6c808429a0a8dd933c7eaff3fc23dde7c78c109c969b1b0336f0fbc8e5d2"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt050-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/hvps-camt050-conforming.xml",
+      "messageKind": "camt.050",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-conforming.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.050.001.05.xsd",
+      "sha256": "0cce3c2250bfbb87dfa566fa77ef6ad3691d5b62917a7f1fb79fdbb6ffd0261c",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "6438f417cf1f9cb0ffed08980ddef88fb6d10e38cd9d2e57ee7e8f465814e677"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt052-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/hvps-camt052-conforming.xml",
+      "messageKind": "camt.052",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-conforming.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.052.001.08.xsd",
+      "sha256": "2b006d7d3d8a0aa6f001ca73bec67f18928ba9c8fd9e1b7a1106990407fa79ce",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "e2f316c0652be3940b5d7ca8842e8deede4b86f02577176b349c41691d80af85"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt053-conforming.xml#Document validates",
+      "expected": "valid",
+      "id": "guidelines/hvps-camt053-conforming.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-conforming.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "b310527ed7d87aa1ce47fb1ec77ddc7ba28ff0db0b54a64242f47310befe1c51",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "437562b31f8eeff2128d3d38f8127cc70ad966c69ed12f2c98fd6557a57821f0"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-no-header.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-no-header.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-header.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "11706085d893bd8178edb8fae8195bd4f8dd59cfaae18e2af9b2c82fc0f03806",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-msgid-charset.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-msgid-charset.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-msgid-charset.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "60d80a255cf6bc7d5ff611f0992cfe8c8df8f73051703ba0203eca92463a6d5d",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "dd50e3bdae227bf2d9669df8533600f3def0a7cf8342ed971eeb2b558ebd4d77"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-two-transactions.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-two-transactions.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "9024b84f5a63a99dfe9b33cd938ccbe967aa6fc104bae8dab74822483f87f187",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "522c7a658b8549877b57df8d217a8cd7a495b6d07cd7a8a63886b5b50ab0d348"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-nboftxs.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-nboftxs.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-nboftxs.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "7d4843206cff17296f7f6e227953982a58a8063d959a44ac6bb0e6996d7c8a97",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "6efc7f41d3f0751bded188269587b82ce0441afcde43e89833c435f8c611b1b7"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-no-uetr.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-no-uetr.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-uetr.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "c60f69d5d08d99ab4c2c4633c8bc6571481d536880154adb74ef68161121e6a0",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "819deb66768bd6eb5249b8c3ca302fdd95d8c55b91e5e3e2540d119f97549ad3"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-clrg.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-clrg.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-clrg.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "db348a9c3567361a46125502e72a3566f386ba00e7513082ec0095f4d2ab96dc",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "e342c11332252d3af7cac8729781f4d02056f38a4cc1924c4345365c7f8ed549"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-no-settlement-date.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-no-settlement-date.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-no-settlement-date.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "5653275af2f422e2816d75dcc38855844acaabac8a070404ed66cb704b756f10",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "53866c1fd7c5d0ab0d0292e9a25d4662af2e0adcfdae9fb48c0388b23148b820"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-slev.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-slev.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-slev.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "3cb05010a9d3f92d12f38715cc8cae3099e65b33744b76b73d6f0c50ec931b39",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "a3801a62b47291bfad455b558d68a2aef8ad63612ffcb22d6ea4b25a99997186"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-e2e-charset.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-e2e-charset.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-e2e-charset.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "e408ac5179de3c9c108d69a88e2e6543e7d84a465acc48797167a2c640d22069",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "05bca531ad436c444e14ffb66dff09a336c28802f0eccb72f9ae7aaa083bafc0"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-instrid-charset.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-instrid-charset.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-instrid-charset.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "da10edc0022ad7189123fc1b2108f02cffb1a958b1d324e181b04ec36037aee6",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "bfff13deb0cc8c79bd764bfa5b3675670ff06ac81bf128b4c5e072717acd1131"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-agent-unidentified.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-debtor-agent-unidentified.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-agent-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "86cd2b2e6e3b652c573e38b0863e8da5c57914b60a114e7c6ddda6d01272e80c",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "9f8f68d7c96cc393ca1b9776599e73ae5ec475b2f4166b5e88c5659f56acc774"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-unstructured-address.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-debtor-unstructured-address.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-debtor-unstructured-address.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "9448dc593cac19636df27d971222aa8d2f535a62101d31dfc9f52dd55162c81b",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "e0822a437661d93d2e11a1523776cdbfef937114e20c763ac7dcb64a1b69dcf6"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-hybrid-three-lines.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-creditor-hybrid-three-lines.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-hybrid-three-lines.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "568780323b7a121cfee181c8b153b9d8257acdaa3dc0ff4847d46d3e5c82a3cf",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "0c28688a9ee45bbb76400c59507a8a2f8435f37dbd0600171aa43a9cfa381384"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-agent-unidentified.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs008-creditor-agent-unidentified.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs008-creditor-agent-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "48b7f82131746617883bff5cedeb46bfdde1eb25d1ed314a66599b65599703fb",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "d5173f4dc4166eab1ec90da4c62c554978527fbe211d242ea4d618418900277e"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs009-debtor-unidentified.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs009-debtor-unidentified.xml",
+      "messageKind": "pacs.009",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-debtor-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "sha256": "cb6bea1b020dbcdb83cf462b8dd1933a0a4513bb8e34994323c2eb735277cf44",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Financial institution credit transfer / cover leg. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "a6785b399c50d355f5eb022435626e455e384bf5db823165e68e83ee8d4118a0"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs009-creditor-unidentified.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs009-creditor-unidentified.xml",
+      "messageKind": "pacs.009",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs009-creditor-unidentified.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.009.001.08.xsd",
+      "sha256": "f360a35c473bfe4b51c5a650277e4310c933c11d7830031485e6b13e51360e62",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Financial institution credit transfer / cover leg. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "BIS-CPMI-HARMONISATION",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "9adce5debccaa76ff9f488cb0945a18eb6c081edffb72314f67aff4a124aeabc"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs004-two-transactions.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs004-two-transactions.xml",
+      "messageKind": "pacs.004",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "sha256": "ea9837de519fa296d756f152a9f4fd0d9d6b2f9a028534d18487e50378af2988",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "fc12c8fa2bf09867fb6a740368a7d1b94de907a7578ea8e6d8b50ed6143db4f1"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs002-two-transactions.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs002-two-transactions.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "6879d248c8aeba80a59717e97b50737fb2e49f0644e6bf31f8e9face9c224136",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "a97826707ffbed0bddfa469c999f74dc64d46bf0432cc6724d23e05bb7d5fb05"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs002-no-original-uetr.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs002-no-original-uetr.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "6999d210b70b9c2034478c36d962d478e7a3647d8ee296e6ee86b005974cd7d3",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "bb2c49c1d2c08fb33f7f5dec12679cbe9efee27e8de8076cf40bd70463c35d52"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs002-group-status.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs002-group-status.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs002-group-status.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "fc7f2fd0ee0b54a4f0b05a5c64549b98d2b20490907b20840c2d7d053e015e58",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "c4591d14bb16a2f8b22759dc68bc198f07573b556494b442a23d8950d3ba9b4d"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs004-no-original-uetr.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs004-no-original-uetr.xml",
+      "messageKind": "pacs.004",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "sha256": "434ca5f81e524db8a9a73f808c224e0f6e7ca337813891f4515ca6d84daf71e0",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "7a81bf8bb429f2291600a78b1b73c44febafc483420f941a35b3cec88a037c19"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs004-no-reason.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs004-no-reason.xml",
+      "messageKind": "pacs.004",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-reason.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "sha256": "bcb56b5fbab156d76aabf23a8a288af5f283800e5b1c10e6c666242b51aef0bd",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "bacb347451833bd6cf9b09f64817194f8600b8fcbaa0e03f6de4369e90a452f2"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-pacs004-no-settlement-date.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-pacs004-no-settlement-date.xml",
+      "messageKind": "pacs.004",
+      "path": "integration-kit/xml/guidelines/cbpr-pacs004-no-settlement-date.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "pacs.004.001.09.xsd",
+      "sha256": "0f9c5c9a28f73205cec229d332a4a3595514876047343416303124baf6650f5d",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "19c39242c9fb38945cb030375b7a85b1f0f9eadd82e6fa0d79d32cf9b186dae5"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt053-two-statements.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt053-two-statements.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-two-statements.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "79d03e90f92e48d8d21d380daac1400d4917a93b6bd2859caee57ec9334796a7",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "8a9d3522c7beb5d97ec8848fee13597426480610251de9c73734e5ff0e963ebe"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt053-no-closing-balance.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt053-no-closing-balance.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-no-closing-balance.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "f83d0f513d54034955adc93d2a7bf306c8bbd600d62e7ccb77a199c93598569f",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "9a6e8f83808845fa8e23bba945e6d3bf3eae2437aab721358bcfb0efacd9798d"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt053-pending-entry.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt053-pending-entry.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/guidelines/cbpr-camt053-pending-entry.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "16fbab074cc1edb8b3f3da651ad93af14ba19632e9f30b9d73d62e914a0d8ec0",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "f61789b33f446442329b78c920aa404265345e47397640e95f20f67fa3e8d5db"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt054-two-notifications.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt054-two-notifications.xml",
+      "messageKind": "camt.054",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-two-notifications.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.054.001.08.xsd",
+      "sha256": "7b74b7cd1af9a96f3c23db5c859726eb05c1f62fab8b61a0ed72459cd0062828",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer debit/credit notification. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "3ef5e7b1d1434ee10cc0fee353b2f69f7c2bf8a13aaf4f7236aa7f17e38c2d54"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt054-pending-entry.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt054-pending-entry.xml",
+      "messageKind": "camt.054",
+      "path": "integration-kit/xml/guidelines/cbpr-camt054-pending-entry.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.054.001.08.xsd",
+      "sha256": "3cd41cefec3fb12fc1614d18b1f1c1c315017d1ee281430fa24f9faaf3ad68ab",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer debit/credit notification. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "d4df1c1bd4e8d6c26232ae570ef6ec43d454b8c6d3a463b061b976f732aa0d9f"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt056-two-transactions.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt056-two-transactions.xml",
+      "messageKind": "camt.056",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.056.001.08.xsd",
+      "sha256": "6b0d41491177f7ba48e5c69c640071a4e807e8113d42a30e2364cd04a1374a05",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI cancellation request. CBPR+/HVPS+/domestic profiles may constrain agents, identifiers, and reason codes differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "f9f33048867225db52c0d1bf642e6f9bb9b4f0077a9de44984119a43beb0771b"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt056-no-original-uetr.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt056-no-original-uetr.xml",
+      "messageKind": "camt.056",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.056.001.08.xsd",
+      "sha256": "40a204b2043a5b87c40f47f044d0dc5a16796fbf9798bde1c1106c1293b98dc4",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI cancellation request. CBPR+/HVPS+/domestic profiles may constrain agents, identifiers, and reason codes differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "60d19a5ced8eef3524987ca9f10ebdadaa5c2d0b1f5b19ad72c5910332a80158"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt056-no-reason.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt056-no-reason.xml",
+      "messageKind": "camt.056",
+      "path": "integration-kit/xml/guidelines/cbpr-camt056-no-reason.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.056.001.08.xsd",
+      "sha256": "b0510bea80f0a73dfa8ee7508632bf89b5fa61fc2febeef7136bb205c7c1fc53",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "FI-to-FI cancellation request. CBPR+/HVPS+/domestic profiles may constrain agents, identifiers, and reason codes differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "9017840dfb0e344220f2c8d7b961091f489f0d9f7c4be1dd25d2bd2c6c06a6db"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt029-two-transactions.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt029-two-transactions.xml",
+      "messageKind": "camt.029",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-two-transactions.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.029.001.09.xsd",
+      "sha256": "d08fa75be9953264de7f081e36d2c9a4ef3d114dca45309559d0560173a9f2e5",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation resolution. CBPR+/HVPS+/domestic profiles may constrain parties, agents, status, and case references differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "08074f58d7f27842cab31b3d4b0ce5ecf79a4e754dabbd73dfaa4df7a92315c2"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt029-no-original-uetr.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt029-no-original-uetr.xml",
+      "messageKind": "camt.029",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-no-original-uetr.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.029.001.09.xsd",
+      "sha256": "0aadf00d14243223d6778c4bfb85cd5160087005203b3f1b30dc38931cd0f46e",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation resolution. CBPR+/HVPS+/domestic profiles may constrain parties, agents, status, and case references differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "e39b2b6ff23cb1cef216b206b8765055a6c6fa7bdc989952e5b646ed56395b1a"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/cbpr-camt029-no-status.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/cbpr-camt029-no-status.xml",
+      "messageKind": "camt.029",
+      "path": "integration-kit/xml/guidelines/cbpr-camt029-no-status.xml",
+      "profile": "CBPRPLUS",
+      "schemaFile": "camt.029.001.09.xsd",
+      "sha256": "572091f2d26906a4b82a8e4fa8d6c6d2e930cbd567ccb68a6db44f97153f28b7",
+      "source": {
+        "access": "public catalogue plus MyStandards/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Investigation resolution. CBPR+/HVPS+/domestic profiles may constrain parties, agents, status, and case references differently.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "BIS-CPMI-HARMONISATION",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "87748b03bfc68303be4c0d506c720fe82b11e1b11f729e8c2bf346f4cfb0325c"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-no-header.xml validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-no-header.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-header.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "103103ec68247e795f2d8628469d7b7ecf16c5127c636f58792a978c1e76aa5f",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "raw-fixture"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-msgid-charset.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-msgid-charset.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-msgid-charset.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "dbc9f23b8c591f62fea24d74a86fc0bebd86648f29394df6c2d9955b0510c262",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "47897acc79b36a2d9197f300b342b8554c249582264471b2050b87d9293afaf0"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-two-transactions.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-two-transactions.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-two-transactions.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "bfb64e0f01b3d75397115913c7761206b8106fb1e2a024fe5c4127851cb2ee24",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "4f2362e7aba6f977e459c7fe9cc5d908dccfcd5309f407a3ccd3b8e2bd923b95"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-nboftxs.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-nboftxs.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-nboftxs.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "e0893d112349dc40e6df3de956cf921082e60c04ca3c7e6d2d5c81110a46066b",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "d67a0d60e67cfe1d30b2c8f5c71230060fa911a36406a2f62680dd1d949106a7"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-no-uetr.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-no-uetr.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-uetr.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "bf47de4ee86bcb20da681c213ef1418136ee36da1d293fe79c3a99bb20aafe70",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "affb2b5116661c2a3e2ff8687954392a1f5310b2b8545f917261fb1751739551"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-inda.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-inda.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-inda.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "245cbe3b6663c5c2c9e27c98ef9ee045b136ec9a2f27a997b6f050b102a3d5b9",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "a0f5fe5a30d72fe65717cc54fa290663c26acc55e3c6a4f472cfb3a9c8267464"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-no-clearing-system.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-no-clearing-system.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-clearing-system.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "08038b0f36db9a2984fb2dafee07ae8708b7104a5bd0ea672b716a649da9a31d",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "4dad701126975d38bb275a75f56e073860b3b154ba711c2a535ad3f8ac6278cc"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-no-settlement-date.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-no-settlement-date.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-settlement-date.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "d74afdf458eb5d7ca72c2ecbf412dbfcc4501aaf4cbfb7ee0ac89785afc99a0d",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "68a36a20f99d47324ee31e3a60836581eec6dd17006fa09942c87f6add11315a"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-no-instructing-agent.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-no-instructing-agent.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-instructing-agent.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "fb3d81f7828e7ecf2afc1650e1d623df043eee439aa4015097866d0a9dc71d29",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "74d61185d61ec0a3ca57cd5b3845b301e1705233df34ce23b3746278ce967ead"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-no-instructed-agent.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-no-instructed-agent.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-no-instructed-agent.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "f21c6b69a258de0508a1db02e09eeffb5d6c39969bb179687e89cb2e9939370a",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "c2d6cdd318692177b9dd20c3a30f36cab2aef364c31d5b8e85425758af642e0f"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs008-e2e-charset.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs008-e2e-charset.xml",
+      "messageKind": "pacs.008",
+      "path": "integration-kit/xml/guidelines/hvps-pacs008-e2e-charset.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.008.001.08.xsd",
+      "sha256": "b70c5d92a6992a81fbd37c52ff023f894505be6e88ae4172bb1635f0ad06ea84",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "9c4121cb7e1eb622324032e7bd21e2fd48710f395c94630a1bc284f0fca5a202"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs002-two-transactions.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs002-two-transactions.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-two-transactions.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "1be41861133d9b0ab581e933d6a03fe318d7763cc1b5b1de8cc8d51c4821e0b3",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "ba36f20560644fd9b1c2d39b48b411dcb4178a4f9c0e6d19f481831c53b6da4f"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-pacs002-no-original-uetr.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-pacs002-no-original-uetr.xml",
+      "messageKind": "pacs.002",
+      "path": "integration-kit/xml/guidelines/hvps-pacs002-no-original-uetr.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "pacs.002.001.10.xsd",
+      "sha256": "61cff8f2b19d5574dce1b62c11dfa32efb1b05851b6598d0a6decf2e5f44c420",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "SWIFT-MYSTANDARDS-HVPSPLUS",
+          "EPC-SEPA-SCT-2025",
+          "EPC-SEPA-SDD-2025",
+          "FEDWIRE-ISO20022-MYSTANDARDS",
+          "FEDNOW-ISO20022-MYSTANDARDS",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "8925a62b6128c465974eae1bb102e3448ece395a6bfd40267c3dca299448e427"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt050-no-id.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-camt050-no-id.xml",
+      "messageKind": "camt.050",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-no-id.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.050.001.05.xsd",
+      "sha256": "bde2ffed0d59a4a5550a6ba257c47db730cf493056a1fc724b11a0990353ebca",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "daadfcbc187eb52ae5a042e4ce792af2790ede72f3643a4ee67a97aeaaac9e4e"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt050-amount-without-currency.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-camt050-amount-without-currency.xml",
+      "messageKind": "camt.050",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-amount-without-currency.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.050.001.05.xsd",
+      "sha256": "b77c12b2920235f8cb6c51884832257d98af408e96f33ba87e02bd7e0059d32e",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "2719498e367da360bc7c1c021b6893077e9679c43604d15b64b3a6276126e364"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt050-no-creditor-account.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-camt050-no-creditor-account.xml",
+      "messageKind": "camt.050",
+      "path": "integration-kit/xml/guidelines/hvps-camt050-no-creditor-account.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.050.001.05.xsd",
+      "sha256": "2292772ce92bf4553e9194ec3ec3771750357764202eb8c85ae5d7f504fcf97b",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "d97ac0a528297464fc11e058054966f14f56a554ee54e054b8d2eb7c3a1a779b"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt052-two-reports.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-camt052-two-reports.xml",
+      "messageKind": "camt.052",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-two-reports.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.052.001.08.xsd",
+      "sha256": "5e3ae42dde95c7dfc6d9085a13155e594f81c77aec841a9e373614050f95db12",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "931f6985140c7af0706067afe4c2d07341166c17ab1b7537e4681c3d8ed0a7df"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt052-no-balance.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-camt052-no-balance.xml",
+      "messageKind": "camt.052",
+      "path": "integration-kit/xml/guidelines/hvps-camt052-no-balance.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.052.001.08.xsd",
+      "sha256": "5508ad410f2dc1db58e7d82f95839cf1ac06e40d2d4a8e134c4a7a4de58085b0",
+      "sourceStatus": "missing-source-metadata",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "7885b8f2449c061fbd0f25497c33c1df444fc57d71457b179c97ad2b58f7a303"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt053-two-statements.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-camt053-two-statements.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-two-statements.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "d408517aef0000c0ba12f943a916f0fc5a8dd5bc8ef73b0d9ae6dc2ff03ea083",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "b47e470a325b620fb05a335524db0f463cefe8f9ecf4d245eb433fb7e75a5608"
+    },
+    {
+      "asExpected": true,
+      "detail": "integration-kit/xml/guidelines/hvps-camt053-no-opening-balance.xml#Document validates",
+      "expected": "schema-valid-business-invalid",
+      "id": "guidelines/hvps-camt053-no-opening-balance.xml",
+      "messageKind": "camt.053",
+      "path": "integration-kit/xml/guidelines/hvps-camt053-no-opening-balance.xml",
+      "profile": "HVPSPLUS",
+      "schemaFile": "camt.053.001.08.xsd",
+      "sha256": "7772be5e31c7942a801e132d317c253e515e605c2760ca1975c1d79ac2e6f19d",
+      "source": {
+        "access": "public catalogue plus public/account-gated/operator profile packs",
+        "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+        "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available.",
+        "profileSources": [
+          "SWIFT-MYSTANDARDS-CBPRPLUS",
+          "EPC-SEPA-SCT-2025",
+          "CBE-EGYPT-RTGS-2026",
+          "OPERATOR-BANK-PROFILES"
+        ]
+      },
+      "sourceStatus": "documented",
+      "status": "schema-valid",
+      "xsdInput": "document-fragment",
+      "xsdSha256": "f013d24158adde9f36c1886e6955b809597d93c8b27b6f4244dfdae68694af58"
+    }
+  ],
+  "runner": "thebes-xsd-profile-runner-v1",
+  "schemaDir": "integration-kit/profile-runner/official-schemas/iso-base",
+  "sourceManifest": "integration-kit/profile-runner/source-manifest.json",
+  "sourceManifestFound": true
+}

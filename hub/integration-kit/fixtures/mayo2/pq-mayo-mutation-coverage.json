@@ -1,0 +1,43 @@
+{
+  "bitFlipsPerVector": 1744,
+  "schema": "mayo2-pq-mayo-mutation-coverage-v1",
+  "signatureBitFlipsPerVector": 1488,
+  "signatureSaltBitFlipsPerVector": 192,
+  "signatureVectorBitFlipsPerVector": 1296,
+  "signedMessageBitFlipsPerVector": 256,
+  "source": "pq-mayo 0.2.3 plus Motoko-shaped verify map",
+  "totalBitFlips": 5232,
+  "vectorCount": 3,
+  "vectors": [
+    {
+      "motokoShapeRejectedAll": true,
+      "rustPqMayoRejectedAll": true,
+      "signatureBitFlips": 1488,
+      "signatureSaltBitFlips": 192,
+      "signatureVectorBitFlips": 1296,
+      "signedMessageBitFlips": 256,
+      "totalBitFlips": 1744,
+      "vectorIndex": 0
+    },
+    {
+      "motokoShapeRejectedAll": true,
+      "rustPqMayoRejectedAll": true,
+      "signatureBitFlips": 1488,
+      "signatureSaltBitFlips": 192,
+      "signatureVectorBitFlips": 1296,
+      "signedMessageBitFlips": 256,
+      "totalBitFlips": 1744,
+      "vectorIndex": 1
+    },
+    {
+      "motokoShapeRejectedAll": true,
+      "rustPqMayoRejectedAll": true,
+      "signatureBitFlips": 1488,
+      "signatureSaltBitFlips": 192,
+      "signatureVectorBitFlips": 1296,
+      "signedMessageBitFlips": 256,
+      "totalBitFlips": 1744,
+      "vectorIndex": 2
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "SEPA-SCT-INST-EDU",
+  "label": "SEPA Instant Credit Transfer public-source education overlay",
+  "status": "implemented-runtime-overlay",
+  "officialCertification": false,
+  "sourceReferences": [
+    "https://www.europeanpaymentscouncil.eu/what-we-do/epc-payment-schemes/sepa-instant-credit-transfer/sepa-instant-credit-transfer-rulebook",
+    "https://www.europeanpaymentscouncil.eu/document-library/implementation-guidelines/sepa-instant-credit-transfer-inter-psp-implementation-2"
+  ],
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setDefaultGuidelineProfile",
+    "setConnectorGuidelineProfile",
+    "validatePacs008WithProfile"
+  ],
+  "messageFamilies": [
+    "pacs.008",
+    "pacs.002",
+    "pacs.004",
+    "camt.056",
+    "camt.029",
+    "pacs.028",
+    "camt.053",
+    "camt.054"
+  ],
+  "connectorFormats": [
+    "pacs.008.xml",
+    "pacs.002.xml",
+    "pacs.004.xml",
+    "camt.056.xml",
+    "camt.029.xml",
+    "pacs.028.xml",
+    "camt.053.xml",
+    "camt.054.xml"
+  ],
+  "ruleHighlights": [
+    "public EPC SCT Inst profile tracked as a named overlay",
+    "instant-specific SLA, timeout, scheme codes, and participant rules must come from an external profile runner",
+    "compact codec can replay the overlapping pacs/camt message families"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/pacs008-eg-domestic.xml",
+      "../xml/valid/status-pacs002-settled.xml",
+      "../xml/valid/status-pacs004-returned.xml"
+    ],
+    "invalid": [
+      "../xml/invalid/status-uetr-mismatch.xml"
+    ]
+  },
+  "disclaimer": "Education overlay only. It is not an EPC SCT Inst scheme certification or a full real-time-payment rule implementation."
+}

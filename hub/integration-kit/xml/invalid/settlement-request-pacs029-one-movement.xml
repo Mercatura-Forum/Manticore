@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.029.001.02">
+  <MulSttlmReq>
+    <GrpHdr>
+      <MsgId>MSR072751057</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <NbOfSttlmReqs>1</NbOfSttlmReqs>
+      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>
+    </GrpHdr>
+    <SttlmReq>
+      <InstrId>INSTR475463417</InstrId>
+      <SttlmCycl>2026-09-12-C1</SttlmCycl>
+      <NbOfMvmntRcrds>1</NbOfMvmntRcrds>
+      <MvmntRcrd>
+        <Id>MV1</Id>
+        <Amt><Amt Ccy="EGP">100.00</Amt><CdtDbt>DBIT</CdtDbt></Amt>
+        <Ptcpt><Id><OrgId><AnyBIC>NBEGEGCXXXX</AnyBIC></OrgId></Id></Ptcpt>
+      </MvmntRcrd>
+    </SttlmReq>
+  </MulSttlmReq>
+</Document>

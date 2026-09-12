@@ -1,0 +1,60 @@
+{
+  "id": "CBPRPLUS-EDU",
+  "label": "Cross-border and cover-payment education profile",
+  "status": "implemented-compact",
+  "officialCertification": false,
+  "guidelineSurface": [
+    "listGuidelineProfiles",
+    "setDefaultGuidelineProfile",
+    "setConnectorGuidelineProfile",
+    "resetGuidelineToCrossBorderEducationBaseline"
+  ],
+  "messageFamilies": [
+    "head.001.001.02",
+    "pacs.008.001.08",
+    "pacs.009.001.08",
+    "pacs.002.001.10",
+    "pacs.004.001.09",
+    "camt.056.001.08",
+    "camt.029.001.09",
+    "pacs.028.001.03",
+    "camt.110.001.01",
+    "camt.111.001.01"
+  ],
+  "connectorFormats": [
+    "pacs.008.xml",
+    "pacs.009.xml",
+    "cover.payment.xml",
+    "pacs.002.xml",
+    "pacs.004.xml",
+    "camt.056.xml",
+    "camt.029.xml",
+    "pacs.028.xml",
+    "camt.110.xml",
+    "camt.111.xml"
+  ],
+  "ruleHighlights": [
+    "settlement method INDA",
+    "cross-border country set enabled",
+    "pacs.009 core and COV linkage",
+    "cover pacs.009 must reference direct pacs.008 message id",
+    "UETR correlation required for status and returns",
+    "intermediary-agent limit enforced by guideline",
+    "regulatory reporting and FX fields available for screening"
+  ],
+  "fixtures": {
+    "valid": [
+      "../xml/valid/pacs009-cbprplus-core.xml",
+      "../xml/valid/cover-payment.xml",
+      "../xml/valid/investigation-camt056-cancel.xml",
+      "../xml/valid/investigation-camt029-resolution.xml",
+      "../xml/valid/investigation-pacs028-status-request.xml",
+      "../xml/valid/investigation-camt110-request.xml",
+      "../xml/valid/investigation-camt111-response.xml"
+    ],
+    "invalid": [
+      "../xml/invalid/xml-doctype-entity.xml"
+    ]
+  },
+  "disclaimer": "CBPR+-shaped education fixtures only. Official CBPR+ validation remains an external oracle/certification gate."
+}

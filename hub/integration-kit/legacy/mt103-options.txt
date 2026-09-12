@@ -1,0 +1,20 @@
+{4:
+:20:MT103-OPTIONS-20260622-0001
+:32A:260622USD2500,00
+:50F:/EG380019000500000000263180002
+1/Example Debtor SAE
+2/1 Nile Corniche
+3/EG/Cairo
+:52A:EGBKEGCX
+:53A:CHASUS33
+:54A:DEUTDEFF
+:56A:CHASUS33
+:57A:DEUTDEFF
+:59F:/DE89370400440532013000
+1/Example Creditor GmbH
+2/10 Market Platz
+3/DE/Berlin
+:70:Cross-border invoice 2026-001
+:71A:SHA
+:72:/INS/Adapter should map sender-to-receiver text into remittance or investigation notes
+-}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+  <Fr><FIId><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></FIId></Fr>
+  <To><FIId><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></FIId></To>
+  <BizMsgIdr>C52749586921</BizMsgIdr>
+  <MsgDefIdr>camt.052.001.08</MsgDefIdr>
+  <BizSvc>rtgs.hvpsplus.01</BizSvc>
+  <CreDt>2026-09-12T10:00:00Z</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.052.001.08">
+  <BkToCstmrAcctRpt>
+    <GrpHdr><MsgId>C52749586921</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm></GrpHdr>
+    <Rpt><Id>RPT802332201</Id><CreDtTm>2026-09-12T10:00:00Z</CreDtTm><Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id><Ccy>EGP</Ccy></Acct>
+      <Bal><Tp><CdOrPrtry><Cd>ITBD</Cd></CdOrPrtry></Tp><Amt Ccy="EGP">21198.87</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-09-12</Dt></Dt></Bal>
+      <Ntry><NtryRef>NTRY-932053</NtryRef><Amt Ccy="EGP">189175.12</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts><Cd>BOOK</Cd></Sts><BookgDt><Dt>2026-09-12</Dt></BookgDt><ValDt><Dt>2026-09-12</Dt></ValDt><BkTxCd><Prtry><Cd>PMNT</Cd></Prtry></BkTxCd>
+        <NtryDtls><TxDtls><Refs><EndToEndId>E2E-1</EndToEndId><UETR>9f45d5e1-c981-40a1-97ff-4eb0df34611b</UETR></Refs></TxDtls></NtryDtls></Ntry>
+    </Rpt>
+  </BkToCstmrAcctRpt>
+</Document>

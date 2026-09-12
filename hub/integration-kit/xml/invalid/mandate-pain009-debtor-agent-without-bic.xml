@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.009.001.07">
+  <MndtInitnReq>
+    <GrpHdr>
+      <MsgId>MNDT410235193</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <InitgPty><Nm>Cairo Water Utility</Nm></InitgPty>
+    </GrpHdr>
+    <Mndt>
+      <MndtId>MANDATE-179547</MndtId>
+      <MndtReqId>REQ433719238</MndtReqId>
+      <Tp><SvcLvl><Cd>SEPA</Cd></SvcLvl><LclInstrm><Cd>CORE</Cd></LclInstrm></Tp>
+      <Ocrncs><SeqTp>RCUR</SeqTp><Frqcy><Tp>MNTH</Tp></Frqcy><FrstColltnDt>2026-10-01</FrstColltnDt></Ocrncs>
+      <TrckgInd>false</TrckgInd>
+      <MaxAmt Ccy="EGP">500.00</MaxAmt>
+      <Cdtr><Nm>Cairo Water Utility</Nm></Cdtr>
+      <CdtrAcct><Id><Othr><Id>ACC88003195</Id></Othr></Id></CdtrAcct>
+      <CdtrAgt><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></CdtrAgt>
+      <Dbtr><Nm>Household 555</Nm></Dbtr>
+      <DbtrAcct><Id><IBAN>EG380019000500000000263180002</IBAN></Id></DbtrAcct>
+      <DbtrAgt><FinInstnId><Nm>Some Bank</Nm></FinInstnId></DbtrAgt>
+    </Mndt>
+  </MndtInitnReq>
+</Document>

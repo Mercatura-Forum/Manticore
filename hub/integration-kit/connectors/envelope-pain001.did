@@ -1,0 +1,14 @@
+(
+  record {
+    connectorId = "bank-eg-001";
+    remoteId = "BANK-EG-001-000000";
+    sequence = 0 : nat;
+    format = "pain.001.xml";
+    payload = blob "<load integration-kit/xml/valid/pain001-eg-domestic.xml bytes>";
+    payloadHash = blob "<sha256 bytes of payload>";
+    signature = null;
+    sentAt = 1_772_000_000_000_000_000 : int;
+    traceId = "TRACE-BANK-EG-001-000000";
+    endpoint = opt "sftp://bank-eg-001/incoming";
+  }
+)

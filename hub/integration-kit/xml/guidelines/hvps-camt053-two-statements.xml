@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.02">
+  <Fr><FIId><FinInstnId><BICFI>NBEGEGCXXXX</BICFI></FinInstnId></FIId></Fr>
+  <To><FIId><FinInstnId><BICFI>DEUTDEFFXXX</BICFI></FinInstnId></FIId></To>
+  <BizMsgIdr>C53939169987</BizMsgIdr>
+  <MsgDefIdr>camt.053.001.08</MsgDefIdr>
+  <BizSvc>rtgs.hvpsplus.01</BizSvc>
+  <CreDt>2026-09-12T10:00:00Z</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">
+  <BkToCstmrStmt>
+    <GrpHdr><MsgId>C53939169987</MsgId><CreDtTm>2026-09-12T10:00:00Z</CreDtTm></GrpHdr>
+    <Stmt><Id>STMT134432333</Id><CreDtTm>2026-09-12T10:00:00Z</CreDtTm><Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id><Ccy>USD</Ccy></Acct>
+      <Bal><Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp><Amt Ccy="USD">173911.24</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-09-12</Dt></Dt></Bal><Bal><Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp><Amt Ccy="USD">132349.97</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-09-12</Dt></Dt></Bal>
+      <Ntry><NtryRef>NTRY-339849</NtryRef><Amt Ccy="USD">5841.87</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts><Cd>BOOK</Cd></Sts><BookgDt><Dt>2026-09-12</Dt></BookgDt><ValDt><Dt>2026-09-12</Dt></ValDt><BkTxCd><Prtry><Cd>PMNT</Cd></Prtry></BkTxCd>
+        <NtryDtls><TxDtls><Refs><EndToEndId>E2E-1</EndToEndId><UETR>603defa9-f5ed-41d9-97e5-b548d20e24f7</UETR></Refs></TxDtls></NtryDtls></Ntry>
+    </Stmt><Stmt><Id>STMT134432333</Id><CreDtTm>2026-09-12T10:00:00Z</CreDtTm><Acct><Id><IBAN>EG380019000500000000263180002</IBAN></Id><Ccy>USD</Ccy></Acct>
+      <Bal><Tp><CdOrPrtry><Cd>OPBD</Cd></CdOrPrtry></Tp><Amt Ccy="USD">173911.24</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-09-12</Dt></Dt></Bal><Bal><Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp><Amt Ccy="USD">132349.97</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-09-12</Dt></Dt></Bal>
+      <Ntry><NtryRef>NTRY-339849</NtryRef><Amt Ccy="USD">5841.87</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts><Cd>BOOK</Cd></Sts><BookgDt><Dt>2026-09-12</Dt></BookgDt><ValDt><Dt>2026-09-12</Dt></ValDt><BkTxCd><Prtry><Cd>PMNT</Cd></Prtry></BkTxCd>
+        <NtryDtls><TxDtls><Refs><EndToEndId>E2E-1</EndToEndId><UETR>603defa9-f5ed-41d9-97e5-b548d20e24f7</UETR></Refs></TxDtls></NtryDtls></Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>

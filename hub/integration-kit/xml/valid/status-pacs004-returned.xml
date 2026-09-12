@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.004.001.09">
+  <PmtRtr>
+    <GrpHdr>
+      <MsgId>PACS004-ISO-HUB-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T10:20:00Z</CreDtTm>
+    </GrpHdr>
+    <OrgnlGrpInfAndSts>
+      <OrgnlMsgId>ISO-HUB-20260622-000001</OrgnlMsgId>
+      <OrgnlMsgNmId>pacs.004.001.09</OrgnlMsgNmId>
+    </OrgnlGrpInfAndSts>
+    <TxInfAndSts>
+      <OrgnlUETR>8f2b5e70-1d44-4e6a-9c4a-2d9c87fd0011</OrgnlUETR>
+      <TxSts>RJCT</TxSts>
+      <Rsn>return: beneficiary account closed</Rsn>
+    </TxInfAndSts>
+  </PmtRtr>
+</Document>

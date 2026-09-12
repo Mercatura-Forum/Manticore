@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.08">
+  <CstmrDrctDbtInitn>
+    <GrpHdr>
+      <MsgId>PAIN008-20260622-000001</MsgId>
+      <CreDtTm>2026-06-22T11:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <InitgPty>
+        <Nm>Example Creditor GmbH</Nm>
+        <PstlAdr>
+          <Ctry>DE</Ctry>
+          <TwnNm>Berlin</TwnNm>
+          <PstCd>10115</PstCd>
+          <AdrLine>10 Market Platz</AdrLine>
+        </PstlAdr>
+        <LEI>529900T8BM49AURSDO55</LEI>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>PAIN008-20260622-000001</PmtInfId>
+      <PmtMtd>DD</PmtMtd>
+      <ReqdColltnDt>2026-06-25</ReqdColltnDt>
+      <PmtTpInf>
+        <SvcLvl>SEPA</SvcLvl>
+        <LclInstrm>CORE</LclInstrm>
+        <CtgyPurp>SUPP</CtgyPurp>
+      </PmtTpInf>
+      <Cdtr>
+        <Nm>Example Creditor GmbH</Nm>
+        <PstlAdr>
+          <Ctry>DE</Ctry>
+          <TwnNm>Berlin</TwnNm>
+          <PstCd>10115</PstCd>
+          <AdrLine>10 Market Platz</AdrLine>
+        </PstlAdr>
+        <LEI>529900T8BM49AURSDO55</LEI>
+      </Cdtr>
+      <CdtrAcct>
+        <Id>
+          <IBAN>DE89370400440532013000</IBAN>
+        </Id>
+        <Ccy>EUR</Ccy>
+      </CdtrAcct>
+      <CdtrAgt><FinInstnId>
+        <BICFI>DEUTDEFF</BICFI>
+        <Nm>Deutsche Example Bank</Nm>
+      </FinInstnId></CdtrAgt>
+      <DrctDbtTxInf>
+        <PmtId>
+          <EndToEndId>E2E-SDD-20260622-000001</EndToEndId>
+        </PmtId>
+        <Amt><InstdAmt Ccy="EUR">125.00</InstdAmt></Amt>
+        <DrctDbtTx>
+          <MndtRltdInf>
+            <MndtId>MANDATE-20260622-000001</MndtId>
+            <DtOfSgntr>2026-01-15</DtOfSgntr>
+          </MndtRltdInf>
+          <SeqTp>RCUR</SeqTp>
+        </DrctDbtTx>
+        <DbtrAgt><FinInstnId>
+          <BICFI>BNPAFRPP</BICFI>
+          <Nm>BNP Example Bank</Nm>
+        </FinInstnId></DbtrAgt>
+        <Dbtr>
+          <Nm>Example Debtor SAS</Nm>
+          <PstlAdr>
+            <Ctry>FR</Ctry>
+            <TwnNm>Paris</TwnNm>
+            <PstCd>75001</PstCd>
+            <AdrLine>5 Rue Example</AdrLine>
+          </PstlAdr>
+        </Dbtr>
+        <DbtrAcct>
+          <Id>
+            <IBAN>FR1420041010050500013M02606</IBAN>
+          </Id>
+          <Ccy>EUR</Ccy>
+        </DbtrAcct>
+        <RmtInf>
+          <Ustrd>SEPA direct debit education fixture</Ustrd>
+        </RmtInf>
+      </DrctDbtTxInf>
+    </PmtInf>
+  </CstmrDrctDbtInitn>
+</Document>

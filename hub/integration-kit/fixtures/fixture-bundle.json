@@ -1,0 +1,354 @@
+{
+  "bundleHash": "ec68329adfb396b0236c41591386fc9028ef73ae30dcfcc48c0cba61db099043",
+  "fileCount": 69,
+  "files": [
+    {
+      "bytes": 6240,
+      "path": "integration-kit/README.md",
+      "sha256": "9bb6d83fadbda0a583602b12aacc0969e1f786488e3de922c92df49ab0157f47"
+    },
+    {
+      "bytes": 1493,
+      "path": "integration-kit/candid/calls.did",
+      "sha256": "9881d587dcfe292e0d2fda51eadec3ca27b40a63cee4fa87fd8726554303bd58"
+    },
+    {
+      "bytes": 4356,
+      "path": "integration-kit/candid/cli-commands.md",
+      "sha256": "3aca9eaf8e753512ea6f1240b5b35d05cd5b9ce19293a0984d5d259e5d7ac896"
+    },
+    {
+      "bytes": 852,
+      "path": "integration-kit/connectors/batch-manifest.json",
+      "sha256": "4c3ee5fdb852cb5e2302e6d0575f15d23a901a24baaf440dc831b72dccb3bc37"
+    },
+    {
+      "bytes": 628,
+      "path": "integration-kit/connectors/connector-registration.did",
+      "sha256": "cd0c8bb8a426498cd332a3b6acf00189ea491cdc71ef7a8eb906830cef66ca4b"
+    },
+    {
+      "bytes": 438,
+      "path": "integration-kit/connectors/envelope-admi007.did",
+      "sha256": "e4172eef4cffb10de578ef3551812c286a933091c656d67d7adaa2c67124ff7c"
+    },
+    {
+      "bytes": 442,
+      "path": "integration-kit/connectors/envelope-pacs002.did",
+      "sha256": "b988d7042c8c3b3610cd329606732269c65a6efd90ad201891bfa6bf0aafb7dc"
+    },
+    {
+      "bytes": 439,
+      "path": "integration-kit/connectors/envelope-pain001.did",
+      "sha256": "974b8d1ff43c54ffde5c4f4113aa9e3128c2c5fa091541ea648eeb2cfc27ea97"
+    },
+    {
+      "bytes": 445,
+      "path": "integration-kit/connectors/envelope-pain008.did",
+      "sha256": "6c7b3e7d236175694387b0ba149f65582087c6de49c5f01dbd151e3b4a19dc49"
+    },
+    {
+      "bytes": 440,
+      "path": "integration-kit/connectors/envelope-pain013.did",
+      "sha256": "70f773ee11ee1e097a1ffad3e603b98b5d5e3dcb5e6dcb2a3fe211e668cfbd88"
+    },
+    {
+      "bytes": 980,
+      "path": "integration-kit/connectors/file-drop-adapter.md",
+      "sha256": "141a2c93a7ba5e454359b81d466fc2dc160d2b712bf57fd3a3d5718aacc62d5d"
+    },
+    {
+      "bytes": 1038,
+      "path": "integration-kit/cookbooks/accept-file-return-status.md",
+      "sha256": "d06155bbf58272b871fb1e24d04f23d346a1bf70f6f6b7afe77ac3073757c243"
+    },
+    {
+      "bytes": 1280,
+      "path": "integration-kit/expected/replay-results.md",
+      "sha256": "d8de0aae8b7fb5aa99fe262a4a63ced6d9b85a29362ea61e22a160ccc08f171f"
+    },
+    {
+      "bytes": 2184,
+      "path": "integration-kit/expected/rule-ids.md",
+      "sha256": "d8613baa50422bfa46e70df2b97d9d5ea303ae9bf416c876318414dce932a9a4"
+    },
+    {
+      "bytes": 825,
+      "path": "integration-kit/fixtures/README.md",
+      "sha256": "b257703dabb5cc7c7d7b56d519ec9a30703f6f6c96bcad7b34660793f783b350"
+    },
+    {
+      "bytes": 1903,
+      "path": "integration-kit/legacy/README.md",
+      "sha256": "7667f6a6ec5b1db12fa2674d23ad3140098f0c9a794152e9d393a5695b676476"
+    },
+    {
+      "bytes": 308,
+      "path": "integration-kit/legacy/csv-payments.csv",
+      "sha256": "b28fdd9f844352410076dfc3925f5e078d8db7b3264be2a56632b3355c6ef786"
+    },
+    {
+      "bytes": 281,
+      "path": "integration-kit/legacy/fixed-width-payments.txt",
+      "sha256": "1bf706b46df7cab5bceb30e06dcb02ed4d96a0e9364ba9e1d7592cbc7bb24459"
+    },
+    {
+      "bytes": 279,
+      "path": "integration-kit/legacy/mt103-basic.txt",
+      "sha256": "3ad0fbc57477cc4b13e2e4fd43cf04700ebd8986bf6781d32ecbe64ed0799d87"
+    },
+    {
+      "bytes": 434,
+      "path": "integration-kit/legacy/mt103-options.txt",
+      "sha256": "e1ab6a335220c45c8c7bdf113e0ee73220c8aad12a9b2c685293152b6d3f1ade"
+    },
+    {
+      "bytes": 322,
+      "path": "integration-kit/legacy/mt940-statement.txt",
+      "sha256": "d44f0b8015d9d8d6a9b2f54396a212a29e5cc804b0808a215a0f08a782cbc546"
+    },
+    {
+      "bytes": 285,
+      "path": "integration-kit/legacy/mt942-intraday.txt",
+      "sha256": "2c09b34bc8ac2df6dbc465711c993c07cbabf7887f4b590b26300d3efd2085a5"
+    },
+    {
+      "bytes": 2361,
+      "path": "integration-kit/profile-runner/README.md",
+      "sha256": "8f5a05e3cc3ec9a45b9dd3a802b283333d385b6ee222a87f555b8314f198d758"
+    },
+    {
+      "bytes": 2482,
+      "path": "integration-kit/profile-runner/XSD_VALIDATION_CHECKPOINT.md",
+      "sha256": "3b71b2065a5a5b18faae0f02194f70055258826c1ffa8ae3ce91aae2045d4fb4"
+    },
+    {
+      "bytes": 8459,
+      "path": "integration-kit/profile-runner/iso-base-download-report.json",
+      "sha256": "04d1eed517a780c57b1ed50556476aac1da597f9dbc3e73ccc9bc5a82444f092"
+    },
+    {
+      "bytes": 7120,
+      "path": "integration-kit/profile-runner/profile-map.json",
+      "sha256": "a7dd97cfffe755c914a1f983fb5a16b8a5b99ff877207656b0c8710757944bf6"
+    },
+    {
+      "bytes": 55302,
+      "path": "integration-kit/profile-runner/profile-report.json",
+      "sha256": "9646aea9dde7b3a92000f73bdacf0ab39f406bccce8573f8e23bcd682822a009"
+    },
+    {
+      "bytes": 16060,
+      "path": "integration-kit/profile-runner/source-manifest.json",
+      "sha256": "a0930491976211632c08065b289dba8565579010e3adbc2e6e749eaf43008cc1"
+    },
+    {
+      "bytes": 1647,
+      "path": "integration-kit/profiles/BIS-CPMI-HARMONIZED-CROSSBORDER.json",
+      "sha256": "cb9c8641e029cd2bd749e563716b83f8c28e5a3c143d67d0f01ab63d50b72c21"
+    },
+    {
+      "bytes": 1820,
+      "path": "integration-kit/profiles/CBPRPLUS-EDU.json",
+      "sha256": "f75ce722313fe014c5b4adb8bc579d53d7477b5addecf01d742759855bbb0538"
+    },
+    {
+      "bytes": 1634,
+      "path": "integration-kit/profiles/EG-DOMESTIC-EDU.json",
+      "sha256": "f103cbe5e65a011da91b6cbd71ee2b81bbf5a246040895acd5a6905fd5250320"
+    },
+    {
+      "bytes": 1608,
+      "path": "integration-kit/profiles/FEDNOW-ISO20022-EDU.json",
+      "sha256": "a9e549d894bb4a6831e567f1a0d20818d3abec07c8dc53a82e0d070051a1d4bc"
+    },
+    {
+      "bytes": 2524,
+      "path": "integration-kit/profiles/FEDWIRE-ISO20022-EDU.json",
+      "sha256": "a2a68a89902bcb8fe357405cf207d385742a1ff015a74595c98147f98539ddaa"
+    },
+    {
+      "bytes": 1793,
+      "path": "integration-kit/profiles/LEGACY-MT103-BRIDGE.json",
+      "sha256": "bb627e414d95f6e774c59cb765f44d3f631a631f2c501b9dbf7e73968be2bef1"
+    },
+    {
+      "bytes": 1777,
+      "path": "integration-kit/profiles/SEPA-SCT-EDU.json",
+      "sha256": "0e6eae2211c7ff4655593ab7d0aaff924c9e47812da4915657b20cba200c9cb9"
+    },
+    {
+      "bytes": 1681,
+      "path": "integration-kit/profiles/SEPA-SCT-INST-EDU.json",
+      "sha256": "728fbac14f9780f65555f09521850dd12fef7990f679490c40a35b961c630a9e"
+    },
+    {
+      "bytes": 1764,
+      "path": "integration-kit/profiles/SEPA-SDD-EDU.json",
+      "sha256": "db4d2ae40bc0d30a73f0e9be9c771530cca983745c7539617da71780ee7b6e1e"
+    },
+    {
+      "bytes": 897,
+      "path": "integration-kit/scripts/candid-blob.py",
+      "sha256": "d6510a522fbef9f4ee53c3070ed9342dcf231177b67c2949b0bea2fe5c818a73"
+    },
+    {
+      "bytes": 21353,
+      "path": "integration-kit/scripts/certified-disclosure-verify.py",
+      "sha256": "0709cfff4b136fac5f0f1b34413c987a88e738a6e5ec7aee742647d7c343b877"
+    },
+    {
+      "bytes": 10334,
+      "path": "integration-kit/scripts/deployed-replay.py",
+      "sha256": "1555ac2b0e7611268a5d74abdfa080e603a84b5a4de31586cf1857eb97e53a28"
+    },
+    {
+      "bytes": 3793,
+      "path": "integration-kit/scripts/fixture-bundle.py",
+      "sha256": "c60b085ccb267878fc7dff699db7c6e7cba951482b38d87dfd07e51a4ed707ec"
+    },
+    {
+      "bytes": 5315,
+      "path": "integration-kit/scripts/iso-xsd-fetch.py",
+      "sha256": "b92ac8c9934c3031d2743c7419cbc37c02396e57eaa522b6427b14eb82dfc684"
+    },
+    {
+      "bytes": 10272,
+      "path": "integration-kit/scripts/xsd-profile-runner.py",
+      "sha256": "a4ee91519e3bc14c9cc6e23e4687feb1d08795263ccd1e024d90fb151433304f"
+    },
+    {
+      "bytes": 565,
+      "path": "integration-kit/xml/invalid/status-uetr-mismatch.xml",
+      "sha256": "592151b008de47e206732b0c80d0accdfb68b9cf2b6d7507706bb680ab165ffc"
+    },
+    {
+      "bytes": 159,
+      "path": "integration-kit/xml/invalid/xml-doctype-entity.xml",
+      "sha256": "c994bb00adde7a8ad7dfc2c7fc66ed438d307cdd0ffde0e666efdbca9a909db7"
+    },
+    {
+      "bytes": 547,
+      "path": "integration-kit/xml/valid/admin-admi002-reject.xml",
+      "sha256": "686ddfb31566afc81f1be1ff044762fcbd1751b7f82f89dc9fd25bb7bb442643"
+    },
+    {
+      "bytes": 392,
+      "path": "integration-kit/xml/valid/admin-admi004-connection-check.xml",
+      "sha256": "6d98b3104c43fbf64fe17b76832637abcdce1298328d254d1a2c789fed02183b"
+    },
+    {
+      "bytes": 464,
+      "path": "integration-kit/xml/valid/admin-admi007-ack.xml",
+      "sha256": "94df03f07813e12c6f07f3b801825e342cc6456b54e28cbf6a099055c7b87b92"
+    },
+    {
+      "bytes": 463,
+      "path": "integration-kit/xml/valid/admin-admi011-connection-ack.xml",
+      "sha256": "e8b801bc6b47953f07bc3cf653303c7befb1307dc3f461abaea4d6fafc3ff9b6"
+    },
+    {
+      "bytes": 1265,
+      "path": "integration-kit/xml/valid/camt053-statement.xml",
+      "sha256": "0bac1e753d12338645e93efde60f7c2268d7c288ce9ea8a0de08c05b6081c54e"
+    },
+    {
+      "bytes": 737,
+      "path": "integration-kit/xml/valid/camt054-notification.xml",
+      "sha256": "2db0778c3d00b48ad0a9890812d0114c314e28566521d167fa9914d41fd0f9fc"
+    },
+    {
+      "bytes": 4432,
+      "path": "integration-kit/xml/valid/cover-payment.xml",
+      "sha256": "bae908fd0c4fcc55ff4b40dd21768d4de21bf727423e2bc0693c541f03de38ed"
+    },
+    {
+      "bytes": 2401,
+      "path": "integration-kit/xml/valid/direct-debit-pacs003-sdd.xml",
+      "sha256": "55e1791bcff8f0c2ccd9dd68ec596af15462f4f826786ea377cb53f2f4388997"
+    },
+    {
+      "bytes": 2450,
+      "path": "integration-kit/xml/valid/direct-debit-pain008-sdd.xml",
+      "sha256": "2a998c15758de7bce2dc6e3c078235827c5282995fa16a5e4ac8cacb41ffe6dc"
+    },
+    {
+      "bytes": 609,
+      "path": "integration-kit/xml/valid/investigation-camt029-resolution.xml",
+      "sha256": "3846b5af793c48bdad33dfb0c6f363dbec9cd0b058c91713bdd2fe5801a8a958"
+    },
+    {
+      "bytes": 602,
+      "path": "integration-kit/xml/valid/investigation-camt056-cancel.xml",
+      "sha256": "be5bca800e54c1a066443fce138d19bd924bef745e2c91f86589e05ce2f5c19f"
+    },
+    {
+      "bytes": 601,
+      "path": "integration-kit/xml/valid/investigation-camt110-request.xml",
+      "sha256": "dffcb68a2266fcf4ca0cf42318f674177783ebc9b64dd2de7983b6fb6f78eecc"
+    },
+    {
+      "bytes": 596,
+      "path": "integration-kit/xml/valid/investigation-camt111-response.xml",
+      "sha256": "456749a7330fd57525889b8f05c7a979c84bfea8bb4657d37930c67b1b0662b4"
+    },
+    {
+      "bytes": 590,
+      "path": "integration-kit/xml/valid/investigation-pacs028-status-request.xml",
+      "sha256": "7efd264ed43fce115e68b31780c67524d133cb9f091b2dd41d5246b780320132"
+    },
+    {
+      "bytes": 1904,
+      "path": "integration-kit/xml/valid/pacs008-eg-domestic.xml",
+      "sha256": "bc488826003ec95d6fd234dfa1580c427644d43943cc69dab1bd630946d9f07b"
+    },
+    {
+      "bytes": 2606,
+      "path": "integration-kit/xml/valid/pacs009-cbprplus-core.xml",
+      "sha256": "b2aa804f77e09afc83d746e81d471ab49a6746a297bab82aa582d62cbcd2209b"
+    },
+    {
+      "bytes": 2167,
+      "path": "integration-kit/xml/valid/pain001-eg-c5-sanctions.xml",
+      "sha256": "3df68861d090034be6daac81bcc0ac742d8ae5972eeb11aa3a13657dd2631846"
+    },
+    {
+      "bytes": 2160,
+      "path": "integration-kit/xml/valid/pain001-eg-domestic.xml",
+      "sha256": "2718e1b4d092e2f52eba69a0c40ca41f2fb62834f4d1a1d5ed6363d701d6625f"
+    },
+    {
+      "bytes": 1674,
+      "path": "integration-kit/xml/valid/request-camt055-cancel.xml",
+      "sha256": "1089aae3588d887bac1778acb3ae239691f3c73d68de2a0224dac9da4eca02fa"
+    },
+    {
+      "bytes": 1563,
+      "path": "integration-kit/xml/valid/request-pain013-rfp.xml",
+      "sha256": "5dde2101905fa3c1e15f77c663335a879bbfdb8289d64df4c2154e3e3890c646"
+    },
+    {
+      "bytes": 1654,
+      "path": "integration-kit/xml/valid/request-pain014-accepted.xml",
+      "sha256": "a30d20c302977f856568194042e688b0e2cd82ec7ca1668b8b8bfba4c5a15493"
+    },
+    {
+      "bytes": 568,
+      "path": "integration-kit/xml/valid/status-pacs002-settled.xml",
+      "sha256": "a8b9aebf2c428c6eaec55aa65f5682ad0c9d627f7fa10b09fcab30336e394229"
+    },
+    {
+      "bytes": 602,
+      "path": "integration-kit/xml/valid/status-pacs004-returned.xml",
+      "sha256": "2cf1b53fd8394248d78fc33c6aaa457b3ecff708802d39b2364bfef76c64540c"
+    },
+    {
+      "bytes": 566,
+      "path": "integration-kit/xml/valid/status-pain002-accepted.xml",
+      "sha256": "2ece7d08a3d1f70ab57c9fdfbf247bdf8a8d9d306b25b9027a5d9ca32de56bed"
+    }
+  ],
+  "generatedAt": "2026-09-12T02:48:10.015423+00:00",
+  "hashAlgorithm": "SHA-256",
+  "manifestVersion": "thebes-fixture-bundle-v1"
+}

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.010.001.04">
+  <FIDrctDbt>
+    <GrpHdr>
+      <MsgId>FIDD214106463</MsgId>
+      <CreDtTm>2026-09-12T10:00:00Z</CreDtTm>
+      <NbOfTxs>2</NbOfTxs>
+    </GrpHdr>
+    <CdtInstr>
+      <CdtId>CDT746190471</CdtId>
+      <Cdtr><FinInstnId><BICFI>NBEGEGCXXXX</BICFI><Nm>National Bank of Egypt</Nm></FinInstnId></Cdtr>
+      <DrctDbtTxInf>
+        <PmtId><InstrId>INSTR-1</InstrId><EndToEndId>E2E-84322438</EndToEndId><UETR>b1362123-8f50-4560-828d-9d737cb4f55c</UETR></PmtId>
+        <IntrBkSttlmAmt Ccy="EGP">220812.92</IntrBkSttlmAmt>
+        <IntrBkSttlmDt>2026-09-12</IntrBkSttlmDt>
+        <Dbtr><FinInstnId><BICFI>CIBEEGCXXXX</BICFI><Nm>Commercial International Bank</Nm></FinInstnId></Dbtr>
+        <DbtrAcct><Id><Othr><Id>SETTLE-CIB</Id></Othr></Id></DbtrAcct>
+      </DrctDbtTxInf>
+      <DrctDbtTxInf>
+        <PmtId><EndToEndId>E2E-635810044</EndToEndId><UETR>b0edbe70-cf3b-4dd6-b548-23a9106c6b4c</UETR></PmtId>
+        <IntrBkSttlmAmt Ccy="EGP">15002.91</IntrBkSttlmAmt>
+        <IntrBkSttlmDt>2026-09-12</IntrBkSttlmDt>
+        <Dbtr><FinInstnId><BICFI>EGCBEGCAXXX</BICFI></FinInstnId></Dbtr>
+      </DrctDbtTxInf>
+    </CdtInstr>
+  </FIDrctDbt>
+</Document>

@@ -1,0 +1,337 @@
+{
+  "version": "thebes-iso20022-source-manifest-v1",
+  "generatedFromResearchDate": "2026-06-23",
+  "purpose": "Document official source packs needed by the external XSD/profile runner. This file is provenance metadata only; it does not redistribute ISO, Swift, EPC, Federal Reserve, or bank/operator schemas.",
+  "schemaFiles": {
+    "admi.002.001.01.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus account-gated or operator-supplied profile packs",
+      "notes": "Administrative reject/negative acknowledgement fixture. Use the rail profile actually connected by the operator."
+    },
+    "admi.004.001.01.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus account-gated or operator-supplied profile packs",
+      "notes": "Administrative connection-check fixture. Use the rail profile actually connected by the operator."
+    },
+    "admi.007.001.01.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus account-gated or operator-supplied profile packs",
+      "notes": "Administrative receipt acknowledgement fixture. Use the rail profile actually connected by the operator."
+    },
+    "admi.011.001.01.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus account-gated or operator-supplied profile packs",
+      "notes": "Administrative connection acknowledgement fixture. Use the rail profile actually connected by the operator."
+    },
+    "camt.029.001.09.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "BIS-CPMI-HARMONISATION",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus MyStandards/operator profile packs",
+      "notes": "Investigation resolution. CBPR+/HVPS+/domestic profiles may constrain parties, agents, status, and case references differently."
+    },
+    "camt.053.001.08.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "EPC-SEPA-SCT-2025",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public/account-gated/operator profile packs",
+      "notes": "Bank-to-customer statement. CBE/Egypt profile remains operator-supplied until a public MIG is available."
+    },
+    "camt.054.001.08.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "EPC-SEPA-SCT-2025",
+        "EPC-SEPA-SDD-2025",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public/account-gated/operator profile packs",
+      "notes": "Bank-to-customer debit/credit notification. CBE/Egypt profile remains operator-supplied until a public MIG is available."
+    },
+    "camt.055.001.09.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "BIS-CPMI-HARMONISATION",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus MyStandards/operator profile packs",
+      "notes": "Payment cancellation request. Profile rules decide which original-message references and reason codes are acceptable."
+    },
+    "camt.056.001.08.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "BIS-CPMI-HARMONISATION",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus MyStandards/operator profile packs",
+      "notes": "FI-to-FI cancellation request. CBPR+/HVPS+/domestic profiles may constrain agents, identifiers, and reason codes differently."
+    },
+    "camt.110.001.01.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "BIS-CPMI-HARMONISATION",
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus market-practice/operator profile packs",
+      "notes": "Investigation request used by the CPMI harmonisation overlay in this kit."
+    },
+    "camt.111.001.01.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "BIS-CPMI-HARMONISATION",
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus market-practice/operator profile packs",
+      "notes": "Investigation response used by the CPMI harmonisation overlay in this kit."
+    },
+    "pacs.002.001.10.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "EPC-SEPA-SCT-2025",
+        "EPC-SEPA-SDD-2025",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public/account-gated/operator profile packs",
+      "notes": "Payment status report. The invalid UETR fixture is expected to be XSD-valid but business-rule invalid."
+    },
+    "pacs.003.001.08.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "EPC-SEPA-SDD-2025",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public EPC/operator profile packs",
+      "notes": "FI-to-FI direct debit. EPC SDD rules are public, but operator/bank mandates can still add constraints."
+    },
+    "pacs.004.001.09.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "EPC-SEPA-SCT-2025",
+        "EPC-SEPA-SDD-2025",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public/account-gated/operator profile packs",
+      "notes": "Payment return. Profile-specific return reason and settlement method rules must come from the selected rail."
+    },
+    "pacs.008.001.08.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "EPC-SEPA-SCT-2025",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public/account-gated/operator profile packs",
+      "notes": "Customer credit transfer. CBE/Egypt profile remains operator-supplied until a public MIG is available."
+    },
+    "pacs.009.001.08.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "BIS-CPMI-HARMONISATION",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus MyStandards/operator profile packs",
+      "notes": "Financial institution credit transfer / cover leg. CBE/Egypt profile remains operator-supplied until a public MIG is available."
+    },
+    "pacs.028.001.03.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "BIS-CPMI-HARMONISATION",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus MyStandards/operator profile packs",
+      "notes": "Payment status request. Profile rules decide the allowed inquiry window and reference set."
+    },
+    "pain.001.001.09.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "EPC-SEPA-SCT-2025",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public/operator profile packs",
+      "notes": "Customer credit transfer initiation. CBE/Egypt profile remains operator-supplied until a public MIG is available."
+    },
+    "pain.002.001.10.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "EPC-SEPA-SCT-2025",
+        "EPC-SEPA-SDD-2025",
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "CBE-EGYPT-RTGS-2026",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public/account-gated/operator profile packs",
+      "notes": "Customer payment status report. Profile rules decide status/reason code sets."
+    },
+    "pain.008.001.08.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "EPC-SEPA-SDD-2025",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus public EPC/operator profile packs",
+      "notes": "Customer direct debit initiation. Official mandate and creditor-scheme rules must come from the selected direct-debit profile."
+    },
+    "pain.013.001.10.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "BIS-CPMI-HARMONISATION",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus MyStandards/operator profile packs",
+      "notes": "Creditor payment activation/request for payment. Rail profile decides allowed lifecycle and cancellation semantics."
+    },
+    "pain.014.001.10.xsd": {
+      "baseStandardSource": "ISO-20022-MESSAGE-DEFINITIONS",
+      "profileSources": [
+        "FEDWIRE-ISO20022-MYSTANDARDS",
+        "FEDNOW-ISO20022-MYSTANDARDS",
+        "BIS-CPMI-HARMONISATION",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "public catalogue plus MyStandards/operator profile packs",
+      "notes": "Creditor payment activation status report/request response. Rail profile decides allowed status and reason codes."
+    }
+  },
+  "customProfiles": {
+    "SECURITY": {
+      "sourceIds": [],
+      "access": "repo-local negative fixture",
+      "notes": "Unsafe XML rejection is a canister security gate, not an ISO schema fixture."
+    },
+    "cover.payment": {
+      "sourceIds": [
+        "SWIFT-MYSTANDARDS-CBPRPLUS",
+        "SWIFT-MYSTANDARDS-HVPSPLUS",
+        "OPERATOR-BANK-PROFILES"
+      ],
+      "access": "custom canister bundle plus official embedded-message schemas",
+      "notes": "The wrapper is canister-specific. Certification runners should extract and validate the embedded pacs.008 and pacs.009 documents against the chosen CBPR+/HVPS+/bank profile."
+    }
+  },
+  "sources": {
+    "BIS-CPMI-HARMONISATION": {
+      "label": "BIS CPMI ISO 20022 harmonisation reports",
+      "url": "https://www.bis.org/cpmi/publ/d218.pdf",
+      "access": "public PDF guidance",
+      "operatorAction": "Use as harmonisation guidance; it is not a substitute for ISO schemas or rail-specific implementation guidelines."
+    },
+    "CBE-EGYPT-RTGS-2026": {
+      "label": "Central Bank of Egypt RTGS ISO 20022 public announcement",
+      "url": "https://www.cbe.org.eg/en/news-publications/news/2026/06/21/08/03/iso-2026",
+      "access": "public announcement only; public CBE/EBC MIG download not found in the 2026-06-23 refresh",
+      "operatorAction": "Supply the official CBE/EBC participant MIG, schema bundle, and profile rule pack before claiming Egypt RTGS/CBE conformance."
+    },
+    "EPC-SEPA-SCT-2025": {
+      "label": "European Payments Council SEPA Credit Transfer rulebook and implementation guidelines",
+      "url": "https://www.europeanpaymentscouncil.eu/what-we-do/epc-payment-schemes/sepa-credit-transfer/sepa-credit-transfer-rulebook-and",
+      "access": "public download",
+      "operatorAction": "Download the current EPC SCT/SCT Inst implementation guidelines and provide the selected rule pack to the external differential runner."
+    },
+    "EPC-SEPA-SDD-2025": {
+      "label": "European Payments Council SEPA Direct Debit Core rulebook and implementation guidelines",
+      "url": "https://www.europeanpaymentscouncil.eu/what-we-do/epc-payment-schemes/sepa-direct-debit/sepa-direct-debit-core-rulebook-and-implementation",
+      "access": "public download",
+      "operatorAction": "Download the current EPC SDD Core/B2B implementation guidelines and provide the selected rule pack to the external differential runner."
+    },
+    "FEDNOW-ISO20022-MYSTANDARDS": {
+      "label": "FedNow ISO 20022 specifications on MyStandards",
+      "url": "https://www.frbservices.org/financial-services/fednow",
+      "access": "MyStandards account",
+      "operatorAction": "Use the Federal Reserve FedNow MyStandards workspace/readiness materials for current message specs, implementation guide, flows, and profile rules."
+    },
+    "FEDWIRE-ISO20022-MYSTANDARDS": {
+      "label": "Fedwire Funds Service ISO 20022 implementation center and MyStandards specifications",
+      "url": "https://www.frbservices.org/resources/financial-services/wires/iso-20022-implementation-center",
+      "access": "public implementation center plus MyStandards account for final message format specifications",
+      "operatorAction": "Download the Fedwire MyStandards usage guidelines and schema/profile package for the target release."
+    },
+    "ISO-20022-MESSAGE-DEFINITIONS": {
+      "label": "ISO 20022 message definitions catalogue",
+      "url": "https://www.iso20022.org/iso-20022-message-definitions",
+      "access": "public catalogue download by message set",
+      "operatorAction": "Download the official message-definition schemas, MDRs, and MUGs for the versions listed in profile-map.json."
+    },
+    "OPERATOR-BANK-PROFILES": {
+      "label": "Bank, operator, or participant-specific profile rules",
+      "url": "",
+      "access": "operator supplied",
+      "operatorAction": "Provide participant-bank rule packs, bilateral CSV/fixed-width formats, and signed differential evidence when the deployment is scoped to a specific institution."
+    },
+    "SWIFT-MYSTANDARDS-CBPRPLUS": {
+      "label": "Swift CBPR+ usage guidelines on MyStandards",
+      "url": "https://www.swift.com/standards/iso-20022/iso-20022-standards",
+      "access": "MyStandards public/account-gated download depending on community entitlement",
+      "operatorAction": "Download the CBPR+ XML Schema, PDF, Excel, and validation artifacts for the target Standards MX release."
+    },
+    "SWIFT-MYSTANDARDS-HVPSPLUS": {
+      "label": "HVPS+ market practice usage guidelines on MyStandards",
+      "url": "https://www.swift.com/standards/iso-20022/iso-20022-standards",
+      "access": "MyStandards public/account-gated download depending on community entitlement",
+      "operatorAction": "Download the HVPS+ XML Schema and usage guidelines aligned to the target release."
+    }
+  }
+}
