@@ -49,6 +49,8 @@ import ColT "CollectionsTypes";
 import OCan "OriginationCanonical";
 import FCan "FacilityCanonical";
 import TCan "TellerCanonical";
+import TrT "TradeTypes";
+import TrCan "TradeCanonical";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -625,6 +627,35 @@ module {
       case (#closeFacility(x)) { w.byte(0x43); w.nat(x.facility) };
       // ── branch and teller (branch and teller) ──
       case (#setTellerPolicy(p)) { w.byte(0xF6); TCan.writePolicy(w, p) };
+      // trade finance trade finance: tags 0x67-0x6F, 0x8A-0x8F, 0xB8-0xBF, 0x1E-0x1F, 0x2D-0x2F
+      case (#setTradePolicy(p)) { w.byte(0x67); TrCan.writePolicy(w, p) };
+      case (#issueLetterOfCredit(x)) { w.byte(0x68); TrCan.writeLc(w, x.lc); w.nat(x.amount); w.text(x.currency); w.nat(x.expiry); w.text(x.placeOfExpiry); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#adviseLetterOfCredit(x)) { w.byte(0x69); w.text(x.message); w.nat(x.beneficiary); w.nat(x.beneficiaryAccount); w.bool(x.confirm); w.len16(x.checklist.size()); for ((k, cs) in x.checklist.vals()) { TrCan.writeDocumentKind(w, k); w.len16(cs.size()); for (c in cs.vals()) w.text(c) }; w.nat(x.commissionBps); w.optNat(x.facility); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#amendLetterOfCredit(x)) { w.byte(0x6A); w.nat(x.instrument); TrCan.writeAmendment(w, x.amendment); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#presentDocuments(x)) { w.byte(0x6B); w.nat(x.instrument); TrCan.writeDocumentRefs(w, x.documents); w.nat(x.amount); w.optNat(x.shipmentDate); w.nat(x.presentedOn) };
+      case (#examinePresentation(x)) { w.byte(0x6C); w.nat(x.instrument); w.nat(x.claim); TrCan.writeChecks(w, x.checks); TrCan.writeDecision(w, x.decision) };
+      case (#waiveDiscrepancies(x)) { w.byte(0x6D); w.nat(x.instrument); w.nat(x.claim); w.blob(x.applicantConsentHash) };
+      case (#honourPresentation(x)) { w.byte(0x6E); w.nat(x.instrument); w.nat(x.claim); TrCan.writeHonour(w, x.honour); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#settleAcceptance(x)) { w.byte(0x6F); w.nat(x.instrument); w.nat(x.claim); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#closeLetterOfCredit(x)) { w.byte(0x8A); w.nat(x.instrument); w.text(x.reason); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#issueGuarantee(x)) { w.byte(0x8B); TrCan.writeGuarantee(w, x.guarantee); w.nat(x.amount); w.text(x.currency); w.nat(x.expiry); w.text(x.wordingText); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#amendGuarantee(x)) { w.byte(0x8C); w.nat(x.instrument); TrCan.writeAmendment(w, x.amendment); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordDemand(x)) { w.byte(0x8D); w.nat(x.instrument); TrCan.writeDocumentRef(w, x.demand); w.nat(x.amount); w.bool(x.supportingStatement); w.nat(x.presentedOn) };
+      case (#examineDemand(x)) { w.byte(0x8E); w.nat(x.instrument); w.nat(x.claim); w.len16(x.checklist.size()); for (c in x.checklist.vals()) w.text(c); TrCan.writeChecks(w, x.checks); TrCan.writeDecision(w, x.decision) };
+      case (#payDemand(x)) { w.byte(0x8F); w.nat(x.instrument); w.nat(x.claim); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#reduceGuarantee(x)) { w.byte(0xB8); w.nat(x.instrument); w.nat(x.to); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#releaseGuarantee(x)) { w.byte(0xB9); w.nat(x.instrument); w.text(x.reason); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#registerCollection(x)) { w.byte(0xBA); TrCan.writeCollection(w, x.collection); w.nat(x.amount); w.text(x.currency); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#presentCollection(x)) { w.byte(0xBB); w.nat(x.instrument); w.nat(x.presentedOn) };
+      case (#acceptCollection(x)) { w.byte(0xBC); w.nat(x.instrument) };
+      case (#payCollection(x)) { w.byte(0xBD); w.nat(x.instrument); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#protestCollection(x)) { w.byte(0xBE); w.nat(x.instrument); w.text(x.reason) };
+      case (#returnCollection(x)) { w.byte(0xBF); w.nat(x.instrument); w.text(x.reason); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#discountBill(x)) { w.byte(0x1E); TrCan.writeBill(w, x.bill); w.nat(x.face); w.text(x.currency); w.nat(x.maturity); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#rediscountBill(x)) { w.byte(0x1F); w.nat(x.instrument); w.text(x.to); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#settleBill(x)) { w.byte(0x2D); w.nat(x.instrument); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#dishonourBill(x)) { w.byte(0x2E); w.nat(x.instrument); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordTradeMessage(x)) { w.byte(0x2F); w.nat(x.instrument); TrCan.writeMessageKind(w, x.kind); TrCan.writeDirection(w, x.direction); w.blob(x.hash) };
       case (#openTellerSession(x)) { w.byte(0xF7); w.text(x.till); w.principal(x.teller); TCan.writeDenominations(w, x.opening) };
       case (#closeTellerSession(x)) { w.byte(0xF8); w.text(x.till); TCan.writeDenominations(w, x.closing) };
       case (#resolveTillDifference(x)) { w.byte(0xF9); w.nat(x.session); w.text(x.note); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
@@ -1365,6 +1396,7 @@ module {
       case (#origination(oe)) { w.byte(0x4F); OCan.writeEvent(w, oe) };
       case (#facility(fe)) { w.byte(0x51); FCan.writeEvent(w, fe) };
       case (#teller(te)) { w.byte(0x52); TCan.writeEvent(w, te) };
+      case (#trade(tr)) { w.byte(0x53); TrCan.writeEvent(w, tr) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -1789,8 +1821,62 @@ module {
     switch (version) { case 1 readCommandBody(r, false); case 2 readCommandBody(r, true); case (_) null }
   };
 
+  /// The trade book's commands (trade finance), read apart from the main switch so that switch stays under the chain's
+  /// function-complexity bound: `null` when the tag is not a trade command's, `?null` when the body is malformed.
+  func readTradeCommand(tag : Nat8, r : C.Reader) : ??T.Command {
+    switch (tag) {
+      case 0x67 { let ?p = TrCan.readPolicy(r) else return ?null; ??#setTradePolicy(p) };
+      case 0x68 { let ?lc = TrCan.readLc(r) else return ?null; let ?amount = r.nat() else return ?null; let ?currency = r.text() else return ?null; let ?expiry = r.nat() else return ?null; let ?placeOfExpiry = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#issueLetterOfCredit({ lc; amount; currency; expiry; placeOfExpiry; postingDate; valueDate; period; narration }) };
+      case 0x69 {
+        let ?message = r.text() else return ?null; let ?beneficiary = r.nat() else return ?null; let ?beneficiaryAccount = r.nat() else return ?null; let ?confirm = r.bool() else return ?null;
+        let ?n = r.len16() else return ?null;
+        let cl = List.empty<(TrT.DocumentKind, [Text])>();
+        var i = 0;
+        while (i < n) {
+          let ?k = TrCan.readDocumentKind(r) else return ?null; let ?m = r.len16() else return ?null;
+          let cs = List.empty<Text>(); var j = 0; while (j < m) { let ?c = r.text() else return ?null; List.add(cs, c); j += 1 };
+          List.add(cl, (k, List.toArray(cs))); i += 1;
+        };
+        let ?commissionBps = r.nat() else return ?null; let ?facility = r.optNat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null;
+        ??#adviseLetterOfCredit({ message; beneficiary; beneficiaryAccount; confirm; checklist = List.toArray(cl); commissionBps; facility; postingDate; valueDate; period; narration })
+      };
+      case 0x6A { let ?instrument = r.nat() else return ?null; let ?amendment = TrCan.readAmendment(r) else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#amendLetterOfCredit({ instrument; amendment; postingDate; valueDate; period; narration }) };
+      case 0x6B { let ?instrument = r.nat() else return ?null; let ?documents = TrCan.readDocumentRefs(r) else return ?null; let ?amount = r.nat() else return ?null; let ?shipmentDate = r.optNat() else return ?null; let ?presentedOn = r.nat() else return ?null; ??#presentDocuments({ instrument; documents; amount; shipmentDate; presentedOn }) };
+      case 0x6C { let ?instrument = r.nat() else return ?null; let ?claim = r.nat() else return ?null; let ?checks = TrCan.readChecks(r) else return ?null; let ?decision = TrCan.readDecision(r) else return ?null; ??#examinePresentation({ instrument; claim; checks; decision }) };
+      case 0x6D { let ?instrument = r.nat() else return ?null; let ?claim = r.nat() else return ?null; let ?applicantConsentHash = r.blob() else return ?null; ??#waiveDiscrepancies({ instrument; claim; applicantConsentHash }) };
+      case 0x6E { let ?instrument = r.nat() else return ?null; let ?claim = r.nat() else return ?null; let ?honour = TrCan.readHonour(r) else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#honourPresentation({ instrument; claim; honour; postingDate; valueDate; period; narration }) };
+      case 0x6F { let ?instrument = r.nat() else return ?null; let ?claim = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#settleAcceptance({ instrument; claim; postingDate; valueDate; period; narration }) };
+      case 0x8A { let ?instrument = r.nat() else return ?null; let ?reason = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#closeLetterOfCredit({ instrument; reason; postingDate; valueDate; period; narration }) };
+      case 0x8B { let ?guarantee = TrCan.readGuarantee(r) else return ?null; let ?amount = r.nat() else return ?null; let ?currency = r.text() else return ?null; let ?expiry = r.nat() else return ?null; let ?wordingText = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#issueGuarantee({ guarantee; amount; currency; expiry; wordingText; postingDate; valueDate; period; narration }) };
+      case 0x8C { let ?instrument = r.nat() else return ?null; let ?amendment = TrCan.readAmendment(r) else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#amendGuarantee({ instrument; amendment; postingDate; valueDate; period; narration }) };
+      case 0x8D { let ?instrument = r.nat() else return ?null; let ?demand = TrCan.readDocumentRef(r) else return ?null; let ?amount = r.nat() else return ?null; let ?supportingStatement = r.bool() else return ?null; let ?presentedOn = r.nat() else return ?null; ??#recordDemand({ instrument; demand; amount; supportingStatement; presentedOn }) };
+      case 0x8E {
+        let ?instrument = r.nat() else return ?null; let ?claim = r.nat() else return ?null; let ?n = r.len16() else return ?null;
+        let cl = List.empty<Text>(); var i = 0; while (i < n) { let ?c = r.text() else return ?null; List.add(cl, c); i += 1 };
+        let ?checks = TrCan.readChecks(r) else return ?null; let ?decision = TrCan.readDecision(r) else return ?null;
+        ??#examineDemand({ instrument; claim; checklist = List.toArray(cl); checks; decision })
+      };
+      case 0x8F { let ?instrument = r.nat() else return ?null; let ?claim = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#payDemand({ instrument; claim; postingDate; valueDate; period; narration }) };
+      case 0xB8 { let ?instrument = r.nat() else return ?null; let ?to = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#reduceGuarantee({ instrument; to; postingDate; valueDate; period; narration }) };
+      case 0xB9 { let ?instrument = r.nat() else return ?null; let ?reason = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#releaseGuarantee({ instrument; reason; postingDate; valueDate; period; narration }) };
+      case 0xBA { let ?collection = TrCan.readCollection(r) else return ?null; let ?amount = r.nat() else return ?null; let ?currency = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#registerCollection({ collection; amount; currency; postingDate; valueDate; period; narration }) };
+      case 0xBB { let ?instrument = r.nat() else return ?null; let ?presentedOn = r.nat() else return ?null; ??#presentCollection({ instrument; presentedOn }) };
+      case 0xBC { let ?instrument = r.nat() else return ?null; ??#acceptCollection({ instrument }) };
+      case 0xBD { let ?instrument = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#payCollection({ instrument; postingDate; valueDate; period; narration }) };
+      case 0xBE { let ?instrument = r.nat() else return ?null; let ?reason = r.text() else return ?null; ??#protestCollection({ instrument; reason }) };
+      case 0xBF { let ?instrument = r.nat() else return ?null; let ?reason = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#returnCollection({ instrument; reason; postingDate; valueDate; period; narration }) };
+      case 0x1E { let ?bill = TrCan.readBill(r) else return ?null; let ?face = r.nat() else return ?null; let ?currency = r.text() else return ?null; let ?maturity = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#discountBill({ bill; face; currency; maturity; postingDate; valueDate; period; narration }) };
+      case 0x1F { let ?instrument = r.nat() else return ?null; let ?to = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#rediscountBill({ instrument; to; postingDate; valueDate; period; narration }) };
+      case 0x2D { let ?instrument = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#settleBill({ instrument; postingDate; valueDate; period; narration }) };
+      case 0x2E { let ?instrument = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#dishonourBill({ instrument; postingDate; valueDate; period; narration }) };
+      case 0x2F { let ?instrument = r.nat() else return ?null; let ?kind = TrCan.readMessageKind(r) else return ?null; let ?direction = TrCan.readDirection(r) else return ?null; let ?hash = r.blob() else return ?null; ??#recordTradeMessage({ instrument; kind; direction; hash }) };
+      case (_) null;
+    }
+  };
+
   func readCommandBody(r : C.Reader, withApplication : Bool) : ?T.Command {
     let ?tag = r.byte() else return null;
+    switch (readTradeCommand(tag, r)) { case (?c) return c; case null {} };
     switch (tag) {
       case 0x01 { let ?id = r.text() else return null; let ?name = r.text() else return null; let ?permissions = rTexts(r) else return null; ?#defineRole({ id; name; permissions }) };
       case 0x02 { let ?subject = r.principal() else return null; let ?role = r.text() else return null; let ?scope = rScope(r) else return null; ?#grantRole({ subject; role; scope }) };
@@ -2569,6 +2655,7 @@ module {
       case 0x4F { let ?oe = OCan.readEvent(r) else return null; ?#origination(oe) };
       case 0x51 { let ?fe = FCan.readEvent(r) else return null; ?#facility(fe) };
       case 0x52 { let ?te = TCan.readEvent(r) else return null; ?#teller(te) };
+      case 0x53 { let ?tr = TrCan.readEvent(r) else return null; ?#trade(tr) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

@@ -87,6 +87,9 @@ import FaT "FacilityTypes";
 import FacilityCore "FacilityCore";
 import TeT "TellerTypes";
 import TellerCore "TellerCore";
+import TrT "TradeTypes";
+import TradeCore "TradeCore";
+import TradeMessages "TradeMessages";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -2696,6 +2699,151 @@ shared (initMsg) persistent actor class Bank(init : {
   /// The branch layer at a glance: the policy and the counts.
   public query func tellerStatus() : async { policy : ?TeT.Policy; counts : { sessions : Nat; differences : Nat; movements : Nat; chequesPresented : Nat; chequesReturned : Nat; drafts : Nat } } {
     { policy = TellerCore.policy(bank.teller); counts = TellerCore.counts(bank.teller) }
+  };
+
+  // ─── trade finance (trade finance) ───────────────────────────────────────────────────
+
+  func tradeView(caller : Principal, id : Nat) : Result.Result<?TrT.InstrumentView, T.BankError> {
+    switch (TradeCore.row(bank.trade, id)) {
+      case null #ok(null);
+      case (?r) { if (not BankCore.mayReadBook(readScope(caller), r.book)) #err(#OutsideBookScope({ book = r.book })) else #ok(?TradeCore.view(bank.trade, r)) };
+    }
+  };
+  /// An instrument's row: kind, state, parties, face, utilised, expiry, margin and commission figures, the hash of its terms.
+  public shared query ({ caller }) func tradeInstrument(id : Nat) : async Result.Result<?TrT.InstrumentView, T.BankError> { tradeView(caller, id) };
+  /// The terms an instrument was issued with, from its block.
+  public shared query ({ caller }) func tradeTerms(id : Nat) : async Result.Result<?TrT.Kind, T.BankError> {
+    switch (tradeView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok(null); case (#ok(?_)) #ok(BankCore.tradeKind(bankBlocks(), id)) }
+  };
+  /// The claims under an instrument: presentations, demands, the collection's presentation.
+  public shared query ({ caller }) func tradeClaims(id : Nat) : async Result.Result<[TrT.ClaimView], T.BankError> {
+    switch (tradeView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok([]); case (#ok(?_)) #ok(Array.map<TradeCore.ClaimRow, TrT.ClaimView>(TradeCore.claimsOf(bank.trade, id), TradeCore.claimView)) }
+  };
+  /// The messages exchanged under an instrument, by their hashes.
+  public shared query ({ caller }) func tradeMessages(id : Nat) : async Result.Result<[TrT.MessageView], T.BankError> {
+    switch (tradeView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok([]); case (#ok(?_)) #ok(Array.map<TradeCore.MessageRow, TrT.MessageView>(TradeCore.messagesOf(bank.trade, id), TradeCore.messageView)) }
+  };
+  /// A party's instruments, paged, filtered to the caller's books.
+  public shared query ({ caller }) func tradeInstrumentsOfParty(party : Nat, cursor : ?Blob, limit : Nat) : async { entries : [TrT.InstrumentView]; cursor : ?Blob } {
+    let page = TradeCore.listByParty(bank.trade, party, cursor, limit);
+    let out = List.empty<TrT.InstrumentView>();
+    for (id in page.ids.vals()) { switch (tradeView(caller, id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+  public shared query ({ caller }) func tradeInstrumentsByState(state : TrT.InstrumentState, cursor : ?Blob, limit : Nat) : async { entries : [TrT.InstrumentView]; cursor : ?Blob } {
+    let page = TradeCore.listByState(bank.trade, state, cursor, limit);
+    let out = List.empty<TrT.InstrumentView>();
+    for (id in page.ids.vals()) { switch (tradeView(caller, id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+  /// Open instruments expiring in a window of days, filtered to the caller's books.
+  public shared query ({ caller }) func tradeExpiring(from : Nat, to : Nat, limit : Nat) : async [TrT.InstrumentView] {
+    let out = List.empty<TrT.InstrumentView>();
+    for (r in TradeCore.expiringBetween(bank.trade, from, to, limit).vals()) { if (BankCore.mayReadBook(readScope(caller), r.book)) List.add(out, TradeCore.view(bank.trade, r)) };
+    List.toArray(out)
+  };
+  /// The undertakings outstanding against a facility — what its availability is reduced by.
+  public query func tradeContingentOnFacility(facility : Nat) : async Nat { TradeCore.contingentOnFacility(bank.trade, facility) };
+  /// The trade book at a glance: the policy, the counts, the contingent memoranda.
+  public query func tradeStatus() : async { policy : ?TrT.Policy; status : TrT.TradeStatus } {
+    { policy = TradeCore.policy(bank.trade); status = TradeCore.status(bank.trade) }
+  };
+  /// A message rendered from the instrument's recorded state: the SWIFT MT or the ISO 20022 tsrv message the
+  /// counterparty bank receives. The message is a function of the block; what is returned is not stored.
+  public shared query ({ caller }) func renderTradeMessage(id : Nat, kind : TrT.MessageKind, claim : ?Nat, amendment : ?Nat) : async Result.Result<Text, T.BankError> {
+    let r = switch (tradeView(caller, id)) { case (#err(e)) return #err(e); case (#ok(null)) return #err(#TradeError({ error = #UnknownInstrument({ instrument = id }) })); case (#ok(?v)) v };
+    let ?pol = TradeCore.policy(bank.trade) else return #err(#TradeError({ error = #NoPolicy }));
+    let ?row = TradeCore.row(bank.trade, id) else return #err(#TradeError({ error = #UnknownInstrument({ instrument = id }) }));
+    let mu : Nat8 = switch (Array.find<JT.CurrencyInfo>(JCore.listCurrencies(journal), func(c) { Text.equal(c.code, r.currency) })) { case (?c) c.minorUnits; case null 2 };
+    let bankName = switch (BankCore.getBook(bank, r.book)) { case (?b) b.name; case null r.book };
+    func bad(reason : Text) : Result.Result<Text, T.BankError> { #err(#TradeError({ error = #BadMessage({ reason }) })) };
+    func claimOf() : ?TradeCore.ClaimRow { switch (claim) { case (?c) TradeCore.claim(bank.trade, id, c); case null null } };
+    func amendmentOf() : ?{ amendment : TrT.Amendment; number : Nat; day : Nat; oldAmount : Nat } {
+      let ?n = amendment else return null;
+      // the n-th amendment block of the instrument: walk the claims' and amendments' blocks from the issue forward
+      var i = id + 1; var found : ?{ amendment : TrT.Amendment; number : Nat; day : Nat; oldAmount : Nat } = null; var before = r.amount;
+      // the face before each amendment is re-derived from the issue forward
+      before := switch (bankBlock(id)) { case (?b) { switch (b.event) { case (#trade(#lcIssued(x))) x.amount; case (#trade(#lcAdvised(x))) x.amount; case (#trade(#guaranteeIssued(x))) x.amount; case (_) r.amount } }; case null r.amount };
+      label walk while (i < BankCore.height(bank) and found == null) {
+        switch (bankBlock(i)) {
+          case (?b) { switch (b.event) { case (#trade(#lcAmended(x)) or #trade(#guaranteeAmended(x))) { if (x.instrument == id) { if (x.number == n) found := ?{ amendment = x.amendment; number = x.number; day = x.day; oldAmount = before } else before := x.amount } }; case (_) {} } };
+          case null break walk;
+        };
+        i += 1;
+      };
+      found
+    };
+    switch (BankCore.tradeKind(bankBlocks(), id), kind) {
+      case (?#letterOfCredit(lc), #mt(700)) {
+        let place = switch (bankBlock(id)) { case (?b) { switch (b.event) { case (#trade(#lcIssued(x))) x.placeOfExpiry; case (#trade(#lcAdvised(x))) x.placeOfExpiry; case (_) "" } }; case null "" };
+        #ok(TradeMessages.mt700(pol.bic, { lc; amount = row.amount; currency = row.currency; minorUnits = mu; expiry = row.expiry; placeOfExpiry = place; issuedDay = row.issuedDay; bankName }))
+      };
+      case (?#letterOfCredit(lc), #mt(707)) {
+        let ?a = amendmentOf() else return bad("the amendment number names no amendment of this credit");
+        #ok(TradeMessages.mt707(pol.bic, lc.counterpartyBank, lc.reference, row.issuedDay, a.number, a.day, row.currency, mu, a.oldAmount, a.amendment))
+      };
+      case (?#letterOfCredit(lc), #mt(750)) {
+        let ?c = claimOf() else return bad("a refusal advice names the presentation");
+        // the discrepancies from the examination block
+        var disc : [Text] = []; var disp : TrT.Disposal = #held;
+        var i = c.instrument + 1;
+        label walk while (i < BankCore.height(bank)) {
+          switch (bankBlock(i)) { case (?b) { switch (b.event) { case (#trade(#presentationExamined(x))) { if (x.instrument == id and x.claim == c.seq) { switch (x.decision) { case (#refuse(n)) { disc := n.discrepancies; disp := n.disposal }; case (#complying) {} }; break walk } }; case (_) {} } }; case null break walk };
+          i += 1;
+        };
+        if (disc.size() == 0) return bad("the presentation was not refused");
+        #ok(TradeMessages.mt750(pol.bic, lc.counterpartyBank, lc.reference, row.currency, mu, c.amount, disc, disp))
+      };
+      case (?#letterOfCredit(lc), #mt(752)) { let ?c = claimOf() else return bad("an authorisation names the presentation"); #ok(TradeMessages.mt752(pol.bic, lc.counterpartyBank, lc.reference, c.presentedOn, row.currency, mu, c.amount)) };
+      case (?#letterOfCredit(lc), #mt(754)) {
+        let ?c = claimOf() else return bad("an advice of payment names the presentation");
+        let honour : TrT.Honour = switch (c.honour) { case 1 #sight; case 2 #deferred({ due = c.due }); case 3 #acceptance({ due = c.due }); case 4 #negotiation({ due = c.due }); case _ return bad("the presentation was not honoured") };
+        #ok(TradeMessages.mt754(pol.bic, lc.counterpartyBank, lc.reference, row.currency, mu, c.amount, honour))
+      };
+      case (?#letterOfCredit(lc), #mt(799)) #ok(TradeMessages.mt799(pol.bic, lc.counterpartyBank, lc.reference, "CREDIT " # lc.reference # " STATE " # r.state # " OUTSTANDING " # TradeMessages.finAmount(r.outstanding, mu)));
+      case (?#guarantee(g), #mt(760)) {
+        let wording = switch (wordingOf(id)) { case (?w) w; case null "" };
+        #ok(TradeMessages.mt760(pol.bic, { g; amount = row.amount; currency = row.currency; minorUnits = mu; expiry = row.expiry; issuedDay = row.issuedDay; wordingText = wording }))
+      };
+      case (?#guarantee(g), #mt(767)) {
+        let ?a = amendmentOf() else return bad("the amendment number names no amendment of this undertaking");
+        #ok(TradeMessages.mt767(pol.bic, guaranteeReceiver(g, pol.bic), g.reference, row.issuedDay, a.number, a.day, row.currency, mu, a.oldAmount, a.amendment))
+      };
+      case (?#guarantee(g), #mt(765)) { let ?c = claimOf() else return bad("a demand message names the demand"); #ok(TradeMessages.mt765(pol.bic, guaranteeReceiver(g, pol.bic), g.reference, c.presentedOn, row.currency, mu, c.amount, (c.flags & 1) != 0)) };
+      case (?#guarantee(g), #mt(768)) #ok(TradeMessages.mt768(pol.bic, guaranteeReceiver(g, pol.bic), g.reference, row.issuedDay));
+      case (?#guarantee(g), #mt(769)) #ok(TradeMessages.mt769(pol.bic, guaranteeReceiver(g, pol.bic), g.reference, row.issuedDay, row.currency, mu, row.utilised, r.outstanding));
+      case (?#guarantee(g), #mt(799)) #ok(TradeMessages.mt799(pol.bic, guaranteeReceiver(g, pol.bic), g.reference, "UNDERTAKING " # g.reference # " STATE " # r.state));
+      case (?#guarantee(g), #tsrv(1)) {
+        let wording = switch (wordingOf(id)) { case (?w) w; case null "" };
+        #ok(TradeMessages.tsrv001(pol.bic, bankName, { g; amount = row.amount; currency = row.currency; minorUnits = mu; expiry = row.expiry; issuedDay = row.issuedDay; wordingText = wording }))
+      };
+      case (?#guarantee(g), #tsrv(5)) { let ?a = amendmentOf() else return bad("the amendment number names no amendment of this undertaking"); #ok(TradeMessages.tsrv005(pol.bic, bankName, g.reference, a.number, a.day, row.currency, mu, a.oldAmount, a.amendment)) };
+      case (?#guarantee(g), #tsrv(13)) { let ?c = claimOf() else return bad("a demand message names the demand"); #ok(TradeMessages.tsrv013(pol.bic, bankName, g.reference, g.reference # "/D" # Nat.toText(c.seq), row.currency, mu, c.amount, (c.flags & 1) != 0)) };
+      case (?#guarantee(g), #tsrv(16)) {
+        let ?c = claimOf() else return bad("a refusal names the demand");
+        var disc : [Text] = []; var disp = "";
+        var i = c.instrument + 1;
+        label walk while (i < BankCore.height(bank)) {
+          switch (bankBlock(i)) { case (?b) { switch (b.event) { case (#trade(#demandExamined(x))) { if (x.instrument == id and x.claim == c.seq) { switch (x.decision) { case (#refuse(n)) { disc := n.discrepancies; disp := debug_show n.disposal }; case (#complying) {} }; break walk } }; case (_) {} } }; case null break walk };
+          i += 1;
+        };
+        if (disc.size() == 0) return bad("the demand was not refused");
+        #ok(TradeMessages.tsrv016(pol.bic, bankName, g.reference, g.reference # "/D" # Nat.toText(c.seq), Nat64.fromNat(c.presentedOn) * 86_400_000_000_000, row.currency, mu, c.amount, disc, disp))
+      };
+      case (?#guarantee(g), #tsrv(12)) {
+        let (effective, reason) = switch (r.state) { case ("released" or "expired") { (row.expiry, "undertaking " # r.state) }; case (_) return bad("the undertaking has not ended") };
+        #ok(TradeMessages.tsrv012(pol.bic, bankName, g.reference, effective, reason))
+      };
+      case (null, _) #err(#TradeError({ error = #UnknownInstrument({ instrument = id }) }));
+      case (?_, k) bad("no rendering of " # TrT.messageKindText(k) # " for this instrument")
+    }
+  };
+  func guaranteeReceiver(g : TrT.Guarantee, own : Text) : Text {
+    if (g.counterpartyBank != "") g.counterpartyBank else (switch (g.beneficiary) { case (#external(e)) e.bic; case (#party(_)) own })
+  };
+  /// The wording text of an undertaking, from its issuing block.
+  func wordingOf(id : Nat) : ?Text {
+    switch (bankBlock(id)) { case (?b) { switch (b.event) { case (#trade(#guaranteeIssued(x))) ?x.wordingText; case (_) null } }; case null null }
   };
 
   /// The collections book at a glance: the policy, the counts, the exposures per stage.

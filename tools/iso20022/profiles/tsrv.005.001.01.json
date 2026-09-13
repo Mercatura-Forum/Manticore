@@ -1,0 +1,1378 @@
+{
+ "family": "tsrv.005.001.01",
+ "schemaSha256": "58c99d0b85ee5a14a0fef2a0b11cfbb0f47739f950ab62b8b63dbbac9312fa1c",
+ "namespace": "urn:iso:std:iso:20022:tech:xsd:tsrv.005.001.01",
+ "rootName": "Document",
+ "rootType": "Document",
+ "order": [
+  "ActiveCurrencyAndAmount_SimpleType",
+  "ActiveCurrencyAndAmount",
+  "ActiveCurrencyCode",
+  "AddressType2Code",
+  "Amendment1",
+  "Amount1Choice",
+  "AnyBICIdentifier",
+  "AutoExtend1Choice",
+  "AutoExtension1",
+  "CommunicationChannel1",
+  "CommunicationMethod1Choice",
+  "ContactDetails2",
+  "CountryCode",
+  "DateAndDateTimeChoice",
+  "DateAndPlaceOfBirth",
+  "Document",
+  "Document9",
+  "DocumentFormat1Choice",
+  "ExpiryDetails1",
+  "ExpiryTerms1",
+  "ExternalChannel1Code",
+  "ExternalDocumentFormat1Code",
+  "ExternalNarrativeType1Code",
+  "ExternalOrganisationIdentification1Code",
+  "ExternalPersonIdentification1Code",
+  "ExternalTypeOfParty1Code",
+  "ExternalUndertakingDocumentType1Code",
+  "GenericIdentification1",
+  "GenericOrganisationIdentification1",
+  "GenericPersonIdentification1",
+  "ISODate",
+  "ISODateTime",
+  "Max140Text",
+  "Max16Text",
+  "Max20000Text",
+  "Max2000Text",
+  "Max2048Text",
+  "Max2MBBinary",
+  "Max35Text",
+  "Max4AlphaNumericText",
+  "Max70Text",
+  "NamePrefix1Code",
+  "Narrative1",
+  "NarrativeType1Choice",
+  "NonExtension1",
+  "Number",
+  "OrganisationIdentification8",
+  "OrganisationIdentificationSchemeName1Choice",
+  "Party11Choice",
+  "PartyAndSignature2",
+  "PartyIdentification43",
+  "PartyType1Choice",
+  "PersonIdentification5",
+  "PersonIdentificationSchemeName1Choice",
+  "PhoneNumber",
+  "PostalAddress6",
+  "ProprietaryData3",
+  "TerminationReason1Choice",
+  "TerminationReason1Code",
+  "Undertaking11",
+  "Undertaking7",
+  "UndertakingAmendmentV01",
+  "UndertakingAmount2",
+  "UndertakingDocumentType1Choice",
+  "UndertakingTermination3",
+  "YesNoIndicator"
+ ],
+ "types": {
+  "ActiveCurrencyAndAmount_SimpleType": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 5,
+   "totalDigits": 18,
+   "minInclusive": "0"
+  },
+  "ActiveCurrencyAndAmount": {
+   "kind": "complex",
+   "model": "simpleContent",
+   "simple": "ActiveCurrencyAndAmount_SimpleType",
+   "attribute": {
+    "name": "Ccy",
+    "type": "ActiveCurrencyCode"
+   }
+  },
+  "ActiveCurrencyCode": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{3,3}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "AddressType2Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "ADDR",
+    "PBOX",
+    "HOME",
+    "BIZZ",
+    "MLTO",
+    "DLVY"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Amendment1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "SeqNb",
+     "type": "Max4AlphaNumericText",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DtOfIssnc",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "UdrtkgId",
+     "type": "Undertaking7",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "AdvsgPty",
+     "type": "PartyIdentification43",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "ScndAdvsgPty",
+     "type": "PartyIdentification43",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TermntnDtls",
+     "type": "UndertakingTermination3",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "UdrtkgAmtAdjstmnt",
+     "type": "UndertakingAmount2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NewXpryDtls",
+     "type": "ExpiryDetails1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NewBnfcry",
+     "type": "PartyIdentification43",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NewUdrtkgTermsAndConds",
+     "type": "Narrative1",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "LclUdrtkg",
+     "type": "Undertaking11",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "BnfcryCnsntReqInd",
+     "type": "YesNoIndicator",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DlvryChanl",
+     "type": "CommunicationChannel1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NclsdFile",
+     "type": "Document9",
+     "min": 0,
+     "max": null
+    },
+    {
+     "name": "AddtlInf",
+     "type": "Max2000Text",
+     "min": 0,
+     "max": 5
+    }
+   ]
+  },
+  "Amount1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "IncrAmt",
+     "type": "ActiveCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DcrAmt",
+     "type": "ActiveCurrencyAndAmount",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "AnyBICIdentifier": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{6,6}[A-Z2-9][A-NP-Z0-9]([A-Z0-9]{3,3}){0,1}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "AutoExtend1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Days",
+     "type": "Number",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Mnths",
+     "type": "Number",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Yrs",
+     "type": "Number",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Dt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "AutoExtension1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Prd",
+     "type": "AutoExtend1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FnlXpryDt",
+     "type": "ISODate",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NonXtnsnNtfctn",
+     "type": "NonExtension1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "CommunicationChannel1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Mtd",
+     "type": "ExternalChannel1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DlvrToPtyTp",
+     "type": "PartyType1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DlvrToNm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DlvrToAdr",
+     "type": "PostalAddress6",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CommunicationMethod1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalChannel1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ContactDetails2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NmPrfx",
+     "type": "NamePrefix1Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PhneNb",
+     "type": "PhoneNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "MobNb",
+     "type": "PhoneNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "FaxNb",
+     "type": "PhoneNumber",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "EmailAdr",
+     "type": "Max2048Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "CountryCode": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "[A-Z]{2,2}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "DateAndDateTimeChoice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Dt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DtTm",
+     "type": "ISODateTime",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "DateAndPlaceOfBirth": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "BirthDt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "PrvcOfBirth",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CityOfBirth",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "CtryOfBirth",
+     "type": "CountryCode",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Document": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "UdrtkgAmdmnt",
+     "type": "UndertakingAmendmentV01",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Document9": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "UndertakingDocumentType1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Frmt",
+     "type": "DocumentFormat1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Nclsr",
+     "type": "Max2MBBinary",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "DgtlSgntr",
+     "type": "PartyAndSignature2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "DocumentFormat1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalDocumentFormat1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "ExpiryDetails1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "XpryTerms",
+     "type": "ExpiryTerms1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlXpryInf",
+     "type": "Max2000Text",
+     "min": 0,
+     "max": 5
+    }
+   ]
+  },
+  "ExpiryTerms1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "DtTm",
+     "type": "DateAndDateTimeChoice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AutoXtnsn",
+     "type": "AutoExtension1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Cond",
+     "type": "Max2000Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "OpnEnddInd",
+     "type": "YesNoIndicator",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "ExternalChannel1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalDocumentFormat1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalNarrativeType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalOrganisationIdentification1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalPersonIdentification1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalTypeOfParty1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ExternalUndertakingDocumentType1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "GenericIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericOrganisationIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "OrganisationIdentificationSchemeName1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "GenericPersonIdentification1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "SchmeNm",
+     "type": "PersonIdentificationSchemeName1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "ISODate": {
+   "kind": "simple",
+   "base": "date",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "ISODateTime": {
+   "kind": "simple",
+   "base": "dateTime",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max140Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 140,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max16Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 16,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max20000Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 20000,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max2000Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 2000,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max2048Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 2048,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max2MBBinary": {
+   "kind": "simple",
+   "base": "base64Binary",
+   "minLength": 1,
+   "maxLength": 2097152,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max35Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 35,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max4AlphaNumericText": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 4,
+   "pattern": "[a-zA-Z0-9]{1,4}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Max70Text": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": 1,
+   "maxLength": 70,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "NamePrefix1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "DOCT",
+    "MIST",
+    "MISS",
+    "MADM"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Narrative1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Tp",
+     "type": "NarrativeType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Txt",
+     "type": "Max20000Text",
+     "min": 1,
+     "max": 5
+    }
+   ]
+  },
+  "NarrativeType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalNarrativeType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "NonExtension1": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NtfctnPrd",
+     "type": "Number",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NtfctnMtd",
+     "type": "CommunicationMethod1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NtfctnRcptTp",
+     "type": "PartyType1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NtfctnRcptNm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NtfctnRcptAdr",
+     "type": "PostalAddress6",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "Number": {
+   "kind": "simple",
+   "base": "decimal",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": 0,
+   "totalDigits": 18,
+   "minInclusive": null
+  },
+  "OrganisationIdentification8": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AnyBIC",
+     "type": "AnyBICIdentifier",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "GenericOrganisationIdentification1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "OrganisationIdentificationSchemeName1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalOrganisationIdentification1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "Party11Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "OrgId",
+     "type": "OrganisationIdentification8",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "PrvtId",
+     "type": "PersonIdentification5",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PartyAndSignature2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Pty",
+     "type": "PartyIdentification43",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Sgntr",
+     "type": "ProprietaryData3",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PartyIdentification43": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Nm",
+     "type": "Max140Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstlAdr",
+     "type": "PostalAddress6",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Id",
+     "type": "Party11Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CtryOfRes",
+     "type": "CountryCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CtctDtls",
+     "type": "ContactDetails2",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "PartyType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalTypeOfParty1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PersonIdentification5": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "DtAndPlcOfBirth",
+     "type": "DateAndPlaceOfBirth",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Othr",
+     "type": "GenericPersonIdentification1",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "PersonIdentificationSchemeName1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalPersonIdentification1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "PhoneNumber": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": "\\+[0-9]{1,3}-[0-9()+\\-]{1,30}",
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "PostalAddress6": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AdrTp",
+     "type": "AddressType2Code",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Dept",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "SubDept",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "StrtNm",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "BldgNb",
+     "type": "Max16Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "PstCd",
+     "type": "Max16Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "TwnNm",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "CtrySubDvsn",
+     "type": "Max35Text",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "Ctry",
+     "type": "CountryCode",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AdrLine",
+     "type": "Max70Text",
+     "min": 0,
+     "max": 7
+    }
+   ]
+  },
+  "ProprietaryData3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "*",
+     "type": null,
+     "min": 1,
+     "max": 1,
+     "namespace": "##any"
+    }
+   ]
+  },
+  "TerminationReason1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "TerminationReason1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "TerminationReason1Code": {
+   "kind": "simple",
+   "base": "string",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [
+    "REFU",
+    "NOAC",
+    "BUFI",
+    "WOEX"
+   ],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  },
+  "Undertaking11": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "NewUdrtkgAmt",
+     "type": "UndertakingAmount2",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NewXpryDtls",
+     "type": "ExpiryDetails1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NewBnfcry",
+     "type": "PartyIdentification43",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "NewUdrtkgTermsAndConds",
+     "type": "Narrative1",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "DlvryChanl",
+     "type": "CommunicationChannel1",
+     "min": 0,
+     "max": 1
+    }
+   ]
+  },
+  "Undertaking7": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "Id",
+     "type": "Max35Text",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Issr",
+     "type": "PartyIdentification43",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "UndertakingAmendmentV01": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "UdrtkgAmdmntDtls",
+     "type": "Amendment1",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "BkToBkInf",
+     "type": "Max2000Text",
+     "min": 0,
+     "max": 5
+    },
+    {
+     "name": "DgtlSgntr",
+     "type": "PartyAndSignature2",
+     "min": 0,
+     "max": null
+    }
+   ]
+  },
+  "UndertakingAmount2": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "AmtChc",
+     "type": "Amount1Choice",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "AddtlInf",
+     "type": "Max2000Text",
+     "min": 0,
+     "max": 5
+    }
+   ]
+  },
+  "UndertakingDocumentType1Choice": {
+   "kind": "complex",
+   "model": "choice",
+   "particles": [
+    {
+     "name": "Cd",
+     "type": "ExternalUndertakingDocumentType1Code",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Prtry",
+     "type": "GenericIdentification1",
+     "min": 1,
+     "max": 1
+    }
+   ]
+  },
+  "UndertakingTermination3": {
+   "kind": "complex",
+   "model": "sequence",
+   "particles": [
+    {
+     "name": "FctvDt",
+     "type": "ISODate",
+     "min": 1,
+     "max": 1
+    },
+    {
+     "name": "Rsn",
+     "type": "TerminationReason1Choice",
+     "min": 0,
+     "max": 1
+    },
+    {
+     "name": "AddtlInf",
+     "type": "Max2000Text",
+     "min": 0,
+     "max": 5
+    }
+   ]
+  },
+  "YesNoIndicator": {
+   "kind": "simple",
+   "base": "boolean",
+   "minLength": null,
+   "maxLength": null,
+   "pattern": null,
+   "enums": [],
+   "fractionDigits": null,
+   "totalDigits": null,
+   "minInclusive": null
+  }
+ }
+}

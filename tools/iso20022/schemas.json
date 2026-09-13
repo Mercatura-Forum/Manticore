@@ -172,5 +172,35 @@
   "bytes": 36795,
   "url": "https://www.iso20022.org/sites/default/files/documents/messages/pain/schemas/pain.012.001.07.xsd",
   "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "tsrv.001.001.01.xsd": {
+  "sha256": "fa447d6d286cb3a3510c2305cdd516e00d844360e4000a697935d47644ddf5e7",
+  "bytes": 37080,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/tsrv/schemas/tsrv.001.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "tsrv.005.001.01.xsd": {
+  "sha256": "58c99d0b85ee5a14a0fef2a0b11cfbb0f47739f950ab62b8b63dbbac9312fa1c",
+  "bytes": 21563,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/tsrv/schemas/tsrv.005.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "tsrv.013.001.01.xsd": {
+  "sha256": "3e2c2522ad70eb2a753292c89b3bc25f8208afa84c80f8c86f4d36b5f1864034",
+  "bytes": 23322,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/tsrv/schemas/tsrv.013.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "tsrv.016.001.01.xsd": {
+  "sha256": "f617fbc0a8457a46c12492956ec93c13d6a26dba15389f0ad5c9acc0adbf68d3",
+  "bytes": 12559,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/tsrv/schemas/tsrv.016.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "tsrv.012.001.01.xsd": {
+  "sha256": "89902d9eeb86e42b7c8e5d5b75b63f7263456a95ee8e8b29f406a640ddd4ba1e",
+  "bytes": 13234,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/tsrv/schemas/tsrv.012.001.01.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
  }
 }

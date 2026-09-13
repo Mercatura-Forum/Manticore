@@ -429,12 +429,12 @@ let commands : [T.Command] = [
   #setFeedEndpoint({ endpoint = { url = "https://feed.example.test/thebes"; retries = [30, 120, 600]; active = true } }),
   #recordFeedDeadLetter({ letter = { cursor = 417; endpoint = "https://feed.example.test/thebes"; attempts = 4; reason = "504 from the consumer" } }),
   // ── archive contracts ──
-  #pinArchiveImage({ sha256 = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56"; bytes = 182; name = "archive-child" }),
+  #pinArchiveImage({ sha256 = segHash32; bytes = 182; name = "archive-child" }),
   #setArchiveControllers({ controllers = [Principal.fromBlob("\6E\3E\78\13"), Principal.fromBlob("\7A\01")] }),
   #spawnArchive({ purpose = "2026-09 postings" }),
   #abandonArchiveSpawn({ spawn = 41; reason = "the create was rejected" }),
   #attachArchiveChild({ spawn = 42; cid = 1_000_001 : Nat64 }),
-  #adoptArchiveChild({ cid = 1_000_007 : Nat64; moduleHash = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56"; controllers = [Principal.fromBlob("\6E\3E\78\13")]; purpose = "operator-deployed" }),
+  #adoptArchiveChild({ cid = 1_000_007 : Nat64; moduleHash = segHash32; controllers = [Principal.fromBlob("\6E\3E\78\13")]; purpose = "operator-deployed" }),
   // ── monitoring: the closed rule set ──
   #defineMonitoringRule({ id = "structuring-egp"; currency = ?"EGP"; spec = #structuring({ threshold = 500_000_00; bandPercent = 10; count = 3; windowDays = 7; maxScan = 2_000 }) }),
   #retireMonitoringRule({ id = "structuring-egp" }),
@@ -543,6 +543,35 @@ let commands : [T.Command] = [
   #issueDraft({ serial = "D-0002"; payeeCommit = segHash32; amount = 1_250_00; currency = "EGP"; source = #till("T1"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
   #payDraft({ serial = "D-0001"; to = #till("T1"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
   #cancelDraft({ serial = "D-0002"; refundTo = 44; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  // trade finance (trade finance)
+  #setTradePolicy({ bic = "THEBEGCX"; contingentLcs = "9101"; contingentGuarantees = "9102"; contingentCollections = "9103"; contingentContra = "9199"; marginDeposits = "2320"; unearnedCommission = "2330"; commissionIncome = "4310"; acceptancesPayable = "2340"; customersLiabilityAcceptances = "1310"; billsNegotiated = "1320"; billsDiscounted = "1330"; unearnedDiscount = "2350"; discountIncome = "4320"; billsRediscounted = "2360"; billLosses = "5310"; nostro = "1005"; claimProduct = "CLAIM"; examinationDays = 5 }),
+  #issueLetterOfCredit({ lc = { role = #issuing; applicant = #party({ party = 7; account = 44 }); beneficiary = #external({ name = "NORDIC TEXTILES AB"; bic = "NDEASESS"; account = "SE4550000000058398257466" }); counterpartyBank = "NDEASESS"; terms = { documents = [{ kind = #invoice; copies = 3; checks = ["INV-AMOUNT", "INV-GOODS"] }, { kind = #transport; copies = 1; checks = ["TRANS-ONBOARD", "TRANS-PORTS"] }]; latestShipment = ?20800; presentationDays = 21; partialShipments = false; transhipment = true; incoterm = ?"CIF"; availableBy = #sight; portOfLoading = "ALEXANDRIA"; portOfDischarge = "ROTTERDAM"; goods = "COTTON YARN 20 TONNES" }; tolerance = ?500; marginBps = 2_000; facility = null; commissionBps = 150; reference = "LC-2026-0001" }; amount = 100_000_00; currency = "EGP"; expiry = 20900; placeOfExpiry = "CAIRO"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #adviseLetterOfCredit({ message = "{1:F01NDEASESSXXXX0000000000}{2:I700THEBEGCXXXXXN}{4:\n:27:1/1\n:40A:IRREVOCABLE\n:20:NDEA-77\n:31C:260901\n:40E:UCP LATEST VERSION\n:31D:261130STOCKHOLM\n:50:NORDIC TEXTILES AB\n:59:/44\nCUSTOMER 7\n:32B:EGP250000,00\n:41A:THEBEGCX\nBY PAYMENT\n:43P:NOT ALLOWED\n:43T:ALLOWED\n:44E:ALEXANDRIA\n:44F:GOTHENBURG\n:44C:261101\n:45A:COTTON YARN\n:46A:+SIGNED COMMERCIAL INVOICE IN 3 ORIGINALS\n+FULL SET CLEAN ON BOARD TRANSPORT DOCUMENT IN 1 ORIGINAL\n:48:21/DAYS FROM SHIPMENT DATE\n:49:CONFIRM\n-}"; beneficiary = 7; beneficiaryAccount = 44; confirm = true; checklist = [(#invoice, ["INV-AMOUNT"]), (#transport, ["TRANS-ONBOARD"])]; commissionBps = 100; facility = null; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #amendLetterOfCredit({ instrument = 900; amendment = { amount = ?120_000_00; expiry = ?20950; latestShipment = null; other = ""; consents = [#beneficiary, #applicant] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #presentDocuments({ instrument = 900; documents = [{ kind = #invoice; hash = segHash32 }, { kind = #transport; hash = segHash32 }]; amount = 60_000_00; shipmentDate = ?20790; presentedOn = 20800 }),
+  #examinePresentation({ instrument = 900; claim = 1; checks = [{ document = #invoice; check = "INV-AMOUNT"; passed = true; finding = "" }, { document = #invoice; check = "INV-GOODS"; passed = false; finding = "goods description differs from the credit" }, { document = #transport; check = "TRANS-ONBOARD"; passed = true; finding = "" }, { document = #transport; check = "TRANS-PORTS"; passed = true; finding = "" }]; decision = #refuse({ discrepancies = ["INV-GOODS"]; disposal = #heldPendingWaiver }) }),
+  #waiveDiscrepancies({ instrument = 900; claim = 1; applicantConsentHash = segHash32 }),
+  #honourPresentation({ instrument = 900; claim = 1; honour = #sight; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #settleAcceptance({ instrument = 900; claim = 2; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #closeLetterOfCredit({ instrument = 900; reason = "fully utilised"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #issueGuarantee({ guarantee = { kind = #demandGuarantee; rules = #URDG758; principal = 7; principalAccount = 44; beneficiary = #external({ name = "PORT AUTHORITY"; bic = "CIBEEGCX"; account = "" }); counterpartyBank = ""; wording = segHash32; statementRequired = true; reductions = [(20850, 60_000_00)]; marginBps = 1_000; facility = null; commissionBps = 100; reference = "GT-2026-0001" }; amount = 80_000_00; currency = "EGP"; expiry = 20900; wordingText = "WE HEREBY UNDERTAKE TO PAY"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #amendGuarantee({ instrument = 901; amendment = { amount = null; expiry = ?20960; latestShipment = null; other = "EXTENDED"; consents = [#beneficiary] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #recordDemand({ instrument = 901; demand = { kind = #other("demand"); hash = segHash32 }; amount = 30_000_00; supportingStatement = true; presentedOn = 20810 }),
+  #examineDemand({ instrument = 901; claim = 1; checklist = ["DEMAND-SIGNED", "DEMAND-STATEMENT"]; checks = [{ document = #other("demand"); check = "DEMAND-SIGNED"; passed = true; finding = "" }, { document = #other("demand"); check = "DEMAND-STATEMENT"; passed = true; finding = "" }]; decision = #complying }),
+  #payDemand({ instrument = 901; claim = 1; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #reduceGuarantee({ instrument = 901; to = 50_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #releaseGuarantee({ instrument = 901; reason = "original returned by the beneficiary"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #registerCollection({ collection = { role = #collecting; terms = #DA({ tenorDays = 60 }); drawer = #external({ name = "SHANGHAI MACHINES"; bic = "BKCHCNBJ"; account = "" }); drawee = #party({ party = 7; account = 44 }); counterpartyBank = "BKCHCNBJ"; documents = [{ kind = #invoice; hash = segHash32 }, { kind = #transport; hash = segHash32 }]; instructions = "DELIVER DOCUMENTS AGAINST ACCEPTANCE"; commissionBps = 25; reference = "COL-2026-0001" }; amount = 40_000_00; currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #presentCollection({ instrument = 902; presentedOn = 20805 }),
+  #acceptCollection({ instrument = 902 }),
+  #payCollection({ instrument = 902; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #protestCollection({ instrument = 902; reason = "non-acceptance" }),
+  #returnCollection({ instrument = 902; reason = "drawee refused the documents"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #discountBill({ bill = { customer = 7; customerAccount = 44; acceptor = #external({ name = "SHANGHAI MACHINES"; bic = "BKCHCNBJ"; account = "" }); source = ?{ instrument = 900; claim = 1 }; discountBps = 800; recourse = true; reference = "BILL-2026-0001" }; face = 40_000_00; currency = "EGP"; maturity = 20865; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #rediscountBill({ instrument = 903; to = "CENTRAL BANK OF EGYPT"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #settleBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #dishonourBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #recordTradeMessage({ instrument = 900; kind = #mt(707); direction = #outgoing; hash = segHash32 }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -608,7 +637,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13 (the origination, facility and teller families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination, facility, teller and trade families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -682,6 +711,15 @@ let golden : [(Text, Text, Text)] = [
   ("closeTellerSession", "e25eb207c706813ca46380d50c0b86cb37c833c5831f9fd9a24b282f8210ee76", "4f133efa283e8a3c25abff5fe74dccd5ab34ed0c2392bde14ba31673d25c5743"),
   ("issueChequebook", "e0fd858b31026af5576158c7abf0de648fd1c1f723514073b7ad8a419d9b63e0", "642a2c1637270f7f49da23950d0691882f30d69336c3d9148cf08df4b7db0c87"),
   ("stopCheque", "dc737a2c61f6f69a667ba2e6e704e4300f337477be7051f791bb5a778930cfc2", "6cde2154b624063f9372e14440c37e1be7bca5ef632b0c1a4856c488f5a430dc"),
+  ("setTradePolicy", "9ee4ca9a9eaffd3071aa5fa338ae9489d5624d7e87fff4adc9ef002dd6ce7d14", "faa38de17c31b657b6523047b84ee9ba90216f6ba7a37ababe73fdc7118724ec"),
+  ("presentDocuments", "1da04817ac55ca0a6e0c463758388e757cdb1e30b808a4fe3731bcd4f3b88c8c", "92c325f503253c0950b1e05c544d7245022b21876ff46e5be3e232059d0c97b4"),
+  ("examinePresentation", "740be3fedc034b0386b48cdf67115a422ffaaed01b43a0eba2af1562b4ba657e", "66ceab88d00f8e28f51d4efd9cd525cf40fc3569d27a1c833d33d07c86d99f4d"),
+  ("waiveDiscrepancies", "4689f3f0ec25f4a2d3ff39259c1355d4ad8415182a87becfa44d19f8c6a7c12e", "ca70d448ea7768d2fa2846f2ec7601b8bdcb0722b9eb82112244d6f063491fb0"),
+  ("recordDemand", "25666786dd1bd83fcbd066539591992898545367c5d9abdfa6b541e3c3bbc9a3", "321d3e651668cc278e4878bf88348822d6f8f81eb7c11f6224dace459f4a419b"),
+  ("presentCollection", "7e4f6b6d7d71ace7fba6e469c256b5ac2012ba93f57cc216ab3a286f634cf5e5", "b4c544286bf42fde2115e0bf3b284fb08c6f62ca5781a6ace5dc5488dd13956b"),
+  ("acceptCollection", "40a6131efe35b5b6a73dfa28a8040fe5a5e1d9097399a59d0a36087aeadc445e", "13f543f756727256d561ff9b20b9329d8b18797f47c365d57e29c90e5b2bd824"),
+  ("protestCollection", "b4a1108e723fce4c7234595da8f419c9fdb42f73d4bb3d9e50ed2c0a04df535b", "e9912515ef288eae443854ff0f6ba2f22bed9d35726a9727ee6c81ed2c155671"),
+  ("recordTradeMessage", "8cdd9bfe344a0530b69249d7fdd3272d325e390856f69479f85583cea6e4414a", "2c45470fd959e5c9f40782cba1cc9ad3059bd2293a90cc3dc8456b8004ac2a15"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {

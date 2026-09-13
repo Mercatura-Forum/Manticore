@@ -704,7 +704,7 @@ class Reader(V.Reader):
     # ─── the end-of-day batch ──────────────────────────────────────────
 
     JOBS = {1: "accrual", 2: "charges", 3: "instalmentsDue", 4: "ageing", 5: "provisioning",
-            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities"}
+            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade"}
 
     def b_job(self):
         rank = self.nat()
@@ -1395,6 +1395,64 @@ class Reader(V.Reader):
             return {"payDraft": {"serial": self.text(), "to": self.cash_source(), **self.dates()}}
         if tag == 0x1D:
             return {"cancelDraft": {"serial": self.text(), "refundTo": self.nat(), **self.dates()}}
+        # trade finance (trade finance)
+        if tag == 0x67:
+            return {"setTradePolicy": self.trade_policy()}
+        if tag == 0x68:
+            return {"issueLetterOfCredit": {"lc": self.trade_lc(), "amount": self.nat(), "currency": self.text(), "expiry": self.nat(), "placeOfExpiry": self.text(), **self.dates()}}
+        if tag == 0x69:
+            return {"adviseLetterOfCredit": {"message": self.text(), "beneficiary": self.nat(), "beneficiaryAccount": self.nat(), "confirm": self.bool(),
+                                             "checklist": [(self.document_kind(), self.texts()) for _ in range(self.len16())], "commissionBps": self.nat(), "facility": self.opt_nat(), **self.dates()}}
+        if tag == 0x6A:
+            return {"amendLetterOfCredit": {"instrument": self.nat(), "amendment": self.trade_amendment(), **self.dates()}}
+        if tag == 0x6B:
+            return {"presentDocuments": {"instrument": self.nat(), "documents": self.document_refs(), "amount": self.nat(), "shipmentDate": self.opt_nat(), "presentedOn": self.nat()}}
+        if tag == 0x6C:
+            return {"examinePresentation": {"instrument": self.nat(), "claim": self.nat(), "checks": self.trade_checks(), "decision": self.trade_decision()}}
+        if tag == 0x6D:
+            return {"waiveDiscrepancies": {"instrument": self.nat(), "claim": self.nat(), "applicantConsentHash": self.blob()}}
+        if tag == 0x6E:
+            return {"honourPresentation": {"instrument": self.nat(), "claim": self.nat(), "honour": self.trade_honour(), **self.dates()}}
+        if tag == 0x6F:
+            return {"settleAcceptance": {"instrument": self.nat(), "claim": self.nat(), **self.dates()}}
+        if tag == 0x8A:
+            return {"closeLetterOfCredit": {"instrument": self.nat(), "reason": self.text(), **self.dates()}}
+        if tag == 0x8B:
+            return {"issueGuarantee": {"guarantee": self.trade_guarantee(), "amount": self.nat(), "currency": self.text(), "expiry": self.nat(), "wordingText": self.text(), **self.dates()}}
+        if tag == 0x8C:
+            return {"amendGuarantee": {"instrument": self.nat(), "amendment": self.trade_amendment(), **self.dates()}}
+        if tag == 0x8D:
+            return {"recordDemand": {"instrument": self.nat(), "demand": self.document_ref(), "amount": self.nat(), "supportingStatement": self.bool(), "presentedOn": self.nat()}}
+        if tag == 0x8E:
+            return {"examineDemand": {"instrument": self.nat(), "claim": self.nat(), "checklist": self.texts(), "checks": self.trade_checks(), "decision": self.trade_decision()}}
+        if tag == 0x8F:
+            return {"payDemand": {"instrument": self.nat(), "claim": self.nat(), **self.dates()}}
+        if tag == 0xB8:
+            return {"reduceGuarantee": {"instrument": self.nat(), "to": self.nat(), **self.dates()}}
+        if tag == 0xB9:
+            return {"releaseGuarantee": {"instrument": self.nat(), "reason": self.text(), **self.dates()}}
+        if tag == 0xBA:
+            return {"registerCollection": {"collection": self.trade_collection(), "amount": self.nat(), "currency": self.text(), **self.dates()}}
+        if tag == 0xBB:
+            return {"presentCollection": {"instrument": self.nat(), "presentedOn": self.nat()}}
+        if tag == 0xBC:
+            return {"acceptCollection": {"instrument": self.nat()}}
+        if tag == 0xBD:
+            return {"payCollection": {"instrument": self.nat(), **self.dates()}}
+        if tag == 0xBE:
+            return {"protestCollection": {"instrument": self.nat(), "reason": self.text()}}
+        if tag == 0xBF:
+            return {"returnCollection": {"instrument": self.nat(), "reason": self.text(), **self.dates()}}
+        if tag == 0x1E:
+            return {"discountBill": {"bill": self.trade_bill(), "face": self.nat(), "currency": self.text(), "maturity": self.nat(), **self.dates()}}
+        if tag == 0x1F:
+            return {"rediscountBill": {"instrument": self.nat(), "to": self.text(), **self.dates()}}
+        if tag == 0x2D:
+            return {"settleBill": {"instrument": self.nat(), **self.dates()}}
+        if tag == 0x2E:
+            return {"dishonourBill": {"instrument": self.nat(), **self.dates()}}
+        if tag == 0x2F:
+            return {"recordTradeMessage": {"instrument": self.nat(), "kind": self.trade_message_kind(), "direction": ["outgoing", "incoming"][self.byte()], "hash": self.blob()}}
         if tag == 0xD4:
             return {"openPacking": {"period": self.text()}}
         if tag == 0xD5:
@@ -1864,6 +1922,158 @@ class Reader(V.Reader):
             return {"facilityClosed": {"facility": self.nat(), "day": self.nat()}}
         raise ValueError(f"unknown facility event tag {t:#x}")
 
+    # ── trade finance (trade finance) ──
+    def trade_policy(self):
+        names = ["bic", "contingentLcs", "contingentGuarantees", "contingentCollections", "contingentContra", "marginDeposits", "unearnedCommission", "commissionIncome",
+                 "acceptancesPayable", "customersLiabilityAcceptances", "billsNegotiated", "billsDiscounted", "unearnedDiscount", "discountIncome", "billsRediscounted", "billLosses", "nostro", "claimProduct"]
+        out = {n: self.text() for n in names}
+        out["examinationDays"] = self.nat()
+        return out
+
+    def trade_rules(self):
+        return ["UCP600", "ISP98", "URDG758", "URC522"][self.byte()]
+
+    def document_kind(self):
+        t = self.byte()
+        if t == 7:
+            return {"other": self.text()}
+        return ["invoice", "transport", "insurance", "origin", "packing", "inspection", "draft"][t]
+
+    def document_ref(self):
+        return {"kind": self.document_kind(), "hash": self.blob()}
+
+    def document_refs(self):
+        return [self.document_ref() for _ in range(self.len16())]
+
+    def trade_availability(self):
+        t = self.byte()
+        if t == 0:
+            return "sight"
+        if t == 3:
+            return "negotiation"
+        return {["deferred", "acceptance"][t - 1]: {"days": self.nat()}}
+
+    def trade_terms(self):
+        docs = [{"kind": self.document_kind(), "copies": self.nat(), "checks": self.texts()} for _ in range(self.len16())]
+        return {"documents": docs, "latestShipment": self.opt_nat(), "presentationDays": self.nat(), "partialShipments": self.bool(), "transhipment": self.bool(),
+                "incoterm": self.opt_text(), "availableBy": self.trade_availability(), "portOfLoading": self.text(), "portOfDischarge": self.text(), "goods": self.text()}
+
+    def counterparty(self):
+        t = self.byte()
+        if t == 0:
+            return {"party": {"party": self.nat(), "account": self.nat()}}
+        return {"external": {"name": self.text(), "bic": self.text(), "account": self.text()}}
+
+    def trade_lc(self):
+        return {"role": ["issuing", "advising", "confirming"][self.byte()], "applicant": self.counterparty(), "beneficiary": self.counterparty(), "counterpartyBank": self.text(),
+                "terms": self.trade_terms(), "tolerance": self.opt_nat(), "marginBps": self.nat(), "facility": self.opt_nat(), "commissionBps": self.nat(), "reference": self.text()}
+
+    def trade_guarantee(self):
+        kind = ["standby", "demandGuarantee", "counterGuarantee"][self.byte()]
+        rules = self.trade_rules()
+        out = {"kind": kind, "rules": rules, "principal": self.nat(), "principalAccount": self.nat(), "beneficiary": self.counterparty(), "counterpartyBank": self.text(),
+               "wording": self.blob(), "statementRequired": self.bool()}
+        out["reductions"] = self.pairs()
+        out.update({"marginBps": self.nat(), "facility": self.opt_nat(), "commissionBps": self.nat(), "reference": self.text()})
+        return out
+
+    def trade_collection(self):
+        role = ["remitting", "collecting"][self.byte()]
+        t = self.byte()
+        terms = "DP" if t == 0 else {"DA": {"tenorDays": self.nat()}}
+        return {"role": role, "terms": terms, "drawer": self.counterparty(), "drawee": self.counterparty(), "counterpartyBank": self.text(),
+                "documents": self.document_refs(), "instructions": self.text(), "commissionBps": self.nat(), "reference": self.text()}
+
+    def trade_bill(self):
+        out = {"customer": self.nat(), "customerAccount": self.nat(), "acceptor": self.counterparty()}
+        t = self.byte()
+        out["source"] = None if t == 0 else {"instrument": self.nat(), "claim": self.nat()}
+        out.update({"discountBps": self.nat(), "recourse": self.bool(), "reference": self.text()})
+        return out
+
+    def trade_checks(self):
+        return [{"document": self.document_kind(), "check": self.text(), "passed": self.bool(), "finding": self.text()} for _ in range(self.len16())]
+
+    def trade_decision(self):
+        t = self.byte()
+        if t == 0:
+            return "complying"
+        disc = self.texts()
+        return {"refuse": {"discrepancies": disc, "disposal": ["held", "returned", "heldPendingWaiver", "actingOnInstructions"][self.byte()]}}
+
+    def trade_honour(self):
+        t = self.byte()
+        if t == 0:
+            return "sight"
+        return {["deferred", "acceptance", "negotiation"][t - 1]: {"due": self.nat()}}
+
+    def trade_amendment(self):
+        out = {"amount": self.opt_nat(), "expiry": self.opt_nat(), "latestShipment": self.opt_nat(), "other": self.text()}
+        out["consents"] = [["beneficiary", "confirmingBank", "applicant", "issuingBank"][self.byte()] for _ in range(self.len16())]
+        return out
+
+    def trade_message_kind(self):
+        t = self.byte()
+        return {["mt", "tsrv"][t]: self.nat()}
+
+    def trade_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"policySet": self.trade_policy()}
+        if t == 0x02:
+            return {"lcIssued": {"lc": self.trade_lc(), "amount": self.nat(), "currency": self.text(), "expiry": self.nat(), "placeOfExpiry": self.text(), "margin": self.nat(), "commission": self.nat(), "book": self.text(), "day": self.nat()}}
+        if t == 0x03:
+            return {"lcAdvised": {"lc": self.trade_lc(), "amount": self.nat(), "currency": self.text(), "expiry": self.nat(), "placeOfExpiry": self.text(), "messageHash": self.blob(), "confirmed": self.bool(), "commission": self.nat(), "book": self.text(), "day": self.nat()}}
+        if t in (0x04, 0x0D):
+            return {["lcAmended", "guaranteeAmended"][t == 0x0D]: {"instrument": self.nat(), "amendment": self.trade_amendment(), "number": self.nat(), "amount": self.nat(), "expiry": self.nat(), "day": self.nat()}}
+        if t == 0x05:
+            return {"documentsPresented": {"instrument": self.nat(), "claim": self.nat(), "documents": self.document_refs(), "amount": self.nat(), "shipmentDate": self.opt_nat(), "presentedOn": self.nat(), "deadline": self.nat(), "day": self.nat()}}
+        if t in (0x06, 0x0F):
+            return {["presentationExamined", "demandExamined"][t == 0x0F]: {"instrument": self.nat(), "claim": self.nat(), "checks": self.trade_checks(), "decision": self.trade_decision(), "day": self.nat()}}
+        if t == 0x07:
+            return {"discrepanciesWaived": {"instrument": self.nat(), "claim": self.nat(), "applicantConsentHash": self.blob(), "day": self.nat()}}
+        if t == 0x08:
+            return {"presentationHonoured": {"instrument": self.nat(), "claim": self.nat(), "amount": self.nat(), "honour": self.trade_honour(), "fromMargin": self.nat(), "day": self.nat()}}
+        if t == 0x09:
+            return {"acceptanceMatured": {"instrument": self.nat(), "claim": self.nat(), "amount": self.nat(), "fromMargin": self.nat(), "day": self.nat()}}
+        if t in (0x0A, 0x12):
+            return {["lcClosed", "guaranteeReleased"][t == 0x12]: {"instrument": self.nat(), "reason": self.text(), "marginReleased": self.nat(), "day": self.nat()}}
+        if t in (0x0B, 0x13):
+            return {["lcExpired", "guaranteeExpired"][t == 0x13]: {"instrument": self.nat(), "expiry": self.nat(), "marginReleased": self.nat(), "day": self.nat()}}
+        if t == 0x0C:
+            return {"guaranteeIssued": {"guarantee": self.trade_guarantee(), "wordingText": self.text(), "amount": self.nat(), "currency": self.text(), "expiry": self.nat(), "margin": self.nat(), "commission": self.nat(), "book": self.text(), "day": self.nat()}}
+        if t == 0x0E:
+            return {"demandRecorded": {"instrument": self.nat(), "claim": self.nat(), "demand": self.document_ref(), "amount": self.nat(), "supportingStatement": self.bool(), "presentedOn": self.nat(), "deadline": self.nat(), "day": self.nat()}}
+        if t == 0x10:
+            return {"demandPaid": {"instrument": self.nat(), "claim": self.nat(), "amount": self.nat(), "fromMargin": self.nat(), "fromAccount": self.nat(), "claimAccount": self.opt_nat(), "day": self.nat()}}
+        if t == 0x11:
+            return {"guaranteeReduced": {"instrument": self.nat(), "from": self.nat(), "to": self.nat(), "day": self.nat()}}
+        if t == 0x14:
+            return {"collectionRegistered": {"collection": self.trade_collection(), "amount": self.nat(), "currency": self.text(), "book": self.text(), "day": self.nat()}}
+        if t == 0x15:
+            return {"collectionPresented": {"instrument": self.nat(), "claim": self.nat(), "presentedOn": self.nat(), "day": self.nat()}}
+        if t == 0x16:
+            return {"collectionAccepted": {"instrument": self.nat(), "claim": self.nat(), "maturity": self.nat(), "day": self.nat()}}
+        if t == 0x17:
+            return {"collectionPaid": {"instrument": self.nat(), "claim": self.nat(), "amount": self.nat(), "commission": self.nat(), "day": self.nat()}}
+        if t == 0x18:
+            return {"collectionProtested": {"instrument": self.nat(), "claim": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x19:
+            return {"collectionReturned": {"instrument": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x1A:
+            return {"billDiscounted": {"bill": self.trade_bill(), "face": self.nat(), "currency": self.text(), "maturity": self.nat(), "discount": self.nat(), "proceeds": self.nat(), "book": self.text(), "day": self.nat()}}
+        if t == 0x1B:
+            return {"billRediscounted": {"instrument": self.nat(), "to": self.text(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x1C:
+            return {"billMatured": {"instrument": self.nat(), "face": self.nat(), "day": self.nat()}}
+        if t == 0x1D:
+            return {"billDishonoured": {"instrument": self.nat(), "face": self.nat(), "chargedBack": self.nat(), "day": self.nat()}}
+        if t == 0x1E:
+            return {"tradeMessageRecorded": {"instrument": self.nat(), "seq": self.nat(), "kind": self.trade_message_kind(), "direction": ["outgoing", "incoming"][self.byte()], "hash": self.blob(), "day": self.nat()}}
+        if t in (0x1F, 0x20):
+            return {["commissionEarned", "discountEarned"][t == 0x20]: {"instrument": self.nat(), "amount": self.nat(), "cumulative": self.nat(), "day": self.nat()}}
+        raise ValueError(f"unknown trade event tag {t:#x}")
+
     # ── branch and teller (branch and teller) ──
     def denominations(self):
         return {"notes": self.pairs(), "coins": self.pairs()}
@@ -2265,6 +2475,8 @@ class Reader(V.Reader):
             return {"facility": self.facility_event()}
         if tag == 0x52:
             return {"teller": self.teller_event()}
+        if tag == 0x53:
+            return {"trade": self.trade_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:

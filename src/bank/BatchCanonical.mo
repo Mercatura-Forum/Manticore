@@ -16,7 +16,7 @@ module {
       case (?1) ?#accrual; case (?2) ?#charges; case (?3) ?#instalmentsDue;
       case (?4) ?#ageing; case (?5) ?#provisioning; case (?6) ?#maturity;
       case (?7) ?#standingInstructions; case (?8) ?#statementCut; case (?9) ?#tillCheck;
-      case (?10) ?#monitoring; case (?11) ?#offerExpiry; case (?12) ?#facilities;
+      case (?10) ?#monitoring; case (?11) ?#offerExpiry; case (?12) ?#facilities; case (?13) ?#trade;
       case (_) null;
     }
   };

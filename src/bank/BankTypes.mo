@@ -30,6 +30,7 @@ import ColT "CollectionsTypes";
 import OT "OriginationTypes";
 import FaT "FacilityTypes";
 import TeT "TellerTypes";
+import TrT "TradeTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -461,6 +462,35 @@ module {
     #issueDraft : { serial : Text; payeeCommit : PT.Commitment; amount : Nat; currency : JT.Currency; source : TeT.CashSource; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     #payDraft : { serial : Text; to : TeT.CashSource; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     #cancelDraft : { serial : Text; refundTo : ProdT.AccountId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    // ── trade finance trade finance: documentary credits, undertakings, collections, bills, and the messages exchanged ──
+    #setTradePolicy : TrT.Policy;
+    #issueLetterOfCredit : { lc : TrT.LetterOfCredit; amount : Nat; currency : JT.Currency; expiry : Day; placeOfExpiry : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #adviseLetterOfCredit : { message : Text; beneficiary : PT.PartyId; beneficiaryAccount : ProdT.AccountId; confirm : Bool; checklist : [(TrT.DocumentKind, [Text])]; commissionBps : Nat; facility : ?Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #amendLetterOfCredit : { instrument : TrT.InstrumentId; amendment : TrT.Amendment; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #presentDocuments : { instrument : TrT.InstrumentId; documents : [TrT.DocumentRef]; amount : Nat; shipmentDate : ?Day; presentedOn : Day };
+    #examinePresentation : { instrument : TrT.InstrumentId; claim : TrT.ClaimSeq; checks : [TrT.CheckResult]; decision : TrT.Decision };
+    #waiveDiscrepancies : { instrument : TrT.InstrumentId; claim : TrT.ClaimSeq; applicantConsentHash : Blob };
+    #honourPresentation : { instrument : TrT.InstrumentId; claim : TrT.ClaimSeq; honour : TrT.Honour; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #settleAcceptance : { instrument : TrT.InstrumentId; claim : TrT.ClaimSeq; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #closeLetterOfCredit : { instrument : TrT.InstrumentId; reason : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #issueGuarantee : { guarantee : TrT.Guarantee; amount : Nat; currency : JT.Currency; expiry : Day; wordingText : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #amendGuarantee : { instrument : TrT.InstrumentId; amendment : TrT.Amendment; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordDemand : { instrument : TrT.InstrumentId; demand : TrT.DocumentRef; amount : Nat; supportingStatement : Bool; presentedOn : Day };
+    #examineDemand : { instrument : TrT.InstrumentId; claim : TrT.ClaimSeq; checklist : [Text]; checks : [TrT.CheckResult]; decision : TrT.Decision };
+    #payDemand : { instrument : TrT.InstrumentId; claim : TrT.ClaimSeq; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #reduceGuarantee : { instrument : TrT.InstrumentId; to : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #releaseGuarantee : { instrument : TrT.InstrumentId; reason : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #registerCollection : { collection : TrT.Collection; amount : Nat; currency : JT.Currency; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #presentCollection : { instrument : TrT.InstrumentId; presentedOn : Day };
+    #acceptCollection : { instrument : TrT.InstrumentId };
+    #payCollection : { instrument : TrT.InstrumentId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #protestCollection : { instrument : TrT.InstrumentId; reason : Text };
+    #returnCollection : { instrument : TrT.InstrumentId; reason : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #discountBill : { bill : TrT.Bill; face : Nat; currency : JT.Currency; maturity : Day; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #rediscountBill : { instrument : TrT.InstrumentId; to : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #settleBill : { instrument : TrT.InstrumentId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #dishonourBill : { instrument : TrT.InstrumentId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordTradeMessage : { instrument : TrT.InstrumentId; kind : TrT.MessageKind; direction : TrT.Direction; hash : Blob };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -572,6 +602,7 @@ module {
     #facility : FaT.FacilityEvent;
     /// Branch and teller: counted cash, sessions, the cash network, cheques and drafts (branch and teller).
     #teller : TeT.TellerEvent;
+    #trade : TrT.TradeEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -701,6 +732,7 @@ module {
     #OriginationError : { error : OT.OriginationError };
     #FacilityError : { error : FaT.FacilityError };
     #TellerError : { error : TeT.TellerError };
+    #TradeError : { error : TrT.TradeError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };

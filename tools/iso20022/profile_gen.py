@@ -41,6 +41,9 @@ FAMILIES = [
     ("camt.027.001.07", "CAMT_027"), ("camt.028.001.09", "CAMT_028"), ("camt.087.001.06", "CAMT_087"),
     ("admi.006.001.01", "ADMI_006"), ("admi.007.001.01", "ADMI_007"), ("admi.017.001.01", "ADMI_017"),
     ("head.002.001.01", "HEAD_002"),
+    # trade finance trade finance: the trade-services undertakings family — issuance, amendment, demand, demand refusal,
+    # termination (the MT 760 / 767 / 765 / 786 / 769 successors)
+    ("tsrv.001.001.01", "TSRV_001"), ("tsrv.005.001.01", "TSRV_005"), ("tsrv.013.001.01", "TSRV_013"), ("tsrv.016.001.01", "TSRV_016"), ("tsrv.012.001.01", "TSRV_012"),
 ]
 BASES = {"xs:string": "string", "xs:decimal": "decimal", "xs:boolean": "boolean", "xs:date": "date",
          "xs:dateTime": "dateTime", "xs:time": "time", "xs:gYearMonth": "yearMonth", "xs:gYear": "year", "xs:base64Binary": "base64Binary"}
@@ -80,6 +83,7 @@ def load(path):
                 v = f.attrib["value"]
                 if ft == "minLength": t["minLength"] = int(v)
                 elif ft == "maxLength": t["maxLength"] = int(v)
+                elif ft == "length": t["minLength"] = int(v); t["maxLength"] = int(v)   # the trade-services code lists (tsrv) fix the length
                 elif ft == "pattern":
                     if t["pattern"] is not None: fail(f"{path}: two patterns on {name}")
                     t["pattern"] = v
@@ -95,6 +99,11 @@ def load(path):
                 fail(f"{path}: complexType {name} has {len(kids)} children")
             body = kids[0]
             bt = body.tag.replace(XS, "")
+            # the 2013-era trade-services schemas (tsrv) write a bare choice as a sequence whose only particle is
+            # the choice: the same content model, unwrapped here
+            if bt == "sequence" and len(list(body)) == 1 and list(body)[0].tag == XS + "choice" \
+               and not body.attrib.get("minOccurs") and not body.attrib.get("maxOccurs"):
+                body = list(body)[0]; bt = "choice"
             if bt in ("sequence", "choice"):
                 if body.attrib.get("minOccurs") or body.attrib.get("maxOccurs"):
                     fail(f"{path}: {name}: occurrence on the {bt} itself")

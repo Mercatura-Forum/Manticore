@@ -251,12 +251,12 @@ let commands : [T.Command] = [
   // ── indexing and bounded queries ──
   #setCounterpartyClassDimension({ dimension = ?{ schema = "thebes.party"; field = "sector" } }),
   // ── archive contracts ──
-  #pinArchiveImage({ sha256 = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56"; bytes = 182; name = "archive-child" }),
+  #pinArchiveImage({ sha256 = segHash32; bytes = 182; name = "archive-child" }),
   #setArchiveControllers({ controllers = [Principal.fromBlob("\6E\3E\78\13"), Principal.fromBlob("\7A\01")] }),
   #spawnArchive({ purpose = "2026-09 postings" }),
   #abandonArchiveSpawn({ spawn = 41; reason = "the create was rejected" }),
   #attachArchiveChild({ spawn = 42; cid = 1_000_001 : Nat64 }),
-  #adoptArchiveChild({ cid = 1_000_007 : Nat64; moduleHash = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56"; controllers = [Principal.fromBlob("\6E\3E\78\13")]; purpose = "operator-deployed" }),
+  #adoptArchiveChild({ cid = 1_000_007 : Nat64; moduleHash = segHash32; controllers = [Principal.fromBlob("\6E\3E\78\13")]; purpose = "operator-deployed" }),
   // ── monitoring: the closed rule set ──
   #defineMonitoringRule({ id = "structuring-egp"; currency = ?"EGP"; spec = #structuring({ threshold = 500_000_00; bandPercent = 10; count = 3; windowDays = 7; maxScan = 2_000 }) }),
   #retireMonitoringRule({ id = "structuring-egp" }),
@@ -324,6 +324,35 @@ let commands : [T.Command] = [
   #issueDraft({ serial = "D-0001"; payeeCommit = segHash32; amount = 3_000_00; currency = "EGP"; source = #account(44); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
   #payDraft({ serial = "D-0001"; to = #till("T1"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
   #cancelDraft({ serial = "D-0002"; refundTo = 44; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  // trade finance (trade finance)
+  #setTradePolicy({ bic = "THEBEGCX"; contingentLcs = "9101"; contingentGuarantees = "9102"; contingentCollections = "9103"; contingentContra = "9199"; marginDeposits = "2320"; unearnedCommission = "2330"; commissionIncome = "4310"; acceptancesPayable = "2340"; customersLiabilityAcceptances = "1310"; billsNegotiated = "1320"; billsDiscounted = "1330"; unearnedDiscount = "2350"; discountIncome = "4320"; billsRediscounted = "2360"; billLosses = "5310"; nostro = "1005"; claimProduct = "CLAIM"; examinationDays = 5 }),
+  #issueLetterOfCredit({ lc = { role = #issuing; applicant = #party({ party = 7; account = 44 }); beneficiary = #external({ name = "NORDIC TEXTILES AB"; bic = "NDEASESS"; account = "SE4550000000058398257466" }); counterpartyBank = "NDEASESS"; terms = { documents = [{ kind = #invoice; copies = 3; checks = ["INV-AMOUNT", "INV-GOODS"] }, { kind = #transport; copies = 1; checks = ["TRANS-ONBOARD", "TRANS-PORTS"] }]; latestShipment = ?20800; presentationDays = 21; partialShipments = false; transhipment = true; incoterm = ?"CIF"; availableBy = #sight; portOfLoading = "ALEXANDRIA"; portOfDischarge = "ROTTERDAM"; goods = "COTTON YARN 20 TONNES" }; tolerance = ?500; marginBps = 2_000; facility = null; commissionBps = 150; reference = "LC-2026-0001" }; amount = 100_000_00; currency = "EGP"; expiry = 20900; placeOfExpiry = "CAIRO"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #adviseLetterOfCredit({ message = "{1:F01NDEASESSXXXX0000000000}{2:I700THEBEGCXXXXXN}{4:\n:27:1/1\n:40A:IRREVOCABLE\n:20:NDEA-77\n:31C:260901\n:40E:UCP LATEST VERSION\n:31D:261130STOCKHOLM\n:50:NORDIC TEXTILES AB\n:59:/44\nCUSTOMER 7\n:32B:EGP250000,00\n:41A:THEBEGCX\nBY PAYMENT\n:43P:NOT ALLOWED\n:43T:ALLOWED\n:44E:ALEXANDRIA\n:44F:GOTHENBURG\n:44C:261101\n:45A:COTTON YARN\n:46A:+SIGNED COMMERCIAL INVOICE IN 3 ORIGINALS\n+FULL SET CLEAN ON BOARD TRANSPORT DOCUMENT IN 1 ORIGINAL\n:48:21/DAYS FROM SHIPMENT DATE\n:49:CONFIRM\n-}"; beneficiary = 7; beneficiaryAccount = 44; confirm = true; checklist = [(#invoice, ["INV-AMOUNT"]), (#transport, ["TRANS-ONBOARD"])]; commissionBps = 100; facility = null; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #amendLetterOfCredit({ instrument = 900; amendment = { amount = ?120_000_00; expiry = ?20950; latestShipment = null; other = ""; consents = [#beneficiary, #applicant] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #presentDocuments({ instrument = 900; documents = [{ kind = #invoice; hash = segHash32 }, { kind = #transport; hash = segHash32 }]; amount = 60_000_00; shipmentDate = ?20790; presentedOn = 20800 }),
+  #examinePresentation({ instrument = 900; claim = 1; checks = [{ document = #invoice; check = "INV-AMOUNT"; passed = true; finding = "" }, { document = #invoice; check = "INV-GOODS"; passed = false; finding = "goods description differs from the credit" }, { document = #transport; check = "TRANS-ONBOARD"; passed = true; finding = "" }, { document = #transport; check = "TRANS-PORTS"; passed = true; finding = "" }]; decision = #refuse({ discrepancies = ["INV-GOODS"]; disposal = #heldPendingWaiver }) }),
+  #waiveDiscrepancies({ instrument = 900; claim = 1; applicantConsentHash = segHash32 }),
+  #honourPresentation({ instrument = 900; claim = 1; honour = #sight; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #settleAcceptance({ instrument = 900; claim = 2; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #closeLetterOfCredit({ instrument = 900; reason = "fully utilised"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #issueGuarantee({ guarantee = { kind = #demandGuarantee; rules = #URDG758; principal = 7; principalAccount = 44; beneficiary = #external({ name = "PORT AUTHORITY"; bic = "CIBEEGCX"; account = "" }); counterpartyBank = ""; wording = segHash32; statementRequired = true; reductions = [(20850, 60_000_00)]; marginBps = 1_000; facility = null; commissionBps = 100; reference = "GT-2026-0001" }; amount = 80_000_00; currency = "EGP"; expiry = 20900; wordingText = "WE HEREBY UNDERTAKE TO PAY"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #amendGuarantee({ instrument = 901; amendment = { amount = null; expiry = ?20960; latestShipment = null; other = "EXTENDED"; consents = [#beneficiary] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #recordDemand({ instrument = 901; demand = { kind = #other("demand"); hash = segHash32 }; amount = 30_000_00; supportingStatement = true; presentedOn = 20810 }),
+  #examineDemand({ instrument = 901; claim = 1; checklist = ["DEMAND-SIGNED", "DEMAND-STATEMENT"]; checks = [{ document = #other("demand"); check = "DEMAND-SIGNED"; passed = true; finding = "" }, { document = #other("demand"); check = "DEMAND-STATEMENT"; passed = true; finding = "" }]; decision = #complying }),
+  #payDemand({ instrument = 901; claim = 1; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #reduceGuarantee({ instrument = 901; to = 50_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #releaseGuarantee({ instrument = 901; reason = "original returned by the beneficiary"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #registerCollection({ collection = { role = #collecting; terms = #DA({ tenorDays = 60 }); drawer = #external({ name = "SHANGHAI MACHINES"; bic = "BKCHCNBJ"; account = "" }); drawee = #party({ party = 7; account = 44 }); counterpartyBank = "BKCHCNBJ"; documents = [{ kind = #invoice; hash = segHash32 }, { kind = #transport; hash = segHash32 }]; instructions = "DELIVER DOCUMENTS AGAINST ACCEPTANCE"; commissionBps = 25; reference = "COL-2026-0001" }; amount = 40_000_00; currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #presentCollection({ instrument = 902; presentedOn = 20805 }),
+  #acceptCollection({ instrument = 902 }),
+  #payCollection({ instrument = 902; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #protestCollection({ instrument = 902; reason = "non-acceptance" }),
+  #returnCollection({ instrument = 902; reason = "drawee refused the documents"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #discountBill({ bill = { customer = 7; customerAccount = 44; acceptor = #external({ name = "SHANGHAI MACHINES"; bic = "BKCHCNBJ"; account = "" }); source = ?{ instrument = 900; claim = 1 }; discountBps = 800; recourse = true; reference = "BILL-2026-0001" }; face = 40_000_00; currency = "EGP"; maturity = 20865; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #rediscountBill({ instrument = 903; to = "CENTRAL BANK OF EGYPT"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #settleBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #dishonourBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
+  #recordTradeMessage({ instrument = 900; kind = #mt(707); direction = #outgoing; hash = segHash32 }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -391,7 +420,7 @@ Debug.print("count: catalogue entries guarding a command = " # Nat.toText(comman
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
 assert (methodEntries == 21);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending)
-assert (commandEntries == 205);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller)
+assert (commandEntries == 233);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();

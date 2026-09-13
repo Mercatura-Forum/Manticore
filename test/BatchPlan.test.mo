@@ -46,7 +46,7 @@ let portfolio = [
 ];
 
 func input(shardSize : Nat) : Batch.Input {
-  { products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; shardSize }
+  { products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; trade = 0; shardSize }
 };
 
 func planOf(shardSize : Nat) : [Batch.PlanItem] {
@@ -106,7 +106,7 @@ for (j in Batch.jobs().vals()) {
   rank += 1;
 };
 Debug.print("count: jobs in the declared order = " # Nat.toText(Batch.jobs().size()));
-assert (Batch.jobs().size() == 12);
+assert (Batch.jobs().size() == 13);
 
 // accrual is first and the till check is the last posting job, because the first must precede
 // anything that reads accrued interest and the till check is the one that blocks a close;
@@ -117,10 +117,11 @@ assert (Batch.jobRank(#tillCheck) == 9);
 assert (Batch.jobRank(#monitoring) == 10);
 assert (Batch.jobRank(#offerExpiry) == 11);
 assert (Batch.jobRank(#facilities) == 12);
+assert (Batch.jobRank(#trade) == 13);
 assert (Batch.jobRank(#charges) > Batch.jobRank(#accrual));
 assert (Batch.jobRank(#ageing) > Batch.jobRank(#instalmentsDue));
 assert (Batch.jobRank(#provisioning) > Batch.jobRank(#ageing));
-Debug.print("count: job dependency orderings asserted = 6");
+Debug.print("count: job dependency orderings asserted = 7");
 
 // ─── 3. E1's arithmetic half: the shard size changes items, not entities ────
 
@@ -169,7 +170,7 @@ for (job in Batch.jobs().vals()) {
   jobChecks += 1;
 };
 Debug.print("count: jobs whose coverage is shard-size independent = " # Nat.toText(jobChecks));
-assert (jobChecks == 12);
+assert (jobChecks == 13);
 
 // the per-account jobs cover exactly the accounts of the products they apply to
 let accrualItems = coverage(p128, #accrual);
@@ -186,16 +187,21 @@ let instructionItems = coverage(p128, #standingInstructions);
 assert (instructionItems == 17);
 assert (coverage(p128, #tillCheck) == 1);
 assert (coverage(p128, #offerExpiry) == 0);         // no offers stand: no expiry item, so a book without origination plans as before
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 5; facilities = 0; shardSize = 128 })) {
+switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 5; facilities = 0; trade = 0; shardSize = 128 })) {
   case (#ok(withOffers)) { assert (coverage(withOffers, #offerExpiry) == 1); assert (withOffers.size() == p128.size() + 1) };
   case (#err(e)) { Debug.print(debug_show (e)); assert false };
 };
 assert (coverage(p128, #facilities) == 0);
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 3; shardSize = 128 })) {
+switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 3; trade = 0; shardSize = 128 })) {
   case (#ok(withFacilities)) { assert (coverage(withFacilities, #facilities) == 1); assert (withFacilities.size() == p128.size() + 1) };
   case (#err(e)) { Debug.print(debug_show (e)); assert false };
 };
-Debug.print("count: per-job coverage figures asserted = 11");
+assert (coverage(p128, #trade) == 0);
+switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; trade = 4; shardSize = 128 })) {
+  case (#ok(withTrade)) { assert (coverage(withTrade, #trade) == 1); assert (withTrade.size() == p128.size() + 1) };
+  case (#err(e)) { Debug.print(debug_show (e)); assert false };
+};
+Debug.print("count: per-job coverage figures asserted = 13");
 
 // ─── 4. what a plan refuses ─────────────────────────────────────────────────
 
@@ -209,7 +215,7 @@ for (bad in [0, Batch.MAX_SHARD_SIZE + 1].vals()) {
 // a portfolio large enough to exceed the item bound at shard size 1
 let huge = Array.tabulate<{ product : Text; currency : JT.Currency; accounts : Nat; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>(
   30, func(k) { product("P" # Nat.toText(k), "EGP", 1_000, true, true, true, true) });
-switch (Batch.plan({ products = huge; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; shardSize = 1 })) {
+switch (Batch.plan({ products = huge; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; trade = 0; shardSize = 1 })) {
   case (#err(#planTooLarge(d))) { assert (d.items > Batch.MAX_PLAN_ITEMS); planRefusals += 1 };
   case (other) { Debug.print(debug_show (other)); assert false };
 };
@@ -217,12 +223,12 @@ Debug.print("count: plans refused = " # Nat.toText(planRefusals));
 assert (planRefusals == 3);
 
 // an empty portfolio plans nothing at all, rather than an empty shard nobody notices
-switch (Batch.plan({ products = []; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; shardSize = 128 })) {
+switch (Batch.plan({ products = []; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; trade = 0; shardSize = 128 })) {
   case (#ok(items)) { assert (items.size() == 0); assert (Batch.entityCount(items) == 0) };
   case (#err(e)) { Debug.print(debug_show (e)); assert false };
 };
 // a product with no accounts contributes no shard, and no accrual item either
-switch (Batch.plan({ products = [product("EMPTY", "EGP", 0, true, true, true, true)]; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; shardSize = 128 })) {
+switch (Batch.plan({ products = [product("EMPTY", "EGP", 0, true, true, true, true)]; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; trade = 0; shardSize = 128 })) {
   case (#ok(items)) { assert (items.size() == 0) };
   case (#err(e)) { Debug.print(debug_show (e)); assert false };
 };

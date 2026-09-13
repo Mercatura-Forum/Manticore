@@ -307,6 +307,36 @@ module {
     p("draft.issue", "draft", #create, #command("issueDraft"), true, true),
     p("draft.pay", "draft", #update, #command("payDraft"), true, true),
     p("draft.cancel", "draft", #reverse, #command("cancelDraft"), true, true),
+    // trade finance trade finance: the acts that create or move an undertaking, pay or take money are dual; recording a
+    // presentation, a demand, an examination, an acceptance, a protest or a message is the officer's own act
+    p("trade.policy", "trade", #update, #command("setTradePolicy"), false, true),
+    p("trade.lc.issue", "trade", #create, #command("issueLetterOfCredit"), true, true),
+    p("trade.lc.advise", "trade", #create, #command("adviseLetterOfCredit"), true, true),
+    p("trade.lc.amend", "trade", #update, #command("amendLetterOfCredit"), true, true),
+    p("trade.lc.present", "trade", #create, #command("presentDocuments"), false, false),
+    p("trade.lc.examine", "trade", #approve, #command("examinePresentation"), false, false),
+    p("trade.lc.waive", "trade", #approve, #command("waiveDiscrepancies"), false, true),
+    p("trade.lc.honour", "trade", #update, #command("honourPresentation"), true, true),
+    p("trade.lc.settle", "trade", #update, #command("settleAcceptance"), true, true),
+    p("trade.lc.close", "trade", #close, #command("closeLetterOfCredit"), true, true),
+    p("trade.guarantee.issue", "trade", #create, #command("issueGuarantee"), true, true),
+    p("trade.guarantee.amend", "trade", #update, #command("amendGuarantee"), true, true),
+    p("trade.guarantee.demand.record", "trade", #create, #command("recordDemand"), false, false),
+    p("trade.guarantee.demand.examine", "trade", #approve, #command("examineDemand"), false, false),
+    p("trade.guarantee.pay", "trade", #update, #command("payDemand"), true, true),
+    p("trade.guarantee.reduce", "trade", #update, #command("reduceGuarantee"), true, true),
+    p("trade.guarantee.release", "trade", #close, #command("releaseGuarantee"), true, true),
+    p("trade.collection.register", "trade", #create, #command("registerCollection"), true, true),
+    p("trade.collection.present", "trade", #update, #command("presentCollection"), false, false),
+    p("trade.collection.accept", "trade", #update, #command("acceptCollection"), false, false),
+    p("trade.collection.pay", "trade", #update, #command("payCollection"), true, true),
+    p("trade.collection.protest", "trade", #reject, #command("protestCollection"), false, false),
+    p("trade.collection.return", "trade", #close, #command("returnCollection"), true, true),
+    p("trade.bill.discount", "trade", #create, #command("discountBill"), true, true),
+    p("trade.bill.rediscount", "trade", #update, #command("rediscountBill"), true, true),
+    p("trade.bill.settle", "trade", #update, #command("settleBill"), true, true),
+    p("trade.bill.dishonour", "trade", #reverse, #command("dishonourBill"), true, true),
+    p("trade.message.record", "trade", #create, #command("recordTradeMessage"), false, false),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -634,6 +664,34 @@ module {
       case (#revokeDebitAuthority(_)) "revokeDebitAuthority";
       case (#decideMandate(_)) "decideMandate";
       case (#declareFspiopParticipant(_)) "declareFspiopParticipant";
+      case (#setTradePolicy(_)) "setTradePolicy";
+      case (#issueLetterOfCredit(_)) "issueLetterOfCredit";
+      case (#adviseLetterOfCredit(_)) "adviseLetterOfCredit";
+      case (#amendLetterOfCredit(_)) "amendLetterOfCredit";
+      case (#presentDocuments(_)) "presentDocuments";
+      case (#examinePresentation(_)) "examinePresentation";
+      case (#waiveDiscrepancies(_)) "waiveDiscrepancies";
+      case (#honourPresentation(_)) "honourPresentation";
+      case (#settleAcceptance(_)) "settleAcceptance";
+      case (#closeLetterOfCredit(_)) "closeLetterOfCredit";
+      case (#issueGuarantee(_)) "issueGuarantee";
+      case (#amendGuarantee(_)) "amendGuarantee";
+      case (#recordDemand(_)) "recordDemand";
+      case (#examineDemand(_)) "examineDemand";
+      case (#payDemand(_)) "payDemand";
+      case (#reduceGuarantee(_)) "reduceGuarantee";
+      case (#releaseGuarantee(_)) "releaseGuarantee";
+      case (#registerCollection(_)) "registerCollection";
+      case (#presentCollection(_)) "presentCollection";
+      case (#acceptCollection(_)) "acceptCollection";
+      case (#payCollection(_)) "payCollection";
+      case (#protestCollection(_)) "protestCollection";
+      case (#returnCollection(_)) "returnCollection";
+      case (#discountBill(_)) "discountBill";
+      case (#rediscountBill(_)) "rediscountBill";
+      case (#settleBill(_)) "settleBill";
+      case (#dishonourBill(_)) "dishonourBill";
+      case (#recordTradeMessage(_)) "recordTradeMessage";
     }
   };
 

@@ -105,6 +105,9 @@ import FacilityCore "FacilityCore";
 import FCan "FacilityCanonical";
 import TeT "TellerTypes";
 import TellerCore "TellerCore";
+import TrT "TradeTypes";
+import TradeCore "TradeCore";
+import TradeMessages "TradeMessages";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -208,6 +211,8 @@ module {
     /// Branch and teller (branch and teller): sessions, the denomination positions of tills and vaults, cash in transit, cheques
     /// and drafts. Rows in stable memory; every act is a block; every amount is the journal's.
     teller : TellerCore.State;
+    /// Trade finance (trade finance): documentary credits, undertakings, collections, bills, their claims and messages.
+    trade : TradeCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -278,6 +283,7 @@ module {
       origination = OriginationCore.newState(arena);
       facility = FacilityCore.newState(arena);
       teller = TellerCore.newState(arena);
+      trade = TradeCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -766,6 +772,16 @@ module {
       case (#dishonourReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
       case (#writeOffReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
       // the teller's money acts, in the till's, the account's or the movement's currency
+      // trade finance (trade finance): the instrument's currency, the face or the claim
+      case (#issueLetterOfCredit(x)) [(x.currency, x.amount)];
+      case (#issueGuarantee(x)) [(x.currency, x.amount)];
+      case (#registerCollection(x)) [(x.currency, x.amount)];
+      case (#discountBill(x)) [(x.currency, x.face)];
+      case (#amendLetterOfCredit(x) or #amendGuarantee(x)) { switch (TradeCore.row(bs.trade, x.instrument), x.amendment.amount) { case (?r, ?a) [(r.currency, if (a > r.amount) a - r.amount else r.amount - a)]; case (?r, null) [(r.currency, 0)]; case (_, _) [] } };
+      case (#honourPresentation(x) or #settleAcceptance(x) or #payDemand(x)) { switch (TradeCore.row(bs.trade, x.instrument), TradeCore.claim(bs.trade, x.instrument, x.claim)) { case (?r, ?c) [(r.currency, c.amount)]; case (_, _) [] } };
+      case (#closeLetterOfCredit(x) or #releaseGuarantee(x)) { switch (TradeCore.row(bs.trade, x.instrument)) { case (?r) [(r.currency, TradeCore.outstanding(r))]; case null [] } };
+      case (#reduceGuarantee(x)) { switch (TradeCore.row(bs.trade, x.instrument)) { case (?r) [(r.currency, if (r.amount > x.to) r.amount - x.to else 0)]; case null [] } };
+      case (#payCollection(x) or #returnCollection(x) or #rediscountBill(x) or #settleBill(x) or #dishonourBill(x)) { switch (TradeCore.row(bs.trade, x.instrument)) { case (?r) [(r.currency, r.amount)]; case null [] } };
       case (#cashDeposit(x)) tillTotals(bs, x.till, x.amount);
       case (#cashWithdrawal(x)) tillTotals(bs, x.till, x.amount);
       case (#vaultToTill(x)) tillTotals(bs, x.till, x.amount);
@@ -824,6 +840,11 @@ module {
       case (#presentCheque(x)) ?x.postingDate;
       case (#issueDraft(x)) ?x.postingDate;
       case (#payDraft(x)) ?x.postingDate;
+      case (#issueLetterOfCredit(x)) ?x.postingDate; case (#adviseLetterOfCredit(x)) ?x.postingDate; case (#amendLetterOfCredit(x)) ?x.postingDate;
+      case (#honourPresentation(x)) ?x.postingDate; case (#settleAcceptance(x)) ?x.postingDate; case (#closeLetterOfCredit(x)) ?x.postingDate;
+      case (#issueGuarantee(x)) ?x.postingDate; case (#amendGuarantee(x)) ?x.postingDate; case (#payDemand(x)) ?x.postingDate; case (#reduceGuarantee(x)) ?x.postingDate;
+      case (#releaseGuarantee(x)) ?x.postingDate; case (#registerCollection(x)) ?x.postingDate; case (#payCollection(x)) ?x.postingDate; case (#returnCollection(x)) ?x.postingDate;
+      case (#discountBill(x)) ?x.postingDate; case (#rediscountBill(x)) ?x.postingDate; case (#settleBill(x)) ?x.postingDate; case (#dishonourBill(x)) ?x.postingDate;
       case (#applyCharge(x)) ?x.postingDate;
       case (#waiveCharge(x)) ?x.postingDate;
       case (#postAccrual(x)) ?x.day;
@@ -968,10 +989,27 @@ module {
       case (#issueDraft(x)) { switch (x.source) { case (#till(id)) ProductCore.tillBookOf(bs.product, id); case (#account(id)) ProductCore.bookOf(bs.product, id) } };
       case (#payDraft(x)) { switch (x.to) { case (#till(id)) ProductCore.tillBookOf(bs.product, id); case (#account(id)) ProductCore.bookOf(bs.product, id) } };
       case (#cancelDraft(x)) ProductCore.bookOf(bs.product, x.refundTo);
+      // trade commands name an instrument (its book) or open one on a customer's account (the account's book)
+      case (#issueLetterOfCredit(x)) { switch (x.lc.applicant) { case (#party(p)) ProductCore.bookOf(bs.product, p.account); case (#external(_)) null } };
+      case (#adviseLetterOfCredit(x)) ProductCore.bookOf(bs.product, x.beneficiaryAccount);
+      case (#issueGuarantee(x)) ProductCore.bookOf(bs.product, x.guarantee.principalAccount);
+      case (#registerCollection(x)) { switch (x.collection.role, x.collection.drawer, x.collection.drawee) { case (#remitting, #party(p), _) ProductCore.bookOf(bs.product, p.account); case (#collecting, _, #party(p)) ProductCore.bookOf(bs.product, p.account); case (_, _, _) null } };
+      case (#discountBill(x)) ProductCore.bookOf(bs.product, x.bill.customerAccount);
+      case (#amendLetterOfCredit(x) or #amendGuarantee(x) or #closeLetterOfCredit(x) or #releaseGuarantee(x) or #reduceGuarantee(x) or #payCollection(x) or #returnCollection(x) or #rediscountBill(x) or #settleBill(x) or #dishonourBill(x) or #presentCollection(x) or #acceptCollection(x)) tradeBook(bs, x.instrument);
+      case (#protestCollection(x)) tradeBook(bs, x.instrument);
+      case (#presentDocuments(x)) tradeBook(bs, x.instrument);
+      case (#examinePresentation(x) or #examineDemand(x)) tradeBook(bs, x.instrument);
+      case (#waiveDiscrepancies(x)) tradeBook(bs, x.instrument);
+      case (#honourPresentation(x) or #settleAcceptance(x) or #payDemand(x)) tradeBook(bs, x.instrument);
+      case (#recordDemand(x)) tradeBook(bs, x.instrument);
+      case (#recordTradeMessage(x)) tradeBook(bs, x.instrument);
       case (other) E.commandBook(other);
     }
   };
 
+  func tradeBook(bs : State, id : TrT.InstrumentId) : ?T.BookId {
+    switch (TradeCore.row(bs.trade, id)) { case (?r) ?r.book; case null null }
+  };
   func facilityBook(bs : State, id : FaT.FacilityId) : ?T.BookId {
     switch (FacilityCore.row(bs.facility, id)) { case (?r) ?r.book; case null null }
   };
@@ -1376,6 +1414,10 @@ module {
     switch (plan.bankEvent) {
       case (?#teller(#cashDispatched(_))) List.add(introduced, TellerCore.transitSub(bs.height));
       case (?#teller(#draftIssued(d))) List.add(introduced, TellerCore.draftSub(d.serial));
+      case (?#trade(#lcIssued(_)) or ?#trade(#guaranteeIssued(_))) { List.add(introduced, TradeCore.marginSub(bs.height)); List.add(introduced, TradeCore.commissionSub(bs.height)) };
+      case (?#trade(#lcAdvised(_))) List.add(introduced, TradeCore.commissionSub(bs.height));
+      case (?#trade(#presentationHonoured(h))) List.add(introduced, TradeCore.acceptanceSub(h.instrument, h.claim));
+      case (?#trade(#billDiscounted(_))) List.add(introduced, TradeCore.billSub(bs.height));
       case (_) {};
     };
     let opened = List.toArray(introduced);
@@ -2197,7 +2239,7 @@ module {
         case (?sub) {
           // an account or a till of this shard, one of its books' vaults in the leg's currency, a facility's or a
           // participant's (corporate lending), or an account the same plan opens — the only sub-ledgers a shard's own postings name
-          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub);
+          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub);
           if (not held) { for (i in introduced.vals()) { if (i == sub) held := true } };
           if (not held) { for ((book, _) in Map.entries(bs.books)) { if (sub == Till.vaultSubledger(book, l.currency)) held := true } };
           if (not held) return ?#ShardError({ error = #NotRouted({ identifier = ""; reason = "the posting names a sub-ledger this shard does not hold" }) });
@@ -4641,6 +4683,11 @@ module {
           };
         }
       };
+      // ── trade finance (trade finance): planned in their own function so this switch stays under the chain's function-complexity bound ──
+      case (#setTradePolicy(_) or #issueLetterOfCredit(_) or #adviseLetterOfCredit(_) or #amendLetterOfCredit(_) or #presentDocuments(_) or #examinePresentation(_) or #waiveDiscrepancies(_)
+            or #honourPresentation(_) or #settleAcceptance(_) or #closeLetterOfCredit(_) or #issueGuarantee(_) or #amendGuarantee(_) or #recordDemand(_) or #examineDemand(_) or #payDemand(_)
+            or #reduceGuarantee(_) or #releaseGuarantee(_) or #registerCollection(_) or #presentCollection(_) or #acceptCollection(_) or #payCollection(_) or #protestCollection(_)
+            or #returnCollection(_) or #discountBill(_) or #rediscountBill(_) or #settleBill(_) or #dishonourBill(_) or #recordTradeMessage(_)) planTradeInner(bs, bb, js, journalCaller, now, command, authorityIndex, authId);
     }
   };
 
@@ -6310,6 +6357,7 @@ module {
       monitoringRules = MonitoringCore.active(bs.monitoring, #endOfDay).size();
       offers = OriginationCore.offeredInBook(bs.origination, book);
       facilities = FacilityCore.openInBook(bs.facility, book).size();
+      trade = TradeCore.openInBook(bs.trade, book).size();
       shardSize;
     }
   };
@@ -6627,6 +6675,7 @@ module {
       case (#monitoring) forShard(bs, bb, run, item, only, func(a) { jobMonitoring(bs, acc, item, index, day, a) });
       case (#offerExpiry) jobOfferExpiry(bs, acc, item, index, day, run.book, only);
       case (#facilities) jobFacilities(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
+      case (#trade) jobTrade(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
     };
   };
 
@@ -7338,6 +7387,632 @@ module {
   };
 
 
+  /// The trade book's commands (trade finance), planned apart from the main switch so that switch stays under the chain's
+  /// function-complexity bound.
+  func planTradeInner(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, command : T.Command, authorityIndex : Nat, authId : Text) : Result.Result<Plan, T.BankError> {
+    switch (command) {
+      // ── trade finance (trade finance) ──
+      case (#setTradePolicy(pol)) {
+        for (code in tradeAccounts(pol).vals()) {
+          switch (JCore.getAccount(js, code)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "trade policy"; account = code }) })); case (?_) {} };
+        };
+        switch (ProductCore.currentVersion(bs.product, pol.claimProduct)) { case null return #err(#ProductError({ error = #UnknownProduct({ product = pol.claimProduct }) })); case (?_) {} };
+        tradePlan(TradeCore.planPolicy(pol))
+      };
+      case (#issueLetterOfCredit(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let (party, account) = TradeCore.ours(x.lc.applicant);
+        switch (requireParty(bs, party)) { case (?e) return #err(e); case null {} };
+        let (a, _) = switch (requireAccount(bs, bb, account)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (a.party != party) return tradeErr(#InvalidTerms({ reason = "account " # Nat.toText(account) # " is not the party's"; article = "policy" }));
+        switch (x.lc.facility) { case (?f) { switch (facilityRoom(bs, bb, js, f, x.currency, x.amount, x.valueDate)) { case (?e) return #err(e); case null {} } }; case null {} };
+        let ev = switch (TradeCore.planIssueLc(bs.trade, x.lc, x.amount, x.currency, x.expiry, x.placeOfExpiry, a.book, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let #lcIssued(i) = ev else return tradeErr(#InvalidTerms({ reason = "not an issue"; article = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, a.book, account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let legs = switch (issueLegs(bs, bb, js, pol, ?pol.contingentLcs, account, x.currency, x.amount, i.margin, i.commission, bs.height, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        tradePost(js, journalCaller, now, "lc-issue", [authId, x.lc.reference], legs, x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#adviseLetterOfCredit(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        switch (requireParty(bs, x.beneficiary)) { case (?e) return #err(e); case null {} };
+        let (a, _) = switch (requireAccount(bs, bb, x.beneficiaryAccount)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (a.party != x.beneficiary) return tradeErr(#InvalidTerms({ reason = "account " # Nat.toText(x.beneficiaryAccount) # " is not the party\'s"; article = "policy" }));
+        func mu(c : Text) : ?Nat8 { minorUnitsOfCurrency(js, c) };
+        let parsed = switch (TradeMessages.parseMt700(x.message, mu, x.checklist)) { case (#err(why)) return tradeErr(#BadMessage({ reason = why })); case (#ok(p)) p };
+        if (not Text.equal(parsed.currency, a.currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = a.currency; actual = parsed.currency }) }));
+        if (x.confirm and not parsed.confirmationAsked) return tradeErr(#MessageMismatch({ reason = "the credit does not ask for confirmation (field 49)" }));
+        let lc : TrT.LetterOfCredit = {
+          role = if (x.confirm) #confirming else #advising; applicant = parsed.applicant; beneficiary = #party({ party = x.beneficiary; account = x.beneficiaryAccount });
+          counterpartyBank = parsed.issuingBank; terms = parsed.terms; tolerance = parsed.tolerance; marginBps = 0; facility = x.facility; commissionBps = x.commissionBps; reference = parsed.reference;
+        };
+        switch (x.facility) { case (?f) { if (x.confirm) { switch (facilityRoom(bs, bb, js, f, parsed.currency, parsed.amount, x.valueDate)) { case (?e) return #err(e); case null {} } } }; case null {} };
+        let hash = Sha256.fromBlob(#sha256, Text.encodeUtf8(x.message));
+        let ev = switch (TradeCore.planAdviseLc(bs.trade, lc, parsed.amount, parsed.currency, parsed.expiry, parsed.placeOfExpiry, hash, x.confirm, a.book, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let #lcAdvised(i) = ev else return tradeErr(#InvalidTerms({ reason = "not an advice"; article = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, a.book, x.beneficiaryAccount, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let legs = switch (issueLegs(bs, bb, js, pol, if (x.confirm) ?pol.contingentLcs else null, x.beneficiaryAccount, parsed.currency, parsed.amount, 0, i.commission, bs.height, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        tradePost(js, journalCaller, now, "lc-advise", [authId, parsed.reference], legs, x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#amendLetterOfCredit(x) or #amendGuarantee(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        switch (command, r.kind) { case (#amendLetterOfCredit(_), 1) {}; case (#amendGuarantee(_), 2) {}; case (_, k) return tradeErr(#WrongKind({ instrument = x.instrument; kind = if (k == 1) "letterOfCredit" else if (k == 2) "guarantee" else "other"; wanted = if (r.kind == 1) "guarantee" else "letterOfCredit" })) };
+        let ev = switch (TradeCore.planAmend(bs.trade, x.instrument, x.amendment, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let newAmount = switch (x.amendment.amount) { case (?a) a; case null r.amount };
+        // an increase against a facility needs the room; the memorandum moves by the change in the outstanding
+        switch (r.facility) { case (?f) { if (newAmount > r.amount) { switch (facilityRoom(bs, bb, js, f, r.currency, newAmount - r.amount, x.valueDate)) { case (?e) return #err(e); case null {} } } }; case null {} };
+        let legs = switch (memoAccount(pol, r)) {
+          case (?m) { if (newAmount > r.amount) memoLegs(pol, m, r.currency, newAmount - r.amount, true) else memoLegs(pol, m, r.currency, r.amount - newAmount, false) };
+          case null [];
+        };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        tradePost(js, journalCaller, now, "trade-amend", [authId, Nat.toText(x.instrument)], legs, x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#presentDocuments(x)) {
+        let today = JCore.effectiveToday(js, now);
+        let lc = switch (lcTerms(bb, x.instrument)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        tradePlan(TradeCore.planPresent(bs.trade, JCore.calendar(js), x.instrument, lc.terms, x.documents, x.amount, x.shipmentDate, x.presentedOn, today))
+      };
+      case (#examinePresentation(x)) {
+        let today = JCore.effectiveToday(js, now);
+        let lc = switch (lcTerms(bb, x.instrument)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        tradePlan(TradeCore.planExamine(bs.trade, x.instrument, x.claim, checklistOf(lc.terms), x.checks, x.decision, today))
+      };
+      case (#waiveDiscrepancies(x)) tradePlan(TradeCore.planWaive(bs.trade, x.instrument, x.claim, x.applicantConsentHash, JCore.effectiveToday(js, now)));
+      case (#honourPresentation(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let lc = switch (lcTerms(bb, x.instrument)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        let ev = switch (TradeCore.planHonour(bs.trade, x.instrument, x.claim, lc.terms.availableBy, x.honour, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let #presentationHonoured(h) = ev else return tradeErr(#InvalidTerms({ reason = "not an honour"; article = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let legs = List.empty<JT.Leg>();
+        let extra : [T.Event] = [];
+        var fromMargin = 0;
+        let sub = TradeCore.acceptanceSub(x.instrument, x.claim);
+        switch (x.honour) {
+          case (#sight) {
+            // paid now: to the beneficiary, from the margin then the applicant (issuing) — or from the correspondent
+            // account when we pay as the confirming or advising bank
+            let sink = switch (counterpartyLeg(bs, bb, js, pol, lc.beneficiary, #credit, r.currency, h.amount, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+            if (lc.role == #issuing) {
+              let paid = switch (payFromCustomer(bs, bb, js, journalCaller, pol, r, h.amount, sink, valueDate, authorityIndex, false)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+              for (l in paid.legs.vals()) List.add(legs, l);
+              fromMargin := paid.fromMargin;
+            } else {
+              List.add(legs, Posting.leg(pol.nostro, null, #debit, r.currency, h.amount)); List.add(legs, sink);
+            };
+          };
+          case (#deferred(_) or #acceptance(_)) {
+            // the undertaking to pay at maturity: the applicant's liability to us against our acceptance payable
+            let liable = if (lc.role == #issuing) pol.customersLiabilityAcceptances else pol.nostro;
+            List.add(legs, Posting.leg(liable, if (lc.role == #issuing) ?sub else null, #debit, r.currency, h.amount));
+            List.add(legs, Posting.leg(pol.acceptancesPayable, ?sub, #credit, r.currency, h.amount));
+          };
+          case (#negotiation(_)) {
+            // documents bought: the beneficiary paid now, the issuing bank's reimbursement due
+            let sink = switch (counterpartyLeg(bs, bb, js, pol, lc.beneficiary, #credit, r.currency, h.amount, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+            List.add(legs, Posting.leg(pol.billsNegotiated, ?sub, #debit, r.currency, h.amount)); List.add(legs, sink);
+          };
+        };
+        switch (memoAccount(pol, r)) { case (?m) { for (l in memoLegs(pol, m, r.currency, h.amount, false).vals()) List.add(legs, l) }; case null {} };
+        tradePost(js, journalCaller, now, "lc-honour", [authId, Nat.toText(x.instrument), Nat.toText(x.claim)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, #presentationHonoured({ h with fromMargin }), extra)
+      };
+      case (#settleAcceptance(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let lc = switch (lcTerms(bb, x.instrument)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        let ev = switch (TradeCore.planMature(bs.trade, x.instrument, x.claim, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let #acceptanceMatured(m) = ev else return tradeErr(#InvalidTerms({ reason = "not a maturity"; article = "" }));
+        let ?c = TradeCore.claim(bs.trade, x.instrument, x.claim) else return tradeErr(#UnknownClaim({ instrument = x.instrument; claim = x.claim }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        switch (settleAcceptanceLegs(bs, bb, js, journalCaller, pol, r, lc, c, m.amount, valueDate, authorityIndex)) {
+          case (#err(e)) #err(e);
+          case (#ok(p)) {
+            switch (tradePost(js, journalCaller, now, "lc-settle", [authId, Nat.toText(x.instrument), Nat.toText(x.claim)], p.legs, x.postingDate, valueDate, x.period, x.narration, #acceptanceMatured({ m with fromMargin = p.fromMargin }), p.extra)) {
+              case (#err(e)) #err(e);
+              case (#ok(plan)) #ok({ plan with journal = switch (p.limitEvent) { case (?l) Array.concat<JournalStep>([#event(l)], plan.journal); case null plan.journal } });
+            }
+          };
+        }
+      };
+      case (#closeLetterOfCredit(x) or #releaseGuarantee(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ev = switch (command) {
+          case (#closeLetterOfCredit(_)) { switch (TradeCore.planCloseLc(bs.trade, x.instrument, x.reason, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev } };
+          case (_) { switch (TradeCore.planRelease(bs.trade, x.instrument, x.reason, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev } };
+        };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let legs = switch (endLegs(bs, bb, js, pol, r, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        tradePost(js, journalCaller, now, "trade-end", [authId, Nat.toText(x.instrument)], legs, x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#issueGuarantee(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let g = x.guarantee;
+        switch (requireParty(bs, g.principal)) { case (?e) return #err(e); case null {} };
+        let (a, _) = switch (requireAccount(bs, bb, g.principalAccount)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (a.party != g.principal) return tradeErr(#InvalidTerms({ reason = "account " # Nat.toText(g.principalAccount) # " is not the party\'s"; article = "policy" }));
+        switch (g.facility) { case (?f) { switch (facilityRoom(bs, bb, js, f, x.currency, x.amount, x.valueDate)) { case (?e) return #err(e); case null {} } }; case null {} };
+        let ev = switch (TradeCore.planIssueGuarantee(bs.trade, g, x.wordingText, x.amount, x.currency, x.expiry, a.book, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let #guaranteeIssued(i) = ev else return tradeErr(#InvalidTerms({ reason = "not an issue"; article = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, a.book, g.principalAccount, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let legs = switch (issueLegs(bs, bb, js, pol, ?pol.contingentGuarantees, g.principalAccount, x.currency, x.amount, i.margin, i.commission, bs.height, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        tradePost(js, journalCaller, now, "guarantee-issue", [authId, g.reference], legs, x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#recordDemand(x)) tradePlan(TradeCore.planDemand(bs.trade, JCore.calendar(js), x.instrument, x.demand, x.amount, x.supportingStatement, x.presentedOn, JCore.effectiveToday(js, now)));
+      case (#examineDemand(x)) {
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        if (r.kind != 2) return tradeErr(#WrongKind({ instrument = x.instrument; kind = if (r.kind == 1) "letterOfCredit" else "other"; wanted = "guarantee" }));
+        if (x.checklist.size() == 0) return tradeErr(#InvalidTerms({ reason = "a demand is examined against at least one check"; article = "URDG 758 art. 19" }));
+        let cl = Array.map<Text, (TrT.DocumentKind, Text)>(x.checklist, func(c) { (#other("demand"), c) });
+        tradePlan(TradeCore.planExamine(bs.trade, x.instrument, x.claim, cl, x.checks, x.decision, JCore.effectiveToday(js, now)))
+      };
+      case (#payDemand(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let g = switch (guaranteeTerms(bb, x.instrument)) { case (#err(e)) return #err(e); case (#ok(g)) g };
+        let c = switch (TradeCore.planPayDemand(bs.trade, x.instrument, x.claim, today)) { case (#err(e)) return tradeErr(e); case (#ok(c)) c };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sink = switch (counterpartyLeg(bs, bb, js, pol, g.beneficiary, #credit, r.currency, c.amount, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        let paid = switch (payFromCustomer(bs, bb, js, journalCaller, pol, r, c.amount, sink, valueDate, authorityIndex, true)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let legs = List.empty<JT.Leg>();
+        for (l in paid.legs.vals()) List.add(legs, l);
+        for (l in memoLegs(pol, pol.contingentGuarantees, r.currency, c.amount, false).vals()) List.add(legs, l);
+        let ev : TrT.TradeEvent = #demandPaid({ instrument = x.instrument; claim = x.claim; amount = c.amount; fromMargin = paid.fromMargin; fromAccount = paid.fromAccount; claimAccount = paid.claimAccount; day = today });
+        switch (postLegs(js, journalCaller, now, "guarantee-pay", [authId, Nat.toText(x.instrument), Nat.toText(x.claim)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#trade(ev); extra = paid.extra; journal = switch (paid.limitEvent) { case (?l) Array.concat<JournalStep>([#event(l)], plan.journal); case null plan.journal } });
+        }
+      };
+      case (#reduceGuarantee(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ev = switch (TradeCore.planReduce(bs.trade, x.instrument, x.to, JCore.effectiveToday(js, now))) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        tradePost(js, journalCaller, now, "guarantee-reduce", [authId, Nat.toText(x.instrument)], memoLegs(pol, pol.contingentGuarantees, r.currency, r.amount - x.to, false), x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#registerCollection(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let c = x.collection;
+        let (party, account) = switch (c.role) { case (#remitting) TradeCore.ours(c.drawer); case (#collecting) TradeCore.ours(c.drawee) };
+        switch (requireParty(bs, party)) { case (?e) return #err(e); case null {} };
+        let (a, _) = switch (requireAccount(bs, bb, account)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (a.party != party) return tradeErr(#InvalidTerms({ reason = "account " # Nat.toText(account) # " is not the party's"; article = "policy" }));
+        if (not Text.equal(a.currency, x.currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = a.currency; actual = x.currency }) }));
+        let ev = switch (TradeCore.planRegisterCollection(bs.trade, c, x.amount, x.currency, a.book, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, a.book, account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        tradePost(js, journalCaller, now, "collection-register", [authId, c.reference], memoLegs(pol, pol.contingentCollections, x.currency, x.amount, true), x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#presentCollection(x)) tradePlan(TradeCore.planPresentCollection(bs.trade, x.instrument, x.presentedOn, JCore.effectiveToday(js, now)));
+      case (#acceptCollection(x)) {
+        let tenor = switch (tradeKindOf(bb, x.instrument)) { case (?#collection(c)) { switch (c.terms) { case (#DA(t)) t.tenorDays; case (#DP) 0 } }; case (_) 0 };
+        tradePlan(TradeCore.planAcceptCollection(bs.trade, x.instrument, tenor, JCore.effectiveToday(js, now)))
+      };
+      case (#payCollection(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let (ev, r) = switch (TradeCore.planPayCollection(bs.trade, x.instrument, today)) { case (#err(e)) return tradeErr(e); case (#ok(p)) p };
+        let #collectionPaid(cp) = ev else return tradeErr(#InvalidTerms({ reason = "not a payment"; article = "" }));
+        let ?#collection(c) = tradeKindOf(bb, x.instrument) else return tradeErr(#UnknownInstrument({ instrument = x.instrument }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        // the drawee pays the face; the drawer receives it less our commission; the collecting and remitting banks
+        // settle across the correspondent account
+        let legs = List.empty<JT.Leg>();
+        switch (counterpartyLeg(bs, bb, js, pol, c.drawee, #debit, r.currency, cp.amount, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+        switch (counterpartyLeg(bs, bb, js, pol, c.drawer, #credit, r.currency, cp.amount - cp.commission, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+        if (cp.commission > 0) List.add(legs, Posting.leg(pol.commissionIncome, null, #credit, r.currency, cp.commission));
+        for (l in memoLegs(pol, pol.contingentCollections, r.currency, r.amount, false).vals()) List.add(legs, l);
+        tradePost(js, journalCaller, now, "collection-pay", [authId, Nat.toText(x.instrument)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#protestCollection(x)) tradePlan(TradeCore.planProtest(bs.trade, x.instrument, x.reason, JCore.effectiveToday(js, now)));
+      case (#returnCollection(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ev = switch (TradeCore.planReturnCollection(bs.trade, x.instrument, x.reason, JCore.effectiveToday(js, now))) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        tradePost(js, journalCaller, now, "collection-return", [authId, Nat.toText(x.instrument)], memoLegs(pol, pol.contingentCollections, r.currency, TradeCore.outstanding(r), false), x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#discountBill(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let b = x.bill;
+        switch (requireParty(bs, b.customer)) { case (?e) return #err(e); case null {} };
+        let (a, _) = switch (requireAccount(bs, bb, b.customerAccount)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (a.party != b.customer) return tradeErr(#InvalidTerms({ reason = "account " # Nat.toText(b.customerAccount) # " is not the party\'s"; article = "policy" }));
+        let ev = switch (TradeCore.planDiscountBill(bs.trade, b, x.face, x.currency, x.maturity, a.book, today)) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let #billDiscounted(d) = ev else return tradeErr(#InvalidTerms({ reason = "not a discount"; article = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, a.book, b.customerAccount, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(dd)) dd };
+        let sub = TradeCore.billSub(bs.height);
+        let legs = List.empty<JT.Leg>();
+        List.add(legs, Posting.leg(pol.billsDiscounted, ?sub, #debit, x.currency, d.face));
+        switch (customerLeg(bs, bb, js, b.customerAccount, #credit, x.currency, d.proceeds, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+        if (d.discount > 0) List.add(legs, Posting.leg(pol.unearnedDiscount, ?sub, #credit, x.currency, d.discount));
+        tradePost(js, journalCaller, now, "bill-discount", [authId, b.reference], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#rediscountBill(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (tradeRow(bs, x.instrument)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ev = switch (TradeCore.planRediscount(bs.trade, x.instrument, x.to, JCore.effectiveToday(js, now))) { case (#err(e)) return tradeErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let legs = [Posting.leg(pol.nostro, null, #debit, r.currency, r.amount), Posting.leg(pol.billsRediscounted, ?TradeCore.billSub(x.instrument), #credit, r.currency, r.amount)];
+        tradePost(js, journalCaller, now, "bill-rediscount", [authId, Nat.toText(x.instrument)], legs, x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#settleBill(x) or #dishonourBill(x)) {
+        let pol = switch (tradePolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        let dishonour = switch (command) { case (#dishonourBill(_)) true; case (_) false };
+        let (ev, r) = if (dishonour) { switch (TradeCore.planBillDishonoured(bs.trade, x.instrument, today)) { case (#err(e)) return tradeErr(e); case (#ok(p)) p } }
+                      else { switch (TradeCore.planBillMatured(bs.trade, x.instrument, today)) { case (#err(e)) return tradeErr(e); case (#ok(p)) p } };
+        let ?#bill(b) = tradeKindOf(bb, x.instrument) else return tradeErr(#UnknownInstrument({ instrument = x.instrument }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let legs = switch (billEndLegs(bs, bb, js, pol, r, b, dishonour, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        tradePost(js, journalCaller, now, if (dishonour) "bill-dishonour" else "bill-settle", [authId, Nat.toText(x.instrument)], legs, x.postingDate, valueDate, x.period, x.narration, ev, [])
+      };
+      case (#recordTradeMessage(x)) tradePlan(TradeCore.planRecordMessage(bs.trade, x.instrument, x.kind, x.direction, x.hash, JCore.effectiveToday(js, now)));
+
+      case (_) #err(#TradeError({ error = #InvalidTerms({ reason = "not a trade command"; article = "" }) }));
+    }
+  };
+
+  // ─── trade finance (trade finance): the planners' helpers ────────────────────────────
+
+  func tradePlan(r : Result.Result<TrT.TradeEvent, TrT.TradeError>) : Result.Result<Plan, T.BankError> {
+    switch (r) { case (#err(e)) #err(#TradeError({ error = e })); case (#ok(ev)) #ok({ bankEvent = ?#trade(ev); extra = []; journal = [] }) }
+  };
+  func tradeErr<X>(e : TrT.TradeError) : Result.Result<X, T.BankError> { #err(#TradeError({ error = e })) };
+  func tradePolicy(bs : State) : Result.Result<TrT.Policy, T.BankError> {
+    switch (TradeCore.policy(bs.trade)) { case (?p) #ok(p); case null #err(#TradeError({ error = #NoPolicy })) }
+  };
+  func tradeRow(bs : State, id : TrT.InstrumentId) : Result.Result<TradeCore.InstrumentRow, T.BankError> {
+    switch (TradeCore.row(bs.trade, id)) { case (?r) #ok(r); case null #err(#TradeError({ error = #UnknownInstrument({ instrument = id }) })) }
+  };
+  func minorUnitsOfCurrency(js : JCore.State, ccy : Text) : ?Nat8 { for (c in JCore.listCurrencies(js).vals()) { if (Text.equal(c.code, ccy)) return ?c.minorUnits }; null };
+  /// The memorandum pair: the contingent account against its contra, debited when an undertaking is given and
+  /// credited back as it is honoured, reduced, released or expires.
+  func memoLegs(pol : TrT.Policy, memo : Text, ccy : Text, amount : Nat, give : Bool) : [JT.Leg] {
+    if (amount == 0) return [];
+    [Posting.leg(memo, null, if (give) #debit else #credit, ccy, amount), Posting.leg(pol.contingentContra, null, if (give) #credit else #debit, ccy, amount)]
+  };
+  func memoAccount(pol : TrT.Policy, r : TradeCore.InstrumentRow) : ?Text {
+    switch (r.kind) { case 1 { if (TradeCore.isUndertaking(r)) ?pol.contingentLcs else null }; case 2 ?pol.contingentGuarantees; case 3 ?pol.contingentCollections; case _ null }
+  };
+  /// A customer's account as a posting leg, in the instrument's currency, movable on the day.
+  func customerLeg(bs : State, bb : Blocks, js : JCore.State, account : ProdT.AccountId, side : JT.Side, ccy : Text, amount : Nat, day : Nat) : Result.Result<(JT.Leg, ProductCore.AccountEntry, ProdT.ProductTerms), T.BankError> {
+    let (a, terms) = switch (movableAccount(bs, bb, js, account, day)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    if (not Text.equal(a.currency, ccy)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = ccy; actual = a.currency }) }));
+    #ok((Posting.leg(terms.control, ?a.subledger, side, ccy, amount), a, terms))
+  };
+  /// The other side of a settlement: one of our customers' accounts, or the correspondent account.
+  func counterpartyLeg(bs : State, bb : Blocks, js : JCore.State, pol : TrT.Policy, cp : TrT.Counterparty, side : JT.Side, ccy : Text, amount : Nat, day : Nat) : Result.Result<JT.Leg, T.BankError> {
+    switch (cp) {
+      case (#party(p)) { switch (customerLeg(bs, bb, js, p.account, side, ccy, amount, day)) { case (#err(e)) #err(e); case (#ok((l, _, _))) #ok(l) } };
+      case (#external(_)) #ok(Posting.leg(pol.nostro, null, side, ccy, amount));
+    }
+  };
+  /// The applicant's or principal's account: our customer, whose account the instrument row names.
+  func ownAccountLeg(bs : State, bb : Blocks, js : JCore.State, r : TradeCore.InstrumentRow, side : JT.Side, amount : Nat, day : Nat) : Result.Result<JT.Leg, T.BankError> {
+    if (r.account == 0) return #err(#TradeError({ error = #InvalidTerms({ reason = "the instrument names no account of ours"; article = "policy" }) }));
+    switch (customerLeg(bs, bb, js, r.account, side, r.currency, amount, day)) { case (#err(e)) #err(e); case (#ok((l, _, _))) #ok(l) }
+  };
+  /// The balance a customer's account holds on the day, zero when overdrawn.
+  func customerBalance(bs : State, bb : Blocks, js : JCore.State, account : ProdT.AccountId, day : Nat) : Nat {
+    switch (requireAccount(bs, bb, account)) {
+      case (#ok((a, terms))) { let b = Posting.accountBalanceOn(js, terms.control, a.subledger, a.currency, #credit, day); if (b.overdrawn) 0 else b.net };
+      case (#err(_)) 0;
+    }
+  };
+  func tradeAccounts(pol : TrT.Policy) : [Text] {
+    [pol.contingentLcs, pol.contingentGuarantees, pol.contingentCollections, pol.contingentContra, pol.marginDeposits, pol.unearnedCommission, pol.commissionIncome,
+     pol.acceptancesPayable, pol.customersLiabilityAcceptances, pol.billsNegotiated, pol.billsDiscounted, pol.unearnedDiscount, pol.discountIncome, pol.billsRediscounted, pol.billLosses, pol.nostro]
+  };
+  /// The instrument's terms, read from the block that issued it.
+  func tradeKindOf(bb : Blocks, id : TrT.InstrumentId) : ?TrT.Kind {
+    let ?b = bb.get(id) else return null;
+    switch (?b.event) {
+      case (?#trade(#lcIssued(x))) ?#letterOfCredit(x.lc);
+      case (?#trade(#lcAdvised(x))) ?#letterOfCredit(x.lc);
+      case (?#trade(#guaranteeIssued(x))) ?#guarantee(x.guarantee);
+      case (?#trade(#collectionRegistered(x))) ?#collection(x.collection);
+      case (?#trade(#billDiscounted(x))) ?#bill(x.bill);
+      case (_) null;
+    }
+  };
+  public func tradeKind(bb : Blocks, id : TrT.InstrumentId) : ?TrT.Kind { tradeKindOf(bb, id) };
+  func lcTerms(bb : Blocks, id : TrT.InstrumentId) : Result.Result<TrT.LetterOfCredit, T.BankError> {
+    switch (tradeKindOf(bb, id)) { case (?#letterOfCredit(lc)) #ok(lc); case (?k) tradeErr(#WrongKind({ instrument = id; kind = TrT.kindText(k); wanted = "letterOfCredit" })); case null tradeErr(#UnknownInstrument({ instrument = id })) }
+  };
+  func guaranteeTerms(bb : Blocks, id : TrT.InstrumentId) : Result.Result<TrT.Guarantee, T.BankError> {
+    switch (tradeKindOf(bb, id)) { case (?#guarantee(g)) #ok(g); case (?k) tradeErr(#WrongKind({ instrument = id; kind = TrT.kindText(k); wanted = "guarantee" })); case null tradeErr(#UnknownInstrument({ instrument = id })) }
+  };
+  func checklistOf(terms : TrT.DocumentaryTerms) : [(TrT.DocumentKind, Text)] {
+    let out = List.empty<(TrT.DocumentKind, Text)>();
+    for (d in terms.documents.vals()) { for (c in d.checks.vals()) List.add(out, (d.kind, c)) };
+    List.toArray(out)
+  };
+  /// An undertaking against a facility: the facility open, in the currency, with room for it beside the drawings
+  /// and the undertakings already outstanding.
+  func facilityRoom(bs : State, bb : Blocks, js : JCore.State, facility : Nat, ccy : Text, amount : Nat, day : Nat) : ?T.BankError {
+    let ?r = FacilityCore.row(bs.facility, facility) else return ?#FacilityError({ error = #UnknownFacility({ facility }) });
+    if (r.stage != #open) return ?#FacilityError({ error = #Blocked({ facility; reason = "the facility is " # FaT.stageText(r.stage) }) });
+    if (not Text.equal(r.currency, ccy)) return ?#ProductError({ error = #CurrencyMismatch({ expected = r.currency; actual = ccy }) });
+    let used = facilityDrawn(bs, bb, js, facility, day) + TradeCore.contingentOnFacility(bs.trade, facility);
+    if (used + amount > r.limit) return ?#FacilityError({ error = #OverLimit({ facility; limit = r.limit; drawn = used; requested = amount }) });
+    null
+  };
+  /// The postings of an issue: the margin lodged from the customer's account into the margin sub-ledger, the
+  /// commission taken into unearned commission, the undertaking on the memorandum pair — one posting.
+  func issueLegs(bs : State, bb : Blocks, js : JCore.State, pol : TrT.Policy, memo : ?Text, account : ProdT.AccountId, ccy : Text, amount : Nat, margin : Nat, commission : Nat, id : Nat, day : Nat) : Result.Result<[JT.Leg], T.BankError> {
+    let legs = List.empty<JT.Leg>();
+    if (margin + commission > 0) {
+      switch (customerLeg(bs, bb, js, account, #debit, ccy, margin + commission, day)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+      if (margin > 0) List.add(legs, Posting.leg(pol.marginDeposits, ?TradeCore.marginSub(id), #credit, ccy, margin));
+      if (commission > 0) List.add(legs, Posting.leg(pol.unearnedCommission, ?TradeCore.commissionSub(id), #credit, ccy, commission));
+    };
+    switch (memo) { case (?m) { for (l in memoLegs(pol, m, ccy, amount, true).vals()) List.add(legs, l) }; case null {} };
+    #ok(List.toArray(legs))
+  };
+  /// The postings of an end: the margin returned, the memorandum reversed for what is still outstanding, the
+  /// commission not yet earned recognised.
+  func endLegs(bs : State, bb : Blocks, js : JCore.State, pol : TrT.Policy, r : TradeCore.InstrumentRow, day : Nat) : Result.Result<[JT.Leg], T.BankError> {
+    let legs = List.empty<JT.Leg>();
+    if (r.margin > 0) {
+      List.add(legs, Posting.leg(pol.marginDeposits, ?TradeCore.marginSub(r.id), #debit, r.currency, r.margin));
+      switch (ownAccountLeg(bs, bb, js, r, #credit, r.margin, day)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+    };
+    switch (memoAccount(pol, r)) { case (?m) { for (l in memoLegs(pol, m, r.currency, TradeCore.outstanding(r), false).vals()) List.add(legs, l) }; case null {} };
+    let left = if (r.commissionTotal > r.commissionEarned) r.commissionTotal - r.commissionEarned else 0;
+    if (left > 0) { List.add(legs, Posting.leg(pol.unearnedCommission, ?TradeCore.commissionSub(r.id), #debit, r.currency, left)); List.add(legs, Posting.leg(pol.commissionIncome, null, #credit, r.currency, left)) };
+    #ok(List.toArray(legs))
+  };
+  /// A plan with no posting when the legs are empty, one posting otherwise.
+  func tradePost(js : JCore.State, journalCaller : Principal, now : Nat64, purpose : Text, parts : [Text], legs : [JT.Leg], postingDate : Nat, valueDate : Nat, period : Text, narration : Text, ev : TrT.TradeEvent, extra : [T.Event]) : Result.Result<Plan, T.BankError> {
+    if (legs.size() == 0) return #ok({ bankEvent = ?#trade(ev); extra; journal = [] });
+    switch (postLegs(js, journalCaller, now, purpose, parts, legs, postingDate, valueDate, period, narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#trade(ev); extra; journal = plan.journal });
+    }
+  };
+  /// The value day of a trade posting: the account's convention where the instrument has our account, the day as
+  /// given otherwise (a memorandum has no customer).
+  func tradeValueDate(bs : State, bb : Blocks, js : JCore.State, book : Text, account : ProdT.AccountId, period : Text, requested : Nat) : Result.Result<Nat, T.BankError> {
+    if (account == 0) return #ok(requested);
+    switch (ProductCore.get(bs.product, productBlocks(bb), account)) {
+      case (?a) { switch (ProductCore.termsOf(bs.product, a)) { case (?terms) valueDateGate(bs, js, book, period, terms.valueDateConvention, requested); case null #ok(requested) } };
+      case null #ok(requested);
+    }
+  };
+  /// Paying a demand or a sight presentation: the margin first, the customer's account next, and what neither
+  /// covers a claim — a loan account opened under the policy's claim product, disbursed to the beneficiary, so the
+  /// bank's reimbursement right ages under collections and recovery from the day it was paid.
+  type PaidFrom = { fromMargin : Nat; fromAccount : Nat; claim : Nat; legs : [JT.Leg]; claimAccount : ?ProdT.AccountId; extra : [T.Event]; limitEvent : ?JT.Event };
+  func payFromCustomer(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, pol : TrT.Policy, r : TradeCore.InstrumentRow, amount : Nat, sink : JT.Leg, day : Nat, authorityIndex : Nat, allowClaim : Bool) : Result.Result<PaidFrom, T.BankError> {
+    let legs = List.empty<JT.Leg>();
+    let fromMargin = Nat.min(r.margin, amount);
+    if (fromMargin > 0) List.add(legs, Posting.leg(pol.marginDeposits, ?TradeCore.marginSub(r.id), #debit, r.currency, fromMargin));
+    var rest = amount - fromMargin;
+    let balance = if (r.account == 0) 0 else customerBalance(bs, bb, js, r.account, day);
+    let fromAccount = if (allowClaim) Nat.min(balance, rest) else rest;
+    if (fromAccount > 0) { switch (ownAccountLeg(bs, bb, js, r, #debit, fromAccount, day)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) } };
+    rest -= fromAccount;
+    var claimAccount : ?ProdT.AccountId = null;
+    var extra : [T.Event] = [];
+    var limitEvent : ?JT.Event = null;
+    if (rest > 0) {
+      // the claim: a loan account under the claim product, its schedule one instalment due at once
+      let ?pe = PartyCore.get(bs.party, partyBlocks(bb), r.party) else return #err(#PartyError({ error = #UnknownParty({ party = r.party }) }));
+      let ?v = ProductCore.currentVersion(bs.product, pol.claimProduct) else return #err(#ProductError({ error = #UnknownProduct({ product = pol.claimProduct }) }));
+      let terms = v.terms;
+      if (terms.kind != #loan) return #err(#ProductError({ error = #AccountNotOfKind({ account = 0; expected = "loan"; actual = debug_show (terms.kind) }) }));
+      let ?sch = terms.schedule else return #err(#ProductError({ error = #ScheduleRequired({ product = pol.claimProduct }) }));
+      let ?it = terms.interest else return #err(#ProductError({ error = #InvalidTerms({ reason = "the claim product needs interest terms" }) }));
+      let rate = switch (Products.rateAt(it.chart, if (it.chart.by == #balance) rest else sch.instalments * ProdT.periodDays(sch.every))) { case (?x) x; case null return #err(#TermError({ reason = "no rate band covers the claim" })) };
+      let accountId = bs.height;
+      let opened = switch (planOpenAccount(bs, js, journalCaller, pol.claimProduct, r.party, pe.book, r.currency, null, [], ?rate, authorityIndex, [])) { case (#err(e)) return #err(e); case (#ok(o)) o };
+      let generated = Products.schedule(rest, rate, sch, terms.rounding, day);
+      let faults = Products.scheduleFaults(rest, generated.rows);
+      if (faults.size() > 0) return #err(#ProductError({ error = #InvalidSchedule({ reason = faults[0] }) }));
+      List.add(legs, Posting.leg(terms.control, ?Posting.subledgerOf(opened.identifier), #debit, r.currency, rest));
+      claimAccount := ?accountId;
+      extra := [#product(opened.opened), #product(#accountStatusSet({ account = accountId; to = #active })), #product(#loanDisbursed({ account = accountId; amount = rest; day; schedule = generated.rows }))];
+      limitEvent := ?opened.limit;
+    };
+    List.add(legs, sink);
+    #ok({ fromMargin; fromAccount; claim = rest; legs = List.toArray(legs); claimAccount; extra; limitEvent })
+  };
+  /// The bank's own name for the messages it renders: the book's name, or the book id when it has none.
+  func bankNameOf(bs : State, book : Text) : Text {
+    switch (getBook(bs, book)) { case (?b) b.name; case null book }
+  };
+  /// The postings when a deferred payment, an acceptance or a negotiation falls due: the applicant (or the margin,
+  /// or a claim) settles its liability to us and we pay the beneficiary out of acceptances payable; a negotiation is
+  /// reimbursed by the issuing bank across the correspondent account.
+  func settleAcceptanceLegs(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, pol : TrT.Policy, r : TradeCore.InstrumentRow, lc : TrT.LetterOfCredit, c : TradeCore.ClaimRow, amount : Nat, day : Nat, authorityIndex : Nat) : Result.Result<{ legs : [JT.Leg]; extra : [T.Event]; limitEvent : ?JT.Event; fromMargin : Nat }, T.BankError> {
+    let sub = TradeCore.acceptanceSub(r.id, c.seq);
+    let legs = List.empty<JT.Leg>();
+    if (c.honour == 4) {
+      // negotiation: the issuing bank reimburses us
+      List.add(legs, Posting.leg(pol.nostro, null, #debit, r.currency, amount));
+      List.add(legs, Posting.leg(pol.billsNegotiated, ?sub, #credit, r.currency, amount));
+      return #ok({ legs = List.toArray(legs); extra = []; limitEvent = null; fromMargin = 0 });
+    };
+    var extra : [T.Event] = [];
+    var limitEvent : ?JT.Event = null;
+    var fromMargin = 0;
+    if (lc.role == #issuing) {
+      // the applicant settles its liability under the acceptance; what it cannot pay becomes a claim
+      let liability = Posting.leg(pol.customersLiabilityAcceptances, ?sub, #credit, r.currency, amount);
+      let paid = switch (payFromCustomer(bs, bb, js, journalCaller, pol, r, amount, liability, day, authorityIndex, true)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+      for (l in paid.legs.vals()) List.add(legs, l);
+      extra := paid.extra; limitEvent := paid.limitEvent; fromMargin := paid.fromMargin;
+    } else {
+      List.add(legs, Posting.leg(pol.nostro, null, #debit, r.currency, amount));
+      List.add(legs, Posting.leg(pol.nostro, null, #credit, r.currency, amount));
+    };
+    // and we pay the beneficiary
+    List.add(legs, Posting.leg(pol.acceptancesPayable, ?sub, #debit, r.currency, amount));
+    switch (counterpartyLeg(bs, bb, js, pol, lc.beneficiary, #credit, r.currency, amount, day)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+    // a nostro debit and credit of the same amount cancel: drop the pair the confirming case produced
+    let out = List.filter<JT.Leg>(legs, func(l) { not (Text.equal(l.account, pol.nostro) and l.subledger == null and lc.role != #issuing and l.side == #credit and l.amount == amount) });
+    #ok({ legs = List.toArray(out); extra; limitEvent; fromMargin })
+  };
+  /// The postings at a bill's end: at maturity the acceptor pays the face against bills discounted (and a
+  /// rediscounted bill is redeemed across the correspondent account), the discount left is earned; on dishonour the
+  /// face is charged back to the customer under recourse — the discount earned in full — or written to bill losses
+  /// without recourse, the unearned discount reducing the loss.
+  func billEndLegs(bs : State, bb : Blocks, js : JCore.State, pol : TrT.Policy, r : TradeCore.InstrumentRow, b : TrT.Bill, dishonour : Bool, day : Nat) : Result.Result<[JT.Leg], T.BankError> {
+    let sub = TradeCore.billSub(r.id);
+    let legs = List.empty<JT.Leg>();
+    let left = if (r.commissionTotal > r.commissionEarned) r.commissionTotal - r.commissionEarned else 0;
+    if (not dishonour) {
+      switch (counterpartyLeg(bs, bb, js, pol, b.acceptor, #debit, r.currency, r.amount, day)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+      List.add(legs, Posting.leg(pol.billsDiscounted, ?sub, #credit, r.currency, r.amount));
+      if (left > 0) { List.add(legs, Posting.leg(pol.unearnedDiscount, ?sub, #debit, r.currency, left)); List.add(legs, Posting.leg(pol.discountIncome, null, #credit, r.currency, left)) };
+    } else if (b.recourse) {
+      switch (customerLeg(bs, bb, js, b.customerAccount, #debit, r.currency, r.amount, day)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+      List.add(legs, Posting.leg(pol.billsDiscounted, ?sub, #credit, r.currency, r.amount));
+      if (left > 0) { List.add(legs, Posting.leg(pol.unearnedDiscount, ?sub, #debit, r.currency, left)); List.add(legs, Posting.leg(pol.discountIncome, null, #credit, r.currency, left)) };
+    } else {
+      List.add(legs, Posting.leg(pol.billLosses, null, #debit, r.currency, r.amount - left));
+      if (left > 0) List.add(legs, Posting.leg(pol.unearnedDiscount, ?sub, #debit, r.currency, left));
+      List.add(legs, Posting.leg(pol.billsDiscounted, ?sub, #credit, r.currency, r.amount));
+    };
+    if (r.state == #rediscounted) {
+      List.add(legs, Posting.leg(pol.billsRediscounted, ?sub, #debit, r.currency, r.amount));
+      List.add(legs, Posting.leg(pol.nostro, null, #credit, r.currency, r.amount));
+    };
+    #ok(List.toArray(legs))
+  };
+
+  /// End of day, job 13 (`trade`): per open instrument of the book — the commission or discount earned to the day
+  /// (cumulative, straight-line from issue to expiry, so rounding never drifts), a guarantee's recorded reduction
+  /// fallen due, a deferred payment or acceptance fallen due (settled as `settleAcceptance` would), a bill matured
+  /// (settled as `settleBill` would), and an undertaking past its effective expiry with no claim pending (its
+  /// margin returned, its memorandum reversed, its commission earned out) — each a posting and a block only when the
+  /// figure is not zero.
+  func jobTrade(
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
+  ) {
+    let ?pol = TradeCore.policy(bs.trade) else { fail(acc, index, item.job, book, "no trade policy"); return };
+    let calendar = JCore.calendar(js);
+    func post(kind : Text, id : Nat, legs : [JT.Leg], narration : Text) : Bool {
+      if (legs.size() == 0) return true;
+      if (not Posting.balances(legs)) { fail(acc, index, item.job, Nat.toText(id), kind # ": the legs do not balance"); return false };
+      let input : JT.PostingInput = { idempotencyKey = Posting.key(kind, [Nat.toText(id), Nat.toText(day)]); postingDate = day; valueDate = day; period; legs; sourceRef = { kind; id = Nat.toText(id) # "/" # Nat.toText(day) }; narration; correctionOf = null };
+      switch (batchPost(js, jb, journalCaller, now, acc, input)) { case (?why) { fail(acc, index, item.job, Nat.toText(id), why); false }; case null true }
+    };
+    // the blocks this run records fold after the chunk: what step 1 earns is carried here so the steps after it
+    // read the figure as it will stand, not the row as it was
+    let earnedNow = List.empty<(Nat, Nat)>();
+    func rowNow(r : TradeCore.InstrumentRow) : TradeCore.InstrumentRow {
+      for ((id, e) in List.values(earnedNow)) { if (id == r.id) return { r with commissionEarned = e } };
+      r
+    };
+    for (r in TradeCore.openInBook(bs.trade, book).vals()) {
+      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r.id)) };
+      if (not mine) continue;
+      acc.examined += 1;
+      // 1. commission (undertakings) or discount (bills) earned to the day
+      if (r.commissionTotal > 0 and (r.kind == 1 or r.kind == 2 or r.kind == 4)) {
+        let earned = TradeCore.earnedBy(r.commissionTotal, r.issuedDay, r.expiry, day);
+        if (earned > r.commissionEarned) {
+          let delta = earned - r.commissionEarned;
+          let legs = if (r.kind == 4) [Posting.leg(pol.unearnedDiscount, ?TradeCore.billSub(r.id), #debit, r.currency, delta), Posting.leg(pol.discountIncome, null, #credit, r.currency, delta)]
+                     else [Posting.leg(pol.unearnedCommission, ?TradeCore.commissionSub(r.id), #debit, r.currency, delta), Posting.leg(pol.commissionIncome, null, #credit, r.currency, delta)];
+          if (post(if (r.kind == 4) "discount-earned" else "commission-earned", r.id, legs, "earned to day " # Nat.toText(day))) {
+            record(acc, if (r.kind == 4) #trade(#discountEarned({ instrument = r.id; amount = delta; cumulative = earned; day })) else #trade(#commissionEarned({ instrument = r.id; amount = delta; cumulative = earned; day })));
+            List.add(earnedNow, (r.id, earned));
+          };
+        };
+      };
+      // 2. a guarantee's recorded reduction fallen due
+      if (r.kind == 2) {
+        switch (tradeKindOf(bb, r.id)) {
+          case (?#guarantee(g)) {
+            switch (TradeCore.reductionDue(g, r, day)) {
+              case (?to) {
+                switch (TradeCore.planReduce(bs.trade, r.id, to, day)) {
+                  case (#ok(ev)) { if (post("guarantee-reduce", r.id, memoLegs(pol, pol.contingentGuarantees, r.currency, r.amount - to, false), "reduction due")) record(acc, #trade(ev)) };
+                  case (#err(_)) {};
+                };
+              };
+              case null {};
+            };
+          };
+          case (_) {};
+        };
+      };
+      // 3. a deferred payment, acceptance or negotiation fallen due
+      if (r.kind == 1) {
+        switch (tradeKindOf(bb, r.id)) {
+          case (?#letterOfCredit(lc)) {
+            for (c in TradeCore.claimsOf(bs.trade, r.id).vals()) {
+              if (c.state == #honoured and c.honour != 1 and c.settledBlock == 0 and c.due <= day) {
+                switch (TradeCore.planMature(bs.trade, r.id, c.seq, day)) {
+                  case (#ok(ev)) {
+                    switch (settleAcceptanceLegs(bs, bb, js, journalCaller, pol, r, lc, c, c.amount, day, 0)) {
+                      case (#ok(p)) {
+                        let ev2 : TrT.TradeEvent = switch (ev) { case (#acceptanceMatured(m)) #acceptanceMatured({ m with fromMargin = p.fromMargin }); case (e) e };
+                        if (p.extra.size() == 0 and post("lc-settle", r.id, p.legs, "due day " # Nat.toText(c.due))) record(acc, #trade(ev2)) else if (p.extra.size() > 0) fail(acc, index, item.job, Nat.toText(r.id), "the applicant cannot settle the acceptance: a claim needs the dual act settleAcceptance")
+                      };
+                      case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e);
+                    };
+                  };
+                  case (#err(_)) {};
+                };
+              };
+            };
+          };
+          case (_) {};
+        };
+      };
+      // 4. a bill matured: the acceptor pays
+      if (r.kind == 4 and day >= r.expiry) {
+        switch (tradeKindOf(bb, r.id)) {
+          case (?#bill(b)) {
+            switch (TradeCore.planBillMatured(bs.trade, r.id, day)) {
+              case (#ok((ev, _))) {
+                switch (billEndLegs(bs, bb, js, pol, rowNow(r), b, false, day)) {
+                  case (#ok(legs)) { if (post("bill-settle", r.id, legs, "matured")) record(acc, #trade(ev)) };
+                  case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e);
+                };
+              };
+              case (#err(_)) {};
+            };
+          };
+          case (_) {};
+        };
+      };
+    };
+    // 5. undertakings past their effective expiry with nothing pending
+    for (r in TradeCore.expiredBy(bs.trade, calendar, day).vals()) {
+      if (not Text.equal(r.book, book)) continue;
+      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r.id)) };
+      if (not mine) continue;
+      // step 1 may have earned commission on this row in this run: the end legs earn what is left after it
+      let fresh = rowNow(r);
+      switch (endLegs(bs, bb, js, pol, fresh, day)) {
+        case (#ok(legs)) {
+          if (post("trade-expire", r.id, legs, "expired " # Nat.toText(r.expiry))) {
+            let ev : TrT.TradeEvent = if (r.kind == 1) #lcExpired({ instrument = r.id; expiry = r.expiry; marginReleased = fresh.margin; day }) else #guaranteeExpired({ instrument = r.id; expiry = r.expiry; marginReleased = fresh.margin; day });
+            record(acc, #trade(ev));
+          };
+        };
+        case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e);
+      };
+    };
+  };
+
   // ─── branch and teller (branch and teller): the planners' helpers ───────────────────────
 
   func tellerPlan(r : Result.Result<TeT.TellerEvent, TeT.TellerError>) : Result.Result<Plan, T.BankError> {
@@ -7492,7 +8167,7 @@ module {
   /// lease's drawing is the asset moving into the net investment, its schedule carrying the residual as a balloon.
   func planDrawdown(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, m : T.FacilityMoney, authorityIndex : Nat, byNotice : Bool) : Result.Result<Plan, T.BankError> {
     switch (requireFeature(bs, ProdT.FEATURE_CREDIT)) { case (?e) return #err(e); case null {} };
-    let drawn = facilityDrawn(bs, bb, js, m.facility, m.valueDate);
+    let drawn = facilityDrawn(bs, bb, js, m.facility, m.valueDate) + TradeCore.contingentOnFacility(bs.trade, m.facility);
     let r = switch (FacilityCore.admitDrawdown(bs.facility, m.facility, m.amount, drawn, m.valueDate, byNotice)) { case (#err(e)) return #err(#FacilityError({ error = e })); case (#ok(r)) r };
     let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
     let ?pe = PartyCore.get(bs.party, partyBlocks(bb), r.party) else return #err(#PartyError({ error = #UnknownParty({ party = r.party }) }));
@@ -8063,6 +8738,7 @@ module {
       case (#origination(oe)) { OriginationCore.apply(s.origination, block.index, oe) };
       case (#facility(fe)) { FacilityCore.apply(s.facility, block.index, fe) };
       case (#teller(te)) { TellerCore.apply(s.teller, block.index, te) };
+      case (#trade(tr)) { TradeCore.fold(s.trade, block.index, tr) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -8195,6 +8871,7 @@ module {
       case (#origination(_)) "origination";
       case (#facility(_)) "facility";
       case (#teller(_)) "teller";
+      case (#trade(_)) "trade";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -8490,6 +9167,7 @@ module {
     OriginationCore.fingerprintInto(w, s.origination);
     FacilityCore.fingerprintInto(w, s.facility);
     TellerCore.fingerprintInto(w, s.teller);
+    TradeCore.fingerprintInto(w, s.trade);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);

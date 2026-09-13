@@ -60,11 +60,12 @@ module {
     #monitoring;              // 10: the window rules over the day's active accounts, as alerts
     #offerExpiry;             // 11: credit offers whose validity ended lapse (origination and underwriting)
     #facilities;              // 12: commitment fees, lease income, discount unwind, clean-downs, resets, reviews (corporate lending)
+    #trade;                   // 13: trade commissions and discounts earned, expiries, reductions, maturities (trade finance)
   };
 
   public func jobs() : [Job] {
     [#accrual, #charges, #instalmentsDue, #ageing, #provisioning, #maturity,
-     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities]
+     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities, #trade]
   };
 
   public func jobText(j : Job) : Text {
@@ -74,7 +75,7 @@ module {
       case (#provisioning) "provisioning"; case (#maturity) "maturity";
       case (#standingInstructions) "standingInstructions";
       case (#statementCut) "statementCut"; case (#tillCheck) "tillCheck";
-      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities";
+      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities"; case (#trade) "trade";
     }
   };
 
@@ -82,7 +83,7 @@ module {
     switch (j) {
       case (#accrual) 1; case (#charges) 2; case (#instalmentsDue) 3; case (#ageing) 4;
       case (#provisioning) 5; case (#maturity) 6; case (#standingInstructions) 7;
-      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12;
+      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12; case (#trade) 13;
     }
   };
 
@@ -122,6 +123,7 @@ module {
       case (#monitoring) null;                    // records alerts; posts nothing
       case (#offerExpiry) null;                   // records lapses; posts nothing
       case (#facilities) ?"product.credit";       // fees, rentals and discounts on the credit book
+      case (#trade) ?"product.credit";            // the trade book is part of the credit book: commissions, discounts, expiries, maturities
     }
   };
 
@@ -163,6 +165,8 @@ module {
     offers : Nat;
     /// How many facilities of the book are not closed. None, and the plan has no facilities item.
     facilities : Nat;
+    /// How many trade instruments of the book are open. None, and the plan has no trade item.
+    trade : Nat;
     shardSize : Nat;
   };
 
@@ -237,6 +241,10 @@ module {
     // 12. the facilities, one item for the book while any stands open
     if (input.facilities > 0) {
       List.add(items, { job = #facilities; product = ""; currency = ""; from = 0; to = 0 });
+    };
+    // 13. the trade book, one item for the book while any instrument is open
+    if (input.trade > 0) {
+      List.add(items, { job = #trade; product = ""; currency = ""; from = 0; to = 0 });
     };
     if (List.size(items) > MAX_PLAN_ITEMS) return #err(#planTooLarge({ items = List.size(items) }));
     #ok(List.toArray(items))

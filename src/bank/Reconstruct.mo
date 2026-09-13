@@ -153,6 +153,22 @@ module {
           case (_) [];
         }
       };
+      // ── trade finance (trade finance): the records whose block carries the instruction whole ──
+      case (#trade(tr)) {
+        if (act.size() > 1) return [];
+        switch (tr) {
+          case (#policySet(p)) [#setTradePolicy(p)];
+          case (#documentsPresented(x)) [#presentDocuments({ instrument = x.instrument; documents = x.documents; amount = x.amount; shipmentDate = x.shipmentDate; presentedOn = x.presentedOn })];
+          case (#presentationExamined(x)) [#examinePresentation({ instrument = x.instrument; claim = x.claim; checks = x.checks; decision = x.decision })];
+          case (#discrepanciesWaived(x)) [#waiveDiscrepancies({ instrument = x.instrument; claim = x.claim; applicantConsentHash = x.applicantConsentHash })];
+          case (#demandRecorded(x)) [#recordDemand({ instrument = x.instrument; demand = x.demand; amount = x.amount; supportingStatement = x.supportingStatement; presentedOn = x.presentedOn })];
+          case (#collectionPresented(x)) [#presentCollection({ instrument = x.instrument; presentedOn = x.presentedOn })];
+          case (#collectionAccepted(x)) [#acceptCollection({ instrument = x.instrument })];
+          case (#collectionProtested(x)) [#protestCollection({ instrument = x.instrument; reason = x.reason })];
+          case (#tradeMessageRecorded(x)) [#recordTradeMessage({ instrument = x.instrument; kind = x.kind; direction = x.direction; hash = x.hash })];
+          case (_) [];
+        }
+      };
       case (_) [];
     }
   };
@@ -232,6 +248,7 @@ module {
      "setOriginationPolicy", "setAffordabilityModel", "setScorecard", "registerPasskey", "openApplication", "recordApplicationData", "assessAffordability", "requestBureauReport",
      "scoreApplication", "underwrite", "issueOffer", "declineOffer", "recordDocument", "recordConditionsMet", "fulfilApplication", "withdrawApplication",
      "openFacility", "transferParticipation", "recordCovenantTest", "blockDrawdowns", "unblockDrawdowns", "recordFacilityReview", "recordRateFixing", "closeFacility",
-     "setTellerPolicy", "openTellerSession", "closeTellerSession", "issueChequebook", "stopCheque"]
+     "setTellerPolicy", "openTellerSession", "closeTellerSession", "issueChequebook", "stopCheque",
+     "setTradePolicy", "presentDocuments", "examinePresentation", "waiveDiscrepancies", "recordDemand", "presentCollection", "acceptCollection", "protestCollection", "recordTradeMessage"]
   };
 }
