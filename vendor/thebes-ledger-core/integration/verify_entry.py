@@ -205,6 +205,10 @@ class Reader:
     def resolution(self):
         return {"postingDate": self.nat(), "valueDate": self.nat(), "period": self.text(), "valueDateRequested": self.opt(self.nat)}
 
+    def calendar_authority(self):
+        """Where the journal's today comes from: the substrate's clock, or the rolled business date alone."""
+        return ["substrateClock", "businessDate"][self.byte()]
+
     def calendar(self):
         t = self.byte()
         if t == 0:
@@ -213,6 +217,60 @@ class Reader:
         rest = [self.nat() for _ in range(self.len16())]
         hol = [self.nat() for _ in range(self.len16())]
         return {"restDays": rest, "holidays": hol, "policy": ["reject", "previous", "next", "nearest"][self.byte()]}
+
+    def attributes(self):
+        usage = ["header", "detail"][self.byte()]
+        manual = self.byte()
+        present = self.byte()
+        parent = None if present == 0 else self.text()
+        return {"usage": usage, "manualEntriesAllowed": manual == 1, "parent": parent}
+
+    def limit(self):
+        kind = self.byte()
+        if kind == 0:
+            return "none"
+        if kind == 1:
+            return {"debitsNotExceedCreditsPlus": self.nat()}
+        if kind == 2:
+            return {"creditsNotExceedDebitsPlus": self.nat()}
+        raise ValueError("bad limit tag")
+
+    def checkpoint_part(self):
+        """A checkpoint part, the journal's derived state in the shape `Canonical.checkpointPart` writes."""
+        tag = self.byte()
+        if tag == 0x01:
+            cfg = {"admin": self.principal(), "activationHeight": self.nat64(), "businessDate": self.opt(self.nat), "calendar": self.calendar()}
+            cfg["leadsheet"] = [{"lo": self.nat(), "hi": self.nat(), "leadsheet": self.text(), "name": self.text(), "category": self.text(), "cycle": self.text()} for _ in range(self.nat())]
+            cfg["currencies"] = [(self.text(), self.byte()) for _ in range(self.nat())]
+            cfg["posters"] = [self.principal() for _ in range(self.nat())]
+            cfg["posterScopes"] = [(self.principal(), [self.text() for _ in range(self.nat())]) for _ in range(self.nat())]
+            cfg["balanceLimits"] = [{"account": self.text(), "subledger": self.blob(), "currency": self.text(), "limit": self.limit()} for _ in range(self.nat())]
+            cfg["accountAttributes"] = [(self.text(), self.attributes()) for _ in range(self.nat())]
+            cfg["accountOrdinals"] = [(self.text(), self.nat()) for _ in range(self.nat())]
+            cfg["currencyOrdinals"] = [(self.text(), self.nat()) for _ in range(self.nat())]
+            cfg["periodOrdinals"] = [(self.text(), self.nat()) for _ in range(self.nat())]
+            cfg["postedCount"], cfg["voidedCount"], cfg["datedRolledUpThrough"] = self.nat(), self.nat(), self.nat()
+            cfg["calendarAuthority"], cfg["maxRollDays"] = self.calendar_authority(), self.nat()
+            return {"config": cfg}
+        if tag == 0x02:
+            return {"accounts": [{"code": self.text(), "name": self.text(), "normalSide": self.side(),
+                                  "category": ["asset", "liability", "equity", "income", "expense"][self.byte()],
+                                  "constraint": ["none", "debitsNotExceedCredits", "creditsNotExceedDebits"][self.byte()],
+                                  "active": self.byte() == 1, "openedAtBlock": self.nat(), "closedAtBlock": self.opt(self.nat)} for _ in range(self.nat())]}
+        if tag == 0x03:
+            return {"periods": [{"id": self.text(), "start": self.nat(), "end": self.nat(), "open": self.byte() == 1,
+                                 "openedAtBlock": self.nat(), "closedAtBlock": self.opt(self.nat), "postings": self.nat(), "pendings": self.nat()} for _ in range(self.nat())]}
+        if tag == 0x04:
+            return {"balances": [{"account": self.text(), "subledger": self.blob(), "currency": self.text(), "drPosted": self.nat(),
+                                  "crPosted": self.nat(), "drPending": self.nat(), "crPending": self.nat()} for _ in range(self.nat())]}
+        if tag == 0x05:
+            return {"periodBalances": [{"period": self.text(), "account": self.text(), "currency": self.text(), "debits": self.nat(), "credits": self.nat()} for _ in range(self.nat())]}
+        if tag == 0x06:
+            value_dated = self.byte() == 1
+            return {"dated": {"valueDated": value_dated, "rows": [{"account": self.text(), "currency": self.text(), "subledger": self.blob(), "day": self.nat(), "debits": self.nat(), "credits": self.nat()} for _ in range(self.nat())]}}
+        if tag == 0x07:
+            return {"pendings": {"open": [self.nat() for _ in range(self.nat())], "byAccount": [(self.text(), self.nat()) for _ in range(self.nat())]}}
+        raise ValueError(f"unknown checkpoint part tag {tag:#x}")
 
     def event(self):
         tag = self.byte()
@@ -252,6 +310,8 @@ class Reader:
             return {"businessDateRolled": {"day": self.nat()}}
         if tag == 0x2B:
             return {"calendarSet": {"calendar": self.calendar()}}
+        if tag == 0x2F:
+            return {"calendarAuthoritySet": {"authority": self.calendar_authority(), "maxRollDays": self.nat(), "businessDate": self.opt(self.nat)}}
         if tag == 0x2C:
             poster = self.principal()
             present = self.byte()
@@ -298,6 +358,10 @@ class Reader:
                 raise ValueError("accountAttributesSet: bad parent option tag")
             return {"accountAttributesSet": {"code": code, "attributes": {
                 "usage": usage, "manualEntriesAllowed": manual == 1, "parent": parent}}}
+        if tag == 0x30:
+            through, seq, last = self.nat(), self.nat(), self.byte()
+            assert last in (0, 1), "checkpoint: bad last flag"
+            return {"checkpoint": {"through": through, "seq": seq, "last": last == 1, "part": self.checkpoint_part()}}
         raise ValueError(f"unknown event tag {tag:#x}")
 
 
@@ -368,6 +432,42 @@ def mmr_verify(block_hash_bytes, leaf_index, siblings, peaks, peak_index, root):
     for p in peaks:               # highest peak first, as generated
         acc = p if acc is None else mmr_node(p, acc)
     return acc == root
+
+
+def assemble_archived_proof(above, lower_from_archives):
+    """An archived block's proof from the parent's upper part (`journalProofAbove`) and the lower
+    siblings the archives regenerated, in the shape `mmr_verify` takes."""
+    siblings = list(lower_from_archives) + [bytes(x) for x in above["siblings"]]
+    return {"siblings": siblings, "peaks": [bytes(p) for p in above["peaks"]], "peakIndex": above["peakIndex"]}
+
+
+def resolve_subtree(subtree_root_at, leaf_start, height):
+    """The root of the aligned subtree (leaf_start, height) across archives: the archive holding
+    `leaf_start` answers it whole when it holds every block of it; otherwise the two halves are
+    resolved and hashed together. `subtree_root_at(leaf_start, height)` asks the archive that holds
+    `leaf_start` and returns bytes or None."""
+    got = subtree_root_at(leaf_start, height)
+    if got is not None:
+        return got
+    assert height > 0, f"leaf {leaf_start} is held by no archive"
+    half = 2 ** (height - 1)
+    return mmr_node(resolve_subtree(subtree_root_at, leaf_start, height - 1),
+                    resolve_subtree(subtree_root_at, leaf_start + half, height - 1))
+
+
+def lower_siblings(above, index, subtree_root_at):
+    """The siblings below the parent's kept height: the parent's own where it still has them, the
+    archives' otherwise."""
+    out = []
+    idx = index
+    for h, mine in enumerate(above["lower"]):
+        sib = idx + 1 if idx % 2 == 0 else idx - 1
+        if mine:
+            out.append(bytes(mine[0]))
+        else:
+            out.append(resolve_subtree(subtree_root_at, sib * (2 ** h), h))
+        idx //= 2
+    return out
 
 
 # ─── end to end ──────────────────────────────────────────────────────────────

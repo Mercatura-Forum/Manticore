@@ -726,3 +726,57 @@ Debug.print("count: general ledger entries = " # Nat.toText(gl.entryCount));
 assert (glRows == (switch (Core.trialBalance(s, "2026-09")) { case (?tb) tb.rows.size(); case null 0 }));
 
 Debug.print("journal height at end: " # Nat.toText(Core.height(s)) # ", posted " # Nat.toText(Core.postedCount(s)) # ", voided " # Nat.toText(Core.voidedCount(s)));
+
+// ─── the calendar's authority: where "today" comes from on a substrate whose clock is not a clock ─────────
+// A fresh journal, so the business-date battery above keeps its own state. Thebes' Time.now() is the block
+// height in seconds (day 0 for the chain's first 86,400 blocks): under the substrate clock no 2026 date can be
+// set there; under the business-date authority the rolled date is the calendar, bounded per roll.
+let c2 = MemLog.new();
+let s2 = Core.newState(admin);
+func cfg2(caller : Principal, r : { #ok : T.Event; #err : T.ConfigError }) : Nat {
+  switch (r) { case (#ok(e)) MemLog.commit(c2, s2, clock, caller, e).index; case (#err(e)) { Debug.print("unexpected config error: " # debug_show(e)); assert false; 0 } }
+};
+let thebesClock : Nat64 = 21_794_000_000_000;   // height 21,794 → 1970-01-01, day 0, as measured on a Thebes chain
+assert (Core.calendarAuthority(s2) == { authority = #substrateClock; maxRollDays = 0 });
+// the substrate clock: a 2026 date is "in the future" on a chain whose clock says 1970 — the refusal measured on the bed
+assert (cfgErr(Core.prepareRollBusinessDate(s2, admin, thebesClock, TODAY)) == #BusinessDateInFuture({ requested = TODAY; today = 0 }));
+// the act's own gates
+assert (cfgErr(Core.prepareSetCalendarAuthority(s2, poster, #businessDate, 31, ?TODAY)) == #Unauthorized);
+assert (cfgErr(Core.prepareSetCalendarAuthority(s2, admin, #substrateClock, 0, ?TODAY)) == #InvalidCalendarAuthority({ reason = "a business date travels by the roll command under the substrate clock" }));
+assert (cfgErr(Core.prepareSetCalendarAuthority(s2, admin, #substrateClock, 5, null)) == #InvalidCalendarAuthority({ reason = "the roll bound applies under the business-date authority only" }));
+assert (cfgErr(Core.prepareSetCalendarAuthority(s2, admin, #businessDate, 0, ?TODAY)) == #InvalidCalendarAuthority({ reason = "the business-date authority needs a roll bound of at least one day" }));
+assert (cfgErr(Core.prepareSetCalendarAuthority(s2, admin, #businessDate, 31, null)) == #InvalidCalendarAuthority({ reason = "the business-date authority needs a business date: none is set and the act carries none" }));
+let fpBefore = Core.fingerprint(s2);
+// the authority with its first business date, on the Thebes clock: the date is set without consulting the clock
+ignore cfg2(admin, Core.prepareSetCalendarAuthority(s2, admin, #businessDate, 31, ?TODAY));
+assert (Core.calendarAuthority(s2) == { authority = #businessDate; maxRollDays = 31 });
+assert (Core.businessDate(s2) == ?TODAY and Core.effectiveToday(s2, thebesClock) == TODAY);
+assert (Core.fingerprint(s2) != fpBefore);
+// rolls under it: never against the clock, always monotone, never past the bound
+ignore cfg2(admin, Core.prepareRollBusinessDate(s2, admin, thebesClock, TODAY + 30));
+assert (Core.effectiveToday(s2, thebesClock) == TODAY + 30);
+assert (cfgErr(Core.prepareRollBusinessDate(s2, admin, thebesClock, TODAY + 62)) == #BusinessDateRollTooFar({ current = TODAY + 30; requested = TODAY + 62; maxRollDays = 31 }));
+assert (cfgErr(Core.prepareRollBusinessDate(s2, admin, thebesClock, TODAY + 29)) == #BusinessDateBackwards({ current = TODAY + 30; requested = TODAY + 29 }));
+ignore cfg2(admin, Core.prepareRollBusinessDate(s2, admin, thebesClock, TODAY + 61));
+// a date carried by a later authority act must still advance
+assert (cfgErr(Core.prepareSetCalendarAuthority(s2, admin, #businessDate, 40, ?(TODAY + 10))) == #BusinessDateBackwards({ current = TODAY + 61; requested = TODAY + 10 }));
+ignore cfg2(admin, Core.prepareSetCalendarAuthority(s2, admin, #businessDate, 40, null));
+assert (Core.calendarAuthority(s2) == { authority = #businessDate; maxRollDays = 40 } and Core.businessDate(s2) == ?(TODAY + 61));
+// a posting dated at the business date books on the Thebes clock: the period is the day's, the clock is not asked
+ignore cfg2(admin, Core.prepareRegisterCurrency(s2, admin, "EGP", 2));
+ignore cfg2(admin, Core.prepareOpenAccount(s2, admin, "1500", "Cash", #debit, #asset, #none));
+ignore cfg2(admin, Core.prepareOpenAccount(s2, admin, "2000", "Deposits", #credit, #liability, #none));
+ignore cfg2(admin, Core.prepareOpenPeriod(s2, admin, "2026-11", TODAY + 40, TODAY + 70));
+ignore cfg2(admin, Core.prepareAddPoster(s2, admin, poster));
+ignore cfg2(admin, Core.prepareSetActivationHeight(s2, admin, 0));
+switch (Core.preparePost(s2, poster, thebesClock, simple(TODAY + 61, "2026-11", "1500", "2000", "EGP", 7))) {
+  case (#ok(#event(e))) ignore MemLog.commit(c2, s2, thebesClock, poster, e);
+  case (o) { Debug.print(debug_show (o)); assert false };
+};
+// back to the substrate clock: the roll answers to the clock again
+ignore cfg2(admin, Core.prepareSetCalendarAuthority(s2, admin, #substrateClock, 0, null));
+assert (cfgErr(Core.prepareRollBusinessDate(s2, admin, thebesClock, TODAY + 62)) == #BusinessDateInFuture({ requested = TODAY + 62; today = 0 }));
+// the authority, the bound and the date are in the fold: a replay from the blocks reaches the same fingerprint
+let r2 = Core.replay(admin, MemLog.blocks(c2));
+assert (Core.fingerprint(r2) == Core.fingerprint(s2) and Core.calendarAuthority(r2) == Core.calendarAuthority(s2));
+Debug.print("count: calendar-authority checks = 17");

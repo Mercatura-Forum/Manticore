@@ -1081,8 +1081,8 @@ module {
         // may not go credit at all. The limit lives on the journal's
         // (control account, sub-ledger, currency) triple, so it is enforced at
         // admission over posted and pending amounts by the same engine that
-        // enforces the balance invariant — which is what makes the parity row
-        // say "engine-enforced" rather than "checked by the application".
+        // enforces the balance invariant: engine-enforced rather than checked by
+        // the application.
         let sub = Posting.subledgerOf(identifier);
         let side = ProductCore.normalSideOf(v.terms.kind);
         let limit = Limits.journalLimit(side, v.terms.limits.overdraft);
@@ -2177,6 +2177,7 @@ module {
       case (#journalSetPosterScope(x)) journalConfig(JCore.prepareSetPosterScope(js, journalCaller, x.poster, x.accounts));
       case (#journalRollBusinessDate(x)) journalConfig(JCore.prepareRollBusinessDate(js, journalCaller, now, x.day));
       case (#journalSetCalendar(x)) journalConfig(JCore.prepareSetCalendar(js, journalCaller, x.calendar));
+      case (#journalSetCalendarAuthority(x)) journalConfig(JCore.prepareSetCalendarAuthority(js, journalCaller, x.authority, x.maxRollDays, x.businessDate));
 
       // ── money ──
       case (#postManualEntry(x)) {

@@ -979,6 +979,8 @@ class Reader(V.Reader):
             return {"journalRollBusinessDate": {"day": self.nat()}}
         if tag == 0x2B:
             return {"journalSetCalendar": {"calendar": self.bank_calendar()}}
+        if tag == 0x2C:
+            return {"journalSetCalendarAuthority": {"authority": ["substrateClock", "businessDate"][self.byte()], "maxRollDays": self.nat(), "businessDate": self.opt(self.nat)}}
         if tag == 0x40:
             return {"postManualEntry": self.manual_entry()}
         if tag == 0x41:

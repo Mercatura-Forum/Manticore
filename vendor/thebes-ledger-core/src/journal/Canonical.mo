@@ -147,6 +147,7 @@ module {
     };
 
     public func shiftPolicy(sp : T.ShiftPolicy) { byte(switch (sp) { case (#reject) 0; case (#previous) 1; case (#next) 2; case (#nearest) 3 }) };
+    public func calendarAuthority(a : T.CalendarAuthority) { byte(switch (a) { case (#substrateClock) 0; case (#businessDate) 1 }) };
     public func calendar(c : ?T.CalendarConfig) {
       switch (c) {
         case null byte(0);
@@ -177,6 +178,7 @@ module {
         case (#adminTransferred(a)) { byte(0x29); principal(a.admin) };
         case (#businessDateRolled(b)) { byte(0x2A); nat(b.day) };
         case (#calendarSet(c)) { byte(0x2B); calendar(c.calendar) };
+        case (#calendarAuthoritySet(x)) { byte(0x2F); calendarAuthority(x.authority); nat(x.maxRollDays); optNat(x.businessDate) };
         case (#posterScopeSet(p)) {
           byte(0x2C); principal(p.poster);
           switch (p.accounts) {
@@ -231,6 +233,7 @@ module {
           nat(c.currencyOrdinals.size()); for ((code, o) in c.currencyOrdinals.vals()) { text(code); nat(o) };
           nat(c.periodOrdinals.size()); for ((id, o) in c.periodOrdinals.vals()) { text(id); nat(o) };
           nat(c.postedCount); nat(c.voidedCount); nat(c.datedRolledUpThrough);
+          calendarAuthority(c.calendarAuthority); nat(c.maxRollDays);
         };
         case (#accounts(xs)) {
           byte(0x02); nat(xs.size());
@@ -424,6 +427,9 @@ module {
     public func shiftPolicy() : ?T.ShiftPolicy {
       switch (byte()) { case (?0) ?#reject; case (?1) ?#previous; case (?2) ?#next; case (?3) ?#nearest; case _ null }
     };
+    public func calendarAuthority() : ?T.CalendarAuthority {
+      switch (byte()) { case (?0) ?#substrateClock; case (?1) ?#businessDate; case _ null }
+    };
     public func calendar() : ??T.CalendarConfig {
       switch (byte()) {
         case (?0) ?null;
@@ -489,11 +495,12 @@ module {
           let ?npo = count() else return null; let periodOrdinals = List.empty<(T.PeriodId, Nat)>();
           i := 0; while (i < npo) { let ?id = text() else return null; let ?o = nat() else return null; List.add(periodOrdinals, (id, o)); i += 1 };
           let ?postedCount = nat() else return null; let ?voidedCount = nat() else return null; let ?datedRolledUpThrough = nat() else return null;
+          let ?authority = calendarAuthority() else return null; let ?maxRollDays = nat() else return null;
           ?#config({
             admin; activationHeight; businessDate; calendar = cal; leadsheet = List.toArray(leadsheet); currencies = List.toArray(currencies);
             posters = List.toArray(posters); posterScopes = List.toArray(scopes); balanceLimits = List.toArray(limits); accountAttributes = List.toArray(attrs);
             accountOrdinals = List.toArray(accountOrdinals); currencyOrdinals = List.toArray(currencyOrdinals); periodOrdinals = List.toArray(periodOrdinals);
-            postedCount; voidedCount; datedRolledUpThrough;
+            postedCount; voidedCount; datedRolledUpThrough; calendarAuthority = authority; maxRollDays;
           })
         };
         case 0x02 {
@@ -590,6 +597,10 @@ module {
         case 0x29 { let ?admin = principal() else return null; ?#adminTransferred({ admin }) };
         case 0x2A { let ?day = nat() else return null; ?#businessDateRolled({ day }) };
         case 0x2B { let ?cal = calendar() else return null; ?#calendarSet({ calendar = cal }) };
+        case 0x2F {
+          let ?authority = calendarAuthority() else return null; let ?maxRollDays = nat() else return null; let ?businessDate = optNat() else return null;
+          ?#calendarAuthoritySet({ authority; maxRollDays; businessDate })
+        };
         case 0x2D {
           let ?account = text() else return null;
           let ?subledger = optBlob() else return null;

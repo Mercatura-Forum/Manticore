@@ -713,6 +713,7 @@ module {
       case (#adminTransferred(_)) NOTHING;
       case (#businessDateRolled(_)) NOTHING;
       case (#calendarSet(_)) NOTHING;
+      case (#calendarAuthoritySet(_)) NOTHING;
       case (#checkpoint(_)) NOTHING;
     }
   };

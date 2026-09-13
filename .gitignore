@@ -16,3 +16,4 @@ evidence*.json
 # ISO 20022 schemas are fetched, not redistributed: tools/iso20022/fetch_schemas.sh, checksums in schemas.json
 tools/iso20022/schemas/
 hub/motoko/mops.lock
+hub/motoko/mops.lock

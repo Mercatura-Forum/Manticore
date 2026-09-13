@@ -108,7 +108,7 @@ genesis(#defineRole({
     "journal.account.close", "journal.period.create", "journal.period.close",
     "journal.activation.update", "journal.leadsheet.update", "journal.poster.create",
     "journal.poster.delete", "journal.posterscope.update", "journal.businessdate.update",
-    "journal.calendar.update",
+    "journal.calendar.update", "journal.calendar.authority",
   ];
 }));
 genesis(#defineRole({ id = "breaker"; name = "Break glass"; permissions = ["command.breakGlass", "command.create", "journal.entry.create"] }));
@@ -776,6 +776,27 @@ assert (bodiesDropped == rebuilt);
 let keptReplay = Core.replay(installer, List.toArray(keptBlocks));
 assert (Core.fingerprint(keptReplay) == fp() and Core.height(keptReplay) == Core.height(bs));
 Debug.print("count: bank blocks replayed from what a pack keeps, to the live fingerprint = " # Nat.toText(List.size(keptBlocks)));
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  the calendar's authority through the bank (the Thebes clock finding of 12 September)
+// ═══════════════════════════════════════════════════════════════════════════
+// On Thebes Time.now() is the block height in seconds: the journal's clock day is 0 and a 2026 business date
+// is "in the future". The dual act `journalSetCalendarAuthority` makes the rolled business date the calendar
+// and carries the first one; under it the roll never consults the clock and is bounded per roll.
+let thebesClock : Nat64 = 21_794_000_000_000;   // the height measured on the bed: 1970-01-01
+let clockBefore = clock;
+clock := thebesClock;
+expectProposeErr(maker, #journalRollBusinessDate({ day = TODAY + 1 }), "BusinessDateInFuture");
+expectProposeErr(maker, #journalSetCalendarAuthority({ authority = #businessDate; maxRollDays = 0; businessDate = ?(TODAY + 1) }), "InvalidCalendarAuthority");
+assert (fourEyes(#journalSetCalendarAuthority({ authority = #businessDate; maxRollDays = 31; businessDate = ?(TODAY + 1) })).executed);
+assert (JCore.effectiveToday(js, thebesClock) == TODAY + 1 and JCore.calendarAuthority(js) == { authority = #businessDate; maxRollDays = 31 });
+assert (fourEyes(#journalRollBusinessDate({ day = TODAY + 20 })).executed);   // past the clock's day: the clock is not asked
+expectProposeErr(maker, #journalRollBusinessDate({ day = TODAY + 60 }), "BusinessDateRollTooFar");
+expectProposeErr(maker, #journalRollBusinessDate({ day = TODAY + 19 }), "BusinessDateBackwards");
+assert (fourEyes(#journalSetCalendarAuthority({ authority = #substrateClock; maxRollDays = 0; businessDate = null })).executed);
+expectProposeErr(maker, #journalRollBusinessDate({ day = TODAY + 21 }), "BusinessDateInFuture");
+clock := clockBefore;
+Debug.print("count: calendar-authority acts through the bank = 8");
 
 let finalReplay = Core.replay(installer, BankMemLog.blocks(bchain));
 assert (Core.fingerprint(finalReplay) == fp());

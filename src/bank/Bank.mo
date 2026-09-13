@@ -127,6 +127,10 @@ shared (initMsg) persistent actor class Bank(init : {
   /// explicit list does not cover, so the policy table is complete from block 0
   /// and nothing falls back to an implicit default at run time.
   defaultDual : ?{ eligibleRole : T.RoleId; required : Nat; ttlSeconds : Nat };
+  /// The journal's calendar authority at genesis (`JournalTypes.CalendarAuthority`): `#businessDate` with the
+  /// first business date on a substrate whose clock is not wall time (Thebes), absent on the IC, where the
+  /// substrate clock is consensus time and the business date travels by the roll command.
+  calendar : ?{ authority : JT.CalendarAuthority; maxRollDays : Nat; businessDate : ?JT.Day };
 }) = self {
 
   // ─── persisted state ──────────────────────────────────────────────────────
@@ -500,6 +504,12 @@ shared (initMsg) persistent actor class Bank(init : {
     };
     // Block 0 of the bank log records who administers it.
     ignore commitBank(installer, #bankAdminTransferred({ admin = installer }));
+    // The calendar's authority, before any dated act: on Thebes the substrate clock is the block height, so the
+    // first business date comes with the authority and the clock is never the bank's calendar.
+    switch (init.calendar) {
+      case (?c) genesisCommand(#journalSetCalendarAuthority({ authority = c.authority; maxRollDays = c.maxRollDays; businessDate = c.businessDate }));
+      case null {};
+    };
     // Books, then roles, then grants, then policies: each validated by the same
     // `planCommand` that validates a run-time command, so a genesis argument
     // cannot create state a command could not.
@@ -2216,20 +2226,21 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func bankPackSegmentBytes(pack : Nat, seq : Nat) : async ?Blob { Packing.bankSegmentBytes(packing, pack, seq) };
   /// Every block of a bank segment read back from the pack, decoded, its hash checked against the MMR
   /// leaf the chain committed (the proof of the packed block), and its index its own.
-  public query func verifyBankPackSegment(pack : Nat, seq : Nat) : async ?{ blocks : Nat; verified : Nat; bodiesDropped : Nat; hashOk : Bool; firstFault : ?Nat } {
-    let ?sg = Array.find<Packing.BankSegment>(Packing.bankSegmentsOf(packing, pack), func(g) { g.seq == seq }) else return null;
-    let ?bytes = Packing.bankSegmentBytes(packing, pack, seq) else return null;
-    let hashOk = Sha256.fromBlob(#sha256, bytes) == sg.sha256;
-    let ?root = BLog.mmrRoot(bankLog) else return ?{ blocks = 0; verified = 0; bodiesDropped = 0; hashOk; firstFault = ?sg.lo };
+  /// Every block of `lo … hi` read back — from the pack below the log's base, from the StableLog above it —
+  /// decoded, its index its own, its parent hash its predecessor's, and its hash proved against the bank's
+  /// MMR root; the dropped bodies counted. The one check behind the packed-segment and the live-range reads.
+  func verifyBankRange(lo : Nat, hi : Nat, root : Blob) : { verified : Nat; dropped : Nat; fault : ?Nat } {
     var verified = 0; var dropped = 0; var fault : ?Nat = null;
-    var i = sg.lo;
-    label walk while (i <= sg.hi) {
-      switch (packedBankBlock(i), BLog.proof(bankLog, i)) {
+    var prev : ?Blob = if (lo == 0) null else switch (bankBlock(lo - 1)) { case (?p) ?p.hash; case null { return { verified = 0; dropped = 0; fault = ?lo } } };
+    var i = lo;
+    label walk while (i <= hi) {
+      switch (bankRaw(i), BLog.proof(bankLog, i)) {
         case (?raw, ?pf) {
           switch (C.decodeBlock(raw)) {
             case (?b) {
-              if (b.index == i and BLog.verify(b.hash, i, pf, root)) verified += 1 else { fault := ?i; break walk };
+              if (b.index == i and b.parentHash == prev and BLog.verify(b.hash, i, pf, root)) verified += 1 else { fault := ?i; break walk };
               switch (b.event) { case (#commandProposed(x)) { if (x.command == null) dropped += 1 }; case (_) {} };
+              prev := ?b.hash;
             };
             case null { fault := ?i; break walk };
           };
@@ -2238,7 +2249,27 @@ shared (initMsg) persistent actor class Bank(init : {
       };
       i += 1;
     };
-    ?{ blocks = sg.hi + 1 - sg.lo; verified; bodiesDropped = dropped; hashOk; firstFault = fault }
+    { verified; dropped; fault }
+  };
+
+  public query func verifyBankPackSegment(pack : Nat, seq : Nat) : async ?{ blocks : Nat; verified : Nat; bodiesDropped : Nat; hashOk : Bool; firstFault : ?Nat } {
+    let ?sg = Array.find<Packing.BankSegment>(Packing.bankSegmentsOf(packing, pack), func(g) { g.seq == seq }) else return null;
+    let ?bytes = Packing.bankSegmentBytes(packing, pack, seq) else return null;
+    let hashOk = Sha256.fromBlob(#sha256, bytes) == sg.sha256;
+    let ?root = BLog.mmrRoot(bankLog) else return ?{ blocks = 0; verified = 0; bodiesDropped = 0; hashOk; firstFault = ?sg.lo };
+    let r = verifyBankRange(sg.lo, sg.hi, root);
+    ?{ blocks = sg.hi + 1 - sg.lo; verified = r.verified; bodiesDropped = r.dropped; hashOk; firstFault = r.fault }
+  };
+
+  /// A range of the bank log proved against the certified root — packed or live, up to 2,000 blocks a read —
+  /// so a log of millions of blocks is verified in pages by a reader that never decodes a block itself.
+  public query func verifyBankBlocks(start : Nat, length : Nat) : async { blocks : Nat; verified : Nat; bodiesDropped : Nat; firstFault : ?Nat } {
+    let height = BLog.length(bankLog);
+    if (start >= height or length == 0) return { blocks = 0; verified = 0; bodiesDropped = 0; firstFault = null };
+    let hi = Nat.min(height - 1, start + Nat.min(length, 2_000) - 1);
+    let ?root = BLog.mmrRoot(bankLog) else return { blocks = 0; verified = 0; bodiesDropped = 0; firstFault = ?start };
+    let r = verifyBankRange(start, hi, root);
+    { blocks = hi + 1 - start; verified = r.verified; bodiesDropped = r.dropped; firstFault = r.fault }
   };
 
   public query func archiveRollStatus() : async {

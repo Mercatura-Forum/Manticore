@@ -71,6 +71,7 @@ module {
     p("journal.posterscope.update", "journal.poster", #update, #command("journalSetPosterScope"), false, true),
     p("journal.businessdate.update", "journal", #update, #command("journalRollBusinessDate"), false, true),
     p("journal.calendar.update", "journal.calendar", #update, #command("journalSetCalendar"), false, true),
+    p("journal.calendar.authority", "journal.calendar", #update, #command("journalSetCalendarAuthority"), false, true),
 
     // ── money ──
     p("journal.entry.create", "journal.entry", #create, #command("postManualEntry"), true, true),
@@ -361,6 +362,7 @@ module {
       case (#journalSetPosterScope(_)) "journalSetPosterScope";
       case (#journalRollBusinessDate(_)) "journalRollBusinessDate";
       case (#journalSetCalendar(_)) "journalSetCalendar";
+      case (#journalSetCalendarAuthority(_)) "journalSetCalendarAuthority";
       case (#postManualEntry(_)) "postManualEntry";
       case (#reverseManualEntry(_)) "reverseManualEntry";
       case (#postManualEntryForParty(_)) "postManualEntryForParty";

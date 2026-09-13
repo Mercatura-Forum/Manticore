@@ -289,6 +289,8 @@ let commands : [T.Command] = [
   #journalRollBusinessDate({ day = 20705 }),
   #journalSetCalendar({ calendar = ?{ restDays = [4, 5]; holidays = [20710, 20711]; policy = #nearest } }),
   #journalSetCalendar({ calendar = null }),
+  #journalSetCalendarAuthority({ authority = #businessDate; maxRollDays = 31; businessDate = ?20705 }),
+  #journalSetCalendarAuthority({ authority = #substrateClock; maxRollDays = 0; businessDate = null }),
   #postManualEntry(manual),
   #reverseManualEntry({ original = 41; book = "BR01"; postingDate = 20706; valueDate = 20706; period = "2026-09"; narration = "reversal"; idempotencyKey = Blob.fromArray([9, 9]) }),
   // ── party and KYC: party / CIF and KYC ──

@@ -6,8 +6,8 @@
 /// (control account, sub-ledger, currency) triple — `#debitsNotExceedCreditsPlus`
 /// for a deposit-side account — so the limit is enforced at admission by the same
 /// engine that enforces per-currency balance, over posted **and** pending amounts,
-/// and a direct poster cannot bypass it. That is what makes the parity row say
-/// "engine-enforced" rather than "checked by the application".
+/// and a direct poster cannot bypass it: the limit is engine-enforced rather than
+/// checked by the application.
 ///
 /// Modelling the facility as a credit to the customer's sub-ledger instead was
 /// considered and rejected: it would inflate the customer's reported balance by

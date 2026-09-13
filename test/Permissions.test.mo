@@ -158,6 +158,7 @@ let commands : [T.Command] = [
   #journalSetPosterScope({ poster = p1; accounts = ?["1001"] }),
   #journalRollBusinessDate({ day = 20705 }),
   #journalSetCalendar({ calendar = null }),
+  #journalSetCalendarAuthority({ authority = #businessDate; maxRollDays = 31; businessDate = ?20705 }),
   #postManualEntry({ book = "HQ"; postingDate = 20705; valueDate = 20705; period = "2026-09"; legs = []; narration = ""; idempotencyKey = Blob.fromArray([1]); correctionOf = null }),
   #reverseManualEntry({ original = 1; book = "HQ"; postingDate = 20705; valueDate = 20705; period = "2026-09"; narration = ""; idempotencyKey = Blob.fromArray([2]) }),
   #postManualEntryForParty({ party = 1; entry = { book = "HQ"; postingDate = 20705; valueDate = 20705; period = "2026-09"; legs = []; narration = ""; idempotencyKey = Blob.fromArray([3]); correctionOf = null } }),
@@ -327,7 +328,7 @@ Debug.print("count: catalogue entries guarding a command = " # Nat.toText(comman
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
 assert (methodEntries == 19);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request
-assert (commandEntries == 144);   // 143 + createCustomer (one dual act)
+assert (commandEntries == 145);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();

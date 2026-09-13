@@ -39,6 +39,8 @@ let events : [T.Event] = [
   #businessDateRolled({ day = 20705 }),
   #calendarSet({ calendar = ?{ restDays = [4, 5]; holidays = [20460, 20478]; policy = #nearest } }),
   #calendarSet({ calendar = null }),
+  #calendarAuthoritySet({ authority = #businessDate; maxRollDays = 31; businessDate = ?20705 }),
+  #calendarAuthoritySet({ authority = #substrateClock; maxRollDays = 0; businessDate = null }),
   #void({ pendingIndex = 3; reason = #requested }),
   #void({ pendingIndex = 4; reason = #expired }),
   #currencyRegistered({ code = "EGP"; minorUnits = 2 }),
@@ -125,7 +127,7 @@ Debug.print("count: canonical event round trips = " # Nat.toText(roundTrips));
 Debug.print("count: canonical tamper trials = " # Nat.toText(tamperTrials));
 Debug.print("count: canonical tampers detected = " # Nat.toText(tampersDetected));
 assert (tamperTrials == tampersDetected and tamperTrials > 1000);
-assert (roundTrips == events.size() and events.size() == 31);
+assert (roundTrips == events.size() and events.size() == 33);
 
 // Hash is a pure function of the fields; different index or parent changes it.
 let a = C.encodeBlock(0, 1, admin, null, events[0]);

@@ -205,6 +205,10 @@ class Reader:
     def resolution(self):
         return {"postingDate": self.nat(), "valueDate": self.nat(), "period": self.text(), "valueDateRequested": self.opt(self.nat)}
 
+    def calendar_authority(self):
+        """Where the journal's today comes from: the substrate's clock, or the rolled business date alone."""
+        return ["substrateClock", "businessDate"][self.byte()]
+
     def calendar(self):
         t = self.byte()
         if t == 0:
@@ -246,6 +250,7 @@ class Reader:
             cfg["currencyOrdinals"] = [(self.text(), self.nat()) for _ in range(self.nat())]
             cfg["periodOrdinals"] = [(self.text(), self.nat()) for _ in range(self.nat())]
             cfg["postedCount"], cfg["voidedCount"], cfg["datedRolledUpThrough"] = self.nat(), self.nat(), self.nat()
+            cfg["calendarAuthority"], cfg["maxRollDays"] = self.calendar_authority(), self.nat()
             return {"config": cfg}
         if tag == 0x02:
             return {"accounts": [{"code": self.text(), "name": self.text(), "normalSide": self.side(),
@@ -305,6 +310,8 @@ class Reader:
             return {"businessDateRolled": {"day": self.nat()}}
         if tag == 0x2B:
             return {"calendarSet": {"calendar": self.calendar()}}
+        if tag == 0x2F:
+            return {"calendarAuthoritySet": {"authority": self.calendar_authority(), "maxRollDays": self.nat(), "businessDate": self.opt(self.nat)}}
         if tag == 0x2C:
             poster = self.principal()
             present = self.byte()

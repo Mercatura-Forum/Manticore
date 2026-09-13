@@ -205,6 +205,9 @@ module {
     #journalSetPosterScope : { poster : Principal; accounts : ?JT.PosterScope };
     #journalRollBusinessDate : { day : Day };
     #journalSetCalendar : { calendar : ?JT.CalendarConfig };
+    /// Where the journal's "today" comes from (`JT.CalendarAuthority`); under `#businessDate` the act carries the
+    /// first business date when none is set and the bound a roll may advance by.
+    #journalSetCalendarAuthority : { authority : JT.CalendarAuthority; maxRollDays : Nat; businessDate : ?Day };
     // ── money: a manual general-ledger entry ──
     #postManualEntry : ManualEntry;
     #reverseManualEntry : { original : Nat; book : BookId; postingDate : Day; valueDate : Day; period : JT.PeriodId; narration : Text; idempotencyKey : Blob };

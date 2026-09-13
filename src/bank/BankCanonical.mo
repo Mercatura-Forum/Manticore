@@ -362,6 +362,7 @@ module {
       case (#journalSetPosterScope(x)) { w.byte(0x29); w.principal(x.poster); wOptTexts(w, x.accounts) };
       case (#journalRollBusinessDate(x)) { w.byte(0x2A); w.nat(x.day) };
       case (#journalSetCalendar(x)) { w.byte(0x2B); w.calendar(x.calendar) };
+      case (#journalSetCalendarAuthority(x)) { w.byte(0x2C); w.calendarAuthority(x.authority); w.nat(x.maxRollDays); w.optNat(x.businessDate) };
       case (#postManualEntry(x)) { w.byte(0x40); wManualEntry(w, x) };
       case (#reverseManualEntry(x)) { w.byte(0x41); w.nat(x.original); w.text(x.book); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration); w.blob(x.idempotencyKey) };
       case (#postManualEntryForParty(x)) { w.byte(0x42); w.nat(x.party); wManualEntry(w, x.entry) };
@@ -1635,6 +1636,10 @@ module {
       case 0x29 { let ?poster = r.principal() else return null; let ?accounts = rOptTexts(r) else return null; ?#journalSetPosterScope({ poster; accounts }) };
       case 0x2A { let ?day = r.nat() else return null; ?#journalRollBusinessDate({ day }) };
       case 0x2B { let ?calendar = r.calendar() else return null; ?#journalSetCalendar({ calendar }) };
+      case 0x2C {
+        let ?authority = r.calendarAuthority() else return null; let ?maxRollDays = r.nat() else return null; let ?businessDate = r.optNat() else return null;
+        ?#journalSetCalendarAuthority({ authority; maxRollDays; businessDate })
+      };
       case 0x40 { let ?m = rManualEntry(r) else return null; ?#postManualEntry(m) };
       case 0x41 {
         let ?original = r.nat() else return null; let ?book = r.text() else return null;

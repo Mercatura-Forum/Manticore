@@ -268,6 +268,10 @@ module {
     // the journal calendar period-end processes
     var businessDate : ?T.Day;                                   // the accounting "today" once set
     var calendar : ?T.CalendarConfig;                            // working-day calendar and shift policy
+    // where "today" comes from (see JournalTypes) and, under #businessDate, the most a roll may advance; both
+    // optional so a journal persisted before the authority existed upgrades in place: null is the substrate clock
+    var calendarAuthority : ?T.CalendarAuthority;
+    var maxRollDays : ?Nat;
   };
 
   public func newState(admin : Principal) : State {
@@ -322,6 +326,8 @@ module {
       var voidedCount = 0;
       var businessDate = null;
       var calendar = null;
+      var calendarAuthority = null;
+      var maxRollDays = null;
     }
   };
 
@@ -1415,14 +1421,52 @@ module {
   /// Roll the business date forward (never backwards, never past the clock day).
   public func prepareRollBusinessDate(state : State, caller : Principal, now : Nat64, day : T.Day) : Result.Result<T.Event, T.ConfigError> {
     switch (adminGate(state, caller)) { case (?e) return #err(e); case null {} };
-    let clockDay = CivilDate.fromNanos(Nat64.toNat(now));
-    if (day > clockDay) return #err(#BusinessDateInFuture({ requested = day; today = clockDay }));
+    switch (authorityOf(state)) {
+      case (#substrateClock) {
+        let clockDay = CivilDate.fromNanos(Nat64.toNat(now));
+        if (day > clockDay) return #err(#BusinessDateInFuture({ requested = day; today = clockDay }));
+      };
+      case (#businessDate) {
+        // the clock is not a clock here; the roll's protections are its authorisation, its monotonicity and the bound
+        let bound = rollBoundOf(state);
+        switch (state.businessDate) {
+          case (?cur) { if (bound > 0 and day > cur + bound) return #err(#BusinessDateRollTooFar({ current = cur; requested = day; maxRollDays = bound })) };
+          case null {};
+        };
+      };
+    };
     switch (state.businessDate) {
       case (?cur) { if (day <= cur) return #err(#BusinessDateBackwards({ current = cur; requested = day })) };
       case null {};
     };
     #ok(#businessDateRolled({ day }))
   };
+
+  /// The calendar's authority, recorded. `#businessDate` needs a business date to exist once it is in force:
+  /// the act carries the first one when none is set (and may advance an existing one, monotone); under
+  /// `#substrateClock` a date travels only by the roll command, and the bound has no meaning.
+  public func prepareSetCalendarAuthority(state : State, caller : Principal, authority : T.CalendarAuthority, maxRollDays : Nat, businessDate : ?T.Day) : Result.Result<T.Event, T.ConfigError> {
+    switch (adminGate(state, caller)) { case (?e) return #err(e); case null {} };
+    switch (authority) {
+      case (#substrateClock) {
+        if (businessDate != null) return #err(#InvalidCalendarAuthority({ reason = "a business date travels by the roll command under the substrate clock" }));
+        if (maxRollDays != 0) return #err(#InvalidCalendarAuthority({ reason = "the roll bound applies under the business-date authority only" }));
+      };
+      case (#businessDate) {
+        if (maxRollDays == 0) return #err(#InvalidCalendarAuthority({ reason = "the business-date authority needs a roll bound of at least one day" }));
+        switch (businessDate, state.businessDate) {
+          case (null, null) return #err(#InvalidCalendarAuthority({ reason = "the business-date authority needs a business date: none is set and the act carries none" }));
+          case (?d, ?cur) { if (d <= cur) return #err(#BusinessDateBackwards({ current = cur; requested = d })) };
+          case (_, _) {};
+        };
+      };
+    };
+    #ok(#calendarAuthoritySet({ authority; maxRollDays; businessDate }))
+  };
+
+  func authorityOf(state : State) : T.CalendarAuthority { switch (state.calendarAuthority) { case (?a) a; case null #substrateClock } };
+  func rollBoundOf(state : State) : Nat { switch (state.maxRollDays) { case (?n) n; case null 0 } };
+  public func calendarAuthority(state : State) : { authority : T.CalendarAuthority; maxRollDays : Nat } { { authority = authorityOf(state); maxRollDays = rollBoundOf(state) } };
 
   public func prepareSetCalendar(state : State, caller : Principal, calendar : ?T.CalendarConfig) : Result.Result<T.Event, T.ConfigError> {
     switch (adminGate(state, caller)) { case (?e) return #err(e); case null {} };
@@ -1851,6 +1895,10 @@ module {
       case (#adminTransferred(a)) { state.admin := a.admin };
       case (#businessDateRolled(b)) { state.businessDate := ?b.day };
       case (#calendarSet(c)) { state.calendar := c.calendar };
+      case (#calendarAuthoritySet(x)) {
+        state.calendarAuthority := ?x.authority; state.maxRollDays := ?x.maxRollDays;
+        switch (x.businessDate) { case (?d) state.businessDate := ?d; case null {} };
+      };
       case (#checkpoint(c)) {
         // the live state already is what the checkpoint says; only the series' position is kept
         if (c.seq == 0) state.checkpoint := ?{ through = c.through; first = block.index; var last = null };
@@ -1901,6 +1949,7 @@ module {
         ({
           part = #config({
             admin = state.admin; activationHeight = state.activationHeight; businessDate = state.businessDate; calendar = state.calendar; leadsheet = state.leadsheet;
+            calendarAuthority = authorityOf(state); maxRollDays = rollBoundOf(state);
             currencies = Map.toArray(state.currencies); posters = Array.map<(Principal, ()), Principal>(Map.toArray(state.posters), func((p, _)) { p });
             posterScopes = Map.toArray(state.posterScopes); balanceLimits = List.toArray(limits); accountAttributes = Map.toArray(state.accountAttributes);
             accountOrdinals = Map.toArray(state.accountOrdinals); currencyOrdinals = Map.toArray(state.currencyOrdinals); periodOrdinals = Map.toArray(state.periodOrdinals);
@@ -2014,6 +2063,7 @@ module {
       switch (part) {
         case (#config(c)) {
           s.admin := c.admin; s.activationHeight := c.activationHeight; s.businessDate := c.businessDate; s.calendar := c.calendar; s.leadsheet := c.leadsheet;
+          s.calendarAuthority := ?c.calendarAuthority; s.maxRollDays := ?c.maxRollDays;
           for ((code, mu) in c.currencies.vals()) Map.add(s.currencies, Text.compare, code, mu);
           for (p in c.posters.vals()) Map.add(s.posters, Principal.compare, p, ());
           for ((p, scope) in c.posterScopes.vals()) Map.add(s.posterScopes, Principal.compare, p, scope);
@@ -2570,6 +2620,8 @@ module {
     for (r in state.leadsheet.vals()) { w.range(r) };
     w.optNat(state.businessDate);
     w.calendar(state.calendar);
+    w.byte(switch (authorityOf(state)) { case (#substrateClock) 0; case (#businessDate) 1 });
+    w.nat(rollBoundOf(state));
     let d = Sha256.Digest(#sha256);
     d.writeArray(w.toArray());
     d.sum()

@@ -205,6 +205,15 @@ module {
 
   // ─── Events: the only things that change journal state ────────────────────
 
+  /// Where the journal's "today" comes from when no business date has been rolled, and whether a roll is
+  /// measured against the substrate's clock. `#substrateClock`: the clock's day is today until a business date
+  /// is set, and a business date may not pass the clock's day — right where the substrate's time is consensus
+  /// time (the IC). `#businessDate`: the rolled business date is the calendar and the clock is not consulted for
+  /// days — a substrate whose `Time.now()` is not wall time (Thebes: the block height in seconds) cannot be the
+  /// bank's calendar; the act that sets this authority carries the first business date when none is set, so
+  /// under it a business date always exists, and a roll may advance by at most `maxRollDays`.
+  public type CalendarAuthority = { #substrateClock; #businessDate };
+
   public type Event = {
     // financial
     #posted : PostingRecord;
@@ -228,6 +237,9 @@ module {
     // period-end processes
     #businessDateRolled : { day : Day };
     #calendarSet : { calendar : ?CalendarConfig };   // null clears the calendar
+    /// Which authority the journal's calendar has (see `CalendarAuthority`); under `#businessDate` the act
+    /// carries the first business date when none is set yet, and the bound a roll may advance by.
+    #calendarAuthoritySet : { authority : CalendarAuthority; maxRollDays : Nat; businessDate : ?Day };
     /// A checkpoint: the derived state as it stood after block `through`, in parts, written into the
     /// log by the archive roll before the blocks up to `through` leave the live contract. A fold of
     /// the retained log starts from the latest complete series and applies the blocks after
@@ -247,6 +259,8 @@ module {
       activationHeight : Nat64;
       businessDate : ?Day;
       calendar : ?CalendarConfig;
+      calendarAuthority : CalendarAuthority;
+      maxRollDays : Nat;
       leadsheet : [LeadsheetRange];
       currencies : [(Currency, Nat8)];
       posters : [Principal];
@@ -463,6 +477,11 @@ module {
     #InvalidLeadsheetSchema : { reason : Text };
     #BusinessDateBackwards : { current : Day; requested : Day };
     #BusinessDateInFuture : { requested : Day; today : Day };
+    /// Under `#businessDate` a roll advances by at most the recorded bound.
+    #BusinessDateRollTooFar : { current : Day; requested : Day; maxRollDays : Nat };
+    /// `#businessDate` needs a business date: none is set and the act carries none; or the act carries one
+    /// under `#substrateClock`, where the roll command is the way; or the bound is 0 under `#businessDate`.
+    #InvalidCalendarAuthority : { reason : Text };
     #InvalidCalendar : { reason : Text };
     #PosterExists : { poster : Principal };
     #UnknownPoster : { poster : Principal };

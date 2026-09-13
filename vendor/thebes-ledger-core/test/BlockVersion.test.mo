@@ -159,6 +159,12 @@ let se = C.encodeBlock(0, 1, admin, null, scopeEvent);
 assert (Blob.toArray(se.bytes)[0] == 0x04);
 let ?sd = C.decodeBlock(se.bytes) else { assert false; loop {} };
 assert (sd.event == scopeEvent);
-Debug.print("count: version-4 only events round tripped = 1");
+// the calendar authority (tag 0x2F), the same way
+let authorityEvent : T.Event = #calendarAuthoritySet({ authority = #businessDate; maxRollDays = 31; businessDate = ?20705 });
+let ae = C.encodeBlock(1, 2, admin, ?se.hash, authorityEvent);
+assert (Blob.toArray(ae.bytes)[0] == 0x04);
+let ?ad = C.decodeBlock(ae.bytes) else { assert false; loop {} };
+assert (ad.event == authorityEvent);
+Debug.print("count: version-4 only events round tripped = 2");
 
 Debug.print("BLOCK VERSION TEST GREEN");

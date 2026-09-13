@@ -64,11 +64,13 @@ module {
       rawBytes += e.raw.size();
       if (e.keep.size() != e.raw.size()) dropped += 1;
     };
-    let bytes = Blob.fromArray(List.toArray(out));
-    // the check: every block reads back as the bytes it was given to keep
+    let arr = List.toArray(out);
+    let bytes = Blob.fromArray(arr);
+    // the check: every block reads back as the bytes it was given to keep — over the one array, so the
+    // check of a segment of 2,000 blocks allocates the segment once, not once per block
     var i = 0;
     while (i < entries.size()) {
-      switch (block(bytes, lo + i)) {
+      switch (blockIn(arr, lo + i)) {
         case (?b) { if (b != entries[i].keep) return #err("block " # Nat.toText(lo + i) # " does not round-trip") };
         case null return #err("block " # Nat.toText(lo + i) # " cannot be read back");
       };
@@ -78,8 +80,8 @@ module {
   };
 
   /// The range a segment covers: (lo, count).
-  public func header(bytes : Blob) : ?{ lo : Nat; count : Nat } {
-    let a = Blob.toArray(bytes);
+  public func header(bytes : Blob) : ?{ lo : Nat; count : Nat } { headerIn(Blob.toArray(bytes)) };
+  func headerIn(a : [Nat8]) : ?{ lo : Nat; count : Nat } {
     if (a.size() < HEADER) return null;
     for (i in Nat.range(0, 4)) { if (a[i] != MAGIC[i]) return null };
     if (a[4] != VERSION) return null;
@@ -87,9 +89,9 @@ module {
   };
 
   /// One block's stored bytes out of a whole segment, by index.
-  public func block(bytes : Blob, index : Nat) : ?Blob {
-    let a = Blob.toArray(bytes);
-    let ?at = locate(bytes, a.size(), index) else return null;
+  public func block(bytes : Blob, index : Nat) : ?Blob { blockIn(Blob.toArray(bytes), index) };
+  func blockIn(a : [Nat8], index : Nat) : ?Blob {
+    let ?at = locateIn(a, a.size(), index) else return null;
     if (at.offset + at.length > a.size()) return null;
     ?Blob.fromArray(Array.tabulate<Nat8>(at.length, func(i) { a[at.offset + i] }))
   };
@@ -97,9 +99,9 @@ module {
   /// Where a block's bytes lie inside a segment, so a store can serve one block without reading the
   /// segment: from the segment's first bytes (header and offsets table) and its total size, the
   /// block's offset and length — the distance to the next offset, or to the end for the last block.
-  public func locate(headerAndOffsets : Blob, segmentBytes : Nat, index : Nat) : ?{ offset : Nat; length : Nat } {
-    let a = Blob.toArray(headerAndOffsets);
-    let ?h = header(headerAndOffsets) else return null;
+  public func locate(headerAndOffsets : Blob, segmentBytes : Nat, index : Nat) : ?{ offset : Nat; length : Nat } { locateIn(Blob.toArray(headerAndOffsets), segmentBytes, index) };
+  func locateIn(a : [Nat8], segmentBytes : Nat, index : Nat) : ?{ offset : Nat; length : Nat } {
+    let ?h = headerIn(a) else return null;
     if (index < h.lo or index >= h.lo + h.count) return null;
     let k = index - h.lo;
     if (HEADER + 4 * (k + 1) > a.size()) return null;
