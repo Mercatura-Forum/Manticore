@@ -605,6 +605,20 @@ let commands : [T.Command] = [
   #openInvestmentPool({ pool = { id = "PSIA-EGP"; currency = "EGP"; mudaribBps = 3_000; perBps = 500; irrBps = 300; product = "ISAV"; incomeAccounts = ["4500", "4510"] } }),
   #updatePoolReserves({ pool = "PSIA-EGP"; per = ?400; irr = null }),
   #distributePool({ pool = "PSIA-EGP"; month = "2026-09"; from = 20698; to = 20727; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  // ── treasury (treasury) ──
+  #setTreasuryPolicy({ mmPlacements = "1300"; mmTakings = "2300"; mmInterestReceivable = "1310"; mmInterestPayable = "2310"; mmInterestIncome = "4300"; mmInterestExpense = "5300"; fxForwardMark = "1400"; irsMark = "1410"; fxOptionValue = "1420"; unrealisedTradingGain = "4400"; unrealisedTradingLoss = "5400"; realisedTradingGain = "4410"; realisedTradingLoss = "5410"; securitiesAmortisedCost = "1500"; securitiesFvoci = "1510"; securitiesFvtpl = "1520"; fvociReserve = "3500"; couponReceivable = "1530"; couponIncome = "4500"; amortisationIncome = "4510"; amortisationExpense = "5510"; nostroSuspense = "1990"; lotMethod = #fifo; confirmationDueDays = 1; breakAgeAlertDays = 5; maxCurvePoints = 8 }),
+  #registerSecurity({ terms = { isin = "EG0000012345"; issuer = "ARE"; currency = "EGP"; couponBps = 1200; couponsPerYear = 2; dayCount = #a001_ActActIcma({ couponsPerYear = 2 }); issue = 20_500; maturity = 21_596 } }),
+  #publishCurve({ curve = { id = "EGP-ZERO"; kind = #zeroRates; currency = "EGP"; day = 20726; points = [(1, 2000), (365, 2200)]; source = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f" } }),
+  #setTreasuryLimit({ limit = { book = "BR01"; kind = #counterpartyExposure; currency = "USD"; subject = "CITI"; value = 3_000_000_00 } }),
+  #registerNostro({ nostro = { id = "NOSTRO-USD-CITI"; account = "1100"; sub = ?"NOSTRO-USD"; currency = "USD"; correspondent = { party = null; name = "CITI"; bic = "CITIUS33"; lei = "" }; iban = ""; valueDateToleranceDays = 2 } }),
+  #captureDeal({ book = "BR01"; counterparty = { party = null; name = "CITI"; bic = "CITIUS33"; lei = "" }; kind = #moneyMarket({ placement = true; currency = "USD"; principal = 1_000_000_00; rateBps = 450; dayCount = #a003_Act360; start = 20726; maturity = 20816; cash = { account = "1100"; sub = ?"NOSTRO-USD" } }); reference = "MM-1"; approver = null }),
+  #confirmDeal({ deal = 950; confirmation = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f"; fields = ?{ kind = "moneyMarket"; amount1 = 1_000_000_00; currency1 = "USD"; amount2 = 0; currency2 = ""; valueDate = 20816; rateMicro = 450; counterparty = "CITI" }; document = null }),
+  #amendDeal({ deal = 950; kind = #moneyMarket({ placement = true; currency = "USD"; principal = 1_000_000_00; rateBps = 460; dayCount = #a003_Act360; start = 20726; maturity = 20816; cash = { account = "1100"; sub = ?"NOSTRO-USD" } }); reason = "rate corrected to the confirmation" }),
+  #cancelDeal({ deal = 950; reason = "counterparty withdrew" }),
+  #settleDealLeg({ deal = 950; leg = 0; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
+  #markDeal({ deal = 950; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
+  #recordNostroStatement({ nostro = "NOSTRO-USD-CITI"; statement = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f"; from = 20720; to = 20726; entries = [{ reference = "A1"; amount = 100_00; credit = true; valueDay = 20721; bookingDay = 20721; counterparty = "" }]; document = null }),
+  #resolveNostroBreak({ breakId = 960; resolution = "correspondent's fee"; correction = ?{ account = "5900"; sub = null; debit = true; amount = 100_00; currency = "USD" }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -670,7 +684,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13 (the origination, facility, teller, trade and Islamic families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination, facility, teller, trade, Islamic and treasury families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -759,6 +773,12 @@ let golden : [(Text, Text, Text)] = [
   ("closeShariaContract", "3e69801b068309c99cef82b1fd660ef2b69755d8c4bdbdf8fd0c4aa807cde8f6", "b200bbcca21fce90025bfad28f03586c0412f4f769e7b99946ec70ed3904cf97"),
   ("openInvestmentPool", "11346ed0b69a678ec97840b2fcc18090e09a582bda8bc0370f1b6ac8a928d72d", "c755445c42feec0529e4ba50f731dde44673aaa978307ce2c2d9f8cfe886fe16"),
   ("updatePoolReserves", "d5e9e5bfa4a40fad9c4f1c6bc84404c6c7cf69152b68ad352948d45eb739db10", "2fdb32b23379009bb6c4cbf1d7d1b5d2199e8da715675a7fe43cfd1a071f9986"),
+  ("setTreasuryPolicy", "3e2e5153dc1cc2ca38f13763120bf67675225273d029b2617d4e57e22a46fe95", "6e1a1ec0f64ecbf18981e9fe1226d41404b80b30e1f99881378dc8e7488d9dc7"),
+  ("registerSecurity", "6feb0a72360fe8f8267d0ed19dfbfec19803b0a6a775e70a894b3a8348a84556", "4ce9c42b7e99ab3e8f0d471772e7fe09bb0bd680e91c77d08afa63b0ffadf95a"),
+  ("publishCurve", "5ac9423918388be484c647baf27e01354586f4e82dd0b358bd65400106e9be4f", "cb1d4d56ebda4ebfc5b6f47b2c582cacbf8e853d1faab85d4fb51a12c21cfbbd"),
+  ("setTreasuryLimit", "6ca513949c3a05bd319ce565cbd631c4456bf86fa84c649289ab4213a853b58c", "f669d53757fb3906ad391cad175a02f4e1b6fc99003b2d68b5208321f24c7d1c"),
+  ("registerNostro", "bd7fe7b9645702809e3eb051081f1f6ff8b45e55b4b86ba04353193d5433cce8", "c7598ddd702e7f6f6e0c6834ee23c6a5f6f9e6e492fe97b29d2dbea585ac2248"),
+  ("cancelDeal", "31c1dda4730af81035ab9328959f24983f2fcabff51b5ec25e3fa2bc104a1964", "ada8c71d7f51bb8d9389ad83ef0d5efd019aa182c892f64859de318193474824"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {

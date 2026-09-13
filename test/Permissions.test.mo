@@ -381,6 +381,20 @@ let commands : [T.Command] = [
   #openInvestmentPool({ pool = { id = "PSIA-EGP"; currency = "EGP"; mudaribBps = 3_000; perBps = 500; irrBps = 300; product = "ISAV"; incomeAccounts = ["4500", "4510"] } }),
   #updatePoolReserves({ pool = "PSIA-EGP"; per = ?400; irr = null }),
   #distributePool({ pool = "PSIA-EGP"; month = "2026-09"; from = 20698; to = 20727; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  // ── treasury (treasury) ──
+  #setTreasuryPolicy({ mmPlacements = "1300"; mmTakings = "2300"; mmInterestReceivable = "1310"; mmInterestPayable = "2310"; mmInterestIncome = "4300"; mmInterestExpense = "5300"; fxForwardMark = "1400"; irsMark = "1410"; fxOptionValue = "1420"; unrealisedTradingGain = "4400"; unrealisedTradingLoss = "5400"; realisedTradingGain = "4410"; realisedTradingLoss = "5410"; securitiesAmortisedCost = "1500"; securitiesFvoci = "1510"; securitiesFvtpl = "1520"; fvociReserve = "3500"; couponReceivable = "1530"; couponIncome = "4500"; amortisationIncome = "4510"; amortisationExpense = "5510"; nostroSuspense = "1990"; lotMethod = #fifo; confirmationDueDays = 1; breakAgeAlertDays = 5; maxCurvePoints = 8 }),
+  #registerSecurity({ terms = { isin = "EG0000012345"; issuer = "ARE"; currency = "EGP"; couponBps = 1200; couponsPerYear = 2; dayCount = #a001_ActActIcma({ couponsPerYear = 2 }); issue = 20_500; maturity = 21_596 } }),
+  #publishCurve({ curve = { id = "EGP-ZERO"; kind = #zeroRates; currency = "EGP"; day = 20726; points = [(1, 2000), (365, 2200)]; source = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f" } }),
+  #setTreasuryLimit({ limit = { book = "BR01"; kind = #counterpartyExposure; currency = "USD"; subject = "CITI"; value = 3_000_000_00 } }),
+  #registerNostro({ nostro = { id = "NOSTRO-USD-CITI"; account = "1100"; sub = ?"NOSTRO-USD"; currency = "USD"; correspondent = { party = null; name = "CITI"; bic = "CITIUS33"; lei = "" }; iban = ""; valueDateToleranceDays = 2 } }),
+  #captureDeal({ book = "BR01"; counterparty = { party = null; name = "CITI"; bic = "CITIUS33"; lei = "" }; kind = #moneyMarket({ placement = true; currency = "USD"; principal = 1_000_000_00; rateBps = 450; dayCount = #a003_Act360; start = 20726; maturity = 20816; cash = { account = "1100"; sub = ?"NOSTRO-USD" } }); reference = "MM-1"; approver = null }),
+  #confirmDeal({ deal = 950; confirmation = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f"; fields = ?{ kind = "moneyMarket"; amount1 = 1_000_000_00; currency1 = "USD"; amount2 = 0; currency2 = ""; valueDate = 20816; rateMicro = 450; counterparty = "CITI" }; document = null }),
+  #amendDeal({ deal = 950; kind = #moneyMarket({ placement = true; currency = "USD"; principal = 1_000_000_00; rateBps = 460; dayCount = #a003_Act360; start = 20726; maturity = 20816; cash = { account = "1100"; sub = ?"NOSTRO-USD" } }); reason = "rate corrected to the confirmation" }),
+  #cancelDeal({ deal = 950; reason = "counterparty withdrew" }),
+  #settleDealLeg({ deal = 950; leg = 0; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
+  #markDeal({ deal = 950; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
+  #recordNostroStatement({ nostro = "NOSTRO-USD-CITI"; statement = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f"; from = 20720; to = 20726; entries = [{ reference = "A1"; amount = 100_00; credit = true; valueDay = 20721; bookingDay = 20721; counterparty = "" }]; document = null }),
+  #resolveNostroBreak({ breakId = 960; resolution = "correspondent's fee"; correction = ?{ account = "5900"; sub = null; debit = true; amount = 100_00; currency = "USD" }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -448,7 +462,7 @@ Debug.print("count: catalogue entries guarding a command = " # Nat.toText(comman
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
 assert (methodEntries == 21);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending)
-assert (commandEntries == 260);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking)
+assert (commandEntries == 273);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking) + the thirteen treasury acts (treasury)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();
