@@ -287,6 +287,23 @@ let commands : [T.Command] = [
   #recordConditionsMet({ application = 900; conditions = ["insurance"] }),
   #fulfilApplication({ application = 900 }),
   #withdrawApplication({ application = 903; reason = "found another lender" }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; kind = #revolving({ commitmentFeeBps = 50; cleanDown = ?{ everyDays = 30; forDays = 5 } }); currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; pricing = #floating({ index = "CBE-ON"; spreadBps = 250; resetDays = 30 }); covenants = [{ id = "leverage"; kind = #financialRatio({ name = "net debt / EBITDA"; op = #atMost; thresholdBps = 35_000 }) }, { id = "accounts"; kind = #reporting({ due = 20800 }) }, { id = "npl"; kind = #negativePledge }]; collateral = [3]; reviewEvery = ?365 }),
+  #drawdown({ facility = 500; amount = 250_000_00; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #transferParticipation({ facility = 501; from = 8; to = 9; bps = 500 }),
+  #distributeToParticipants({ facility = 501; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #restructureFacility({ facility = 500; effective = 20800; terms = { schedule = { amortisation = #equalInstalments; instalments = 9; every = #monthly; principalGrace = 0; interestGrace = 0; moratoriumDays = 0 }; rateBps = 1500 } }),
+  #recordCovenantTest({ facility = 500; covenant = "leverage"; value = 28_000; statementHash = segHash32 }),
+  #blockDrawdowns({ facility = 500; reason = "covenant review" }),
+  #unblockDrawdowns({ facility = 500; reason = "review complete" }),
+  #recordFacilityReview({ facility = 500; note = "annual review" }),
+  #recordRateFixing({ index = "CBE-ON"; day = 20726; rateBps = 900 }),
+  #receiveRental({ facility = 504; amount = 30_000_00; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #remeasureResidual({ facility = 503; residual = 15_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #purchaseReceivables({ facility = 505; receivables = [{ ref = segHash32; debtorCommit = segHash32; face = 120_000_00; due = 20800 }]; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #collectReceivable({ facility = 505; ref = segHash32; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #dishonourReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #writeOffReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #closeFacility({ facility = 507 }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -353,8 +370,8 @@ for (x in P.catalogue().vals()) {
 Debug.print("count: catalogue entries guarding a command = " # Nat.toText(commandEntries));
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
-assert (methodEntries == 20);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting)
-assert (commandEntries == 168);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting)
+assert (methodEntries == 21);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending)
+assert (commandEntries == 185);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();

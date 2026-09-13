@@ -117,7 +117,7 @@ module {
 
   /// `status(1) ‖ version(4) ‖ closedAt(8) ‖ facilityBlock(8) ‖ provisionBlock(8) ‖ disbursedBlock(8)
   /// ‖ writtenOff(1) ‖ scheduleCount(4) ‖ productOrd(4) ‖ currencyOrd(4) ‖ bookOrd(4) ‖ party(8) ‖
-  /// opened(4)` — 66 bytes. A pointer of 0 means "never": block 0 is the genesis administrator
+  /// opened(4) ‖ rateBlock(8)` — 74 bytes. A pointer of 0 means "never": block 0 is the genesis administrator
   /// record and can be none of these.
   public type AccountRow = {
     status : T.AccountStatus;
@@ -133,9 +133,11 @@ module {
     bookOrd : Nat;
     party : Nat;
     opened : Nat;
+    /// the block that last set the account's contractual rate (corporate lending), 0 for the opening's own
+    rateBlock : Nat;
   };
 
-  public let ACCOUNT_ROW_BYTES : Nat = 66;
+  public let ACCOUNT_ROW_BYTES : Nat = 74;
 
   /// `status(1) ‖ allocated(16) ‖ returned(16) ‖ settlements(4) ‖ diffTag(1) ‖ diffAmount(16) ‖
   /// openedAt(8) ‖ currencyOrd(4) ‖ bookOrd(4)` — 70 bytes. The running sums are folds of many
@@ -248,7 +250,7 @@ module {
     R.putNat(b, r.facilityBlock, 8); R.putNat(b, r.provisionBlock, 8); R.putNat(b, r.disbursedBlock, 8);
     R.putBool(b, r.writtenOff); R.putNat(b, r.scheduleCount, 4);
     R.putNat(b, r.productOrd, 4); R.putNat(b, r.currencyOrd, 4); R.putNat(b, r.bookOrd, 4);
-    R.putNat(b, r.party, 8); R.putNat(b, r.opened, 4);
+    R.putNat(b, r.party, 8); R.putNat(b, r.opened, 4); R.putNat(b, r.rateBlock, 8);
     R.done(b, ACCOUNT_ROW_BYTES)
   };
 
@@ -260,7 +262,7 @@ module {
       facilityBlock = R.getNat(a, 13, 8); provisionBlock = R.getNat(a, 21, 8); disbursedBlock = R.getNat(a, 29, 8);
       writtenOff = R.getBool(a, 37); scheduleCount = R.getNat(a, 38, 4);
       productOrd = R.getNat(a, 42, 4); currencyOrd = R.getNat(a, 46, 4); bookOrd = R.getNat(a, 50, 4);
-      party = R.getNat(a, 54, 8); opened = R.getNat(a, 62, 4);
+      party = R.getNat(a, 54, 8); opened = R.getNat(a, 62, 4); rateBlock = R.getNat(a, 66, 8);
     }
   };
 
@@ -384,10 +386,15 @@ module {
       let #loanDisbursed(d) = eventAt(bb, row.disbursedBlock, "a disbursement") else Runtime.trap("ProductCore: disbursement pointer to a block that is not a disbursement");
       ?d.day
     };
+    // the contractual rate in force: the last rate-setting block's (a restructuring or a floating reset, corporate lending), else the opening's
+    let openingRate : ?I.Rate = if (row.rateBlock == 0) o.openingRate else {
+      let #accountRateSet(rs) = eventAt(bb, row.rateBlock, "a rate") else Runtime.trap("ProductCore: rate pointer to a block that is not a rate");
+      ?rs.rate
+    };
     ?{
       id; product = o.product; version = row.version; party = o.party; book = o.book; identifier = o.identifier;
       subledger = Posting.subledgerOf(o.identifier); currency = o.currency; status = row.status;
-      opened = o.opened; maturity = o.maturity; openingRate = o.openingRate; allocationOrder = o.allocationOrder;
+      opened = o.opened; maturity = o.maturity; openingRate; allocationOrder = o.allocationOrder;
       lastCapitalised = lastCapitalisedOf(s, o.product, o.currency, id, o.opened);
       facility; scheduleVersions = row.scheduleCount; disbursed; writtenOff = row.writtenOff; allowance; band;
       openedAtBlock = id; closedAtBlock = if (row.closedAt == 0) null else ?row.closedAt;
@@ -727,7 +734,7 @@ module {
           status = #pending; version = x.version; closedAt = 0;
           facilityBlock = 0; provisionBlock = 0; disbursedBlock = 0; writtenOff = false; scheduleCount = 0;
           productOrd; currencyOrd = ordinalOf(s.currencyOrdinals, s.currencyNames, x.currency);
-          bookOrd = ordinalOf(s.bookOrdinals, s.bookNames, x.book); party = x.party; opened = x.opened;
+          bookOrd = ordinalOf(s.bookOrdinals, s.bookNames, x.book); party = x.party; opened = x.opened; rateBlock = 0;
         });
         ignore RI.put(s.accountsByIdentifier, R.textKey(x.identifier, IDENTIFIER_KEY_BYTES), R.key(blockIndex, 8));
         ignore RI.put(s.subledgers, Posting.subledgerOf(x.identifier), R.key(blockIndex, 8));
@@ -785,6 +792,7 @@ module {
         putTillRow(s, x.till, { t with settlements = t.settlements + 1; lastDifference = x.difference; status = #settled });
       };
       case (#tillClosed(x)) { putTillRow(s, x.till, { mustTillRow(s, x.till) with status = #closed }) };
+      case (#accountRateSet(x)) { let r = mustRow(s, x.account); putAccountRow(s, x.account, { r with rateBlock = blockIndex }) };
     };
   };
 

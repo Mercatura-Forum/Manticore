@@ -61,6 +61,17 @@ module {
     /// The IFRS 9 §5.4.3 adjustment of a restructured loan's gross carrying amount (collections and recovery): a contra to the
     /// principal, so the borrower's contractual balance stays what the schedule says.
     #modificationAdjustment;
+    /// Corporate lending (corporate lending): what a syndicate's agent owes its participants for the principal they funded
+    /// and for what is payable to them; a lessor's rent receivable and rental income; a factor's purchased
+    /// receivables, the retention it holds for the client, the discount not yet earned and the discount income.
+    #dueToParticipants;
+    #participantPayable;
+    #rentReceivable;
+    #rentalIncome;
+    #purchasedReceivables;
+    #retentionPayable;
+    #unearnedDiscount;
+    #discountIncome;
   };
 
   public type RoleMapping = { role : Role; account : JT.AccountCode };
@@ -88,6 +99,14 @@ module {
       case (#suspense) #asset;
       case (#cash) #asset;
       case (#modificationAdjustment) #asset;
+      case (#dueToParticipants) #liability;
+      case (#participantPayable) #liability;
+      case (#rentReceivable) #asset;
+      case (#rentalIncome) #income;
+      case (#purchasedReceivables) #asset;
+      case (#retentionPayable) #liability;
+      case (#unearnedDiscount) #liability;
+      case (#discountIncome) #income;
     }
   };
 
@@ -125,6 +144,10 @@ module {
       case (#recovery) "recovery"; case (#allowance) "allowance";
       case (#impairmentExpense) "impairmentExpense"; case (#suspense) "suspense";
       case (#cash) "cash"; case (#modificationAdjustment) "modificationAdjustment";
+      case (#dueToParticipants) "dueToParticipants"; case (#participantPayable) "participantPayable";
+      case (#rentReceivable) "rentReceivable"; case (#rentalIncome) "rentalIncome";
+      case (#purchasedReceivables) "purchasedReceivables"; case (#retentionPayable) "retentionPayable";
+      case (#unearnedDiscount) "unearnedDiscount"; case (#discountIncome) "discountIncome";
     }
   };
 
@@ -422,6 +445,9 @@ module {
     #tillReturned : { till : TillId; amount : Nat; day : Day };
     #tillSettled : { till : TillId; declared : Nat; book : Nat; difference : Difference; day : Day };
     #tillClosed : { till : TillId };
+    /// The account's contractual rate from `effective` on (corporate lending): a restructuring or a floating reset writes it,
+    /// and the accrual reads it before the product's chart. Kept as a block the row points at.
+    #accountRateSet : { account : AccountId; rate : I.Rate; effective : Day };
   };
 
   // ─── errors ───────────────────────────────────────────────────────────────

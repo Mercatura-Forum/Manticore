@@ -47,6 +47,7 @@ import MT "MonitoringTypes";
 import AlT "AlertTypes";
 import ColT "CollectionsTypes";
 import OCan "OriginationCanonical";
+import FCan "FacilityCanonical";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -603,6 +604,24 @@ module {
       case (#recordConditionsMet(x)) { w.byte(0xB5); w.nat(x.application); w.len16(x.conditions.size()); for (c in x.conditions.vals()) w.text(c) };
       case (#fulfilApplication(x)) { w.byte(0xB6); w.nat(x.application) };
       case (#withdrawApplication(x)) { w.byte(0xB7); w.nat(x.application); w.text(x.reason) };
+      // ── corporate lending (corporate lending) ──
+      case (#openFacility(t)) { w.byte(0x30); FCan.writeTerms(w, t) };
+      case (#drawdown(x)) { w.byte(0x31); w.nat(x.facility); w.nat(x.amount); PC.wFunding(w, x.funding); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#transferParticipation(x)) { w.byte(0x32); w.nat(x.facility); w.nat(x.from); w.nat(x.to); w.nat(x.bps) };
+      case (#distributeToParticipants(x)) { w.byte(0x33); w.nat(x.facility); PC.wFunding(w, x.funding); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#restructureFacility(x)) { w.byte(0x34); w.nat(x.facility); w.nat(x.effective); FCan.writeRestructure(w, x.terms) };
+      case (#recordCovenantTest(x)) { w.byte(0x35); w.nat(x.facility); w.text(x.covenant); w.nat(x.value); w.blob(x.statementHash) };
+      case (#blockDrawdowns(x)) { w.byte(0x36); w.nat(x.facility); w.text(x.reason) };
+      case (#unblockDrawdowns(x)) { w.byte(0x37); w.nat(x.facility); w.text(x.reason) };
+      case (#recordFacilityReview(x)) { w.byte(0x38); w.nat(x.facility); w.text(x.note) };
+      case (#recordRateFixing(x)) { w.byte(0x39); w.text(x.index); w.nat(x.day); w.nat(x.rateBps) };
+      case (#receiveRental(x)) { w.byte(0x3A); w.nat(x.facility); w.nat(x.amount); PC.wFunding(w, x.funding); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#remeasureResidual(x)) { w.byte(0x3B); w.nat(x.facility); w.nat(x.residual); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#purchaseReceivables(x)) { w.byte(0x3C); w.nat(x.facility); FCan.writeReceivables(w, x.receivables); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#collectReceivable(x)) { w.byte(0x3D); w.nat(x.facility); w.blob(x.ref); PC.wFunding(w, x.funding); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#dishonourReceivable(x)) { w.byte(0x3E); w.nat(x.facility); w.blob(x.ref); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#writeOffReceivable(x)) { w.byte(0x3F); w.nat(x.facility); w.blob(x.ref); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#closeFacility(x)) { w.byte(0x43); w.nat(x.facility) };
       case (#openPacking(x)) { w.byte(0xD4); w.text(x.period) };
       case (#rollPackToArchive(x)) { w.byte(0xD5); w.nat(x.pack); w.nat64(x.cid); w.principal(x.archive) };
       case (#declareShardRule(x)) { w.byte(0xD6); w.nat(x.self); writeShards(w, x.shards) };
@@ -1322,6 +1341,7 @@ module {
       case (#alert(ae)) { w.byte(0x48); writeAlertEvent(w, ae) };
       case (#collections(ce)) { w.byte(0x4E); writeCollectionsEvent(w, ce) };
       case (#origination(oe)) { w.byte(0x4F); OCan.writeEvent(w, oe) };
+      case (#facility(fe)) { w.byte(0x51); FCan.writeEvent(w, fe) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -2285,6 +2305,41 @@ module {
       case 0xB5 { let ?application = r.nat() else return null; let ?conditions = rTexts(r) else return null; ?#recordConditionsMet({ application; conditions }) };
       case 0xB6 { let ?application = r.nat() else return null; ?#fulfilApplication({ application }) };
       case 0xB7 { let ?application = r.nat() else return null; let ?reason = r.text() else return null; ?#withdrawApplication({ application; reason }) };
+      case 0x30 { let ?t = FCan.readTerms(r) else return null; ?#openFacility(t) };
+      case 0x31 { let ?m = rFacilityMoney(r) else return null; ?#drawdown(m) };
+      case 0x32 { let ?facility = r.nat() else return null; let ?from = r.nat() else return null; let ?to = r.nat() else return null; let ?bps = r.nat() else return null; ?#transferParticipation({ facility; from; to; bps }) };
+      case 0x33 {
+        let ?facility = r.nat() else return null; let ?funding = PC.rFunding(r) else return null; let ?d = rDates(r) else return null;
+        ?#distributeToParticipants({ facility; funding; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x34 { let ?facility = r.nat() else return null; let ?effective = r.nat() else return null; let ?terms = FCan.readRestructure(r) else return null; ?#restructureFacility({ facility; effective; terms }) };
+      case 0x35 { let ?facility = r.nat() else return null; let ?covenant = r.text() else return null; let ?value = r.nat() else return null; let ?statementHash = r.blob() else return null; ?#recordCovenantTest({ facility; covenant; value; statementHash }) };
+      case 0x36 { let ?facility = r.nat() else return null; let ?reason = r.text() else return null; ?#blockDrawdowns({ facility; reason }) };
+      case 0x37 { let ?facility = r.nat() else return null; let ?reason = r.text() else return null; ?#unblockDrawdowns({ facility; reason }) };
+      case 0x38 { let ?facility = r.nat() else return null; let ?note = r.text() else return null; ?#recordFacilityReview({ facility; note }) };
+      case 0x39 { let ?index = r.text() else return null; let ?day = r.nat() else return null; let ?rateBps = r.nat() else return null; ?#recordRateFixing({ index; day; rateBps }) };
+      case 0x3A { let ?m = rFacilityMoney(r) else return null; ?#receiveRental(m) };
+      case 0x3B {
+        let ?facility = r.nat() else return null; let ?residual = r.nat() else return null; let ?d = rDates(r) else return null;
+        ?#remeasureResidual({ facility; residual; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x3C {
+        let ?facility = r.nat() else return null; let ?receivables = FCan.readReceivables(r) else return null; let ?d = rDates(r) else return null;
+        ?#purchaseReceivables({ facility; receivables; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x3D {
+        let ?facility = r.nat() else return null; let ?ref = r.blob() else return null; let ?funding = PC.rFunding(r) else return null; let ?d = rDates(r) else return null;
+        ?#collectReceivable({ facility; ref; funding; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x3E {
+        let ?facility = r.nat() else return null; let ?ref = r.blob() else return null; let ?d = rDates(r) else return null;
+        ?#dishonourReceivable({ facility; ref; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x3F {
+        let ?facility = r.nat() else return null; let ?ref = r.blob() else return null; let ?d = rDates(r) else return null;
+        ?#writeOffReceivable({ facility; ref; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x43 { let ?facility = r.nat() else return null; ?#closeFacility({ facility }) };
       case 0xF0 { let ?p = rCollectionsPolicy(r) else return null; ?#setCollectionsPolicy(p) };
       case 0xF1 { let ?account = r.nat() else return null; let ?reason = r.text() else return null; ?#markUnlikelyToPay({ account; reason }) };
       case 0xF2 {
@@ -2343,6 +2398,15 @@ module {
       case 0xEB { let ?rail = r.text() else return null; let ?participant = r.nat() else return null; let ?fspId = r.text() else return null; let ?endpoints = readPairs(r) else return null; ?#declareFspiopParticipant({ rail; participant; fspId; endpoints }) };
       case _ null;
     }
+  };
+
+  func rDates(r : C.Reader) : ?{ postingDate : Nat; valueDate : Nat; period : Text; narration : Text } {
+    let ?postingDate = r.nat() else return null; let ?valueDate = r.nat() else return null; let ?period = r.text() else return null; let ?narration = r.text() else return null;
+    ?{ postingDate; valueDate; period; narration }
+  };
+  func rFacilityMoney(r : C.Reader) : ?T.FacilityMoney {
+    let ?facility = r.nat() else return null; let ?amount = r.nat() else return null; let ?funding = PC.rFunding(r) else return null; let ?d = rDates(r) else return null;
+    ?{ facility; amount; funding; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }
   };
 
   func rMoneyMove(r : C.Reader) : ?T.MoneyMove {
@@ -2436,6 +2500,7 @@ module {
       case 0x48 { let ?ae = readAlertEvent(r) else return null; ?#alert(ae) };
       case 0x4E { let ?ce = readCollectionsEvent(r) else return null; ?#collections(ce) };
       case 0x4F { let ?oe = OCan.readEvent(r) else return null; ?#origination(oe) };
+      case 0x51 { let ?fe = FCan.readEvent(r) else return null; ?#facility(fe) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

@@ -100,6 +100,9 @@ import ColT "CollectionsTypes";
 import CollectionsCore "CollectionsCore";
 import OT "OriginationTypes";
 import OriginationCore "OriginationCore";
+import FaT "FacilityTypes";
+import FacilityCore "FacilityCore";
+import FCan "FacilityCanonical";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -197,6 +200,9 @@ module {
     /// Origination and underwriting (origination and underwriting): the applications, the models as data, the passkeys. Rows in
     /// stable memory; every step is a block.
     origination : OriginationCore.State;
+    /// Corporate lending (corporate lending): the facilities, their drawings, syndicate shares, receivables, covenants and
+    /// rate fixings. Rows in stable memory; every act is a block; every amount is the journal's.
+    facility : FacilityCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -265,6 +271,7 @@ module {
       alerts = AlertCore.newState(arena);
       collections = CollectionsCore.newState(arena);
       origination = OriginationCore.newState(arena);
+      facility = FacilityCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -746,8 +753,18 @@ module {
       case (#fulfilApplication(x)) {
         switch (OriginationCore.row(bs.origination, x.application)) { case (?r) { switch (r.decision) { case (?#approve(a)) [(r.currency, a.amount)]; case (_) [] } }; case null [] }
       };
+      case (#drawdown(x)) facilityTotals(bs, x.facility, x.amount);
+      case (#receiveRental(x)) facilityTotals(bs, x.facility, x.amount);
+      case (#purchaseReceivables(x)) { var face = 0; for (r in x.receivables.vals()) face += r.face; facilityTotals(bs, x.facility, face) };
+      case (#collectReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
+      case (#dishonourReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
+      case (#writeOffReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
       case (_) [];
     }
+  };
+
+  func facilityTotals(bs : State, id : FaT.FacilityId, amount : Nat) : [(JT.Currency, Nat)] {
+    switch (FacilityCore.row(bs.facility, id)) { case (?r) [(r.currency, amount)]; case null [] }
   };
 
   func accountTotals(bs : State, id : ProdT.AccountId, amount : Nat) : [(JT.Currency, Nat)] {
@@ -773,6 +790,10 @@ module {
       case (#recordRecovery(m)) ?m.postingDate;
       case (#redeemTermDeposit(m)) ?m.postingDate;
       case (#transferBetweenAccounts(x)) ?x.postingDate;
+      case (#drawdown(x)) ?x.postingDate;
+      case (#receiveRental(x)) ?x.postingDate;
+      case (#purchaseReceivables(x)) ?x.postingDate;
+      case (#collectReceivable(x)) ?x.postingDate;
       case (#applyCharge(x)) ?x.postingDate;
       case (#waiveCharge(x)) ?x.postingDate;
       case (#postAccrual(x)) ?x.day;
@@ -880,8 +901,29 @@ module {
       case (#recordConditionsMet(x)) applicationBook(bs, x.application);
       case (#fulfilApplication(x)) applicationBook(bs, x.application);
       case (#withdrawApplication(x)) applicationBook(bs, x.application);
+      // Facility commands name a facility, whose row carries its book; a fixing is the bank's.
+      case (#openFacility(x)) ?x.book;
+      case (#drawdown(x)) facilityBook(bs, x.facility);
+      case (#transferParticipation(x)) facilityBook(bs, x.facility);
+      case (#distributeToParticipants(x)) facilityBook(bs, x.facility);
+      case (#restructureFacility(x)) facilityBook(bs, x.facility);
+      case (#recordCovenantTest(x)) facilityBook(bs, x.facility);
+      case (#blockDrawdowns(x)) facilityBook(bs, x.facility);
+      case (#unblockDrawdowns(x)) facilityBook(bs, x.facility);
+      case (#recordFacilityReview(x)) facilityBook(bs, x.facility);
+      case (#receiveRental(x)) facilityBook(bs, x.facility);
+      case (#remeasureResidual(x)) facilityBook(bs, x.facility);
+      case (#purchaseReceivables(x)) facilityBook(bs, x.facility);
+      case (#collectReceivable(x)) facilityBook(bs, x.facility);
+      case (#dishonourReceivable(x)) facilityBook(bs, x.facility);
+      case (#writeOffReceivable(x)) facilityBook(bs, x.facility);
+      case (#closeFacility(x)) facilityBook(bs, x.facility);
       case (other) E.commandBook(other);
     }
+  };
+
+  func facilityBook(bs : State, id : FaT.FacilityId) : ?T.BookId {
+    switch (FacilityCore.row(bs.facility, id)) { case (?r) ?r.book; case null null }
   };
 
   func applicationBook(bs : State, id : OT.ApplicationId) : ?T.BookId {
@@ -1277,10 +1319,15 @@ module {
       case null {};
     };
     let plan = switch (planCommandInner(bs, bb, js, jb, journalCaller, now, command, authorityIndex)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    // the sub-ledgers of accounts this very plan opens are the shard's from the block they open on
+    let introduced = List.empty<JT.SubledgerKey>();
+    switch (plan.bankEvent) { case (?#product(#accountOpened(o))) List.add(introduced, Posting.subledgerOf(o.identifier)); case (_) {} };
+    for (ev in plan.extra.vals()) { switch (ev) { case (#product(#accountOpened(o))) List.add(introduced, Posting.subledgerOf(o.identifier)); case (_) {} } };
+    let opened = List.toArray(introduced);
     for (step in plan.journal.vals()) {
       switch (step) {
-        case (#event(#posted(r))) { switch (packedDay(bs, r.valueDate)) { case (?e) return #err(e); case null {} }; switch (foreignLeg(bs, r.legs)) { case (?e) return #err(e); case null {} } };
-        case (#event(#pending(x))) { switch (packedDay(bs, x.record.valueDate)) { case (?e) return #err(e); case null {} }; switch (foreignLeg(bs, x.record.legs)) { case (?e) return #err(e); case null {} } };
+        case (#event(#posted(r))) { switch (packedDay(bs, r.valueDate)) { case (?e) return #err(e); case null {} }; switch (foreignLeg(bs, r.legs, opened)) { case (?e) return #err(e); case null {} } };
+        case (#event(#pending(x))) { switch (packedDay(bs, x.record.valueDate)) { case (?e) return #err(e); case null {} }; switch (foreignLeg(bs, x.record.legs, opened)) { case (?e) return #err(e); case null {} } };
         case (#event(#post(x))) { switch (packedDay(bs, x.resolution.valueDate)) { case (?e) return #err(e); case null {} } };
         case (_) {};
       };
@@ -2089,13 +2136,14 @@ module {
 
   /// A posting touching two shards is refused: every sub-ledger a posting names must be an account
   /// or a till this shard holds. Stated in `ShardTypes.mo`; checked on every journal step planned.
-  func foreignLeg(bs : State, legs : [JT.Leg]) : ?T.BankError {
+  func foreignLeg(bs : State, legs : [JT.Leg], introduced : [JT.SubledgerKey]) : ?T.BankError {
     for (l in legs.vals()) {
       switch (l.subledger) {
         case (?sub) {
-          // an account or a till of this shard, or one of its books' vaults in the leg's currency —
-          // the only sub-ledgers a shard's own postings name
-          var held = ProductCore.holdsSubledger(bs.product, sub);
+          // an account or a till of this shard, one of its books' vaults in the leg's currency, a facility's or a
+          // participant's (corporate lending), or an account the same plan opens — the only sub-ledgers a shard's own postings name
+          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub);
+          if (not held) { for (i in introduced.vals()) { if (i == sub) held := true } };
           if (not held) { for ((book, _) in Map.entries(bs.books)) { if (sub == Till.vaultSubledger(book, l.currency)) held := true } };
           if (not held) return ?#ShardError({ error = #NotRouted({ identifier = ""; reason = "the posting names a sub-ledger this shard does not hold" }) });
         };
@@ -3053,64 +3101,37 @@ module {
 
       case (#repayLoan(m)) {
         switch (requireFeature(bs, ProdT.FEATURE_CREDIT)) { case (?e) return #err(e); case null {} };
-        repayPlan(bs, bb, js, journalCaller, now, m, authId)
+        switch (repayPlan(bs, bb, js, journalCaller, now, m, authId)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) {
+            // a drawing of a facility (corporate lending): a syndicate shares what was received; a drawing repaid in full closes
+            let ?#product(#repaymentReceived(rep)) = plan.bankEvent else return #ok(plan);
+            let extra = List.empty<T.Event>();
+            for (ev in plan.extra.vals()) List.add(extra, ev);
+            let journal = List.empty<JournalStep>();
+            for (st in plan.journal.vals()) List.add(journal, st);
+            switch (syndicationOnRepayment(bs, bb, js, journalCaller, now, authId, m.account, rep.applied, m, rep.day)) {
+              case (#err(e)) return #err(e);
+              case (#ok(?share)) { List.add(extra, share.event); for (st in share.journal.vals()) List.add(journal, st) };
+              case (#ok(null)) {};
+            };
+            switch (FacilityCore.facilityOfDrawing(bs.facility, m.account)) {
+              case (?fid) {
+                switch (creditAccount(bs, bb, js, m.account, rep.day)) {
+                  case (#ok((a, terms))) { if (Loans.allocationTotal(loanOutstanding(js, a, terms, rep.day)) == m.amount) List.add(extra, #facility(#drawingClosed({ facility = fid; account = m.account; day = rep.day }))) };
+                  case (#err(_)) {};
+                };
+              };
+              case null {};
+            };
+            #ok({ bankEvent = plan.bankEvent; extra = List.toArray(extra); journal = List.toArray(journal) })
+          };
+        }
       };
 
       case (#rescheduleLoan(x)) {
         switch (requireFeature(bs, ProdT.FEATURE_CREDIT)) { case (?e) return #err(e); case null {} };
-        let ?a = ProductCore.get(bs.product, productBlocks(bb), x.account) else return #err(#ProductError({ error = #UnknownAccount({ account = x.account }) }));
-        let ?terms = ProductCore.termsOf(bs.product, a) else return #err(#ProductError({ error = #UnknownVersion({ product = a.product; version = a.version }) }));
-        if (terms.kind != #loan) {
-          return #err(#ProductError({ error = #AccountNotOfKind({ account = x.account; expected = "loan"; actual = debug_show (terms.kind) }) }));
-        };
-        if (a.disbursed == null) return #err(#ProductError({ error = #LoanNotDisbursed({ account = x.account }) }));
-        if (a.writtenOff) return #err(#ProductError({ error = #LoanWrittenOffAlready({ account = x.account }) }));
-        let ?current = ProductCore.schedule(bs.product, productBlocks(bb), a) else return #err(#ProductError({ error = #ScheduleRequired({ product = a.product }) }));
-        switch (I.validRate(x.rate)) { case (?r) return #err(#ProductError({ error = #InvalidRateChart({ reason = r }) })); case null {} };
-        if (x.terms.instalments == 0 or x.terms.instalments > ProdT.MAX_INSTALMENTS) {
-          return #err(#ProductError({ error = #InvalidSchedule({ reason = "instalments out of range" }) }));
-        };
-        let out = Loans.reschedule(current.rows, { effective = x.effective; terms = x.terms; rate = x.rate }, terms.rounding);
-        if (out.reamortised == 0) return #err(#ProductError({ error = #InvalidSchedule({ reason = "the new terms generate no instalments" }) }));
-        // the exposure's stage moves to restructuring (collections and recovery), and under the policy's rule the IFRS 9 §5.4.3
-        // modification gain or loss — carrying amount against the modified flows discounted at the original
-        // rate — posts against the modification-adjustment contra of the loan
-        let extra = List.empty<T.Event>();
-        var journal : [JournalStep] = [];
-        switch (CollectionsCore.policy(bs.collections)) {
-          case null {};
-          case (?pol) {
-            switch (CollectionsCore.noteRestructured(bs.collections, x.account, x.effective)) { case (?ev) List.add(extra, #collections(ev)); case null {} };
-            if (pol.recogniseModificationLoss) {
-              let ?it = terms.interest else return #err(#ProductError({ error = #InvalidTerms({ reason = "a loan product needs interest terms" }) }));
-              let originalRate = switch (a.openingRate) {
-                case (?r) r;
-                case null { switch (Products.rateAt(it.chart, out.outstandingAtEffective)) { case (?r) r; case null x.rate } };
-              };
-              let carrying = Loans.allocationTotal(loanOutstanding(js, a, terms, x.effective));
-              let arrearsNow = Loans.arrears(current.rows, loanRepaid(js, a, terms, x.effective), x.effective);
-              let pastDueUnpaid = if (arrearsNow.dueToDate > arrearsNow.paid) arrearsNow.dueToDate - arrearsNow.paid else 0;
-              let m = Loans.modificationGainLoss(out.rows, x.effective, originalRate, it.convention, carrying, terms.rounding, pastDueUnpaid);
-              let amount = if (m.loss > 0) m.loss else m.gain;
-              if (amount > 0) {
-                let ?adjustment = Products.roleAccount(terms, #modificationAdjustment) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "modificationAdjustment" }) }));
-                let ?expense = Products.roleAccount(terms, #impairmentExpense) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "impairmentExpense" }) }));
-                let ?period = periodForDay(js, x.effective) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(x.effective) }) }));
-                let legs = if (m.loss > 0) [Posting.leg(expense, null, #debit, a.currency, amount), Posting.leg(adjustment, ?a.subledger, #credit, a.currency, amount)]
-                           else [Posting.leg(adjustment, ?a.subledger, #debit, a.currency, amount), Posting.leg(expense, null, #credit, a.currency, amount)];
-                switch (postLegs(js, journalCaller, now, "modification", [authId, Nat.toText(x.account), Nat.toText(x.effective)], legs, x.effective, x.effective, period,
-                                 if (m.loss > 0) "modification loss on restructuring" else "modification gain on restructuring")) {
-                  case (#err(e)) return #err(e);
-                  case (#ok(plan)) journal := plan.journal;
-                };
-              };
-            };
-          };
-        };
-        #ok({
-          bankEvent = ?#product(#loanRescheduled({ account = x.account; version = ProductCore.scheduleCount(a) + 1; effective = x.effective; schedule = out.rows }));
-          extra = List.toArray(extra); journal;
-        })
+        reschedulePlan(bs, bb, js, journalCaller, now, authId, x.account, x.effective, x.terms, x.rate, true)
       };
 
       case (#setProvision(x)) {
@@ -3982,6 +4003,102 @@ module {
       };
       case (#withdrawApplication(x)) originationPlan(OriginationCore.planWithdraw(bs.origination, x.application, x.reason, JCore.effectiveToday(js, now)));
 
+      // ── corporate lending (corporate lending): the facility's acts ──
+      case (#openFacility(terms)) planOpenFacility(bs, bb, js, terms, JCore.effectiveToday(js, now));
+      case (#drawdown(m)) planDrawdown(bs, bb, js, journalCaller, now, authId, m, authorityIndex, false);
+      case (#transferParticipation(x)) {
+        let ?r = FacilityCore.row(bs.facility, x.facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility = x.facility }) }));
+        switch (requireParty(bs, x.to)) { case (?e) return #err(e); case null {} };
+        let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+        let ?due = Products.roleAccount(terms, #dueToParticipants) else return #err(#ProductError({ error = #RoleUnmapped({ product = r.product; role = "dueToParticipants" }) }));
+        let have = FacilityCore.shareOf(bs.facility, x.facility, x.from);
+        let funded = Posting.accountBalanceOn(js, due, participantSub(x.facility, x.from), r.currency, #credit, JCore.effectiveToday(js, now)).net;
+        let moved = if (have == 0) 0 else funded * x.bps / have;
+        switch (FacilityCore.planTransferParticipation(bs.facility, x.facility, x.from, x.to, x.bps, moved)) {
+          case (#err(e)) #err(#FacilityError({ error = e }));
+          case (#ok(ev)) {
+            var journal : [JournalStep] = [];
+            if (moved > 0) {
+              let today = JCore.effectiveToday(js, now);
+              let ?period = periodForDay(js, today) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(today) }) }));
+              let legs = [Posting.leg(due, ?participantSub(x.facility, x.from), #debit, r.currency, moved), Posting.leg(due, ?participantSub(x.facility, x.to), #credit, r.currency, moved)];
+              switch (postLegs(js, journalCaller, now, "participation-transfer", [authId, Nat.toText(x.facility), Nat.toText(x.from), Nat.toText(x.to)], legs, today, today, period, "participation transferred by novation")) {
+                case (#err(e)) return #err(e);
+                case (#ok(plan)) journal := plan.journal;
+              };
+            };
+            #ok({ bankEvent = ?#facility(ev); extra = []; journal })
+          };
+        }
+      };
+      case (#distributeToParticipants(x)) planDistribute(bs, bb, js, journalCaller, now, authId, x);
+      case (#restructureFacility(x)) {
+        let ?r = FacilityCore.row(bs.facility, x.facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility = x.facility }) }));
+        if (r.stage == #closed) return #err(#FacilityError({ error = #WrongStage({ facility = x.facility; stage = "closed"; wanted = "open or blocked" }) }));
+        let rate : I.Rate = { numerator = x.terms.rateBps; denominator = 10_000; negative = false };
+        let extra = List.empty<T.Event>();
+        let journal = List.empty<JournalStep>();
+        let drawings = List.empty<ProdT.AccountId>();
+        for ((acct, open) in FacilityCore.drawingsOf(bs.facility, x.facility).vals()) {
+          if (open) {
+            switch (reschedulePlan(bs, bb, js, journalCaller, now, authId, acct, x.effective, x.terms.schedule, rate, true)) {
+              case (#err(e)) return #err(e);
+              case (#ok(plan)) {
+                switch (plan.bankEvent) { case (?ev) List.add(extra, ev); case null {} };
+                for (ev in plan.extra.vals()) List.add(extra, ev);
+                for (st in plan.journal.vals()) List.add(journal, st);
+                List.add(drawings, acct);
+              };
+            };
+          };
+        };
+        if (List.size(drawings) == 0) return #err(#FacilityError({ error = #HasDrawings({ facility = x.facility; open = 0 }) }));
+        #ok({ bankEvent = ?#facility(#facilityRestructured({ facility = x.facility; terms = x.terms; effective = x.effective; drawings = List.toArray(drawings) })); extra = List.toArray(extra); journal = List.toArray(journal) })
+      };
+      case (#recordCovenantTest(x)) {
+        let ?opened = facilityTermsBlock(bb, x.facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility = x.facility }) }));
+        facilityPlan(FacilityCore.planCovenantTest(bs.facility, x.facility, opened.covenants, x.covenant, x.value, x.statementHash, JCore.effectiveToday(js, now)))
+      };
+      case (#blockDrawdowns(x)) facilityPlan(FacilityCore.planBlock(bs.facility, x.facility, x.reason, JCore.effectiveToday(js, now)));
+      case (#unblockDrawdowns(x)) facilityPlan(FacilityCore.planUnblock(bs.facility, x.facility, x.reason, JCore.effectiveToday(js, now)));
+      case (#recordFacilityReview(x)) {
+        let ?opened = facilityTermsBlock(bb, x.facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility = x.facility }) }));
+        let today = JCore.effectiveToday(js, now);
+        switch (FacilityCore.planReview(bs.facility, x.facility, x.note, today)) {
+          case (#err(e)) #err(#FacilityError({ error = e }));
+          case (#ok(#reviewRecorded(ev))) {
+            let nextDue : ?Nat = switch (opened.reviewEvery) { case (?n) ?(today + n); case null null };
+            #ok({ bankEvent = ?#facility(#reviewRecorded({ facility = ev.facility; day = ev.day; nextDue; note = ev.note })); extra = []; journal = [] })
+          };
+          case (#ok(ev)) #ok({ bankEvent = ?#facility(ev); extra = []; journal = [] });
+        }
+      };
+      case (#recordRateFixing(x)) facilityPlan(FacilityCore.planRateFixing(x.index, x.day, x.rateBps));
+      case (#receiveRental(m)) {
+        let ?r = FacilityCore.row(bs.facility, m.facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility = m.facility }) }));
+        switch (r.kind) { case (#operatingLease(_)) {}; case (k) return #err(#FacilityError({ error = #WrongKind({ facility = m.facility; kind = FaT.kindText(k); wanted = "operatingLease" }) })) };
+        if (r.stage == #closed) return #err(#FacilityError({ error = #WrongStage({ facility = m.facility; stage = "closed"; wanted = "open" }) }));
+        if (m.amount == 0) return #err(#FacilityError({ error = #InvalidTerms({ reason = "a rental of nothing" }) }));
+        let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+        let ?rent = Products.roleAccount(terms, #rentReceivable) else return #err(#ProductError({ error = #RoleUnmapped({ product = r.product; role = "rentReceivable" }) }));
+        let valueDate = switch (valueDateGate(bs, js, r.book, m.period, terms.valueDateConvention, m.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        switch (fundingLeg(bs, bb, js, terms, m.funding, r.currency, #debit, m.amount)) {
+          case (#err(e)) #err(e);
+          case (#ok(source)) {
+            switch (postLegs(js, journalCaller, now, "rental", [authId, Nat.toText(m.facility)], [source, Posting.leg(rent, ?facilitySub(m.facility), #credit, r.currency, m.amount)], m.postingDate, valueDate, m.period, m.narration)) {
+              case (#err(e)) #err(e);
+              case (#ok(plan)) #ok({ bankEvent = ?#facility(#rentalReceived({ facility = m.facility; amount = m.amount; day = valueDate })); extra = []; journal = plan.journal });
+            }
+          };
+        }
+      };
+      case (#remeasureResidual(x)) planRemeasureResidual(bs, bb, js, journalCaller, now, authId, x);
+      case (#purchaseReceivables(x)) planPurchase(bs, bb, js, journalCaller, now, authId, x);
+      case (#collectReceivable(x)) planCollect(bs, bb, js, journalCaller, now, authId, x);
+      case (#dishonourReceivable(x)) planDishonour(bs, bb, js, journalCaller, now, authId, x);
+      case (#writeOffReceivable(x)) planWriteOffReceivable(bs, bb, js, journalCaller, now, authId, x);
+      case (#closeFacility(x)) facilityPlan(FacilityCore.planClose(bs.facility, x.facility, JCore.effectiveToday(js, now)));
+
       // ── closed-month packing ──
 
       case (#openPacking(x)) {
@@ -4791,6 +4908,69 @@ module {
     }
   };
 
+  /// A loan's schedule re-derived from an effective day under new terms and a rate (`rescheduleLoan`, a facility's
+  /// restructuring across its drawings, a floating drawing's reset). `modification` says whether this is a
+  /// modification of the contract — a restructuring, with collections and recovery's stage move and the IFRS 9 §5.4.3 figure — or a
+  /// contractual reset, which changes the rate and the schedule and nothing else (IFRS 9 B5.4.5).
+  func reschedulePlan(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, account : ProdT.AccountId, effective : Nat, terms_ : ProdT.ScheduleTerms, rate : I.Rate, modification : Bool) : Result.Result<Plan, T.BankError> {
+        let ?a = ProductCore.get(bs.product, productBlocks(bb), account) else return #err(#ProductError({ error = #UnknownAccount({ account = account }) }));
+        let ?terms = ProductCore.termsOf(bs.product, a) else return #err(#ProductError({ error = #UnknownVersion({ product = a.product; version = a.version }) }));
+        if (terms.kind != #loan) {
+          return #err(#ProductError({ error = #AccountNotOfKind({ account = account; expected = "loan"; actual = debug_show (terms.kind) }) }));
+        };
+        if (a.disbursed == null) return #err(#ProductError({ error = #LoanNotDisbursed({ account = account }) }));
+        if (a.writtenOff) return #err(#ProductError({ error = #LoanWrittenOffAlready({ account = account }) }));
+        let ?current = ProductCore.schedule(bs.product, productBlocks(bb), a) else return #err(#ProductError({ error = #ScheduleRequired({ product = a.product }) }));
+        switch (I.validRate(rate)) { case (?r) return #err(#ProductError({ error = #InvalidRateChart({ reason = r }) })); case null {} };
+        if (terms_.instalments == 0 or terms_.instalments > ProdT.MAX_INSTALMENTS) {
+          return #err(#ProductError({ error = #InvalidSchedule({ reason = "instalments out of range" }) }));
+        };
+        let out = Loans.reschedule(current.rows, { effective = effective; terms = terms_; rate = rate }, terms.rounding);
+        if (out.reamortised == 0) return #err(#ProductError({ error = #InvalidSchedule({ reason = "the new terms generate no instalments" }) }));
+        // the exposure's stage moves to restructuring (collections and recovery), and under the policy's rule the IFRS 9 §5.4.3
+        // modification gain or loss — carrying amount against the modified flows discounted at the original
+        // rate — posts against the modification-adjustment contra of the loan
+        let extra = List.empty<T.Event>();
+        var journal : [JournalStep] = [];
+        switch (CollectionsCore.policy(bs.collections)) {
+          case null {};
+          case (?pol) {
+            if (modification) { switch (CollectionsCore.noteRestructured(bs.collections, account, effective)) { case (?ev) List.add(extra, #collections(ev)); case null {} } };
+            if (modification and pol.recogniseModificationLoss) {
+              let ?it = terms.interest else return #err(#ProductError({ error = #InvalidTerms({ reason = "a loan product needs interest terms" }) }));
+              let originalRate = switch (a.openingRate) {
+                case (?r) r;
+                case null { switch (Products.rateAt(it.chart, out.outstandingAtEffective)) { case (?r) r; case null rate } };
+              };
+              let carrying = Loans.allocationTotal(loanOutstanding(js, a, terms, effective));
+              let arrearsNow = Loans.arrears(current.rows, loanRepaid(js, a, terms, effective), effective);
+              let pastDueUnpaid = if (arrearsNow.dueToDate > arrearsNow.paid) arrearsNow.dueToDate - arrearsNow.paid else 0;
+              let m = Loans.modificationGainLoss(out.rows, effective, originalRate, it.convention, carrying, terms.rounding, pastDueUnpaid);
+              let amount = if (m.loss > 0) m.loss else m.gain;
+              if (amount > 0) {
+                let ?adjustment = Products.roleAccount(terms, #modificationAdjustment) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "modificationAdjustment" }) }));
+                let ?expense = Products.roleAccount(terms, #impairmentExpense) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "impairmentExpense" }) }));
+                let ?period = periodForDay(js, effective) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(effective) }) }));
+                let legs = if (m.loss > 0) [Posting.leg(expense, null, #debit, a.currency, amount), Posting.leg(adjustment, ?a.subledger, #credit, a.currency, amount)]
+                           else [Posting.leg(adjustment, ?a.subledger, #debit, a.currency, amount), Posting.leg(expense, null, #credit, a.currency, amount)];
+                switch (postLegs(js, journalCaller, now, "modification", [authId, Nat.toText(account), Nat.toText(effective)], legs, effective, effective, period,
+                                 if (m.loss > 0) "modification loss on restructuring" else "modification gain on restructuring")) {
+                  case (#err(e)) return #err(e);
+                  case (#ok(plan)) journal := plan.journal;
+                };
+              };
+            };
+          };
+        };
+        // the contractual rate from the effective day, when it moves: the accrual reads it before the chart
+        let rateNow : ?I.Rate = switch (a.openingRate) { case (?r) ?r; case null { switch (terms.interest) { case (?it) Products.rateAt(it.chart, out.outstandingAtEffective); case null null } } };
+        if (rateNow != ?rate) List.add(extra, #product(#accountRateSet({ account; rate; effective })));
+        #ok({
+          bankEvent = ?#product(#loanRescheduled({ account = account; version = ProductCore.scheduleCount(a) + 1; effective = effective; schedule = out.rows }));
+          extra = List.toArray(extra); journal;
+        })
+      };
+
   /// Provisioning. The band and the percentage against it are declared parameters;
   /// this computes the figure and posts the **movement** against the allowance, so
   /// the expense side moves with it and the allowance is never restated on its own.
@@ -4906,10 +5086,14 @@ module {
         };
         switch (postLegs(js, journalCaller, now, "write-off", [authId, Nat.toText(x.account)], List.toArray(legs), x.postingDate, x.valueDate, x.period, x.narration)) {
           case (#err(e)) #err(e);
-          case (#ok(plan)) #ok({
-            bankEvent = ?#product(#loanWrittenOff({ account = x.account; components = outstanding; fromAllowance = wo.fromAllowance; toExpense = wo.toExpense; day = x.valueDate }));
-            extra = List.toArray(extra); journal = plan.journal;
-          });
+          case (#ok(plan)) {
+            // a facility's drawing written off is closed on the facility (corporate lending)
+            switch (FacilityCore.facilityOfDrawing(bs.facility, x.account)) { case (?fid) List.add(extra, #facility(#drawingClosed({ facility = fid; account = x.account; day = x.valueDate }))); case null {} };
+            #ok({
+              bankEvent = ?#product(#loanWrittenOff({ account = x.account; components = outstanding; fromAllowance = wo.fromAllowance; toExpense = wo.toExpense; day = x.valueDate }));
+              extra = List.toArray(extra); journal = plan.journal;
+            })
+          };
         }
       };
     }
@@ -5903,6 +6087,7 @@ module {
       tills;
       monitoringRules = MonitoringCore.active(bs.monitoring, #endOfDay).size();
       offers = OriginationCore.offeredInBook(bs.origination, book);
+      facilities = FacilityCore.openInBook(bs.facility, book).size();
       shardSize;
     }
   };
@@ -6219,6 +6404,7 @@ module {
       case (#tillCheck) jobTillCheck(bs, bb, js, acc, item, index, day, run.book, only);
       case (#monitoring) forShard(bs, bb, run, item, only, func(a) { jobMonitoring(bs, acc, item, index, day, a) });
       case (#offerExpiry) jobOfferExpiry(bs, acc, item, index, day, run.book, only);
+      case (#facilities) jobFacilities(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
     };
   };
 
@@ -6715,6 +6901,168 @@ module {
     };
   };
 
+  /// The business date of the book's latest end-of-day run before `day`, or the day before when there is none.
+  func previousRunDay(bs : State, book : Text, day : Nat) : Nat {
+    var prev = 0;
+    for (run in BatchCore.listRuns(bs.batch).vals()) { if (Text.equal(run.book, book) and run.businessDate < day and run.businessDate > prev) prev := run.businessDate };
+    if (prev == 0) day - 1 else prev
+  };
+
+  /// Job 12 (corporate lending): every facility of the book not yet closed is examined. A revolver's commitment fee accrues on
+  /// the undrawn amount for the day (the product's day count, or ACT/365F; the product's rounding), an operating
+  /// lease's income straight-line, a factoring facility's discount straight-line to each receivable's maturity —
+  /// each as a posting and a block only when the figure is not zero. A clean-down window that ends today is judged
+  /// from the journal's balances day by day; a review due and not held is flagged once; a floating drawing at its
+  /// reset day is re-priced to the fixing plus the spread when the rate moves. A retry names the one facility.
+  func jobFacilities(
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
+  ) {
+    for (fid in FacilityCore.openInBook(bs.facility, book).vals()) {
+      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(fid)) };
+      if (not mine) continue;
+      acc.examined += 1;
+      let ?r = FacilityCore.row(bs.facility, fid) else { fail(acc, index, item.job, Nat.toText(fid), "the facility's row is gone"); continue };
+      let ?terms = facilityTerms(bs, r) else { fail(acc, index, item.job, Nat.toText(fid), "the facility's product is gone"); continue };
+      let convention : DC.Convention = switch (terms.interest) { case (?it) it.convention; case null #a004_Act365Fixed };
+      var moved = false;
+      let sub = facilitySub(fid);
+      func postPair(kind : Text, debit : JT.Leg, credit : JT.Leg, narration : Text) : Bool {
+        let input = Posting.simple(kind, [Nat.toText(fid), Nat.toText(day)], debit, credit, day, day, period, narration);
+        switch (batchPost(js, jb, journalCaller, now, acc, input)) { case (?why) { fail(acc, index, item.job, Nat.toText(fid), why); false }; case null true }
+      };
+      switch (r.kind) {
+        case (#revolving(rv)) {
+          if (r.stage != #closed and day >= r.availabilityFrom and day <= r.availabilityTo and rv.commitmentFeeBps > 0) {
+            let drawn = facilityDrawn(bs, bb, js, fid, day);
+            let undrawn = if (r.limit > drawn) r.limit - drawn else 0;
+            // since the book's previous run (the day before when there is none): the rest days between two runs accrue too
+            let from = Nat.max(previousRunDay(bs, book, day), r.availabilityFrom);
+            let fee = if (from >= day) 0 else (I.round(I.periodAccrual(undrawn, { numerator = rv.commitmentFeeBps; denominator = 10_000; negative = false }, convention, from, day), terms.rounding)).amount;
+            if (fee > 0) {
+              switch (Products.roleAccount(terms, #feeReceivable), Products.roleAccount(terms, #feeIncome)) {
+                case (?recv, ?inc) {
+                  if (postPair("commitment-fee", Posting.leg(recv, ?sub, #debit, r.currency, fee), Posting.leg(inc, ?sub, #credit, r.currency, fee), "commitment fee on the undrawn amount")) {
+                    record(acc, #facility(#commitmentFeeAccrued({ facility = fid; day; undrawn; amount = fee }))); moved := true;
+                  };
+                };
+                case (_, _) fail(acc, index, item.job, Nat.toText(fid), "the fee roles are not mapped");
+              };
+            };
+          };
+          // the clean-down window ending today: the days the facility stood undrawn, read from the journal
+          switch (rv.cleanDown) {
+            case (?cd) {
+              if (day >= r.cleanWindowStart + cd.everyDays) {
+                var clean = 0;
+                var d0 = r.cleanWindowStart + 1;
+                while (d0 <= r.cleanWindowStart + cd.everyDays) { if (facilityDrawn(bs, bb, js, fid, d0) == 0) clean += 1; d0 += 1 };
+                record(acc, #facility(#cleanDownJudged({ facility = fid; windowEnd = r.cleanWindowStart + cd.everyDays; cleanDays = clean; required = cd.forDays; met = FacilityCore.cleanDownMet(clean, cd.forDays) })));
+                moved := true;
+              };
+            };
+            case null {};
+          };
+        };
+        case (#operatingLease(ol)) {
+          let start = r.availabilityFrom;
+          let termDays = ol.periods * ProdT.periodDays(ol.every);
+          let total = ol.rentalPerPeriod * ol.periods;
+          if (day > start) {
+            switch (Products.roleAccount(terms, #rentReceivable), Products.roleAccount(terms, #rentalIncome)) {
+              case (?recv, ?inc) {
+                let recognised = Posting.accountBalanceOn(js, inc, sub, r.currency, #credit, day).net;
+                let cumulative = FacilityCore.straightLine(total, termDays, day - start);
+                if (cumulative > recognised) {
+                  let amount = cumulative - recognised;
+                  if (postPair("rental-income", Posting.leg(recv, ?sub, #debit, r.currency, amount), Posting.leg(inc, ?sub, #credit, r.currency, amount), "rental income straight-line")) {
+                    record(acc, #facility(#leaseRentalAccrued({ facility = fid; day; amount }))); moved := true;
+                  };
+                };
+              };
+              case (_, _) fail(acc, index, item.job, Nat.toText(fid), "the lease roles are not mapped");
+            };
+          };
+        };
+        case (#factoring(_) or #forfaiting(_)) {
+          let items = List.empty<(Blob, Nat)>();
+          var total = 0;
+          for (rec in FacilityCore.receivablesOf(bs.facility, fid).vals()) {
+            if (rec.status == #open) {
+              let cumulative = FacilityCore.straightLine(rec.discount, if (rec.due > rec.purchased) rec.due - rec.purchased else 0, if (day > rec.purchased) day - rec.purchased else 0);
+              if (cumulative > rec.recognised) { let delta = cumulative - rec.recognised; List.add(items, (rec.ref, delta)); total += delta };
+            };
+          };
+          if (total > 0) {
+            switch (Products.roleAccount(terms, #unearnedDiscount), Products.roleAccount(terms, #discountIncome)) {
+              case (?unearned, ?inc) {
+                if (postPair("discount-unwind", Posting.leg(unearned, ?sub, #debit, r.currency, total), Posting.leg(inc, ?sub, #credit, r.currency, total), "discount earned to date")) {
+                  record(acc, #facility(#discountUnwound({ facility = fid; day; amount = total; items = List.toArray(items) }))); moved := true;
+                };
+              };
+              case (_, _) fail(acc, index, item.job, Nat.toText(fid), "the discount roles are not mapped");
+            };
+          };
+        };
+        case (_) {};
+      };
+      // a floating drawing at its reset: re-priced to the fixing plus the spread when the rate moves
+      switch (r.pricing) {
+        case (#floating(fl)) {
+          for ((acct, open) in FacilityCore.drawingsOf(bs.facility, fid).vals()) {
+            if (open) {
+              switch (ProductCore.get(bs.product, productBlocks(bb), acct)) {
+                case (?a) {
+                  switch (a.disbursed) {
+                    case (?since) {
+                      if (day > since and (day - since) % fl.resetDays == 0) {
+                        switch (FacilityCore.rateFor(bs.facility, r, day)) {
+                          case (#err(_)) fail(acc, index, item.job, Nat.toText(fid), "no fixing of " # fl.index # " for the reset");
+                          case (#ok(pr)) {
+                            let rate : I.Rate = { numerator = pr.rateBps; denominator = 10_000; negative = false };
+                            if (a.openingRate != ?rate) {
+                              switch (ProductCore.schedule(bs.product, productBlocks(bb), a), terms.schedule) {
+                                case (?current, ?sch) {
+                                  var remaining = 0;
+                                  for (row in current.rows.vals()) { if (row.dueDate >= day) remaining += 1 };
+                                  if (remaining > 0) {
+                                    switch (reschedulePlan(bs, bb, js, journalCaller, now, "reset-" # Nat.toText(fid), acct, day, ({ sch with instalments = remaining; moratoriumDays = 0 } : ProdT.ScheduleTerms), rate, false)) {
+                                      case (#err(e)) fail(acc, index, item.job, Nat.toText(fid), debug_show (e));
+                                      case (#ok(plan)) {
+                                        switch (plan.bankEvent) { case (?ev) record(acc, ev); case null {} };
+                                        for (ev in plan.extra.vals()) record(acc, ev);
+                                        record(acc, #facility(#drawingRepriced({ facility = fid; account = acct; day; rateBps = pr.rateBps; fixing = pr.fixing })));
+                                        moved := true;
+                                      };
+                                    };
+                                  };
+                                };
+                                case (_, _) {};
+                              };
+                            };
+                          };
+                        };
+                      };
+                    };
+                    case null {};
+                  };
+                };
+                case null {};
+              };
+            };
+          };
+        };
+        case (#fixed(_)) {};
+      };
+      // a review due and not held, flagged once
+      switch (r.nextReview) {
+        case (?due) { if (due < day and not r.reviewFlagged) { record(acc, #facility(#reviewOverdue({ facility = fid; due; day }))); moved := true } };
+        case null {};
+      };
+      if (not moved) acc.zeroMovement += 1;
+    };
+  };
+
   /// The open period a day falls in, if any.
   func periodForDay(js : JCore.State, day : ProdT.Day) : ?JT.PeriodId {
     for (p in JCore.listPeriods(js).vals()) {
@@ -6764,6 +7112,357 @@ module {
     switch (OriginationCore.planRecordBureau(bs.origination, application, report, signature, verify)) {
       case (#err(e)) #err(#OriginationError({ error = e }));
       case (#ok(ev)) #ok(#origination(ev));
+    }
+  };
+
+
+  // ─── corporate lending (corporate lending): the facility's planners ──────────────────────
+
+  func facilityPlan(r : Result.Result<FaT.FacilityEvent, FaT.FacilityError>) : Result.Result<Plan, T.BankError> {
+    switch (r) { case (#err(e)) #err(#FacilityError({ error = e })); case (#ok(ev)) #ok({ bankEvent = ?#facility(ev); extra = []; journal = [] }) }
+  };
+  func facilitySub(id : FaT.FacilityId) : JT.SubledgerKey { FacilityCore.facilitySub(id) };
+  func participantSub(id : FaT.FacilityId, p : PT.PartyId) : JT.SubledgerKey { FacilityCore.participantSub(id, p) };
+  /// The terms of the loan product a facility's drawings are accounts of.
+  func facilityTerms(bs : State, r : FacilityCore.Row) : ?ProdT.ProductTerms {
+    switch (ProductCore.currentVersion(bs.product, r.product)) { case (?v) ?v.terms; case null null }
+  };
+  /// The facility's opening block, where the covenants, the collateral and the agent's key live.
+  func facilityTermsBlock(bb : Blocks, id : FaT.FacilityId) : ?FaT.Terms {
+    switch (bb.get(id)) { case (?b) { switch (b.event) { case (#facility(#facilityOpened(x))) ?x.terms; case (_) null } }; case null null }
+  };
+  /// What a facility had drawn on a day: the outstanding principal of every drawing it ever made, read from the
+  /// journal as of that day — a drawing since repaid still counts for the days it stood, which is what a clean-down
+  /// window judged after the fact needs; today it reads as zero.
+  public func facilityDrawnOn(bs : State, bb : Blocks, js : JCore.State, id : FaT.FacilityId, day : Nat) : Nat { facilityDrawn(bs, bb, js, id, day) };
+  func facilityDrawn(bs : State, bb : Blocks, js : JCore.State, id : FaT.FacilityId, day : Nat) : Nat {
+    var drawn = 0;
+    for ((acct, _) in FacilityCore.drawingsOf(bs.facility, id).vals()) {
+      switch (ProductCore.get(bs.product, productBlocks(bb), acct)) {
+        case (?a) { switch (ProductCore.termsOf(bs.product, a)) { case (?terms) drawn += Posting.accountBalanceOn(js, terms.control, a.subledger, a.currency, #debit, day).net; case null {} } };
+        case null {};
+      };
+    };
+    drawn
+  };
+  func roleOf(terms : ProdT.ProductTerms, product : Text, role : ProdT.Role) : Result.Result<JT.AccountCode, T.BankError> {
+    switch (Products.roleAccount(terms, role)) { case (?c) #ok(c); case null #err(#ProductError({ error = #RoleUnmapped({ product; role = ProdT.roleText(role) }) })) }
+  };
+
+  /// A facility opened: the terms validated, the party active and in the book, the product a loan product in the
+  /// currency whose mapping carries the roles the kind posts to, the participants and the client account real.
+  func planOpenFacility(bs : State, bb : Blocks, js : JCore.State, terms : FaT.Terms, today : Nat) : Result.Result<Plan, T.BankError> {
+    switch (FacilityCore.validTerms(terms)) { case (?reason) return #err(#FacilityError({ error = #InvalidTerms({ reason }) })); case null {} };
+    switch (requireOpenBook(bs, terms.book)) { case (?e) return #err(e); case null {} };
+    let ?pe = PartyCore.get(bs.party, partyBlocks(bb), terms.party) else return #err(#PartyError({ error = #UnknownParty({ party = terms.party }) }));
+    if (not Text.equal(pe.book, terms.book)) return #err(#FacilityError({ error = #InvalidTerms({ reason = "the facility's book is not the party's" }) }));
+    if (pe.lifecycle != #active) return #err(#PartyError({ error = #PartyNotActive({ party = terms.party; lifecycle = pe.lifecycle }) }));
+    let ?v = ProductCore.currentVersion(bs.product, terms.product) else return #err(#ProductError({ error = #UnknownProduct({ product = terms.product }) }));
+    if (v.terms.kind != #loan) return #err(#FacilityError({ error = #InvalidTerms({ reason = "a facility's drawings are accounts of a loan product" }) }));
+    if (not Text.equal(v.terms.currency, terms.currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = v.terms.currency; actual = terms.currency }) }));
+    let needed : [ProdT.Role] = switch (terms.kind) {
+      case (#bilateralTerm) []; case (#revolving(_)) [#feeReceivable, #feeIncome];
+      case (#syndicatedAgent(_)) [#dueToParticipants, #participantPayable]; case (#syndicatedParticipant(_)) [];
+      case (#financeLease(_)) [#impairmentExpense, #allowance]; case (#operatingLease(_)) [#rentReceivable, #rentalIncome];
+      case (#factoring(_)) [#purchasedReceivables, #retentionPayable, #unearnedDiscount, #discountIncome, #writeOff];
+      case (#forfaiting(_)) [#purchasedReceivables, #unearnedDiscount, #discountIncome, #writeOff];
+    };
+    for (role in needed.vals()) { switch (roleOf(v.terms, terms.product, role)) { case (#err(e)) return #err(e); case (#ok(_)) {} } };
+    switch (terms.kind) {
+      case (#syndicatedAgent(x)) { for (sh in x.shares.vals()) { switch (requireParty(bs, sh.participant)) { case (?e) return #err(e); case null {} } } };
+      case (#syndicatedParticipant(x)) { switch (JCore.getAccount(js, x.agentAccount)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "agentAccount"; account = x.agentAccount }) })); case (?_) {} } };
+      case (#financeLease(x)) { switch (JCore.getAccount(js, x.assetAccount)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "assetAccount"; account = x.assetAccount }) })); case (?_) {} } };
+      case (#factoring(x)) { switch (clientAccount(bs, bb, x.clientAccount, terms.party, terms.currency)) { case (#err(e)) return #err(e); case (#ok(_)) {} } };
+      case (#forfaiting(x)) { switch (clientAccount(bs, bb, x.clientAccount, terms.party, terms.currency)) { case (#err(e)) return #err(e); case (#ok(_)) {} } };
+      case (_) {};
+    };
+    for (c in terms.collateral.vals()) { if (PartyCore.collateralPartyOf(bs.party, c) != ?terms.party) return #err(#FacilityError({ error = #InvalidTerms({ reason = "collateral " # Nat.toText(c) # " is not the party's" }) })) };
+    #ok({ bankEvent = ?#facility(#facilityOpened({ terms; day = today })); extra = []; journal = [] })
+  };
+
+  /// The client's deposit account a factoring facility advances into: the party's, active, in the currency.
+  func clientAccount(bs : State, bb : Blocks, id : ProdT.AccountId, party : PT.PartyId, currency : Text) : Result.Result<(ProductCore.AccountEntry, ProdT.ProductTerms), T.BankError> {
+    switch (requireAccount(bs, bb, id)) {
+      case (#err(e)) #err(e);
+      case (#ok((a, terms))) {
+        if (a.party != party) return #err(#FacilityError({ error = #InvalidTerms({ reason = "the client account is not the party's" }) }));
+        if (a.status != #active) return #err(#ProductError({ error = #AccountNotActive({ account = id; status = a.status }) }));
+        if (terms.kind == #loan or terms.kind == #till) return #err(#ProductError({ error = #AccountNotOfKind({ account = id; expected = "a deposit account"; actual = debug_show (terms.kind) }) }));
+        if (not Text.equal(a.currency, currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = currency; actual = a.currency }) }));
+        #ok((a, terms))
+      };
+    }
+  };
+
+  /// A drawing: the aggregate limit checked against the journal, the rate from the pricing, a loan account opened
+  /// under the existing planner at that rate and activated, the disbursement posted — funded by the bank alone, or
+  /// by the syndicate's shares with the participants' parts credited to what the agent owes them; a finance
+  /// lease's drawing is the asset moving into the net investment, its schedule carrying the residual as a balloon.
+  func planDrawdown(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, m : T.FacilityMoney, authorityIndex : Nat, byNotice : Bool) : Result.Result<Plan, T.BankError> {
+    switch (requireFeature(bs, ProdT.FEATURE_CREDIT)) { case (?e) return #err(e); case null {} };
+    let drawn = facilityDrawn(bs, bb, js, m.facility, m.valueDate);
+    let r = switch (FacilityCore.admitDrawdown(bs.facility, m.facility, m.amount, drawn, m.valueDate, byNotice)) { case (#err(e)) return #err(#FacilityError({ error = e })); case (#ok(r)) r };
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let ?pe = PartyCore.get(bs.party, partyBlocks(bb), r.party) else return #err(#PartyError({ error = #UnknownParty({ party = r.party }) }));
+    let priced = switch (FacilityCore.rateFor(bs.facility, r, m.valueDate)) { case (#err(e)) return #err(#FacilityError({ error = e })); case (#ok(p)) p };
+    let rate : I.Rate = { numerator = priced.rateBps; denominator = 10_000; negative = false };
+    let accountId = bs.height;
+    let opened = switch (planOpenAccount(bs, js, journalCaller, r.product, r.party, pe.book, r.currency, null, [], ?rate, authorityIndex, [])) { case (#err(e)) return #err(e); case (#ok(o)) o };
+    let ?sch = terms.schedule else return #err(#ProductError({ error = #ScheduleRequired({ product = r.product }) }));
+    let valueDate = switch (valueDateGate(bs, js, r.book, m.period, terms.valueDateConvention, m.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    // a finance lease's schedule carries the residual as the balloon the lessee does not pay
+    let schTerms : ProdT.ScheduleTerms = switch (r.kind) { case (#financeLease(l)) ({ sch with amortisation = #balloon({ finalPrincipal = l.residual }) }); case (_) sch };
+    let generated = Products.schedule(m.amount, rate, schTerms, terms.rounding, valueDate);
+    let faults = Products.scheduleFaults(m.amount, generated.rows);
+    if (faults.size() > 0) return #err(#ProductError({ error = #InvalidSchedule({ reason = faults[0] }) }));
+    let sub = Posting.subledgerOf(opened.identifier);
+    let legs = List.empty<JT.Leg>();
+    List.add(legs, Posting.leg(terms.control, ?sub, #debit, r.currency, m.amount));
+    var splits : [(PT.PartyId, Nat)] = [];
+    switch (r.kind) {
+      case (#syndicatedAgent(_)) {
+        let shares = FacilityCore.sharesOf(bs.facility, m.facility);
+        let alloc = FacilityCore.allocate(shares, m.amount);
+        let due = switch (roleOf(terms, r.product, #dueToParticipants)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        switch (fundingLeg(bs, bb, js, terms, m.funding, r.currency, #credit, alloc.own)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+        for ((p, part) in alloc.parts.vals()) { if (part > 0) List.add(legs, Posting.leg(due, ?participantSub(m.facility, p), #credit, r.currency, part)) };
+        splits := alloc.parts;
+      };
+      case (#financeLease(l)) List.add(legs, Posting.leg(l.assetAccount, null, #credit, r.currency, m.amount));
+      case (_) { switch (fundingLeg(bs, bb, js, terms, m.funding, r.currency, #credit, m.amount)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) } };
+    };
+    let posting = switch (postLegs(js, journalCaller, now, "drawdown", [authId, Nat.toText(m.facility), Nat.toText(accountId)], List.toArray(legs), m.postingDate, valueDate, m.period, m.narration)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    if (not accountTransitionAllowed(#pending, #active)) return #err(#ProductError({ error = #AccountNotActive({ account = accountId; status = #pending }) }));
+    #ok({
+      bankEvent = ?#product(opened.opened);
+      extra = [#product(#accountStatusSet({ account = accountId; to = #active })),
+               #product(#loanDisbursed({ account = accountId; amount = m.amount; day = valueDate; schedule = generated.rows })),
+               #facility(#drawn({ facility = m.facility; account = accountId; amount = m.amount; rateBps = priced.rateBps; day = valueDate; splits }))];
+      journal = Array.concat<JournalStep>([#event(opened.limit)], posting.journal);
+    })
+  };
+
+  /// What the agent pays its participants: each one's payable balance, in one posting.
+  func planDistribute(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { facility : FaT.FacilityId; funding : ProdT.Funding; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
+    let ?r = FacilityCore.row(bs.facility, x.facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility = x.facility }) }));
+    switch (r.kind) { case (#syndicatedAgent(_)) {}; case (k) return #err(#FacilityError({ error = #WrongKind({ facility = x.facility; kind = FaT.kindText(k); wanted = "syndicatedAgent" }) })) };
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let payable = switch (roleOf(terms, r.product, #participantPayable)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let legs = List.empty<JT.Leg>();
+    let amounts = List.empty<(PT.PartyId, Nat)>();
+    var total = 0;
+    for (sh in FacilityCore.sharesOf(bs.facility, x.facility).vals()) {
+      let owed = Posting.accountBalanceOn(js, payable, participantSub(x.facility, sh.participant), r.currency, #credit, valueDate).net;
+      if (owed > 0) { List.add(legs, Posting.leg(payable, ?participantSub(x.facility, sh.participant), #debit, r.currency, owed)); List.add(amounts, (sh.participant, owed)); total += owed };
+    };
+    if (total == 0) return #err(#FacilityError({ error = #InvalidTerms({ reason = "nothing is payable to the participants" }) }));
+    switch (fundingLeg(bs, bb, js, terms, x.funding, r.currency, #credit, total)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+    switch (postLegs(js, journalCaller, now, "distribution", [authId, Nat.toText(x.facility), Nat.toText(valueDate)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#facility(#distributedToParticipants({ facility = x.facility; day = valueDate; amounts = List.toArray(amounts) })); extra = []; journal = plan.journal });
+    }
+  };
+
+  /// A repayment on a syndicated drawing shares what was received: the principal part moves from what the
+  /// agent owes for the funding to what is payable, the interest part from the bank's income to what is payable.
+  func syndicationOnRepayment(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, account : ProdT.AccountId, applied : ProdT.Allocation, m : T.MoneyMove, valueDate : Nat) : Result.Result<?{ event : T.Event; journal : [JournalStep] }, T.BankError> {
+    let ?fid = FacilityCore.facilityOfDrawing(bs.facility, account) else return #ok(null);
+    let ?r = FacilityCore.row(bs.facility, fid) else return #ok(null);
+    switch (r.kind) { case (#syndicatedAgent(_)) {}; case (_) return #ok(null) };
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let due = switch (roleOf(terms, r.product, #dueToParticipants)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let payable = switch (roleOf(terms, r.product, #participantPayable)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let income = switch (roleOf(terms, r.product, #interestIncome)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let shares = FacilityCore.sharesOf(bs.facility, fid);
+    let principalParts = FacilityCore.allocate(shares, applied.principal).parts;
+    let interestParts = FacilityCore.allocate(shares, applied.interest).parts;
+    let legs = List.empty<JT.Leg>();
+    for ((p, part) in principalParts.vals()) { if (part > 0) { List.add(legs, Posting.leg(due, ?participantSub(fid, p), #debit, r.currency, part)); List.add(legs, Posting.leg(payable, ?participantSub(fid, p), #credit, r.currency, part)) } };
+    var interestTotal = 0;
+    for ((p, part) in interestParts.vals()) { if (part > 0) { List.add(legs, Posting.leg(payable, ?participantSub(fid, p), #credit, r.currency, part)); interestTotal += part } };
+    if (interestTotal > 0) List.add(legs, Posting.leg(income, null, #debit, r.currency, interestTotal));
+    let ev : T.Event = #facility(#drawingRepaid({ facility = fid; account; amount = m.amount; day = valueDate; interestShared = interestParts }));
+    if (List.size(legs) == 0) return #ok(?{ event = ev; journal = [] });
+    switch (postLegs(js, journalCaller, now, "syndicate-share", [authId, Nat.toText(fid), Nat.toText(account), Nat.toText(valueDate)], List.toArray(legs), m.postingDate, valueDate, m.period, "the syndicate's share of a repayment")) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok(?{ event = ev; journal = plan.journal });
+    }
+  };
+
+  /// A finance lease's residual re-measured downwards (IFRS 16 §77): the loss against the allowance of the
+  /// drawing, the schedule's balloon re-derived to the new residual at the lease's own rate.
+  func planRemeasureResidual(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { facility : FaT.FacilityId; residual : Nat; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
+    let ?r = FacilityCore.row(bs.facility, x.facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility = x.facility }) }));
+    let lease = switch (r.kind) { case (#financeLease(l)) l; case (k) return #err(#FacilityError({ error = #WrongKind({ facility = x.facility; kind = FaT.kindText(k); wanted = "financeLease" }) })) };
+    if (x.residual >= lease.residual) return #err(#FacilityError({ error = #InvalidTerms({ reason = "a residual is re-measured downwards; an increase is not recognised (IFRS 16 §77)" }) }));
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let open = Array.filter<(ProdT.AccountId, Bool)>(FacilityCore.drawingsOf(bs.facility, x.facility), func((_, o)) { o });
+    if (open.size() != 1) return #err(#FacilityError({ error = #HasDrawings({ facility = x.facility; open = open.size() }) }));
+    let acct = open[0].0;
+    let ?a = ProductCore.get(bs.product, productBlocks(bb), acct) else return #err(#ProductError({ error = #UnknownAccount({ account = acct }) }));
+    let expense = switch (roleOf(terms, r.product, #impairmentExpense)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let allowance = switch (roleOf(terms, r.product, #allowance)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let loss = lease.residual - x.residual;
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let posting = switch (postLegs(js, journalCaller, now, "residual", [authId, Nat.toText(x.facility), Nat.toText(valueDate)], [Posting.leg(expense, null, #debit, r.currency, loss), Posting.leg(allowance, ?a.subledger, #credit, r.currency, loss)], x.postingDate, valueDate, x.period, x.narration)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    // the balloon re-derived: the remaining instalments at the lease's rate, the new residual at the end
+    let ?current = ProductCore.schedule(bs.product, productBlocks(bb), a) else return #err(#ProductError({ error = #ScheduleRequired({ product = r.product }) }));
+    let ?sch = terms.schedule else return #err(#ProductError({ error = #ScheduleRequired({ product = r.product }) }));
+    var remaining = 0;
+    for (row in current.rows.vals()) { if (row.dueDate >= valueDate) remaining += 1 };
+    if (remaining == 0) return #err(#ProductError({ error = #InvalidSchedule({ reason = "the lease has no instalment left" }) }));
+    let rate : I.Rate = switch (a.openingRate) { case (?rt) rt; case null return #err(#ProductError({ error = #InvalidTerms({ reason = "the lease carries no rate" }) })) };
+    let plan = switch (reschedulePlan(bs, bb, js, journalCaller, now, authId, acct, valueDate, ({ sch with amortisation = #balloon({ finalPrincipal = x.residual }); instalments = remaining; moratoriumDays = 0 } : ProdT.ScheduleTerms), rate, false)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    let extra = List.empty<T.Event>();
+    switch (plan.bankEvent) { case (?ev) List.add(extra, ev); case null {} };
+    for (ev in plan.extra.vals()) List.add(extra, ev);
+    #ok({ bankEvent = ?#facility(#residualRemeasured({ facility = x.facility; from = lease.residual; to = x.residual; day = valueDate })); extra = List.toArray(extra); journal = Array.concat<JournalStep>(posting.journal, plan.journal) })
+  };
+
+  /// Receivables bought: the faces into purchased receivables, the advance to the client's account, the
+  /// retention held for the client, the discount not yet earned.
+  func planPurchase(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { facility : FaT.FacilityId; receivables : [FaT.Receivable]; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
+    let r = switch (FacilityCore.admitPurchase(bs.facility, x.facility, x.receivables, x.valueDate)) { case (#err(e)) return #err(#FacilityError({ error = e })); case (#ok(r)) r };
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let clientId = switch (r.kind) { case (#factoring(f)) f.clientAccount; case (#forfaiting(f)) f.clientAccount; case (_) 0 };
+    let (client, clientTerms) = switch (clientAccount(bs, bb, clientId, r.party, r.currency)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let purchased = switch (roleOf(terms, r.product, #purchasedReceivables)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let unearned = switch (roleOf(terms, r.product, #unearnedDiscount)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    var face = 0; var advance = 0; var discount = 0; var retention = 0;
+    for (it in x.receivables.vals()) { let fig = FacilityCore.purchaseFigures(r.kind, it); face += it.face; advance += fig.advance; discount += fig.discount; retention += fig.retention };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let legs = List.empty<JT.Leg>();
+    List.add(legs, Posting.leg(purchased, ?facilitySub(x.facility), #debit, r.currency, face));
+    if (advance > 0) List.add(legs, Posting.leg(clientTerms.control, ?client.subledger, #credit, r.currency, advance));
+    if (retention > 0) { let ret = switch (roleOf(terms, r.product, #retentionPayable)) { case (#err(e)) return #err(e); case (#ok(c)) c }; List.add(legs, Posting.leg(ret, ?facilitySub(x.facility), #credit, r.currency, retention)) };
+    if (discount > 0) List.add(legs, Posting.leg(unearned, ?facilitySub(x.facility), #credit, r.currency, discount));
+    switch (postLegs(js, journalCaller, now, "purchase", [authId, Nat.toText(x.facility), Nat.toText(valueDate)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#facility(#receivablesPurchased({ facility = x.facility; receivables = x.receivables; face; advance; discount; retention; day = valueDate })); extra = []; journal = plan.journal });
+    }
+  };
+
+  func openReceivable(bs : State, id : FaT.FacilityId, ref : Blob, wanted : [FacilityCore.ReceivableStatus]) : Result.Result<(FacilityCore.Row, FacilityCore.ReceivableRow), T.BankError> {
+    let ?r = FacilityCore.row(bs.facility, id) else return #err(#FacilityError({ error = #UnknownFacility({ facility = id }) }));
+    switch (r.kind) { case (#factoring(_) or #forfaiting(_)) {}; case (k) return #err(#FacilityError({ error = #WrongKind({ facility = id; kind = FaT.kindText(k); wanted = "factoring or forfaiting" }) })) };
+    let ?rec = FacilityCore.receivable(bs.facility, id, ref) else return #err(#FacilityError({ error = #UnknownReceivable({ facility = id; ref }) }));
+    if (Array.find<FacilityCore.ReceivableStatus>(wanted, func(s) { s == rec.status }) == null) return #err(#FacilityError({ error = #ReceivableNotOpen({ facility = id; ref }) }));
+    #ok((r, rec))
+  };
+
+  /// A receivable collected from the debtor: the face in, the retention released to the client, the discount not
+  /// yet earned recognised now.
+  func planCollect(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { facility : FaT.FacilityId; ref : Blob; funding : ProdT.Funding; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
+    let (r, rec) = switch (openReceivable(bs, x.facility, x.ref, [#open, #dishonoured])) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let clientId = switch (r.kind) { case (#factoring(f)) f.clientAccount; case (#forfaiting(f)) f.clientAccount; case (_) 0 };
+    let (client, clientTerms) = switch (clientAccount(bs, bb, clientId, r.party, r.currency)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let purchased = switch (roleOf(terms, r.product, #purchasedReceivables)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let unearned = switch (roleOf(terms, r.product, #unearnedDiscount)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let income = switch (roleOf(terms, r.product, #discountIncome)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let legs = List.empty<JT.Leg>();
+    switch (fundingLeg(bs, bb, js, terms, x.funding, r.currency, #debit, rec.face)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+    List.add(legs, Posting.leg(purchased, ?facilitySub(x.facility), #credit, r.currency, rec.face));
+    if (rec.retention > 0) {
+      let ret = switch (roleOf(terms, r.product, #retentionPayable)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+      List.add(legs, Posting.leg(ret, ?facilitySub(x.facility), #debit, r.currency, rec.retention));
+      List.add(legs, Posting.leg(clientTerms.control, ?client.subledger, #credit, r.currency, rec.retention));
+    };
+    let remaining = if (rec.discount > rec.recognised) rec.discount - rec.recognised else 0;
+    if (remaining > 0) { List.add(legs, Posting.leg(unearned, ?facilitySub(x.facility), #debit, r.currency, remaining)); List.add(legs, Posting.leg(income, ?facilitySub(x.facility), #credit, r.currency, remaining)) };
+    switch (postLegs(js, journalCaller, now, "collection", [authId, Nat.toText(x.facility), Nat.toText(FacilityCore.textKey(debug_show (x.ref)))], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#facility(#receivableCollected({ facility = x.facility; ref = x.ref; amount = rec.face; retentionReleased = rec.retention; day = valueDate })); extra = []; journal = plan.journal });
+    }
+  };
+
+  /// A receivable dishonoured by the debtor: with recourse the client repays the advance and the earned
+  /// discount, the retention and the unearned discount are released, the receivable is gone; without it the
+  /// receivable stays the bank's exposure on the debtor, to be collected or written off.
+  func planDishonour(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { facility : FaT.FacilityId; ref : Blob; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
+    let (r, rec) = switch (openReceivable(bs, x.facility, x.ref, [#open])) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    let recourse = switch (r.kind) { case (#factoring(f)) f.recourse; case (_) false };
+    let valueDate = switch (facilityTerms(bs, r)) { case (?terms) { switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d } }; case null return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) })) };
+    if (not recourse) return #ok({ bankEvent = ?#facility(#receivableDishonoured({ facility = x.facility; ref = x.ref; face = rec.face; chargedBack = false; day = valueDate })); extra = []; journal = [] });
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let clientId = switch (r.kind) { case (#factoring(f)) f.clientAccount; case (_) 0 };
+    let (client, clientTerms) = switch (clientAccount(bs, bb, clientId, r.party, r.currency)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let purchased = switch (roleOf(terms, r.product, #purchasedReceivables)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let unearned = switch (roleOf(terms, r.product, #unearnedDiscount)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let ret = switch (roleOf(terms, r.product, #retentionPayable)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let legs = List.empty<JT.Leg>();
+    let fromClient = rec.advance + rec.recognised;
+    if (fromClient > 0) List.add(legs, Posting.leg(clientTerms.control, ?client.subledger, #debit, r.currency, fromClient));
+    if (rec.retention > 0) List.add(legs, Posting.leg(ret, ?facilitySub(x.facility), #debit, r.currency, rec.retention));
+    let unearnedLeft = if (rec.discount > rec.recognised) rec.discount - rec.recognised else 0;
+    if (unearnedLeft > 0) List.add(legs, Posting.leg(unearned, ?facilitySub(x.facility), #debit, r.currency, unearnedLeft));
+    List.add(legs, Posting.leg(purchased, ?facilitySub(x.facility), #credit, r.currency, rec.face));
+    switch (postLegs(js, journalCaller, now, "chargeback", [authId, Nat.toText(x.facility), Nat.toText(FacilityCore.textKey(debug_show (x.ref)))], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#facility(#receivableDishonoured({ facility = x.facility; ref = x.ref; face = rec.face; chargedBack = true; day = valueDate })); extra = []; journal = plan.journal });
+    }
+  };
+
+  /// A dishonoured receivable without recourse written off: the advance and the earned discount are the loss,
+  /// the retention never falls due to the client, the unearned discount is released.
+  func planWriteOffReceivable(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { facility : FaT.FacilityId; ref : Blob; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
+    let (r, rec) = switch (openReceivable(bs, x.facility, x.ref, [#dishonoured])) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
+    let purchased = switch (roleOf(terms, r.product, #purchasedReceivables)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let unearned = switch (roleOf(terms, r.product, #unearnedDiscount)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let writeOff = switch (roleOf(terms, r.product, #writeOff)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let legs = List.empty<JT.Leg>();
+    let loss = rec.advance + rec.recognised;
+    if (loss > 0) List.add(legs, Posting.leg(writeOff, null, #debit, r.currency, loss));
+    if (rec.retention > 0) { let ret = switch (roleOf(terms, r.product, #retentionPayable)) { case (#err(e)) return #err(e); case (#ok(c)) c }; List.add(legs, Posting.leg(ret, ?facilitySub(x.facility), #debit, r.currency, rec.retention)) };
+    let unearnedLeft = if (rec.discount > rec.recognised) rec.discount - rec.recognised else 0;
+    if (unearnedLeft > 0) List.add(legs, Posting.leg(unearned, ?facilitySub(x.facility), #debit, r.currency, unearnedLeft));
+    List.add(legs, Posting.leg(purchased, ?facilitySub(x.facility), #credit, r.currency, rec.face));
+    switch (postLegs(js, journalCaller, now, "receivable-writeoff", [authId, Nat.toText(x.facility), Nat.toText(FacilityCore.textKey(debug_show (x.ref)))], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#facility(#receivableWrittenOff({ facility = x.facility; ref = x.ref; amount = loss; day = valueDate })); extra = []; journal = plan.journal });
+    }
+  };
+
+  /// The agent's notice on a facility the bank participates in, judged by the agent's signature over the notice's
+  /// canonical bytes and by the arithmetic (our share is the total by our basis points): a drawdown opens the
+  /// bank's drawing funded from the agent's account; a repayment or an interest distribution repays it.
+  public func planAgentNotice(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, facility : FaT.FacilityId, notice : FaT.AgentNotice, signature : Blob, verify : Verify) : Result.Result<Plan, T.BankError> {
+    let ?r = FacilityCore.row(bs.facility, facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility }) }));
+    let ?opened = facilityTermsBlock(bb, facility) else return #err(#FacilityError({ error = #UnknownFacility({ facility }) }));
+    let part = switch (opened.kind) { case (#syndicatedParticipant(p)) p; case (k) return #err(#FacilityError({ error = #WrongKind({ facility; kind = FaT.kindText(k); wanted = "syndicatedParticipant" }) })) };
+    if (r.stage == #closed) return #err(#FacilityError({ error = #WrongStage({ facility; stage = "closed"; wanted = "open" }) }));
+    if (not verify(part.agentScheme, part.agentKey, FCan.noticeBytes(facility, notice), signature)) return #err(#FacilityError({ error = #SignatureInvalid({ facility }) }));
+    let (total, ourShare, valueDay) = switch (notice) { case (#drawdown(x)) (x.total, x.ourShare, x.valueDate); case (#repayment(x)) (x.total, x.ourShare, x.valueDate); case (#interestDistribution(x)) (x.total, x.ourShare, x.valueDate) };
+    if (ourShare != total * part.ourBps / 10_000) return #err(#FacilityError({ error = #NoticeMismatch({ reason = "our share is not the total by our basis points" }) }));
+    if (ourShare == 0) return #err(#FacilityError({ error = #NoticeMismatch({ reason = "a notice of nothing" }) }));
+    let ?period = periodForDay(js, valueDay) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(valueDay) }) }));
+    let hash = FCan.noticeHash(facility, notice);
+    let authId = "notice-" # Nat.toText(facility);
+    switch (notice) {
+      case (#drawdown(_)) {
+        let m : T.FacilityMoney = { facility; amount = ourShare; funding = #glAccount(part.agentAccount); postingDate = valueDay; valueDate = valueDay; period; narration = "the bank's share of the syndicate's drawing" };
+        // the drawing's limit is our participation's: the facility's limit is the bank's share of the whole
+        switch (planDrawdown(bs, bb, js, journalCaller, now, authId, m, bs.height, true)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) {
+            // the drawing block comes from planDrawdown; the notice block names the account it opened
+            #ok({ bankEvent = plan.bankEvent; journal = plan.journal; extra = Array.concat<T.Event>(plan.extra, [#facility(#agentNoticeRecorded({ facility; notice; noticeHash = hash; account = ?bs.height }))]) })
+          };
+        }
+      };
+      case (_) {
+        let open = Array.filter<(ProdT.AccountId, Bool)>(FacilityCore.drawingsOf(bs.facility, facility), func((_, o)) { o });
+        if (open.size() != 1) return #err(#FacilityError({ error = #HasDrawings({ facility; open = open.size() }) }));
+        let m : T.MoneyMove = { account = open[0].0; amount = ourShare; postingDate = valueDay; valueDate = valueDay; period; narration = "the bank's share of the syndicate's repayment"; funding = #glAccount(part.agentAccount) };
+        switch (repayPlan(bs, bb, js, journalCaller, now, m, authId)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = plan.bankEvent; journal = plan.journal; extra = Array.concat<T.Event>(plan.extra, [#facility(#agentNoticeRecorded({ facility; notice; noticeHash = hash; account = null }))]) });
+        }
+      };
     }
   };
 
@@ -7070,6 +7769,7 @@ module {
       case (#alert(ae)) { AlertCore.apply(s.alerts, block.index, ae) };
       case (#collections(ce)) { CollectionsCore.apply(s.collections, block.index, ce) };
       case (#origination(oe)) { OriginationCore.apply(s.origination, block.index, oe) };
+      case (#facility(fe)) { FacilityCore.apply(s.facility, block.index, fe) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -7200,6 +7900,7 @@ module {
       case (#alert(_)) "alert";
       case (#collections(_)) "collections";
       case (#origination(_)) "origination";
+      case (#facility(_)) "facility";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -7493,6 +8194,7 @@ module {
     AlertCore.fingerprintInto(w, s.alerts);
     CollectionsCore.fingerprintInto(w, s.collections);
     OriginationCore.fingerprintInto(w, s.origination);
+    FacilityCore.fingerprintInto(w, s.facility);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);

@@ -258,6 +258,29 @@ module {
     p("origination.conditions", "origination", #update, #command("recordConditionsMet"), false, false),
     p("origination.fulfil", "origination", #create, #command("fulfilApplication"), false, true),
     p("origination.withdraw", "origination", #update, #command("withdrawApplication"), false, false),
+    // ── corporate lending (corporate lending) ──
+    // Opening a facility, changing the syndicate, restructuring, blocking and closing are decisions: dual. Every
+    // act that posts — a drawing, a distribution, a rental, a remeasurement, a purchase, a collection, a
+    // dishonour, a write-off — moves money: dual by the rule. A covenant test and a review are the officer's
+    // record: single. A rate fixing is data the pricing rests on: dual. The agent's notice arrives by a method.
+    p("facility.open", "facility", #create, #command("openFacility"), false, true),
+    p("facility.drawdown", "facility", #create, #command("drawdown"), true, true),
+    p("facility.participation.update", "facility", #update, #command("transferParticipation"), false, true),
+    p("facility.distribute", "facility", #create, #command("distributeToParticipants"), true, true),
+    p("facility.restructure", "facility", #update, #command("restructureFacility"), false, true),
+    p("facility.covenant.test", "facility", #create, #command("recordCovenantTest"), false, false),
+    p("facility.block", "facility", #update, #command("blockDrawdowns"), false, true),
+    p("facility.unblock", "facility", #update, #command("unblockDrawdowns"), false, true),
+    p("facility.review", "facility", #create, #command("recordFacilityReview"), false, false),
+    p("facility.notice.record", "facility", #create, #method("recordAgentNotice"), false, false),
+    p("rate.fixing.record", "facility", #create, #command("recordRateFixing"), false, true),
+    p("lease.rental", "facility", #create, #command("receiveRental"), true, true),
+    p("lease.residual.update", "facility", #update, #command("remeasureResidual"), true, true),
+    p("factoring.purchase", "facility", #create, #command("purchaseReceivables"), true, true),
+    p("factoring.collect", "facility", #create, #command("collectReceivable"), true, true),
+    p("factoring.dishonour", "facility", #update, #command("dishonourReceivable"), true, true),
+    p("factoring.writeoff", "facility", #update, #command("writeOffReceivable"), true, true),
+    p("facility.close", "facility", #close, #command("closeFacility"), false, true),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -521,6 +544,23 @@ module {
       case (#recordConditionsMet(_)) "recordConditionsMet";
       case (#fulfilApplication(_)) "fulfilApplication";
       case (#withdrawApplication(_)) "withdrawApplication";
+      case (#openFacility(_)) "openFacility";
+      case (#drawdown(_)) "drawdown";
+      case (#transferParticipation(_)) "transferParticipation";
+      case (#distributeToParticipants(_)) "distributeToParticipants";
+      case (#restructureFacility(_)) "restructureFacility";
+      case (#recordCovenantTest(_)) "recordCovenantTest";
+      case (#blockDrawdowns(_)) "blockDrawdowns";
+      case (#unblockDrawdowns(_)) "unblockDrawdowns";
+      case (#recordFacilityReview(_)) "recordFacilityReview";
+      case (#recordRateFixing(_)) "recordRateFixing";
+      case (#receiveRental(_)) "receiveRental";
+      case (#remeasureResidual(_)) "remeasureResidual";
+      case (#purchaseReceivables(_)) "purchaseReceivables";
+      case (#collectReceivable(_)) "collectReceivable";
+      case (#dishonourReceivable(_)) "dishonourReceivable";
+      case (#writeOffReceivable(_)) "writeOffReceivable";
+      case (#closeFacility(_)) "closeFacility";
       case (#openPacking(_)) "openPacking";
       case (#rollPackToArchive(_)) "rollPackToArchive";
       case (#declareShardRule(_)) "declareShardRule";

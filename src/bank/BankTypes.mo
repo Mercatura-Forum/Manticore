@@ -28,6 +28,7 @@ import MT "MonitoringTypes";
 import AlT "AlertTypes";
 import ColT "CollectionsTypes";
 import OT "OriginationTypes";
+import FaT "FacilityTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -184,6 +185,9 @@ module {
     /// gains this party. Carried by command encoding 2 and later.
     application : ?Nat;
   };
+
+  /// Money moving on a facility: a drawing funded from, or a rental received into, `funding`.
+  public type FacilityMoney = { facility : FaT.FacilityId; amount : Nat; funding : ProdT.Funding; postingDate : Day; valueDate : Day; period : Text; narration : Text };
 
   public type Command = {
     // ── entitlements (this component's own configuration) ──
@@ -417,6 +421,24 @@ module {
     #recordConditionsMet : { application : OT.ApplicationId; conditions : [Text] };
     #fulfilApplication : { application : OT.ApplicationId };
     #withdrawApplication : { application : OT.ApplicationId; reason : Text };
+    // ── corporate lending (corporate lending): facilities, drawings, syndication, leases, receivables, covenants, pricing ──
+    #openFacility : FaT.Terms;
+    #drawdown : FacilityMoney;
+    #transferParticipation : { facility : FaT.FacilityId; from : PT.PartyId; to : PT.PartyId; bps : Nat };
+    #distributeToParticipants : { facility : FaT.FacilityId; funding : ProdT.Funding; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #restructureFacility : { facility : FaT.FacilityId; effective : Day; terms : FaT.RestructureTerms };
+    #recordCovenantTest : { facility : FaT.FacilityId; covenant : Text; value : Nat; statementHash : Blob };
+    #blockDrawdowns : { facility : FaT.FacilityId; reason : Text };
+    #unblockDrawdowns : { facility : FaT.FacilityId; reason : Text };
+    #recordFacilityReview : { facility : FaT.FacilityId; note : Text };
+    #recordRateFixing : { index : Text; day : Day; rateBps : Nat };
+    #receiveRental : FacilityMoney;
+    #remeasureResidual : { facility : FaT.FacilityId; residual : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #purchaseReceivables : { facility : FaT.FacilityId; receivables : [FaT.Receivable]; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #collectReceivable : { facility : FaT.FacilityId; ref : Blob; funding : ProdT.Funding; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #dishonourReceivable : { facility : FaT.FacilityId; ref : Blob; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #writeOffReceivable : { facility : FaT.FacilityId; ref : Blob; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #closeFacility : { facility : FaT.FacilityId };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -524,6 +546,8 @@ module {
     #collections : ColT.CollectionsEvent;
     /// Origination: an application's steps, the models as data, the passkeys (origination and underwriting).
     #origination : OT.OriginationEvent;
+    /// Corporate lending: the facilities and what happens on them (corporate lending).
+    #facility : FaT.FacilityEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -651,6 +675,7 @@ module {
     #AlertError : { error : AlT.AlertError };
     #CollectionsError : { error : ColT.CollectionsError };
     #OriginationError : { error : OT.OriginationError };
+    #FacilityError : { error : FaT.FacilityError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };

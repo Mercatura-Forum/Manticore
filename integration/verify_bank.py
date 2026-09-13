@@ -335,7 +335,9 @@ class Reader(V.Reader):
              0x07: "penaltyIncome", 0x08: "feeReceivable", 0x09: "penaltyReceivable",
              0x0A: "taxPayable", 0x0B: "overdraftPortfolio", 0x0C: "writeOff",
              0x0D: "recovery", 0x0E: "allowance", 0x0F: "impairmentExpense",
-             0x10: "suspense", 0x11: "cash", 0x12: "modificationAdjustment"}
+             0x10: "suspense", 0x11: "cash", 0x12: "modificationAdjustment",
+             0x13: "dueToParticipants", 0x14: "participantPayable", 0x15: "rentReceivable", 0x16: "rentalIncome",
+             0x17: "purchasedReceivables", 0x18: "retentionPayable", 0x19: "unearnedDiscount", 0x1A: "discountIncome"}
     PERIODS = ["daily", "monthly", "quarterly", "semiAnnual", "annual", "atMaturity"]
     ROUNDING = ["halfEven", "halfUp", "down"]
     BASIS = ["dailyBalance", "averageDailyBalance"]
@@ -573,6 +575,8 @@ class Reader(V.Reader):
                                     "difference": self.p_difference(), "day": self.nat()}}
         if t == 0x17:
             return {"tillClosed": {"till": self.text()}}
+        if t == 0x18:
+            return {"accountRateSet": {"account": self.nat(), "rate": self.p_rate(), "effective": self.nat()}}
         raise ValueError("unknown product event tag %#x" % t)
 
 
@@ -700,7 +704,7 @@ class Reader(V.Reader):
     # ─── the end-of-day batch ──────────────────────────────────────────
 
     JOBS = {1: "accrual", 2: "charges", 3: "instalmentsDue", 4: "ageing", 5: "provisioning",
-            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry"}
+            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities"}
 
     def b_job(self):
         rank = self.nat()
@@ -1314,6 +1318,41 @@ class Reader(V.Reader):
             return {"fulfilApplication": {"application": self.nat()}}
         if tag == 0xB7:
             return {"withdrawApplication": {"application": self.nat(), "reason": self.text()}}
+        # corporate lending (corporate lending)
+        if tag == 0x30:
+            return {"openFacility": self.facility_terms()}
+        if tag == 0x31:
+            return {"drawdown": self.facility_money()}
+        if tag == 0x32:
+            return {"transferParticipation": {"facility": self.nat(), "from": self.nat(), "to": self.nat(), "bps": self.nat()}}
+        if tag == 0x33:
+            return {"distributeToParticipants": {"facility": self.nat(), "funding": self.p_funding(), **self.dates()}}
+        if tag == 0x34:
+            return {"restructureFacility": {"facility": self.nat(), "effective": self.nat(), "terms": self.restructure_terms()}}
+        if tag == 0x35:
+            return {"recordCovenantTest": {"facility": self.nat(), "covenant": self.text(), "value": self.nat(), "statementHash": self.blob()}}
+        if tag == 0x36:
+            return {"blockDrawdowns": {"facility": self.nat(), "reason": self.text()}}
+        if tag == 0x37:
+            return {"unblockDrawdowns": {"facility": self.nat(), "reason": self.text()}}
+        if tag == 0x38:
+            return {"recordFacilityReview": {"facility": self.nat(), "note": self.text()}}
+        if tag == 0x39:
+            return {"recordRateFixing": {"index": self.text(), "day": self.nat(), "rateBps": self.nat()}}
+        if tag == 0x3A:
+            return {"receiveRental": self.facility_money()}
+        if tag == 0x3B:
+            return {"remeasureResidual": {"facility": self.nat(), "residual": self.nat(), **self.dates()}}
+        if tag == 0x3C:
+            return {"purchaseReceivables": {"facility": self.nat(), "receivables": self.receivables(), **self.dates()}}
+        if tag == 0x3D:
+            return {"collectReceivable": {"facility": self.nat(), "ref": self.blob(), "funding": self.p_funding(), **self.dates()}}
+        if tag == 0x3E:
+            return {"dishonourReceivable": {"facility": self.nat(), "ref": self.blob(), **self.dates()}}
+        if tag == 0x3F:
+            return {"writeOffReceivable": {"facility": self.nat(), "ref": self.blob(), **self.dates()}}
+        if tag == 0x43:
+            return {"closeFacility": {"facility": self.nat()}}
         if tag == 0xD4:
             return {"openPacking": {"period": self.text()}}
         if tag == 0xD5:
@@ -1649,6 +1688,140 @@ class Reader(V.Reader):
             return {"withdrawn": {"application": self.nat(), "reason": self.text(), "day": self.nat()}}
         raise ValueError(f"unknown origination event tag {t:#x}")
 
+    # ── corporate lending (corporate lending) ──
+    FACILITY_KINDS = ["bilateralTerm", "revolving", "syndicatedAgent", "syndicatedParticipant", "financeLease", "operatingLease", "factoring", "forfaiting"]
+
+    def dates(self):
+        return {"postingDate": self.nat(), "valueDate": self.nat(), "period": self.text(), "narration": self.text()}
+
+    def facility_money(self):
+        return {"facility": self.nat(), "amount": self.nat(), "funding": self.p_funding(), **self.dates()}
+
+    def pricing(self):
+        t = self.byte()
+        if t == 0:
+            return {"fixed": self.nat()}
+        return {"floating": {"index": self.text(), "spreadBps": self.nat(), "resetDays": self.nat()}}
+
+    def shares(self):
+        n = self.len16()
+        return [{"participant": self.nat(), "bps": self.nat()} for _ in range(n)]
+
+    def facility_kind(self):
+        t = self.byte()
+        k = self.FACILITY_KINDS[t]
+        if k == "bilateralTerm":
+            return {"bilateralTerm": None}
+        if k == "revolving":
+            fee = self.nat()
+            clean = None if self.byte() == 0 else {"everyDays": self.nat(), "forDays": self.nat()}
+            return {"revolving": {"commitmentFeeBps": fee, "cleanDown": clean}}
+        if k == "syndicatedAgent":
+            return {"syndicatedAgent": {"shares": self.shares(), "agentFeeBps": self.nat()}}
+        if k == "syndicatedParticipant":
+            return {"syndicatedParticipant": {"agent": self.text(), "agentScheme": self.SCHEMES[self.byte()], "agentKey": self.blob(), "agentAccount": self.text(), "ourBps": self.nat()}}
+        if k == "financeLease":
+            return {"financeLease": {"assetAccount": self.text(), "residual": self.nat()}}
+        if k == "operatingLease":
+            return {"operatingLease": {"rentalPerPeriod": self.nat(), "every": self.p_period(), "periods": self.nat()}}
+        if k == "factoring":
+            return {"factoring": {"advanceBps": self.nat(), "discountBps": self.nat(), "recourse": self.byte() == 1, "clientAccount": self.nat()}}
+        return {"forfaiting": {"discountBps": self.nat(), "clientAccount": self.nat()}}
+
+    def covenants(self):
+        n = self.len16()
+        out = []
+        for _ in range(n):
+            cid = self.text()
+            t = self.byte()
+            if t == 0:
+                kind = {"financialRatio": {"name": self.text(), "op": ["atMost", "atLeast"][self.byte()], "thresholdBps": self.nat()}}
+            elif t == 1:
+                kind = {"reporting": {"due": self.nat()}}
+            else:
+                kind = "negativePledge"
+            out.append({"id": cid, "kind": kind})
+        return out
+
+    def facility_terms(self):
+        return {"party": self.nat(), "book": self.text(), "product": self.text(), "kind": self.facility_kind(), "currency": self.text(), "limit": self.nat(),
+                "availabilityFrom": self.nat(), "availabilityTo": self.nat(), "pricing": self.pricing(), "covenants": self.covenants(),
+                "collateral": self.nats(), "reviewEvery": self.opt_nat()}
+
+    def receivables(self):
+        n = self.len16()
+        return [{"ref": self.blob(), "debtorCommit": self.blob(), "face": self.nat(), "due": self.nat()} for _ in range(n)]
+
+    def agent_notice(self):
+        t = self.byte()
+        body = {"drawing": self.text(), "total": self.nat(), "ourShare": self.nat(), "valueDate": self.nat()}
+        return {["drawdown", "repayment", "interestDistribution"][t]: body}
+
+    def restructure_terms(self):
+        return {"schedule": self.p_schedule_terms(), "rateBps": self.nat()}
+
+    def pairs(self):
+        n = self.len16()
+        return [(self.nat(), self.nat()) for _ in range(n)]
+
+    def facility_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"facilityOpened": {"terms": self.facility_terms(), "day": self.nat()}}
+        if t == 0x02:
+            return {"drawn": {"facility": self.nat(), "account": self.nat(), "amount": self.nat(), "rateBps": self.nat(), "day": self.nat(), "splits": self.pairs()}}
+        if t == 0x03:
+            return {"drawingRepaid": {"facility": self.nat(), "account": self.nat(), "amount": self.nat(), "day": self.nat(), "interestShared": self.pairs()}}
+        if t == 0x04:
+            return {"commitmentFeeAccrued": {"facility": self.nat(), "day": self.nat(), "undrawn": self.nat(), "amount": self.nat()}}
+        if t == 0x05:
+            return {"cleanDownJudged": {"facility": self.nat(), "windowEnd": self.nat(), "cleanDays": self.nat(), "required": self.nat(), "met": self.byte() == 1}}
+        if t == 0x06:
+            return {"participationTransferred": {"facility": self.nat(), "from": self.nat(), "to": self.nat(), "bps": self.nat(), "moved": self.nat()}}
+        if t == 0x07:
+            return {"distributedToParticipants": {"facility": self.nat(), "day": self.nat(), "amounts": self.pairs()}}
+        if t == 0x08:
+            return {"agentNoticeRecorded": {"facility": self.nat(), "notice": self.agent_notice(), "noticeHash": self.blob(), "account": self.opt_nat()}}
+        if t == 0x09:
+            return {"facilityRestructured": {"facility": self.nat(), "terms": self.restructure_terms(), "effective": self.nat(), "drawings": self.nats()}}
+        if t == 0x0A:
+            return {"drawingRepriced": {"facility": self.nat(), "account": self.nat(), "day": self.nat(), "rateBps": self.nat(), "fixing": self.nat()}}
+        if t == 0x0B:
+            return {"covenantTested": {"facility": self.nat(), "covenant": self.text(), "value": self.nat(), "met": self.byte() == 1, "statementHash": self.blob(), "day": self.nat()}}
+        if t == 0x0C:
+            return {"drawdownsBlocked": {"facility": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x0D:
+            return {"drawdownsUnblocked": {"facility": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x0E:
+            return {"reviewRecorded": {"facility": self.nat(), "day": self.nat(), "nextDue": self.opt_nat(), "note": self.text()}}
+        if t == 0x0F:
+            return {"reviewOverdue": {"facility": self.nat(), "due": self.nat(), "day": self.nat()}}
+        if t == 0x10:
+            return {"leaseRentalAccrued": {"facility": self.nat(), "day": self.nat(), "amount": self.nat()}}
+        if t == 0x11:
+            return {"rentalReceived": {"facility": self.nat(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x12:
+            return {"residualRemeasured": {"facility": self.nat(), "from": self.nat(), "to": self.nat(), "day": self.nat()}}
+        if t == 0x13:
+            return {"receivablesPurchased": {"facility": self.nat(), "receivables": self.receivables(), "face": self.nat(), "advance": self.nat(), "discount": self.nat(), "retention": self.nat(), "day": self.nat()}}
+        if t == 0x14:
+            f, d, amount = self.nat(), self.nat(), self.nat()
+            n = self.len16()
+            return {"discountUnwound": {"facility": f, "day": d, "amount": amount, "items": [(self.blob(), self.nat()) for _ in range(n)]}}
+        if t == 0x15:
+            return {"receivableCollected": {"facility": self.nat(), "ref": self.blob(), "amount": self.nat(), "retentionReleased": self.nat(), "day": self.nat()}}
+        if t == 0x16:
+            return {"receivableDishonoured": {"facility": self.nat(), "ref": self.blob(), "face": self.nat(), "chargedBack": self.byte() == 1, "day": self.nat()}}
+        if t == 0x17:
+            return {"receivableWrittenOff": {"facility": self.nat(), "ref": self.blob(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x18:
+            return {"drawingClosed": {"facility": self.nat(), "account": self.nat(), "day": self.nat()}}
+        if t == 0x19:
+            return {"rateFixingRecorded": {"index": self.text(), "day": self.nat(), "rateBps": self.nat()}}
+        if t == 0x1A:
+            return {"facilityClosed": {"facility": self.nat(), "day": self.nat()}}
+        raise ValueError(f"unknown facility event tag {t:#x}")
+
     def alert_event(self):
         sub = self.byte()
         if sub == 0x01:
@@ -1972,6 +2145,8 @@ class Reader(V.Reader):
             return {"collections": self.collections_event()}
         if tag == 0x4F:
             return {"origination": self.origination_event()}
+        if tag == 0x51:
+            return {"facility": self.facility_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:

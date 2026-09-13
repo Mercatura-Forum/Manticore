@@ -58,6 +58,8 @@ module {
       case (#taxPayable) 0x0A; case (#overdraftPortfolio) 0x0B; case (#writeOff) 0x0C;
       case (#recovery) 0x0D; case (#allowance) 0x0E; case (#impairmentExpense) 0x0F;
       case (#suspense) 0x10; case (#cash) 0x11; case (#modificationAdjustment) 0x12;
+      case (#dueToParticipants) 0x13; case (#participantPayable) 0x14; case (#rentReceivable) 0x15; case (#rentalIncome) 0x16;
+      case (#purchasedReceivables) 0x17; case (#retentionPayable) 0x18; case (#unearnedDiscount) 0x19; case (#discountIncome) 0x1A;
     });
   };
 
@@ -232,6 +234,7 @@ module {
       case (#tillReturned(x)) { w.byte(0x15); w.text(x.till); w.nat(x.amount); w.nat(x.day) };
       case (#tillSettled(x)) { w.byte(0x16); w.text(x.till); w.nat(x.declared); w.nat(x.book); wDifference(w, x.difference); w.nat(x.day) };
       case (#tillClosed(x)) { w.byte(0x17); w.text(x.till) };
+      case (#accountRateSet(x)) { w.byte(0x18); w.nat(x.account); wRate(w, x.rate); w.nat(x.effective) };
     };
   };
 
@@ -277,7 +280,9 @@ module {
       case (?0x07) ?#penaltyIncome; case (?0x08) ?#feeReceivable; case (?0x09) ?#penaltyReceivable;
       case (?0x0A) ?#taxPayable; case (?0x0B) ?#overdraftPortfolio; case (?0x0C) ?#writeOff;
       case (?0x0D) ?#recovery; case (?0x0E) ?#allowance; case (?0x0F) ?#impairmentExpense;
-      case (?0x10) ?#suspense; case (?0x11) ?#cash; case (?0x12) ?#modificationAdjustment; case (_) null;
+      case (?0x10) ?#suspense; case (?0x11) ?#cash; case (?0x12) ?#modificationAdjustment;
+      case (?0x13) ?#dueToParticipants; case (?0x14) ?#participantPayable; case (?0x15) ?#rentReceivable; case (?0x16) ?#rentalIncome;
+      case (?0x17) ?#purchasedReceivables; case (?0x18) ?#retentionPayable; case (?0x19) ?#unearnedDiscount; case (?0x1A) ?#discountIncome; case (_) null;
     }
   };
 
@@ -701,6 +706,7 @@ module {
         ?#tillSettled({ till; declared; book; difference; day })
       };
       case 0x17 { let ?till = r.text() else return null; ?#tillClosed({ till }) };
+      case 0x18 { let ?account = r.nat() else return null; let ?rate = rRate(r) else return null; let ?effective = r.nat() else return null; ?#accountRateSet({ account; rate; effective }) };
       case _ null;
     }
   };

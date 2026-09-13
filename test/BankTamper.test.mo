@@ -478,6 +478,31 @@ let commands : [T.Command] = [
   #recordConditionsMet({ application = 900; conditions = ["insurance"] }),
   #fulfilApplication({ application = 900 }),
   #withdrawApplication({ application = 903; reason = "found another lender" }),
+  // corporate lending (corporate lending)
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; kind = #revolving({ commitmentFeeBps = 50; cleanDown = ?{ everyDays = 30; forDays = 5 } }); currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; pricing = #floating({ index = "CBE-ON"; spreadBps = 250; resetDays = 30 }); covenants = [{ id = "leverage"; kind = #financialRatio({ name = "net debt / EBITDA"; op = #atMost; thresholdBps = 35_000 }) }, { id = "accounts"; kind = #reporting({ due = 20800 }) }, { id = "npl"; kind = #negativePledge }]; collateral = [3]; reviewEvery = ?365 }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #syndicatedAgent({ shares = [{ participant = 8; bps = 2000 }, { participant = 9; bps = 1500 }]; agentFeeBps = 25 }); pricing = #fixed(1100) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #syndicatedParticipant({ agent = "AGENTBANK"; agentScheme = #mldsa44; agentKey = Blob.fromArray([1, 2, 3]); agentAccount = "1998"; ourBps = 2500 }); pricing = #fixed(1000) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #financeLease({ assetAccount = "1500"; residual = 20_000_00 }); pricing = #fixed(800) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #operatingLease({ rentalPerPeriod = 30_000_00; every = #monthly; periods = 12 }); pricing = #fixed(0) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #factoring({ advanceBps = 8000; discountBps = 300; recourse = true; clientAccount = 44 }); pricing = #fixed(0) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #forfaiting({ discountBps = 500; clientAccount = 44 }); pricing = #fixed(0) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #bilateralTerm; pricing = #fixed(1300) }),
+  #drawdown({ facility = 500; amount = 250_000_00; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #transferParticipation({ facility = 501; from = 8; to = 9; bps = 500 }),
+  #distributeToParticipants({ facility = 501; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #restructureFacility({ facility = 500; effective = 20800; terms = { schedule = { amortisation = #equalInstalments; instalments = 9; every = #monthly; principalGrace = 0; interestGrace = 0; moratoriumDays = 0 }; rateBps = 1500 } }),
+  #recordCovenantTest({ facility = 500; covenant = "leverage"; value = 28_000; statementHash = segHash32 }),
+  #blockDrawdowns({ facility = 500; reason = "covenant review" }),
+  #unblockDrawdowns({ facility = 500; reason = "review complete" }),
+  #recordFacilityReview({ facility = 500; note = "annual review" }),
+  #recordRateFixing({ index = "CBE-ON"; day = 20726; rateBps = 900 }),
+  #receiveRental({ facility = 504; amount = 30_000_00; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #remeasureResidual({ facility = 503; residual = 15_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #purchaseReceivables({ facility = 505; receivables = [{ ref = segHash32; debtorCommit = segHash32; face = 120_000_00; due = 20800 }]; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #collectReceivable({ facility = 505; ref = segHash32; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #dishonourReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #writeOffReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #closeFacility({ facility = 507 }),
 ];
 
 /// The command a proposal and an override in the event list below carry.
@@ -763,6 +788,36 @@ List.add(events, #origination(#documentationComplete({ application = 900; day = 
 List.add(events, #origination(#prospectOnboarded({ application = 904; party = 8 })));
 List.add(events, #origination(#fulfilled({ application = 900; party = 7; account = 9_001; day = 20732 })));
 List.add(events, #origination(#withdrawn({ application = 903; reason = "found another lender"; day = 20727 })));
+// every facility event variant (corporate lending)
+List.add(events, #facility(#facilityOpened({ terms = { party = 7; book = "HQ"; product = "FACL"; kind = #revolving({ commitmentFeeBps = 50; cleanDown = ?{ everyDays = 30; forDays = 5 } }); currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; pricing = #floating({ index = "CBE-ON"; spreadBps = 250; resetDays = 30 }); covenants = [{ id = "leverage"; kind = #financialRatio({ name = "net debt / EBITDA"; op = #atMost; thresholdBps = 35_000 }) }, { id = "npl"; kind = #negativePledge }]; collateral = [3]; reviewEvery = ?365 }; day = 20726 })));
+List.add(events, #facility(#facilityOpened({ terms = { party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #syndicatedParticipant({ agent = "AGENTBANK"; agentScheme = #mldsa44; agentKey = Blob.fromArray([1, 2, 3]); agentAccount = "1998"; ourBps = 2500 }); pricing = #fixed(1000) }; day = 20726 })));
+List.add(events, #facility(#drawn({ facility = 500; account = 600; amount = 250_000_00; rateBps = 1150; day = 20726; splits = [(8, 50_000_00), (9, 37_500_00)] })));
+List.add(events, #facility(#drawingRepaid({ facility = 500; account = 600; amount = 10_000_00; day = 20756; interestShared = [(8, 400_00), (9, 300_00)] })));
+List.add(events, #facility(#commitmentFeeAccrued({ facility = 500; day = 20727; undrawn = 750_000_00; amount = 1_027 })));
+List.add(events, #facility(#cleanDownJudged({ facility = 500; windowEnd = 20756; cleanDays = 3; required = 5; met = false })));
+List.add(events, #facility(#participationTransferred({ facility = 501; from = 8; to = 9; bps = 500; moved = 12_500_00 })));
+List.add(events, #facility(#distributedToParticipants({ facility = 501; day = 20760; amounts = [(8, 700_00), (9, 525_00)] })));
+List.add(events, #facility(#agentNoticeRecorded({ facility = 502; notice = #drawdown({ drawing = "TL-1"; total = 800_000_00; ourShare = 200_000_00; valueDate = 20726 }); noticeHash = segHash32; account = ?601 })));
+List.add(events, #facility(#agentNoticeRecorded({ facility = 502; notice = #interestDistribution({ drawing = "TL-1"; total = 8_000_00; ourShare = 2_000_00; valueDate = 20756 }); noticeHash = segHash32; account = null })));
+List.add(events, #facility(#facilityRestructured({ facility = 500; terms = { schedule = { amortisation = #equalInstalments; instalments = 9; every = #monthly; principalGrace = 0; interestGrace = 0; moratoriumDays = 0 }; rateBps = 1500 }; effective = 20800; drawings = [600, 602] })));
+List.add(events, #facility(#drawingRepriced({ facility = 500; account = 600; day = 20756; rateBps = 1350; fixing = 1100 })));
+List.add(events, #facility(#covenantTested({ facility = 500; covenant = "leverage"; value = 41_000; met = false; statementHash = segHash32; day = 20760 })));
+List.add(events, #facility(#drawdownsBlocked({ facility = 500; reason = "covenant breach"; day = 20760 })));
+List.add(events, #facility(#drawdownsUnblocked({ facility = 500; reason = "waiver granted"; day = 20770 })));
+List.add(events, #facility(#reviewRecorded({ facility = 500; day = 20770; nextDue = ?21135; note = "annual review" })));
+List.add(events, #facility(#reviewOverdue({ facility = 500; due = 20769; day = 20770 })));
+List.add(events, #facility(#leaseRentalAccrued({ facility = 504; day = 20727; amount = 100_000 })));
+List.add(events, #facility(#rentalReceived({ facility = 504; amount = 30_000_00; day = 20756 })));
+List.add(events, #facility(#residualRemeasured({ facility = 503; from = 20_000_00; to = 15_000_00; day = 20760 })));
+List.add(events, #facility(#receivablesPurchased({ facility = 505; receivables = [{ ref = segHash32; debtorCommit = segHash32; face = 120_000_00; due = 20800 }]; face = 120_000_00; advance = 96_000_00; discount = 3_600_00; retention = 20_400_00; day = 20726 })));
+List.add(events, #facility(#discountUnwound({ facility = 505; day = 20727; amount = 4_864; items = [(segHash32, 4_864)] })));
+List.add(events, #facility(#receivableCollected({ facility = 505; ref = segHash32; amount = 120_000_00; retentionReleased = 20_400_00; day = 20800 })));
+List.add(events, #facility(#receivableDishonoured({ facility = 505; ref = segHash32; face = 120_000_00; chargedBack = true; day = 20800 })));
+List.add(events, #facility(#receivableWrittenOff({ facility = 506; ref = segHash32; amount = 96_400_00; day = 20830 })));
+List.add(events, #facility(#drawingClosed({ facility = 500; account = 600; day = 20900 })));
+List.add(events, #facility(#rateFixingRecorded({ index = "CBE-ON"; day = 20726; rateBps = 900 })));
+List.add(events, #facility(#facilityClosed({ facility = 507; day = 20900 })));
+List.add(events, #product(#accountRateSet({ account = 600; rate = { numerator = 1350; denominator = 10_000; negative = false }; effective = 20756 })));
 // every packing event variant
 let segHash : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 List.add(events, #packing(#packOpened({ pack = 1; period = "2026-09"; periodEnd = 20726; lo = 0; hi = 4_211; bankLo = 0; bankHi = 17_902 })));

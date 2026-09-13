@@ -83,6 +83,8 @@ import ColT "CollectionsTypes";
 import CollectionsCore "CollectionsCore";
 import OT "OriginationTypes";
 import OriginationCore "OriginationCore";
+import FaT "FacilityTypes";
+import FacilityCore "FacilityCore";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -908,6 +910,26 @@ shared (initMsg) persistent actor class Bank(init : {
     switch (BankCore.planBureauReport(bank, application, report, signature, verifyConnectorSignature)) {
       case (#err(e)) fail<{ block : Nat }>(caller, "origination.bureau.record", { error = e; record = true });
       case (#ok(ev)) #ok({ block = commitBank(caller, ev).index });
+    }
+  };
+
+  // ─── corporate lending (corporate lending): the agent's notice ───
+
+  /// The agent's notice on a facility the bank participates in, from the agent's connector: the caller holds
+  /// `facility.notice.record`; the signature is judged under the agent key the facility's terms carry, over the
+  /// notice's canonical bytes; a drawdown funds the bank's share, a repayment or a distribution repays it.
+  public shared ({ caller }) func recordAgentNotice(facility : Nat, notice : FaT.AgentNotice, signature : Blob) : async Result.Result<{ block : Nat; postings : [Nat] }, T.BankError> {
+    switch (requireMethodPermission(caller, "recordAgentNotice")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    switch (BankCore.planAgentNotice(bank, bankBlocks(), journal, me(), now(), facility, notice, signature, verifyConnectorSignature)) {
+      case (#err(e)) fail<{ block : Nat; postings : [Nat] }>(caller, "facility.notice.record", { error = e; record = true });
+      case (#ok(plan)) {
+        let at = BankCore.height(bank);
+        switch (plan.bankEvent) { case (?ev) ignore commitBank(caller, ev); case null {} };
+        for (ev in plan.extra.vals()) ignore commitBank(caller, ev);
+        let postings = List.empty<Nat>();
+        for (step in plan.journal.vals()) { switch (step) { case (#event(ev)) List.add(postings, commitJournal(ev).index); case (#existing(idx)) List.add(postings, idx) } };
+        #ok({ block = at; postings = List.toArray(postings) })
+      };
     }
   };
 
@@ -2540,6 +2562,89 @@ shared (initMsg) persistent actor class Bank(init : {
       counts = OriginationCore.counts(bank.origination);
       stages = OriginationCore.stageDistribution(bank.origination);
     }
+  };
+
+  // ─── corporate lending (corporate lending): the facilities ───
+
+  func facilityView(id : Nat) : ?FaT.FacilityView {
+    let covenants = switch (bankBlocks().get(id)) { case (?b) { switch (b.event) { case (#facility(#facilityOpened(x))) x.terms.covenants; case (_) [] } }; case null [] };
+    FacilityCore.view(bank.facility, id, covenants)
+  };
+
+  /// One facility, within the caller's books; its drawn and available figures read from the journal.
+  public shared query ({ caller }) func facility(id : Nat) : async Result.Result<?FaT.FacilityView, T.BankError> {
+    switch (facilityView(id)) {
+      case null #ok(null);
+      case (?v) { if (BankCore.mayReadBook(readScope(caller), v.book)) #ok(?v) else #err(#OutsideBookScope({ book = v.book })) };
+    }
+  };
+
+  /// What a facility has drawn and has available, read from the journal on a day.
+  public shared query ({ caller }) func facilityPosition(id : Nat, asOf : ?Nat) : async Result.Result<{ limit : Nat; drawn : Nat; available : Nat; stage : FaT.Stage }, T.BankError> {
+    switch (facilityView(id)) {
+      case null #err(#FacilityError({ error = #UnknownFacility({ facility = id }) }));
+      case (?v) {
+        if (not BankCore.mayReadBook(readScope(caller), v.book)) return #err(#OutsideBookScope({ book = v.book }));
+        let drawn = BankCore.facilityDrawnOn(bank, bankBlocks(), journal, id, dayOr(asOf));
+        #ok({ limit = v.limit; drawn; available = if (v.stage == #open and v.limit > drawn) v.limit - drawn else 0; stage = v.stage })
+      };
+    }
+  };
+
+  /// A party's facilities, paged, filtered to the caller's books.
+  public shared query ({ caller }) func facilitiesOfParty(party : Nat, cursor : ?Blob, limit : Nat) : async { entries : [FaT.FacilityView]; cursor : ?Blob } {
+    let page = FacilityCore.listByParty(bank.facility, party, cursor, limit);
+    let scope = readScope(caller);
+    let out = List.empty<FaT.FacilityView>();
+    for (id in page.ids.vals()) { switch (facilityView(id)) { case (?v) { if (BankCore.mayReadBook(scope, v.book)) List.add(out, v) }; case null {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+
+  /// The facilities in a stage, paged, filtered to the caller's books.
+  public shared query ({ caller }) func facilitiesByStage(stage : FaT.Stage, cursor : ?Blob, limit : Nat) : async { entries : [FaT.FacilityView]; cursor : ?Blob } {
+    let page = FacilityCore.listByStage(bank.facility, stage, cursor, limit);
+    let scope = readScope(caller);
+    let out = List.empty<FaT.FacilityView>();
+    for (id in page.ids.vals()) { switch (facilityView(id)) { case (?v) { if (BankCore.mayReadBook(scope, v.book)) List.add(out, v) }; case null {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+
+  /// A facility's drawings: the loan accounts and whether each still stands.
+  public shared query ({ caller }) func facilityDrawings(id : Nat) : async Result.Result<[{ account : Nat; open : Bool }], T.BankError> {
+    switch (facilityView(id)) {
+      case null #err(#FacilityError({ error = #UnknownFacility({ facility = id }) }));
+      case (?v) {
+        if (not BankCore.mayReadBook(readScope(caller), v.book)) return #err(#OutsideBookScope({ book = v.book }));
+        #ok(Array.map<(Nat, Bool), { account : Nat; open : Bool }>(FacilityCore.drawingsOf(bank.facility, id), func((account, open)) { { account; open } }))
+      };
+    }
+  };
+
+  /// The receivables of a factoring facility with their status and figures.
+  public shared query ({ caller }) func facilityReceivables(id : Nat) : async Result.Result<[FacilityCore.ReceivableRow], T.BankError> {
+    switch (facilityView(id)) {
+      case null #err(#FacilityError({ error = #UnknownFacility({ facility = id }) }));
+      case (?v) { if (not BankCore.mayReadBook(readScope(caller), v.book)) return #err(#OutsideBookScope({ book = v.book })); #ok(FacilityCore.receivablesOf(bank.facility, id)) };
+    }
+  };
+
+  /// A facility's covenants with the status of each.
+  public shared query ({ caller }) func facilityCovenants(id : Nat) : async Result.Result<[{ id : Text; status : { #untested; #met; #breached } }], T.BankError> {
+    switch (facilityView(id)) {
+      case null #err(#FacilityError({ error = #UnknownFacility({ facility = id }) }));
+      case (?v) {
+        if (not BankCore.mayReadBook(readScope(caller), v.book)) return #err(#OutsideBookScope({ book = v.book }));
+        #ok(Array.map<FaT.Covenant, { id : Text; status : { #untested; #met; #breached } }>(v.covenants, func(c) { { id = c.id; status = FacilityCore.covenantStatus(bank.facility, id, c.id) } }))
+      };
+    }
+  };
+
+  /// The fixing of a rate index in force on a day.
+  public query func rateFixing(index : Text, day : Nat) : async ?Nat { FacilityCore.fixingOn(bank.facility, index, day) };
+
+  /// The facilities at a glance: the counts and the facilities per kind.
+  public query func facilityStatus() : async { counts : { facilities : Nat; closed : Nat; drawn : Nat; accruals : Nat; fixings : Nat }; kinds : [(Text, Nat)] } {
+    { counts = FacilityCore.counts(bank.facility); kinds = FacilityCore.kindDistribution(bank.facility) }
   };
 
   /// The collections book at a glance: the policy, the counts, the exposures per stage.

@@ -494,6 +494,31 @@ let commands : [T.Command] = [
   #recordConditionsMet({ application = 900; conditions = ["insurance"] }),
   #fulfilApplication({ application = 900 }),
   #withdrawApplication({ application = 903; reason = "found another lender" }),
+  // corporate lending (corporate lending)
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; kind = #revolving({ commitmentFeeBps = 50; cleanDown = ?{ everyDays = 30; forDays = 5 } }); currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; pricing = #floating({ index = "CBE-ON"; spreadBps = 250; resetDays = 30 }); covenants = [{ id = "leverage"; kind = #financialRatio({ name = "net debt / EBITDA"; op = #atMost; thresholdBps = 35_000 }) }, { id = "accounts"; kind = #reporting({ due = 20800 }) }, { id = "npl"; kind = #negativePledge }]; collateral = [3]; reviewEvery = ?365 }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #syndicatedAgent({ shares = [{ participant = 8; bps = 2000 }, { participant = 9; bps = 1500 }]; agentFeeBps = 25 }); pricing = #fixed(1100) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #syndicatedParticipant({ agent = "AGENTBANK"; agentScheme = #mldsa44; agentKey = Blob.fromArray([1, 2, 3]); agentAccount = "1998"; ourBps = 2500 }); pricing = #fixed(1000) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #financeLease({ assetAccount = "1500"; residual = 20_000_00 }); pricing = #fixed(800) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #operatingLease({ rentalPerPeriod = 30_000_00; every = #monthly; periods = 12 }); pricing = #fixed(0) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #factoring({ advanceBps = 8000; discountBps = 300; recourse = true; clientAccount = 44 }); pricing = #fixed(0) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #forfaiting({ discountBps = 500; clientAccount = 44 }); pricing = #fixed(0) }),
+  #openFacility({ party = 7; book = "HQ"; product = "FACL"; currency = "EGP"; limit = 1_000_000_00; availabilityFrom = 20726; availabilityTo = 21091; covenants = []; collateral = []; reviewEvery = null; kind = #bilateralTerm; pricing = #fixed(1300) }),
+  #drawdown({ facility = 500; amount = 250_000_00; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #transferParticipation({ facility = 501; from = 8; to = 9; bps = 500 }),
+  #distributeToParticipants({ facility = 501; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #restructureFacility({ facility = 500; effective = 20800; terms = { schedule = { amortisation = #equalInstalments; instalments = 9; every = #monthly; principalGrace = 0; interestGrace = 0; moratoriumDays = 0 }; rateBps = 1500 } }),
+  #recordCovenantTest({ facility = 500; covenant = "leverage"; value = 28_000; statementHash = segHash32 }),
+  #blockDrawdowns({ facility = 500; reason = "covenant review" }),
+  #unblockDrawdowns({ facility = 500; reason = "review complete" }),
+  #recordFacilityReview({ facility = 500; note = "annual review" }),
+  #recordRateFixing({ index = "CBE-ON"; day = 20726; rateBps = 900 }),
+  #receiveRental({ facility = 504; amount = 30_000_00; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #remeasureResidual({ facility = 503; residual = 15_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #purchaseReceivables({ facility = 505; receivables = [{ ref = segHash32; debtorCommit = segHash32; face = 120_000_00; due = 20800 }]; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #collectReceivable({ facility = 505; ref = segHash32; funding = #glAccount("1999"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #dishonourReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #writeOffReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
+  #closeFacility({ facility = 507 }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -559,7 +584,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13 (the origination families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination and facility families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -620,6 +645,14 @@ let golden : [(Text, Text, Text)] = [
   ("recordConditionsMet", "15e88c88052edfcbf6a39afad1bb3e8c048862726a1e61264442a0f8fc7dacf3", "a8f3ad82e0fb65d1841092397764c308808d8b9413180e7e599a5a4701d17795"),
   ("fulfilApplication", "1c5fc41aa147d5d4bb713c6cd62f541635868d81eece4a2606579814e30aa0bc", "de7c60bdc65c70631589febd8c5ce6c0b0f861863be657f875a72d2303f72ff3"),
   ("withdrawApplication", "64b1e008e72c060d5a8f6ea20cc1412a55b109d34237c1652670e84fad6fb8ed", "1de82a9bf9980e87bb13acdd758e1ffdfdff10aca94d60c61540041455251887"),
+  ("openFacility", "434149a65dfa5cd440bf374960a932287bce2b440649138b175b3915148a32f7", "8dd6ba055bff744a01ac6dec63ef7b4dc23de923c9cec1f3bf5eda8fbdc0bf32"),
+  ("transferParticipation", "255d4b8bc1042da51afcd822be932d239cf644772b3c4a5e06e25f3d826a3da2", "f53ba287bf39c815c96352809a00e173ba906fc3139f95dd494070da9571acea"),
+  ("recordCovenantTest", "17d451c8f455921244a4b9d3beb05c01e040a366e44be63b1f7c3d843339f532", "a83c7f3feb576083985e5fd4b7ed174e643a53140d69bcefee905eaae1d7f582"),
+  ("blockDrawdowns", "6611425d444c6bf2796be0b5328b98cbb591727b5f38ca9e4dfebdeb478ef7b5", "078ef77d49672222590e1d32437500fc69f37247e28e0c93380da5df06dd748b"),
+  ("unblockDrawdowns", "194fe17b834afb2991a6a84cf7694ffec052e67b6a2742766a4a641fb8f73808", "efab863514c6d50c2a87e9f8d9b009134a638678929ea437fab89a1479468fd9"),
+  ("recordFacilityReview", "66d0f3c544f055ba5c4d6297a564efb3bb5a59be9d197a4ca78bf8ed90a18cba", "20d3c47d9961a5afc8e9588584cbebf28a273bc362e4384de479a4c804828418"),
+  ("recordRateFixing", "a90b21d72e38ac14b8853fc104307cee76087e94def2905a92e05396f574fb17", "ed757e4b8b04a254027b6486b553e21379a5cfaed4f38e5b70b9f7ae04a777d5"),
+  ("closeFacility", "04644fdf81035192244ed76f3bc2ae4802afe1be0f983ea450072133cbbb715a", "e98d73e8a6b5c04b4f9e5c15801a5340581de47ad0fe0cd914ded063d1a92f1a"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {

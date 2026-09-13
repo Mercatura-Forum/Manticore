@@ -126,6 +126,21 @@ module {
           case (_) [];
         }
       };
+      // ── corporate lending (corporate lending): the decisions whose block is the instruction less what the contract computed ──
+      case (#facility(fe)) {
+        if (act.size() > 1) return [];
+        switch (fe) {
+          case (#facilityOpened(x)) [#openFacility(x.terms)];
+          case (#participationTransferred(x)) [#transferParticipation({ facility = x.facility; from = x.from; to = x.to; bps = x.bps })];
+          case (#covenantTested(x)) [#recordCovenantTest({ facility = x.facility; covenant = x.covenant; value = x.value; statementHash = x.statementHash })];
+          case (#drawdownsBlocked(x)) [#blockDrawdowns({ facility = x.facility; reason = x.reason })];
+          case (#drawdownsUnblocked(x)) [#unblockDrawdowns({ facility = x.facility; reason = x.reason })];
+          case (#reviewRecorded(x)) [#recordFacilityReview({ facility = x.facility; note = x.note })];
+          case (#rateFixingRecorded(x)) [#recordRateFixing({ index = x.index; day = x.day; rateBps = x.rateBps })];
+          case (#facilityClosed(x)) [#closeFacility({ facility = x.facility })];
+          case (_) [];
+        }
+      };
       case (_) [];
     }
   };
@@ -203,6 +218,7 @@ module {
      "recordScreeningDecision", "registerSchema", "registerCollateral", "revalueCollateral", "allocateCollateral", "releaseCollateral", "addStaff", "removeStaff",
      "setAccountFormat", "setReviewGrace", "registerProduct", "amendProduct", "closeProductToNewAccounts", "openAccount", "setAccountStatus", "migrateAccount", "openTill", "createCustomer",
      "setOriginationPolicy", "setAffordabilityModel", "setScorecard", "registerPasskey", "openApplication", "recordApplicationData", "assessAffordability", "requestBureauReport",
-     "scoreApplication", "underwrite", "issueOffer", "declineOffer", "recordDocument", "recordConditionsMet", "fulfilApplication", "withdrawApplication"]
+     "scoreApplication", "underwrite", "issueOffer", "declineOffer", "recordDocument", "recordConditionsMet", "fulfilApplication", "withdrawApplication",
+     "openFacility", "transferParticipation", "recordCovenantTest", "blockDrawdowns", "unblockDrawdowns", "recordFacilityReview", "recordRateFixing", "closeFacility"]
   };
 }
