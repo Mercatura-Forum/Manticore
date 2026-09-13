@@ -343,8 +343,10 @@ class Reader(V.Reader):
     BASIS = ["dailyBalance", "averageDailyBalance"]
     ACCOUNT_STATUS = ["pending", "active", "dormant", "closed"]
     COMPONENTS = ["penalty", "fee", "interest", "principal"]
-    CONVENTIONS = {0x01: "A001", 0x03: "A003", 0x04: "A004", 0x05: "A005",
-                   0x06: "A006", 0x07: "A007", 0x0B: "A011"}
+    # the day-count conventions of the product engine, by the encoder's byte (the value-date conventions of the close are
+    # `VALUE_DATE_CONVENTIONS` below — the two tables carried one name until treasury, and the product decoder read the wrong one)
+    DAY_COUNTS = {0x01: "A001", 0x03: "A003", 0x04: "A004", 0x05: "A005",
+                  0x06: "A006", 0x07: "A007", 0x0B: "A011"}
 
     def p_rate(self):
         return {"numerator": self.nat(), "denominator": self.nat(), "negative": self.byte() == 1}
@@ -354,7 +356,7 @@ class Reader(V.Reader):
 
     def p_convention(self):
         t = self.byte()
-        code = self.CONVENTIONS[t]
+        code = self.DAY_COUNTS[t]
         if t == 0x01:
             return {"code": code, "couponsPerYear": self.nat()}
         return {"code": code}
@@ -581,14 +583,14 @@ class Reader(V.Reader):
 
 
     # ── value dating and the close close shapes ──
-    CONVENTIONS = ["sameDay", "following", "modifiedFollowing", "preceding",
+    VALUE_DATE_CONVENTIONS = ["sameDay", "following", "modifiedFollowing", "preceding",
                    "modifiedPreceding", "endOfMonth"]
     FX_DIRECTION = ["gain", "loss", "unchanged"]
     ADJ_DIRECTION = ["increase", "decrease", "unchanged"]
     DEFERRAL_KIND = ["unearnedIncome", "prepaidExpense"]
 
     def c_convention(self):
-        return self.CONVENTIONS[self.byte()]
+        return self.VALUE_DATE_CONVENTIONS[self.byte()]
 
     def c_rate(self):
         return {"currency": self.text(), "functional": self.text(), "numerator": self.nat(),
@@ -704,7 +706,7 @@ class Reader(V.Reader):
     # ─── the end-of-day batch ──────────────────────────────────────────
 
     JOBS = {1: "accrual", 2: "charges", 3: "instalmentsDue", 4: "ageing", 5: "provisioning",
-            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade", 14: "sharia"}
+            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade", 14: "sharia", 15: "treasury"}
 
     def b_job(self):
         rank = self.nat()
@@ -1453,9 +1455,12 @@ class Reader(V.Reader):
             return {"dishonourBill": {"instrument": self.nat(), **self.dates()}}
         if tag == 0x2F:
             return {"recordTradeMessage": {"instrument": self.nat(), "kind": self.trade_message_kind(), "direction": ["outgoing", "incoming"][self.byte()], "hash": self.blob()}}
-        # Islamic banking (Islamic banking): the extension tag 0xEF with a second byte
+        # the extension tag 0xEF with a second byte: 0x01.. Islamic banking (Islamic banking), 0x20.. treasury (treasury)
         if tag == 0xEF:
-            return self.islamic_command()
+            sub = self.byte()
+            if sub >= 0x20:
+                return self.treasury_command(sub)
+            return self.islamic_command(sub)
         if tag == 0xD4:
             return {"openPacking": {"period": self.text()}}
         if tag == 0xD5:
@@ -1990,8 +1995,7 @@ class Reader(V.Reader):
         return {"pool": self.text(), "period": self.text(), "from": self.nat(), "to": self.nat(), "income": self.nat(), "per": self.nat(), "distributable": self.nat(), "mudaribShare": self.nat(),
                 "holdersShare": self.nat(), "irr": self.nat(), "paid": self.nat(), "weightedBalances": self.pairs(), "allocations": self.pairs()}
 
-    def islamic_command(self):
-        sub = self.byte()
+    def islamic_command(self, sub):
         D = self.dates
         if sub == 0x01:
             return {"setIslamicPolicy": self.islamic_policy()}
@@ -2036,6 +2040,179 @@ class Reader(V.Reader):
         if sub == 0x1B:
             return {"distributePool": {"pool": self.text(), "month": self.text(), "from": self.nat(), "to": self.nat(), **D()}}
         raise ValueError(f"unknown Islamic command sub-tag {sub:#x}")
+
+    # ── treasury (treasury) ──
+    TREASURY_POLICY = ["mmPlacements", "mmTakings", "mmInterestReceivable", "mmInterestPayable", "mmInterestIncome", "mmInterestExpense", "fxForwardMark", "irsMark", "fxOptionValue",
+                       "unrealisedTradingGain", "unrealisedTradingLoss", "realisedTradingGain", "realisedTradingLoss", "securitiesAmortisedCost", "securitiesFvoci", "securitiesFvtpl", "fvociReserve",
+                       "couponReceivable", "couponIncome", "amortisationIncome", "amortisationExpense", "nostroSuspense"]
+    CURVE_KINDS = ["zeroRates", "forwardPoints", "volatility", "securityPrice"]
+    LIMIT_KINDS = ["counterpartyExposure", "openFxPosition", "tenorBucket", "dv01", "stopLoss", "issuerConcentration"]
+
+    def t_policy(self):
+        out = {k: self.text() for k in self.TREASURY_POLICY}
+        out["lotMethod"] = ["fifo", "averageCost"][self.byte()]
+        out["confirmationDueDays"] = self.nat(); out["breakAgeAlertDays"] = self.nat(); out["maxCurvePoints"] = self.nat()
+        return out
+
+    def t_points(self):
+        n = self.len16()
+        return [(self.nat(), self.int_()) for _ in range(n)]
+
+    def t_nats(self):
+        n = self.len16()
+        return [self.nat() for _ in range(n)]
+
+    def t_opt_text(self):
+        b = self.byte()
+        assert b in (0, 1)
+        return self.text() if b == 1 else None
+
+    def t_opt_principal(self):
+        b = self.byte()
+        assert b in (0, 1)
+        return self.principal() if b == 1 else None
+
+    def t_counterparty(self):
+        return {"party": self.opt_nat(), "name": self.text(), "bic": self.text(), "lei": self.text()}
+
+    def t_cash(self):
+        return {"account": self.text(), "sub": self.t_opt_text()}
+
+    def t_security_terms(self):
+        return {"isin": self.text(), "issuer": self.text(), "currency": self.text(), "couponBps": self.nat(), "couponsPerYear": self.nat(), "dayCount": self.p_convention(), "issue": self.nat(), "maturity": self.nat()}
+
+    def t_curve(self):
+        return {"id": self.text(), "kind": self.CURVE_KINDS[self.byte()], "currency": self.text(), "day": self.nat(), "points": self.t_points(), "source": self.blob()}
+
+    def t_limit(self):
+        return {"book": self.text(), "kind": self.LIMIT_KINDS[self.byte()], "currency": self.text(), "subject": self.text(), "value": self.nat()}
+
+    def t_nostro(self):
+        return {"id": self.text(), "account": self.text(), "sub": self.t_opt_text(), "currency": self.text(), "correspondent": self.t_counterparty(), "iban": self.text(), "valueDateToleranceDays": self.nat()}
+
+    def t_forward(self):
+        return {"base": self.text(), "quote": self.text(), "direction": ["buy", "sell"][self.byte()], "baseAmount": self.nat(), "rateMicro": self.nat(), "valueDate": self.nat(), "spotMicro": self.nat(),
+                "forwardPointsMicro": self.int_(), "baseAccount": self.t_cash(), "quoteAccount": self.t_cash(), "pointsCurve": self.text(), "discountCurve": self.text()}
+
+    def t_kind(self):
+        k = self.byte()
+        if k == 1:
+            return {"moneyMarket": {"placement": self.bool(), "currency": self.text(), "principal": self.nat(), "rateBps": self.nat(), "dayCount": self.p_convention(), "start": self.nat(), "maturity": self.nat(), "cash": self.t_cash()}}
+        if k == 2:
+            return {"fxForward": self.t_forward()}
+        if k == 3:
+            return {"fxSwap": {"near": self.t_forward(), "far": self.t_forward()}}
+        if k == 4:
+            return {"security": {"isin": self.text(), "direction": ["buy", "sell"][self.byte()], "nominal": self.nat(), "priceMicro": self.nat(), "settlement": self.nat(),
+                                 "classification": ["amortisedCost", "fvoci", "fvtpl"][self.byte()], "cash": self.t_cash(), "priceCurve": self.text(), "venue": self.t_opt_text()}}
+        if k == 5:
+            return {"irs": {"currency": self.text(), "notional": self.nat(), "payFixed": self.bool(), "fixedBps": self.nat(), "floatingIndex": self.text(), "spreadBps": self.int_(), "start": self.nat(),
+                            "maturity": self.nat(), "paymentMonths": self.nat(), "dayCount": self.p_convention(), "cash": self.t_cash(), "discountCurve": self.text()}}
+        if k == 6:
+            return {"fxOption": {"base": self.text(), "quote": self.text(), "call": self.bool(), "bought": self.bool(), "baseAmount": self.nat(), "strikeMicro": self.nat(), "expiry": self.nat(), "premium": self.nat(),
+                                 "start": self.nat(), "cash": self.t_cash(), "domesticCurve": self.text(), "foreignCurve": self.text(), "volCurve": self.text()}}
+        raise ValueError(f"unknown deal kind {k}")
+
+    def t_entries(self):
+        n = self.len16()
+        return [{"reference": self.text(), "amount": self.nat(), "credit": self.bool(), "valueDay": self.nat(), "bookingDay": self.nat(), "counterparty": self.text()} for _ in range(n)]
+
+    def t_fields(self):
+        return {"kind": self.text(), "amount1": self.nat(), "currency1": self.text(), "amount2": self.nat(), "currency2": self.text(), "valueDate": self.nat(), "rateMicro": self.nat(), "counterparty": self.text()}
+
+    def t_opt_fields(self):
+        b = self.byte()
+        assert b in (0, 1)
+        return self.t_fields() if b == 1 else None
+
+    def t_opt_correction(self):
+        b = self.byte()
+        assert b in (0, 1)
+        return {"account": self.text(), "sub": self.t_opt_text(), "debit": self.bool(), "amount": self.nat(), "currency": self.text()} if b == 1 else None
+
+    def opt_blob_(self):
+        b = self.byte()
+        assert b in (0, 1)
+        return self.blob() if b == 1 else None
+
+    def treasury_command(self, sub):
+        D = self.dates
+        if sub == 0x20:
+            return {"setTreasuryPolicy": self.t_policy()}
+        if sub == 0x21:
+            return {"registerSecurity": {"terms": self.t_security_terms()}}
+        if sub == 0x22:
+            return {"publishCurve": {"curve": self.t_curve()}}
+        if sub == 0x23:
+            return {"setTreasuryLimit": {"limit": self.t_limit()}}
+        if sub == 0x24:
+            return {"registerNostro": {"nostro": self.t_nostro()}}
+        if sub == 0x25:
+            return {"captureDeal": {"book": self.text(), "counterparty": self.t_counterparty(), "kind": self.t_kind(), "reference": self.text(), "approver": self.t_opt_principal()}}
+        if sub == 0x26:
+            return {"confirmDeal": {"deal": self.nat(), "confirmation": self.blob(), "fields": self.t_opt_fields(), "document": self.opt_blob_()}}
+        if sub == 0x27:
+            return {"amendDeal": {"deal": self.nat(), "kind": self.t_kind(), "reason": self.text()}}
+        if sub == 0x28:
+            return {"cancelDeal": {"deal": self.nat(), "reason": self.text()}}
+        if sub == 0x29:
+            return {"settleDealLeg": {"deal": self.nat(), "leg": self.nat(), **D()}}
+        if sub == 0x2A:
+            return {"markDeal": {"deal": self.nat(), **D()}}
+        if sub == 0x2B:
+            return {"recordNostroStatement": {"nostro": self.text(), "statement": self.blob(), "from": self.nat(), "to": self.nat(), "entries": self.t_entries(), "document": self.opt_blob_()}}
+        if sub == 0x2C:
+            return {"resolveNostroBreak": {"breakId": self.nat(), "resolution": self.text(), "correction": self.t_opt_correction(), **D()}}
+        raise ValueError(f"unknown treasury command byte {sub:#x}")
+
+    def treasury_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"policySet": self.t_policy()}
+        if t == 0x02:
+            return {"securityRegistered": {"terms": self.t_security_terms(), "day": self.nat()}}
+        if t == 0x03:
+            return {"curvePublished": {"curve": self.t_curve()}}
+        if t == 0x04:
+            return {"limitSet": {"limit": self.t_limit(), "day": self.nat()}}
+        if t == 0x05:
+            return {"nostroRegistered": {"nostro": self.t_nostro(), "day": self.nat()}}
+        if t == 0x06:
+            return {"dealCaptured": {"book": self.text(), "counterparty": self.t_counterparty(), "kind": self.t_kind(), "reference": self.text(), "trader": self.principal(), "day": self.nat(),
+                                     "withinLimits": self.bool(), "approver": self.t_opt_principal(), "secondAmount": self.nat()}}
+        if t == 0x07:
+            return {"limitBreached": {"limit": self.t_limit(), "measured": self.nat(), "deal": self.nat(), "approver": self.principal(), "day": self.nat()}}
+        if t == 0x08:
+            return {"dealConfirmed": {"deal": self.nat(), "confirmation": self.blob(), "day": self.nat()}}
+        if t == 0x09:
+            return {"confirmationMismatch": {"deal": self.nat(), "confirmation": self.blob(), "field": self.text(), "ours": self.text(), "theirs": self.text(), "day": self.nat()}}
+        if t == 0x0A:
+            return {"dealAmended": {"deal": self.nat(), "kind": self.t_kind(), "reason": self.text(), "day": self.nat(), "secondAmount": self.nat()}}
+        if t == 0x0B:
+            return {"dealCancelled": {"deal": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x0C:
+            return {"legSettled": {"deal": self.nat(), "leg": self.nat(), "amount": self.nat(), "currency": self.text(), "realised": self.int_(), "day": self.nat(), "accrual": self.int_(),
+                                   "amortisation": self.int_(), "fv": self.int_(), "nominal": self.nat(), "cost": self.nat()}}
+        if t == 0x0D:
+            return {"lotConsumed": {"lot": self.nat(), "by": self.nat(), "nominal": self.nat(), "cost": self.nat(), "amortisation": self.int_(), "fv": self.int_(), "accrual": self.int_(), "day": self.nat()}}
+        if t == 0x0E:
+            return {"accrued": {"deal": self.nat(), "interest": self.int_(), "amortisation": self.int_(), "day": self.nat()}}
+        if t == 0x0F:
+            return {"marked": {"deal": self.nat(), "value": self.int_(), "previous": self.int_(), "day": self.nat()}}
+        if t == 0x10:
+            return {"couponPaid": {"deal": self.nat(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x11:
+            return {"statementRecorded": {"nostro": self.text(), "statement": self.blob(), "from": self.nat(), "to": self.nat(), "entries": self.nat(), "matches": self.t_nats(), "breaks": self.nat(), "day": self.nat()}}
+        if t == 0x12:
+            return {"nostroBreak": {"nostro": self.text(), "statement": self.blob(), "side": ["onStatementOnly", "inOurBooksOnly"][self.byte()], "amount": self.nat(), "credit": self.bool(), "valueDay": self.nat(),
+                                    "reference": self.text(), "posting": self.opt_nat(), "day": self.nat()}}
+        if t == 0x13:
+            return {"breakResolved": {"breakId": self.nat(), "resolution": self.text(), "corrected": self.bool(), "day": self.nat()}}
+        if t == 0x14:
+            return {"breakAged": {"breakId": self.nat(), "ageDays": self.nat(), "day": self.nat()}}
+        if t == 0x15:
+            return {"confirmationOverdue": {"deal": self.nat(), "ageDays": self.nat(), "day": self.nat()}}
+        raise ValueError(f"unknown treasury event tag {t:#x}")
 
     def islamic_event(self):
         t = self.byte()
@@ -2656,6 +2833,8 @@ class Reader(V.Reader):
             return {"trade": self.trade_event()}
         if tag == 0x54:
             return {"islamic": self.islamic_event()}
+        if tag == 0x55:
+            return {"treasury": self.treasury_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:

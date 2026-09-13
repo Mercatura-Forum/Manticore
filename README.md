@@ -17,8 +17,8 @@ payments over ISO 20022 and Mojaloop. Written in Motoko. Apache 2.0.
 - **Products as data.** Deposit and lending products as versions; interest as a
   fold with declared day-count and compounding conventions; fees, limits and
   overdraft as recorded terms; origination, collections, corporate lending,
-  trade finance, branch and teller, and Islamic banking as domains on the same
-  log.
+  trade finance, branch and teller, Islamic banking, treasury and cards as
+  domains on the same log.
 - **Payments in the official shapes.** An ISO 20022 hub built from the official
   schemas (43 message families), CBPR+ and HVPS+ rule sets as data, thirteen
   SWIFT FIN message types bridged, Mojaloop FSPIOP settlement.
@@ -107,6 +107,8 @@ contract on the Thebes substrate changes what that record is:
 | **Branch and teller** | Tills and vaults counted by denomination, teller sessions, the cash network, cheques and drafts as pending postings. |
 | **Trade finance** | Documentary credits, undertakings, collections and bills as recorded lifecycles under the ICC rules; the MT 700 series in the bridge. |
 | **Islamic banking** | Murabaha, Ijarah, Musharakah, Mudarabah, Salam, Istisna'a and profit-sharing investment accounts as Sharia components of the product engine. |
+| **Treasury** | Deals as commands, positions as folds, valuation by declared curves with a bit-for-bit Python twin, the nostro reconciled. |
+| **Cards** | Tokens never PANs, authorisation holds as pendings, clearing as postings, disputes as recorded lifecycles; the ISO 8583 twin verified against jPOS and the official cain, caaa and casp schemas. |
 | **The command encoding** | A versioned encoder recorded in the proposal block, frozen with golden vectors per family; reconstruction under the recorded version. |
 | **Posting indexes and bounded queries** | Four posting indexes in stable memory over a B-tree with cursor-paged, bounded reads. |
 | **Closed-month packing, the archive roll and archive contracts** | Closed periods re-encoded and moved out of the live contract; the Merkle mountain range pruned below the archive boundary with proofs assembled across it; archive contracts created and adopted in resumable steps. |

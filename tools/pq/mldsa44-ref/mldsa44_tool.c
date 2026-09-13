@@ -4,7 +4,7 @@
  *   mldsa44_tool keygen <seedhex32>                 -> pk hex, sk hex (deterministic from the seed)
  *   mldsa44_tool sign <skhex> <ctx> <messagefile>   -> signature hex (2,420 bytes)
  *
- * Built by tools/pq/mldsa44-ref/build.sh against /root/dilithium/ref with DILITHIUM_MODE=2.
+ * Built by tools/pq/mldsa44-ref/build.sh against the reference implementation with DILITHIUM_MODE=2.
  */
 #include <stdio.h>
 #include <stdlib.h>
