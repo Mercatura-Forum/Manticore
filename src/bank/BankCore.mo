@@ -98,6 +98,8 @@ import MT "MonitoringTypes";
 import AlertCore "AlertCore";
 import ColT "CollectionsTypes";
 import CollectionsCore "CollectionsCore";
+import OT "OriginationTypes";
+import OriginationCore "OriginationCore";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -192,6 +194,9 @@ module {
     /// Collections and recovery (collections and recovery): the stage of every lending exposure, the policy, the collectors'
     /// records. Rows in stable memory; every transition is a block.
     collections : CollectionsCore.State;
+    /// Origination and underwriting (origination and underwriting): the applications, the models as data, the passkeys. Rows in
+    /// stable memory; every step is a block.
+    origination : OriginationCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -259,6 +264,7 @@ module {
       monitoring = MonitoringCore.newState();
       alerts = AlertCore.newState(arena);
       collections = CollectionsCore.newState(arena);
+      origination = OriginationCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -731,6 +737,15 @@ module {
       // A cross-currency deal consumes the amount it sells, in the currency it sells.
       case (#bookFxDeal(x)) [(x.sell, x.sellAmount)];
       case (#realiseFxPosition(x)) [(x.currency, x.closedPosition)];
+      // A credit decision and the drawing it leads to are bounded by the underwriter's ceiling in the
+      // application's currency, read from the row rather than the request.
+      case (#underwrite(x)) {
+        switch (x.decision, OriginationCore.row(bs.origination, x.application)) { case (#approve(a), ?r) [(r.currency, a.amount)]; case (_, _) [] }
+      };
+      case (#issueOffer(x)) [(x.terms.currency, x.terms.amount)];
+      case (#fulfilApplication(x)) {
+        switch (OriginationCore.row(bs.origination, x.application)) { case (?r) { switch (r.decision) { case (?#approve(a)) [(r.currency, a.amount)]; case (_) [] } }; case null [] }
+      };
       case (_) [];
     }
   };
@@ -850,8 +865,27 @@ module {
       case (#cancelStandingInstruction(x)) { switch (BatchCore.getInstruction(bs.batch, x.id)) { case (?e) ?e.instruction.book; case null null } };
       case (#openEndOfDay(x)) ?x.book;
       case (#resolveBatchFailure(x)) ?x.book;
+      // Origination commands name an application, whose row carries its book; a passkey is the party's.
+      case (#openApplication(x)) ?x.book;
+      case (#registerPasskey(x)) PartyCore.bookOf(bs.party, x.party);
+      case (#recordApplicationData(x)) applicationBook(bs, x.application);
+      case (#assessAffordability(x)) applicationBook(bs, x.application);
+      case (#requestBureauReport(x)) applicationBook(bs, x.application);
+      case (#scoreApplication(x)) applicationBook(bs, x.application);
+      case (#underwrite(x)) applicationBook(bs, x.application);
+      case (#issueOffer(x)) applicationBook(bs, x.application);
+      case (#acceptOffer(x)) applicationBook(bs, x.application);
+      case (#declineOffer(x)) applicationBook(bs, x.application);
+      case (#recordDocument(x)) applicationBook(bs, x.application);
+      case (#recordConditionsMet(x)) applicationBook(bs, x.application);
+      case (#fulfilApplication(x)) applicationBook(bs, x.application);
+      case (#withdrawApplication(x)) applicationBook(bs, x.application);
       case (other) E.commandBook(other);
     }
+  };
+
+  func applicationBook(bs : State, id : OT.ApplicationId) : ?T.BookId {
+    switch (OriginationCore.row(bs.origination, id)) { case (?r) ?r.book; case null null }
   };
 
   public func operationOf(bs : State, js : JCore.State, jb : JCore.Blocks, c : T.Command) : E.Operation {
@@ -1039,7 +1073,7 @@ module {
   /// `party` and `partyBook` are the party as it is — or, for `createCustomer`, as it will be; `taken`
   /// are identifiers issued earlier in the same act, which the registers do not hold yet.
   public type OpenedAccount = { opened : ProdT.ProductEvent; limit : JT.Event; identifier : Text };
-  func planOpenAccount(bs : State, js : JCore.State, journalCaller : Principal, product : ProdT.ProductId, party : PT.PartyId, partyBook : T.BookId, currency : JT.Currency, termDays : ?Nat, allocationOrder : [ProdT.Component], serialIndex : Nat, taken : [Text]) : Result.Result<OpenedAccount, T.BankError> {
+  func planOpenAccount(bs : State, js : JCore.State, journalCaller : Principal, product : ProdT.ProductId, party : PT.PartyId, partyBook : T.BookId, currency : JT.Currency, termDays : ?Nat, allocationOrder : [ProdT.Component], rateOverride : ?I.Rate, serialIndex : Nat, taken : [Text]) : Result.Result<OpenedAccount, T.BankError> {
     let ?v = ProductCore.currentVersion(bs.product, product) else return #err(#ProductError({ error = #UnknownProduct({ product }) }));
     if (not v.openToNewAccounts) {
       return #err(#ProductError({ error = #ProductClosedToNewAccounts({ product; version = v.version }) }));
@@ -1072,6 +1106,16 @@ module {
         };
       };
       case null { if (isTerm) return #err(#ProductError({ error = #InvalidTerms({ reason = "a term product needs a term in days" }) })) };
+    };
+    // An underwritten rate (origination and underwriting) is the loan's own rate for its life: it is written as the opening rate, which
+    // is what the accrual and the schedule read first, so a priced facility never falls back to the chart.
+    switch (rateOverride) {
+      case (?r) {
+        if (v.terms.kind != #loan) return #err(#ProductError({ error = #InvalidTerms({ reason = "only a loan carries an underwritten rate" }) }));
+        switch (I.validRate(r)) { case (?reason) return #err(#ProductError({ error = #InvalidTerms({ reason }) })); case null {} };
+        openingRate := ?r;
+      };
+      case null {};
     };
     let ?fmt = PartyCore.format(bs.party) else return #err(#PartyError({ error = #InvalidIdentifier({ identifier = ""; reason = "no account-number format is recorded" }) }));
     // The serial is the bank block index this opening will occupy, so two accounts can never receive
@@ -1192,7 +1236,7 @@ module {
     let taken = List.empty<Text>();
     for (a in c.accounts.vals()) {
       let accountIndex = base + List.size(events);
-      switch (planOpenAccount(bs, js, journalCaller, a.product, partyId, x.book, a.currency, a.termDays, a.allocationOrder, accountIndex, List.toArray(taken))) {
+      switch (planOpenAccount(bs, js, journalCaller, a.product, partyId, x.book, a.currency, a.termDays, a.allocationOrder, null, accountIndex, List.toArray(taken))) {
         case (#err(e)) return #err(e);
         case (#ok(o)) {
           List.add(events, #product(o.opened));
@@ -1205,6 +1249,19 @@ module {
           };
         };
       };
+    };
+    // the application this onboarding fulfils (origination and underwriting): a prospect's open application in this book gains the party
+    switch (c.application) {
+      case (?application) {
+        switch (OriginationCore.planOnboard(bs.origination, application)) {
+          case (#err(e)) return #err(#OriginationError({ error = e }));
+          case (#ok(r)) {
+            if (not Text.equal(r.book, x.book)) return #err(#OriginationError({ error = #PartyMismatch({ application }) }));
+            List.add(events, #origination(#prospectOnboarded({ application; party = partyId })));
+          };
+        };
+      };
+      case null {};
     };
     let all = List.toArray(events);
     #ok({ bankEvent = ?all[0]; extra = Array.tabulate<T.Event>(all.size() - 1, func(i) { all[i + 1] }); journal = List.toArray(journal) })
@@ -2607,7 +2664,7 @@ module {
 
       case (#openAccount(x)) {
         let ?party = PartyCore.get(bs.party, partyBlocks(bb), x.party) else return #err(#PartyError({ error = #UnknownParty({ party = x.party }) }));
-        switch (planOpenAccount(bs, js, journalCaller, x.product, x.party, party.book, x.currency, x.termDays, x.allocationOrder, authorityIndex, [])) {
+        switch (planOpenAccount(bs, js, journalCaller, x.product, x.party, party.book, x.currency, x.termDays, x.allocationOrder, null, authorityIndex, [])) {
           case (#err(e)) #err(e);
           case (#ok(o)) #ok({ bankEvent = ?#product(o.opened); extra = []; journal = [#event(o.limit)] });
         }
@@ -3852,6 +3909,78 @@ module {
           case (#ok(ev)) #ok({ bankEvent = ?#collections(ev); extra = []; journal = [] });
         }
       };
+
+      // ── origination and underwriting (origination and underwriting): the application's steps ──
+      case (#setOriginationPolicy(pol)) originationPlan(OriginationCore.planPolicy(pol));
+      case (#setAffordabilityModel(m)) originationPlan(OriginationCore.planAffordabilityModel(bs.origination, m));
+      case (#setScorecard(c)) originationPlan(OriginationCore.planScorecard(bs.origination, c));
+      case (#registerPasskey(x)) {
+        switch (requireParty(bs, x.party)) { case (?e) return #err(e); case null {} };
+        originationPlan(OriginationCore.planRegisterPasskey(bs.origination, x.party, x.credentialId, x.publicKeySpki))
+      };
+      case (#openApplication(x)) {
+        switch (requireOpenBook(bs, x.book)) { case (?e) return #err(e); case null {} };
+        // an application for a customer is in the customer's book; a prospect's is in the book that opens it
+        switch (x.party) {
+          case (?party) {
+            let ?pe = PartyCore.get(bs.party, partyBlocks(bb), party) else return #err(#PartyError({ error = #UnknownParty({ party }) }));
+            if (not Text.equal(pe.book, x.book)) return #err(#OriginationError({ error = #PartyMismatch({ application = 0 }) }));
+            if (pe.lifecycle != #active) return #err(#PartyError({ error = #PartyNotActive({ party; lifecycle = pe.lifecycle }) }));
+          };
+          case null {};
+        };
+        // the product is a loan product open to new accounts in the requested currency
+        let ?v = ProductCore.currentVersion(bs.product, x.request.product) else return #err(#ProductError({ error = #UnknownProduct({ product = x.request.product }) }));
+        if (v.terms.kind != #loan) return #err(#OriginationError({ error = #InvalidRequest({ reason = "an application is for a loan product" }) }));
+        if (not v.openToNewAccounts) return #err(#ProductError({ error = #ProductClosedToNewAccounts({ product = x.request.product; version = v.version }) }));
+        if (not Text.equal(v.terms.currency, x.request.currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = v.terms.currency; actual = x.request.currency }) }));
+        originationPlan(OriginationCore.planOpen(x.party, x.book, x.request, x.channel, JCore.effectiveToday(js, now)))
+      };
+      case (#recordApplicationData(x)) originationPlan(OriginationCore.planRecordData(bs.origination, x.application, x.facts, x.commitments));
+      case (#assessAffordability(x)) originationPlan(OriginationCore.planAssess(bs.origination, x.application));
+      case (#requestBureauReport(x)) originationPlan(OriginationCore.planRequestBureau(bs.origination, x.application, x.bureau, x.consentCommit, JCore.effectiveToday(js, now)));
+      case (#scoreApplication(x)) originationPlan(OriginationCore.planScore(bs.origination, x.application));
+      case (#underwrite(x)) originationPlan(OriginationCore.planUnderwrite(bs.origination, x.application, x.decision, x.rationale));
+      case (#issueOffer(x)) originationPlan(OriginationCore.planIssueOffer(bs.origination, x.application, x.terms, JCore.effectiveToday(js, now)));
+      case (#acceptOffer(x)) originationPlan(OriginationCore.planAccept(bs.origination, x.application, x.assertion, JCore.effectiveToday(js, now)));
+      case (#declineOffer(x)) originationPlan(OriginationCore.planDeclineOffer(bs.origination, x.application, JCore.effectiveToday(js, now)));
+      case (#recordDocument(x)) {
+        switch (OriginationCore.planRecordDocument(bs.origination, x.application, x.kind, x.sha256, x.signed)) {
+          case (#err(e)) #err(#OriginationError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#origination(ev); extra = documentationExtra(bs, js, now, x.application, ev); journal = [] });
+        }
+      };
+      case (#recordConditionsMet(x)) {
+        switch (OriginationCore.planConditionsMet(bs.origination, x.application, x.conditions)) {
+          case (#err(e)) #err(#OriginationError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#origination(ev); extra = documentationExtra(bs, js, now, x.application, ev); journal = [] });
+        }
+      };
+      case (#fulfilApplication(x)) {
+        // The drawing: the loan account opens under the existing planner with the underwritten rate as its
+        // opening rate, is activated, and the application records the account it became. Disbursement is
+        // the product engine's own command from here, under its own permission.
+        let f = switch (OriginationCore.planFulfil(bs.origination, x.application)) { case (#err(e)) return #err(#OriginationError({ error = e })); case (#ok(f)) f };
+        let ?pe = PartyCore.get(bs.party, partyBlocks(bb), f.party) else return #err(#PartyError({ error = #UnknownParty({ party = f.party }) }));
+        if (pe.lifecycle != #active) return #err(#PartyError({ error = #PartyNotActive({ party = f.party; lifecycle = pe.lifecycle }) }));
+        let rate : I.Rate = { numerator = f.rateBps; denominator = 10_000; negative = false };
+        // the account's id is the block the opening lands on — the height at execution, as `createCustomer`
+        // numbers its accounts; the authority index is the serial's, as `openAccount` uses it
+        let accountId = bs.height;
+        switch (planOpenAccount(bs, js, journalCaller, f.product, f.party, pe.book, f.currency, null, [], ?rate, authorityIndex, [])) {
+          case (#err(e)) #err(e);
+          case (#ok(o)) {
+            if (not accountTransitionAllowed(#pending, #active)) return #err(#ProductError({ error = #AccountNotActive({ account = accountId; status = #pending }) }));
+            #ok({
+              bankEvent = ?#product(o.opened);
+              extra = [#product(#accountStatusSet({ account = accountId; to = #active })),
+                       #origination(#fulfilled({ application = x.application; party = f.party; account = accountId; day = JCore.effectiveToday(js, now) }))];
+              journal = [#event(o.limit)];
+            })
+          };
+        }
+      };
+      case (#withdrawApplication(x)) originationPlan(OriginationCore.planWithdraw(bs.origination, x.application, x.reason, JCore.effectiveToday(js, now)));
 
       // ── closed-month packing ──
 
@@ -5773,6 +5902,7 @@ module {
       instructions = BatchCore.instructionsOf(bs.batch, book).size();
       tills;
       monitoringRules = MonitoringCore.active(bs.monitoring, #endOfDay).size();
+      offers = OriginationCore.offeredInBook(bs.origination, book);
       shardSize;
     }
   };
@@ -6072,7 +6202,7 @@ module {
     only : ?Text,
   ) {
     let period = switch (periodForDay(js, day)) { case (?p) p; case null "" };
-    if (Text.equal(period, "") and item.job != #ageing and item.job != #statementCut and item.job != #tillCheck) {
+    if (Text.equal(period, "") and item.job != #ageing and item.job != #statementCut and item.job != #tillCheck and item.job != #offerExpiry) {
       acc.examined += 1;
       fail(acc, index, item.job, item.product, "no open period contains day " # Nat.toText(day));
       return;
@@ -6088,6 +6218,7 @@ module {
       case (#statementCut) forShard(bs, bb, run, item, only, func(a) { jobStatement(bs, js, acc, item, index, day, a) });
       case (#tillCheck) jobTillCheck(bs, bb, js, acc, item, index, day, run.book, only);
       case (#monitoring) forShard(bs, bb, run, item, only, func(a) { jobMonitoring(bs, acc, item, index, day, a) });
+      case (#offerExpiry) jobOfferExpiry(bs, acc, item, index, day, run.book, only);
     };
   };
 
@@ -6564,6 +6695,26 @@ module {
     };
   };
 
+  /// Job 11 (origination and underwriting): every credit offer of the book still standing is examined; one whose validity ended
+  /// before the date lapses, as a block. A retry names the one application.
+  func jobOfferExpiry(bs : State, acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, book : Text, only : ?Text) {
+    for (id in OriginationCore.offeredInBookIds(bs.origination, book).vals()) {
+      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(id)) };
+      if (mine) {
+        acc.examined += 1;
+        switch (OriginationCore.row(bs.origination, id)) {
+          case (?r) {
+            switch (r.offer) {
+              case (?o) { if (o.expiresAt < day) record(acc, #origination(#offerExpired({ application = id; day }))) else acc.zeroMovement += 1 };
+              case null acc.zeroMovement += 1;
+            };
+          };
+          case null fail(acc, index, item.job, Nat.toText(id), "the application's row is gone");
+        };
+      };
+    };
+  };
+
   /// The open period a day falls in, if any.
   func periodForDay(js : JCore.State, day : ProdT.Day) : ?JT.PeriodId {
     for (p in JCore.listPeriods(js).vals()) {
@@ -6604,6 +6755,28 @@ module {
       };
     };
     null
+  };
+
+  /// A bureau's report on an application, arriving by the bureau connector's call: the signature over the
+  /// report's canonical bytes is judged under the key the policy registers for the bureau, and the report
+  /// is the block; a report that does not verify is refused and nothing is recorded.
+  public func planBureauReport(bs : State, application : OT.ApplicationId, report : OT.BureauReport, signature : Blob, verify : Verify) : Result.Result<T.Event, T.BankError> {
+    switch (OriginationCore.planRecordBureau(bs.origination, application, report, signature, verify)) {
+      case (#err(e)) #err(#OriginationError({ error = e }));
+      case (#ok(ev)) #ok(#origination(ev));
+    }
+  };
+
+  func originationPlan(r : Result.Result<OT.OriginationEvent, OT.OriginationError>) : Result.Result<Plan, T.BankError> {
+    switch (r) {
+      case (#err(e)) #err(#OriginationError({ error = e }));
+      case (#ok(ev)) #ok({ bankEvent = ?#origination(ev); extra = []; journal = [] });
+    }
+  };
+
+  /// The block that says the documentation is complete, when the act just planned completes it.
+  func documentationExtra(bs : State, js : JCore.State, now : Nat64, application : OT.ApplicationId, ev : OT.OriginationEvent) : [T.Event] {
+    if (OriginationCore.completesDocumentation(bs.origination, application, ev)) [#origination(#documentationComplete({ application; day = JCore.effectiveToday(js, now) }))] else []
   };
 
   /// A collections act names a loan account that exists and has been disbursed.
@@ -6896,6 +7069,7 @@ module {
       case (#monitoring(me)) { MonitoringCore.apply(s.monitoring, block.index, me) };
       case (#alert(ae)) { AlertCore.apply(s.alerts, block.index, ae) };
       case (#collections(ce)) { CollectionsCore.apply(s.collections, block.index, ce) };
+      case (#origination(oe)) { OriginationCore.apply(s.origination, block.index, oe) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -7025,6 +7199,7 @@ module {
       case (#monitoring(_)) "monitoring";
       case (#alert(_)) "alert";
       case (#collections(_)) "collections";
+      case (#origination(_)) "origination";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -7317,6 +7492,7 @@ module {
     MonitoringCore.fingerprintInto(w, s.monitoring);
     AlertCore.fingerprintInto(w, s.alerts);
     CollectionsCore.fingerprintInto(w, s.collections);
+    OriginationCore.fingerprintInto(w, s.origination);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);

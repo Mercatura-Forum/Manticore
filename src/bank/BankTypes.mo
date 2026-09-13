@@ -27,6 +27,7 @@ import AT "ArchiveTypes";
 import MT "MonitoringTypes";
 import AlT "AlertTypes";
 import ColT "CollectionsTypes";
+import OT "OriginationTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -179,8 +180,8 @@ module {
     lifecycle : PT.Lifecycle;
     extensions : [PT.ExtensionValue];
     accounts : [CustomerAccount];
-    /// The origination application this onboarding fulfils (origination and underwriting); none until applications exist — a value
-    /// is refused as `UnknownApplication` until then. Carried by command encoding 2 and later.
+    /// The origination application this onboarding fulfils (origination and underwriting): a prospect's open application, which
+    /// gains this party. Carried by command encoding 2 and later.
     application : ?Nat;
   };
 
@@ -398,6 +399,24 @@ module {
     #recordPromiseToPay : { account : ProdT.AccountId; amount : Nat; by : Day };
     #assignCollector : { account : ProdT.AccountId; staff : Principal };
     #closeRecovery : { account : ProdT.AccountId };
+    // ── origination and underwriting (origination and underwriting): an application's life from the ask to the drawing ──
+    #setOriginationPolicy : OT.Policy;
+    #setAffordabilityModel : OT.AffordabilityModel;
+    #setScorecard : OT.Scorecard;
+    #registerPasskey : { party : PT.PartyId; credentialId : Blob; publicKeySpki : Blob };
+    #openApplication : { party : ?PT.PartyId; book : BookId; request : OT.Request; channel : Text };
+    #recordApplicationData : { application : OT.ApplicationId; facts : OT.Facts; commitments : [(Text, PT.Commitment)] };
+    #assessAffordability : { application : OT.ApplicationId };
+    #requestBureauReport : { application : OT.ApplicationId; bureau : Text; consentCommit : PT.Commitment };
+    #scoreApplication : { application : OT.ApplicationId };
+    #underwrite : { application : OT.ApplicationId; decision : OT.Decision; rationale : Text };
+    #issueOffer : { application : OT.ApplicationId; terms : OT.OfferTerms };
+    #acceptOffer : { application : OT.ApplicationId; assertion : OT.PasskeyAssertion };
+    #declineOffer : { application : OT.ApplicationId };
+    #recordDocument : { application : OT.ApplicationId; kind : OT.DocumentKind; sha256 : Blob; signed : ?OT.PasskeyAssertion };
+    #recordConditionsMet : { application : OT.ApplicationId; conditions : [Text] };
+    #fulfilApplication : { application : OT.ApplicationId };
+    #withdrawApplication : { application : OT.ApplicationId; reason : Text };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -503,6 +522,8 @@ module {
     #alert : AlT.AlertEvent;
     /// Collections: the stage of an exposure and the acts on it (collections and recovery).
     #collections : ColT.CollectionsEvent;
+    /// Origination: an application's steps, the models as data, the passkeys (origination and underwriting).
+    #origination : OT.OriginationEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -599,8 +620,6 @@ module {
     #OverDailyLimit : { currency : JT.Currency; amount : Nat; consumed : Nat; limit : Nat };
     #RequiresDualAuthorisation : { permission : PermissionId; required : Nat };
     #UnknownProposal : { index : Nat };
-    /// `createCustomer.application` names an origination application; none exists before origination and underwriting lands.
-    #UnknownApplication : { application : Nat };
     #ProposalNotAwaiting : { index : Nat };
     #ProposalExpired : { index : Nat; expiresAt : Nat64 };
     #SelfApproval : { maker : Principal };
@@ -631,6 +650,7 @@ module {
     #MonitoringError : { error : MT.MonitoringError };
     #AlertError : { error : AlT.AlertError };
     #CollectionsError : { error : ColT.CollectionsError };
+    #OriginationError : { error : OT.OriginationError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };

@@ -24,6 +24,7 @@ import Nat64 "mo:core/Nat64";
 import T "../src/bank/BankTypes";
 import MT "../src/bank/MonitoringTypes";
 import SeT "../src/bank/SettlementTypes";
+import OV "OriginationVectors";
 import ProdT "../src/bank/ProductTypes";
 import CT "../src/bank/CloseTypes";
 import RepT "../src/bank/ReportTypes";
@@ -262,6 +263,7 @@ let sampleStatement : RepT.StatementRef = {
   atHeight = 417;
 };
 
+let segHash32 : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 let commands : [T.Command] = [
   #defineRole({ id = "checker"; name = "Checker"; permissions = ["command.approve", "role.grant"] }),
   #grantRole({ subject = alice; role = "checker"; scope = fullScope }),
@@ -454,6 +456,28 @@ let commands : [T.Command] = [
   #recordPromiseToPay({ account = 89; amount = 1_500_00; by = 20740 }),
   #assignCollector({ account = 89; staff = carol }),
   #closeRecovery({ account = 89 }),
+  // origination and underwriting (origination and underwriting)
+  #setOriginationPolicy({ rpId = "bank.example"; origin = "https://bank.example"; offerValidityDays = 14; bureaus = [("I-SCORE", #none, ""), ("PQ-BUREAU", #mldsa44, Blob.fromArray([9, 8, 7]))] }),
+  #setAffordabilityModel({ id = "retail-v1"; version = 1; rules = [{ id = "dsr-45"; kind = #maxDebtServiceRatioBps(4500); onFail = #fail }, { id = "res"; kind = #minResidualIncome(2_500_00); onFail = #fail }, { id = "term"; kind = #maxTermDays(1826); onFail = #fail }, { id = "amt"; kind = #maxAmount(500_000_00); onFail = #refer }, { id = "inc"; kind = #minIncome(3_000_00); onFail = #refer }] }),
+  #setScorecard({ id = "retail-card"; version = 2; attributes = [(#income, [{ lo = 0; hi = ?4_999_99; points = 10 }, { lo = 5_000_00; hi = null; points = 25 }]), (#obligationsRatioBps, [{ lo = 0; hi = ?2000; points = 30 }]), (#bureauScore, [{ lo = 700; hi = null; points = 35 }]), (#bureauFlags, [{ lo = 0; hi = ?0; points = 10 }]), (#termDays, [{ lo = 0; hi = ?365; points = 10 }]), (#amount, [{ lo = 0; hi = null; points = 1 }])]; declineBelow = 50; referBelow = 80 }),
+  #registerPasskey({ party = 7; credentialId = OV.CREDENTIAL; publicKeySpki = OV.SPKI }),
+  #openApplication({ party = ?7; book = "HQ"; request = { product = "PL-STD"; amount = 120_000_00; currency = "EGP"; termDays = 730; purpose = "car" }; channel = "branch" }),
+  #openApplication({ party = null; book = "BR01"; request = { product = "PL-STD"; amount = 30_000_00; currency = "EGP"; termDays = 365; purpose = "" }; channel = "web" }),
+  #recordApplicationData({ application = 900; facts = { income = 20_000_00; obligations = 2_000_00; proposedInstalment = 5_000_00; dependants = 2 }; commitments = [("employer", segHash32), ("address", segHash32)] }),
+  #assessAffordability({ application = 900 }),
+  #requestBureauReport({ application = 900; bureau = "I-SCORE"; consentCommit = segHash32 }),
+  #scoreApplication({ application = 900 }),
+  #underwrite({ application = 900; decision = #approve({ amount = 100_000_00; termDays = 730; rateBps = 1800; conditions = ["salary-assignment", "insurance"] }); rationale = "" }),
+  #underwrite({ application = 901; decision = #decline({ reasons = ["affordability"] }); rationale = "score below the floor" }),
+  #underwrite({ application = 902; decision = #refer({ to = "credit-committee" }); rationale = "" }),
+  #issueOffer({ application = 900; terms = { amount = 90_000_00; termDays = 730; rateBps = 1800; product = "PL-STD"; currency = "EGP"; conditions = ["salary-assignment", "insurance"] } }),
+  #acceptOffer({ application = 900; assertion = { credentialId = OV.CREDENTIAL; authenticatorData = OV.ASSERTIONS[0].2; clientDataJSON = OV.ASSERTIONS[0].3; signature = OV.ASSERTIONS[0].4 } }),
+  #declineOffer({ application = 901 }),
+  #recordDocument({ application = 900; kind = #facilityAgreement; sha256 = segHash32; signed = null }),
+  #recordDocument({ application = 900; kind = #other("payslip"); sha256 = segHash32; signed = ?{ credentialId = OV.CREDENTIAL; authenticatorData = OV.ASSERTIONS[0].2; clientDataJSON = OV.ASSERTIONS[0].3; signature = OV.ASSERTIONS[0].4 } }),
+  #recordConditionsMet({ application = 900; conditions = ["insurance"] }),
+  #fulfilApplication({ application = 900 }),
+  #withdrawApplication({ application = 903; reason = "found another lender" }),
 ];
 
 /// The command a proposal and an override in the event list below carry.
@@ -711,6 +735,34 @@ List.add(events, #collections(#promiseJudged({ account = 89; amount = 1_500_00; 
 List.add(events, #collections(#collectorAssigned({ account = 89; staff = carol })));
 List.add(events, #collections(#interestSuspended({ account = 89; amount = 412_33; day = 20761 })));
 List.add(events, #collections(#suspenseReleased({ account = 89; amount = 412_33; day = 20800 })));
+// every origination event variant (origination and underwriting)
+List.add(events, #origination(#policySet({ rpId = "bank.example"; origin = "https://bank.example"; offerValidityDays = 14; bureaus = [("I-SCORE", #none, Blob.fromArray([])), ("PQ-BUREAU", #mldsa44, Blob.fromArray([9, 8, 7]))] })));
+List.add(events, #origination(#affordabilityModelSet({ id = "retail-v1"; version = 1; rules = [{ id = "dsr-45"; kind = #maxDebtServiceRatioBps(4500); onFail = #fail }, { id = "inc"; kind = #minIncome(3_000_00); onFail = #refer }] })));
+List.add(events, #origination(#scorecardSet({ id = "retail-card"; version = 2; attributes = [(#income, [{ lo = 0; hi = ?4_999_99; points = 10 }, { lo = 5_000_00; hi = null; points = 25 }]), (#bureauFlags, [{ lo = 0; hi = ?0; points = 10 }])]; declineBelow = 50; referBelow = 80 })));
+List.add(events, #origination(#passkeyRegistered({ party = 7; credentialId = OV.CREDENTIAL; publicKeySpki = OV.SPKI })));
+List.add(events, #origination(#applicationOpened({ party = ?7; book = "HQ"; request = { product = "PL-STD"; amount = 120_000_00; currency = "EGP"; termDays = 730; purpose = "car" }; channel = "branch"; day = 20726 })));
+List.add(events, #origination(#applicationOpened({ party = null; book = "BR01"; request = { product = "PL-STD"; amount = 30_000_00; currency = "EGP"; termDays = 365; purpose = "" }; channel = "web"; day = 20726 })));
+List.add(events, #origination(#dataRecorded({ application = 900; facts = { income = 20_000_00; obligations = 2_000_00; proposedInstalment = 5_000_00; dependants = 2 }; commitments = [("employer", segHash32)] })));
+List.add(events, #origination(#affordabilityAssessed({ application = 900; model = "retail-v1"; version = 1; verdict = #pass })));
+List.add(events, #origination(#affordabilityAssessed({ application = 901; model = "retail-v1"; version = 1; verdict = #fail(["dsr-45", "res"]) })));
+List.add(events, #origination(#affordabilityAssessed({ application = 902; model = "retail-v1"; version = 1; verdict = #refer(["inc"]) })));
+List.add(events, #origination(#bureauRequested({ application = 900; bureau = "I-SCORE"; consentCommit = segHash32; day = 20726 })));
+List.add(events, #origination(#bureauRecorded({ application = 900; report = { bureau = "I-SCORE"; score = 720; flags = ["enquiries-3"]; reportHash = segHash32; reportedOn = 20726 } })));
+List.add(events, #origination(#scored({ application = 900; scorecard = "retail-card"; version = 2; points = 120; band = #approve })));
+List.add(events, #origination(#underwritten({ application = 900; decision = #approve({ amount = 100_000_00; termDays = 730; rateBps = 1800; conditions = ["salary-assignment"] }); rationale = ""; overrode = false })));
+List.add(events, #origination(#underwritten({ application = 901; decision = #decline({ reasons = ["affordability"] }); rationale = "below the floor"; overrode = true })));
+List.add(events, #origination(#underwritten({ application = 902; decision = #refer({ to = "credit-committee" }); rationale = ""; overrode = false })));
+List.add(events, #origination(#offerIssued({ application = 900; terms = { amount = 90_000_00; termDays = 730; rateBps = 1800; product = "PL-STD"; currency = "EGP"; conditions = ["salary-assignment"] }; offerHash = segHash32; expiresAt = 20740 })));
+List.add(events, #origination(#offerAccepted({ application = 900; credentialId = OV.CREDENTIAL; assertionHash = segHash32; day = 20730 })));
+List.add(events, #origination(#offerDeclined({ application = 901; day = 20730 })));
+List.add(events, #origination(#offerExpired({ application = 902; day = 20741 })));
+List.add(events, #origination(#documentRecorded({ application = 900; kind = #facilityAgreement; sha256 = segHash32; signed = true })));
+List.add(events, #origination(#documentRecorded({ application = 900; kind = #other("payslip"); sha256 = segHash32; signed = false })));
+List.add(events, #origination(#conditionsMet({ application = 900; conditions = ["salary-assignment"]; outstanding = 0 })));
+List.add(events, #origination(#documentationComplete({ application = 900; day = 20731 })));
+List.add(events, #origination(#prospectOnboarded({ application = 904; party = 8 })));
+List.add(events, #origination(#fulfilled({ application = 900; party = 7; account = 9_001; day = 20732 })));
+List.add(events, #origination(#withdrawn({ application = 903; reason = "found another lender"; day = 20727 })));
 // every packing event variant
 let segHash : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 List.add(events, #packing(#packOpened({ pack = 1; period = "2026-09"; periodEnd = 20726; lo = 0; hi = 4_211; bankLo = 0; bankHi = 17_902 })));

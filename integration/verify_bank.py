@@ -700,7 +700,7 @@ class Reader(V.Reader):
     # ─── the end-of-day batch ──────────────────────────────────────────
 
     JOBS = {1: "accrual", 2: "charges", 3: "instalmentsDue", 4: "ageing", 5: "provisioning",
-            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring"}
+            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry"}
 
     def b_job(self):
         rank = self.nat()
@@ -1279,6 +1279,41 @@ class Reader(V.Reader):
             return {"assignCollector": {"account": self.nat(), "staff": self.principal()}}
         if tag == 0xF5:
             return {"closeRecovery": {"account": self.nat()}}
+        # origination and underwriting (origination and underwriting)
+        if tag == 0xA2:
+            return {"setOriginationPolicy": self.origination_policy()}
+        if tag == 0xA3:
+            return {"setAffordabilityModel": self.affordability_model()}
+        if tag == 0xA4:
+            return {"setScorecard": self.scorecard()}
+        if tag == 0xA5:
+            return {"registerPasskey": {"party": self.nat(), "credentialId": self.blob(), "publicKeySpki": self.blob()}}
+        if tag == 0xA6:
+            return {"openApplication": {"party": self.opt_nat(), "book": self.text(), "request": self.credit_request(), "channel": self.text()}}
+        if tag == 0xA7:
+            return {"recordApplicationData": {"application": self.nat(), "facts": self.facts(), "commitments": self.commitments()}}
+        if tag == 0xA8:
+            return {"assessAffordability": {"application": self.nat()}}
+        if tag == 0xA9:
+            return {"requestBureauReport": {"application": self.nat(), "bureau": self.text(), "consentCommit": self.blob()}}
+        if tag == 0xAA:
+            return {"scoreApplication": {"application": self.nat()}}
+        if tag == 0xAB:
+            return {"underwrite": {"application": self.nat(), "decision": self.decision(), "rationale": self.text()}}
+        if tag == 0xAC:
+            return {"issueOffer": {"application": self.nat(), "terms": self.offer_terms()}}
+        if tag == 0xAD:
+            return {"acceptOffer": {"application": self.nat(), "assertion": self.assertion()}}
+        if tag == 0xAE:
+            return {"declineOffer": {"application": self.nat()}}
+        if tag == 0xAF:
+            return {"recordDocument": {"application": self.nat(), "kind": self.document_kind(), "sha256": self.blob(), "signed": self.opt(self.assertion)}}
+        if tag == 0xB5:
+            return {"recordConditionsMet": {"application": self.nat(), "conditions": self.texts()}}
+        if tag == 0xB6:
+            return {"fulfilApplication": {"application": self.nat()}}
+        if tag == 0xB7:
+            return {"withdrawApplication": {"application": self.nat(), "reason": self.text()}}
         if tag == 0xD4:
             return {"openPacking": {"period": self.text()}}
         if tag == 0xD5:
@@ -1494,6 +1529,125 @@ class Reader(V.Reader):
         if t == 0x08:
             return {"suspenseReleased": {"account": self.nat(), "amount": self.nat(), "day": self.nat()}}
         raise ValueError(f"unknown collections event tag {t:#x}")
+
+    # ── origination and underwriting (origination and underwriting) ──
+    APPLICATION_STAGES = ["capture", "assessed", "scored", "underwritten", "offered", "accepted", "documented", "fulfilled", "declined", "withdrawn", "expired"]
+    SCHEMES = ["none", "mayo2", "mldsa44"]
+    ATTRIBUTES = ["income", "obligationsRatioBps", "bureauScore", "bureauFlags", "termDays", "amount"]
+    BANDS = ["approve", "refer", "decline"]
+
+    def origination_policy(self):
+        rp, origin, validity = self.text(), self.text(), self.nat()
+        n = self.len16()
+        bureaus = [(self.text(), self.SCHEMES[self.byte()], self.blob()) for _ in range(n)]
+        return {"rpId": rp, "origin": origin, "offerValidityDays": validity, "bureaus": bureaus}
+
+    def affordability_model(self):
+        mid, version, n = self.text(), self.nat(), self.len16()
+        rules = []
+        for _ in range(n):
+            rid = self.text()
+            kind = ["maxDebtServiceRatioBps", "minResidualIncome", "maxTermDays", "maxAmount", "minIncome"][self.byte()]
+            value = self.nat()
+            rules.append({"id": rid, "kind": {kind: value}, "onFail": ["fail", "refer"][self.byte()]})
+        return {"id": mid, "version": version, "rules": rules}
+
+    def scorecard(self):
+        cid, version, n = self.text(), self.nat(), self.len16()
+        attributes = []
+        for _ in range(n):
+            attr = self.ATTRIBUTES[self.byte()]
+            m = self.len16()
+            bands = [{"lo": self.nat(), "hi": self.opt_nat(), "points": self.nat()} for _ in range(m)]
+            attributes.append((attr, bands))
+        return {"id": cid, "version": version, "attributes": attributes, "declineBelow": self.nat(), "referBelow": self.nat()}
+
+    def credit_request(self):
+        return {"product": self.text(), "amount": self.nat(), "currency": self.text(), "termDays": self.nat(), "purpose": self.text()}
+
+    def facts(self):
+        return {"income": self.nat(), "obligations": self.nat(), "proposedInstalment": self.nat(), "dependants": self.nat()}
+
+    def commitments(self):
+        n = self.len16()
+        return [(self.text(), self.blob()) for _ in range(n)]
+
+    def verdict(self):
+        t = self.byte()
+        if t == 0:
+            return "pass"
+        return {["fail", "refer"][t - 1]: self.texts()}
+
+    def bureau_report(self):
+        return {"bureau": self.text(), "score": self.nat(), "flags": self.texts(), "reportHash": self.blob(), "reportedOn": self.nat()}
+
+    def decision(self):
+        t = self.byte()
+        if t == 0:
+            return {"approve": {"amount": self.nat(), "termDays": self.nat(), "rateBps": self.nat(), "conditions": self.texts()}}
+        if t == 1:
+            return {"decline": {"reasons": self.texts()}}
+        if t == 2:
+            return {"refer": {"to": self.text()}}
+        raise ValueError(f"unknown decision tag {t}")
+
+    def offer_terms(self):
+        return {"amount": self.nat(), "termDays": self.nat(), "rateBps": self.nat(), "product": self.text(), "currency": self.text(), "conditions": self.texts()}
+
+    def assertion(self):
+        return {"credentialId": self.blob(), "authenticatorData": self.blob(), "clientDataJSON": self.blob(), "signature": self.blob()}
+
+    def document_kind(self):
+        t = self.byte()
+        if t == 4:
+            return {"other": self.text()}
+        return ["facilityAgreement", "collateralPledge", "insurance", "guarantee"][t]
+
+    def origination_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"policySet": self.origination_policy()}
+        if t == 0x02:
+            return {"affordabilityModelSet": self.affordability_model()}
+        if t == 0x03:
+            return {"scorecardSet": self.scorecard()}
+        if t == 0x04:
+            return {"passkeyRegistered": {"party": self.nat(), "credentialId": self.blob(), "publicKeySpki": self.blob()}}
+        if t == 0x05:
+            return {"applicationOpened": {"party": self.opt_nat(), "book": self.text(), "request": self.credit_request(), "channel": self.text(), "day": self.nat()}}
+        if t == 0x06:
+            return {"dataRecorded": {"application": self.nat(), "facts": self.facts(), "commitments": self.commitments()}}
+        if t == 0x07:
+            return {"affordabilityAssessed": {"application": self.nat(), "model": self.text(), "version": self.nat(), "verdict": self.verdict()}}
+        if t == 0x08:
+            return {"bureauRequested": {"application": self.nat(), "bureau": self.text(), "consentCommit": self.blob(), "day": self.nat()}}
+        if t == 0x09:
+            return {"bureauRecorded": {"application": self.nat(), "report": self.bureau_report()}}
+        if t == 0x0A:
+            return {"scored": {"application": self.nat(), "scorecard": self.text(), "version": self.nat(), "points": self.nat(), "band": self.BANDS[self.byte()]}}
+        if t == 0x0B:
+            return {"underwritten": {"application": self.nat(), "decision": self.decision(), "rationale": self.text(), "overrode": self.byte() == 1}}
+        if t == 0x0C:
+            return {"offerIssued": {"application": self.nat(), "terms": self.offer_terms(), "offerHash": self.blob(), "expiresAt": self.nat()}}
+        if t == 0x0D:
+            return {"offerAccepted": {"application": self.nat(), "credentialId": self.blob(), "assertionHash": self.blob(), "day": self.nat()}}
+        if t == 0x0E:
+            return {"offerDeclined": {"application": self.nat(), "day": self.nat()}}
+        if t == 0x0F:
+            return {"offerExpired": {"application": self.nat(), "day": self.nat()}}
+        if t == 0x10:
+            return {"documentRecorded": {"application": self.nat(), "kind": self.document_kind(), "sha256": self.blob(), "signed": self.byte() == 1}}
+        if t == 0x11:
+            return {"conditionsMet": {"application": self.nat(), "conditions": self.texts(), "outstanding": self.nat()}}
+        if t == 0x12:
+            return {"documentationComplete": {"application": self.nat(), "day": self.nat()}}
+        if t == 0x13:
+            return {"prospectOnboarded": {"application": self.nat(), "party": self.nat()}}
+        if t == 0x14:
+            return {"fulfilled": {"application": self.nat(), "party": self.nat(), "account": self.nat(), "day": self.nat()}}
+        if t == 0x15:
+            return {"withdrawn": {"application": self.nat(), "reason": self.text(), "day": self.nat()}}
+        raise ValueError(f"unknown origination event tag {t:#x}")
 
     def alert_event(self):
         sub = self.byte()
@@ -1816,6 +1970,8 @@ class Reader(V.Reader):
             return {"alert": self.alert_event()}
         if tag == 0x4E:
             return {"collections": self.collections_event()}
+        if tag == 0x4F:
+            return {"origination": self.origination_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:

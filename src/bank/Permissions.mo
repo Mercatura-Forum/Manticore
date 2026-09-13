@@ -234,6 +234,30 @@ module {
     p("collections.promise", "collections", #create, #command("recordPromiseToPay"), false, false),
     p("collections.assign", "collections", #update, #command("assignCollector"), false, false),
     p("collections.recovery.close", "collections", #update, #command("closeRecovery"), false, true),
+    // ── origination and underwriting (origination and underwriting) ──
+    // The policy, the affordability model and the scorecard decide how credit is granted: dual. A passkey
+    // registration lets a key accept offers for a party: dual. The credit decision and the drawing are four
+    // eyes. Capture, assessment, the bureau request, scoring, the offer and its acceptance, documents and
+    // conditions are the officer's own record under a scope: single. The bureau's report arrives by a
+    // method the bureau's connector calls, its signature judged by the contract.
+    p("origination.policy", "origination", #update, #command("setOriginationPolicy"), false, true),
+    p("origination.model.affordability", "origination", #update, #command("setAffordabilityModel"), false, true),
+    p("origination.model.scorecard", "origination", #update, #command("setScorecard"), false, true),
+    p("origination.passkey", "origination", #create, #command("registerPasskey"), false, true),
+    p("origination.open", "origination", #create, #command("openApplication"), false, false),
+    p("origination.data", "origination", #update, #command("recordApplicationData"), false, false),
+    p("origination.affordability", "origination", #update, #command("assessAffordability"), false, false),
+    p("origination.bureau.request", "origination", #create, #command("requestBureauReport"), false, false),
+    p("origination.bureau.record", "origination", #create, #method("recordBureauReport"), false, false),
+    p("origination.score", "origination", #update, #command("scoreApplication"), false, false),
+    p("origination.underwrite", "origination", #approve, #command("underwrite"), false, true),
+    p("origination.offer", "origination", #create, #command("issueOffer"), false, false),
+    p("origination.offer.accept", "origination", #update, #command("acceptOffer"), false, false),
+    p("origination.offer.decline", "origination", #update, #command("declineOffer"), false, false),
+    p("origination.document", "origination", #create, #command("recordDocument"), false, false),
+    p("origination.conditions", "origination", #update, #command("recordConditionsMet"), false, false),
+    p("origination.fulfil", "origination", #create, #command("fulfilApplication"), false, true),
+    p("origination.withdraw", "origination", #update, #command("withdrawApplication"), false, false),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -480,6 +504,23 @@ module {
       case (#recordPromiseToPay(_)) "recordPromiseToPay";
       case (#assignCollector(_)) "assignCollector";
       case (#closeRecovery(_)) "closeRecovery";
+      case (#setOriginationPolicy(_)) "setOriginationPolicy";
+      case (#setAffordabilityModel(_)) "setAffordabilityModel";
+      case (#setScorecard(_)) "setScorecard";
+      case (#registerPasskey(_)) "registerPasskey";
+      case (#openApplication(_)) "openApplication";
+      case (#recordApplicationData(_)) "recordApplicationData";
+      case (#assessAffordability(_)) "assessAffordability";
+      case (#requestBureauReport(_)) "requestBureauReport";
+      case (#scoreApplication(_)) "scoreApplication";
+      case (#underwrite(_)) "underwrite";
+      case (#issueOffer(_)) "issueOffer";
+      case (#acceptOffer(_)) "acceptOffer";
+      case (#declineOffer(_)) "declineOffer";
+      case (#recordDocument(_)) "recordDocument";
+      case (#recordConditionsMet(_)) "recordConditionsMet";
+      case (#fulfilApplication(_)) "fulfilApplication";
+      case (#withdrawApplication(_)) "withdrawApplication";
       case (#openPacking(_)) "openPacking";
       case (#rollPackToArchive(_)) "rollPackToArchive";
       case (#declareShardRule(_)) "declareShardRule";

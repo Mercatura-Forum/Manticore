@@ -58,11 +58,12 @@ module {
     #statementCut;            // 8: the per-account statement data for the date
     #tillCheck;               // 9: a till left unsettled at close is a failure
     #monitoring;              // 10: the window rules over the day's active accounts, as alerts
+    #offerExpiry;             // 11: credit offers whose validity ended lapse (origination and underwriting)
   };
 
   public func jobs() : [Job] {
     [#accrual, #charges, #instalmentsDue, #ageing, #provisioning, #maturity,
-     #standingInstructions, #statementCut, #tillCheck, #monitoring]
+     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry]
   };
 
   public func jobText(j : Job) : Text {
@@ -72,7 +73,7 @@ module {
       case (#provisioning) "provisioning"; case (#maturity) "maturity";
       case (#standingInstructions) "standingInstructions";
       case (#statementCut) "statementCut"; case (#tillCheck) "tillCheck";
-      case (#monitoring) "monitoring";
+      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry";
     }
   };
 
@@ -80,7 +81,7 @@ module {
     switch (j) {
       case (#accrual) 1; case (#charges) 2; case (#instalmentsDue) 3; case (#ageing) 4;
       case (#provisioning) 5; case (#maturity) 6; case (#standingInstructions) 7;
-      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10;
+      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11;
     }
   };
 
@@ -118,6 +119,7 @@ module {
       case (#statementCut) null;                  // records a cut; posts nothing
       case (#tillCheck) ?"product.till";
       case (#monitoring) null;                    // records alerts; posts nothing
+      case (#offerExpiry) null;                   // records lapses; posts nothing
     }
   };
 
@@ -155,6 +157,8 @@ module {
     /// How many monitoring rules run at end of day. None, and the plan has no monitoring items,
     /// so a book that declared no rules plans exactly as before.
     monitoringRules : Nat;
+    /// How many credit offers stand open in the book. None, and the plan has no expiry item.
+    offers : Nat;
     shardSize : Nat;
   };
 
@@ -221,6 +225,10 @@ module {
       for (p in input.products.vals()) {
         shardsOf(items, #monitoring, p.product, p.currency, p.accounts, input.shardSize);
       };
+    };
+    // 11. offer expiry, one item for the book, only while offers stand open
+    if (input.offers > 0) {
+      List.add(items, { job = #offerExpiry; product = ""; currency = ""; from = 0; to = 0 });
     };
     if (List.size(items) > MAX_PLAN_ITEMS) return #err(#planTooLarge({ items = List.size(items) }));
     #ok(List.toArray(items))

@@ -11,8 +11,10 @@
 ///
 /// What is reconstructed: every command whose event is its own image (the organisation, the party layer,
 /// the product catalogue, an account's opening and status), `createCustomer` from the run of events it
-/// records, and nothing else — a command whose effect is a journal posting and no bank event, or whose
-/// event records a computed figure rather than the instruction, is not here, and its body is carried. The
+/// records, the origination steps whose block is the instruction less what the contract computed (origination and underwriting;
+/// an offer's acceptance and a signed document keep their body — the assertion is the evidence), and
+/// nothing else — a command whose effect is a journal posting and no bank event, or whose event records
+/// a computed figure rather than the instruction, is not here, and its body is carried. The
 /// harness (`integration/bank_s28.py`) prints, per command family, how many bodies were dropped and how
 /// many carried, so the saving is a measurement.
 
@@ -83,6 +85,15 @@ module {
           case (#productAmended(x)) [#amendProduct({ id = x.id; name = x.name; terms = x.terms })];
           case (#productClosedToNewAccounts(x)) [#closeProductToNewAccounts({ id = x.id; version = x.version })];
           case (#accountOpened(o)) {
+            // an opening followed by its activation and a fulfilment block is an application drawn (origination and underwriting):
+            // the command names the application and nothing else
+            if (act.size() == 3) {
+              switch (act[1], act[2]) {
+                case (#product(#accountStatusSet(_)), #origination(#fulfilled(f))) return [#fulfilApplication({ application = f.application })];
+                case (_, _) {};
+              };
+            };
+            if (act.size() > 1) return [];
             Array.map<[ProdT.Component], T.Command>(orders(o.allocationOrder), func(order) {
               #openAccount({ product = o.product; party = o.party; currency = o.currency; termDays = termOf(o); allocationOrder = order })
             })
@@ -93,7 +104,38 @@ module {
           case (_) [];
         }
       };
+      // ── origination (origination and underwriting): the recorded step is the command, less what the contract computed ──
+      case (#origination(oe)) {
+        switch (oe) {
+          case (#policySet(p)) { if (act.size() > 1) [] else [#setOriginationPolicy(p)] };
+          case (#affordabilityModelSet(m)) { if (act.size() > 1) [] else [#setAffordabilityModel(m)] };
+          case (#scorecardSet(c)) { if (act.size() > 1) [] else [#setScorecard(c)] };
+          case (#passkeyRegistered(x)) { if (act.size() > 1) [] else [#registerPasskey({ party = x.party; credentialId = x.credentialId; publicKeySpki = x.publicKeySpki })] };
+          case (#applicationOpened(x)) { if (act.size() > 1) [] else [#openApplication({ party = x.party; book = x.book; request = x.request; channel = x.channel })] };
+          case (#dataRecorded(x)) { if (act.size() > 1) [] else [#recordApplicationData({ application = x.application; facts = x.facts; commitments = x.commitments })] };
+          case (#affordabilityAssessed(x)) { if (act.size() > 1) [] else [#assessAffordability({ application = x.application })] };
+          case (#bureauRequested(x)) { if (act.size() > 1) [] else [#requestBureauReport({ application = x.application; bureau = x.bureau; consentCommit = x.consentCommit })] };
+          case (#scored(x)) { if (act.size() > 1) [] else [#scoreApplication({ application = x.application })] };
+          case (#underwritten(x)) { if (act.size() > 1) [] else [#underwrite({ application = x.application; decision = x.decision; rationale = x.rationale })] };
+          case (#offerIssued(x)) { if (act.size() > 1) [] else [#issueOffer({ application = x.application; terms = x.terms })] };
+          case (#offerDeclined(x)) { if (act.size() > 1) [] else [#declineOffer({ application = x.application })] };
+          // an unsigned document is its block's image; a signed one carries the assertion only in the body
+          case (#documentRecorded(x)) { if (x.signed or not completion(act)) [] else [#recordDocument({ application = x.application; kind = x.kind; sha256 = x.sha256; signed = null })] };
+          case (#conditionsMet(x)) { if (completion(act)) [#recordConditionsMet({ application = x.application; conditions = x.conditions })] else [] };
+          case (#withdrawn(x)) { if (act.size() > 1) [] else [#withdrawApplication({ application = x.application; reason = x.reason })] };
+          case (_) [];
+        }
+      };
       case (_) [];
+    }
+  };
+
+  /// A documentation act is one block, or two when it completed the documentation.
+  func completion(act : Act) : Bool {
+    switch (act.size()) {
+      case 1 true;
+      case 2 { switch (act[1]) { case (#origination(#documentationComplete(_))) true; case (_) false } };
+      case _ false;
     }
   };
 
@@ -128,7 +170,13 @@ module {
     // the accounts: each opening, optionally followed by its activation; every recorded order may be
     // the default written for an empty one, so the candidates multiply
     var variants : [[T.CustomerAccount]] = [[]];
-    while (i < act.size()) {
+    var application : ?Nat = null;
+    label accounts while (i < act.size()) {
+      // the onboarding may end by naming the prospect's application it fulfils (origination and underwriting)
+      switch (act[i]) {
+        case (#origination(#prospectOnboarded(x))) { if (i + 1 != act.size()) return []; application := ?x.application; i += 1; break accounts };
+        case (_) {};
+      };
       let #product(#accountOpened(o)) = act[i] else return [];
       i += 1;
       var activate = false;
@@ -144,7 +192,7 @@ module {
     };
     let party = { kind = p.kind; salt = p.salt; identityCommit = p.identityCommit; dedupCommit = p.dedupCommit; attributes = p.attributes; book = p.book; cddLevel = p.cddLevel; riskRating = p.riskRating; pep = p.pep; reviewDue = p.reviewDue };
     Array.map<[T.CustomerAccount], T.Command>(variants, func(accounts) {
-      #createCustomer({ party; documents = List.toArray(docs); screening; lifecycle; extensions; accounts ; application = null })
+      #createCustomer({ party; documents = List.toArray(docs); screening; lifecycle; extensions; accounts; application })
     })
   };
 
@@ -153,6 +201,8 @@ module {
     ["openBook", "closeBook", "defineRole", "grantRole", "revokeRole", "setDualPolicy", "clearDualPolicy", "transferBankAdmin", "setFeatureActivation",
      "createParty", "amendParty", "setPartyLifecycle", "setPartyCdd", "addPartyDocument", "addPartyRelationship", "setPartyExtension", "commitScreeningList",
      "recordScreeningDecision", "registerSchema", "registerCollateral", "revalueCollateral", "allocateCollateral", "releaseCollateral", "addStaff", "removeStaff",
-     "setAccountFormat", "setReviewGrace", "registerProduct", "amendProduct", "closeProductToNewAccounts", "openAccount", "setAccountStatus", "migrateAccount", "openTill", "createCustomer"]
+     "setAccountFormat", "setReviewGrace", "registerProduct", "amendProduct", "closeProductToNewAccounts", "openAccount", "setAccountStatus", "migrateAccount", "openTill", "createCustomer",
+     "setOriginationPolicy", "setAffordabilityModel", "setScorecard", "registerPasskey", "openApplication", "recordApplicationData", "assessAffordability", "requestBureauReport",
+     "scoreApplication", "underwrite", "issueOffer", "declineOffer", "recordDocument", "recordConditionsMet", "fulfilApplication", "withdrawApplication"]
   };
 }

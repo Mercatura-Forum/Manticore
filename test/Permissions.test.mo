@@ -19,6 +19,7 @@ import ProdT "../src/bank/ProductTypes";
 import CT "../src/bank/CloseTypes";
 import RepT "../src/bank/ReportTypes";
 import P "../src/bank/Permissions";
+import OV "OriginationVectors";
 
 let p1 = Principal.fromBlob("\01\02");
 let scope : T.Scope = { books = null; currencies = null; ceiling = null; dailyLimit = null };
@@ -136,6 +137,7 @@ let sampleStatement : RepT.StatementRef = {
   atHeight = 417;
 };
 
+let segHash32 : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 let commands : [T.Command] = [
   #defineRole({ id = "r"; name = "R"; permissions = ["role.grant"] }),
   #grantRole({ subject = p1; role = "r"; scope }),
@@ -267,6 +269,24 @@ let commands : [T.Command] = [
   #recordPromiseToPay({ account = 7; amount = 5_000_00; by = 20715 }),
   #assignCollector({ account = 7; staff = p1 }),
   #closeRecovery({ account = 7 }),
+  // origination and underwriting (origination and underwriting)
+  #setOriginationPolicy({ rpId = "bank.example"; origin = "https://bank.example"; offerValidityDays = 14; bureaus = [("I-SCORE", #none, ""), ("PQ-BUREAU", #mldsa44, Blob.fromArray([9, 8, 7]))] }),
+  #setAffordabilityModel({ id = "retail-v1"; version = 1; rules = [{ id = "dsr-45"; kind = #maxDebtServiceRatioBps(4500); onFail = #fail }, { id = "res"; kind = #minResidualIncome(2_500_00); onFail = #fail }, { id = "term"; kind = #maxTermDays(1826); onFail = #fail }, { id = "amt"; kind = #maxAmount(500_000_00); onFail = #refer }, { id = "inc"; kind = #minIncome(3_000_00); onFail = #refer }] }),
+  #setScorecard({ id = "retail-card"; version = 2; attributes = [(#income, [{ lo = 0; hi = ?4_999_99; points = 10 }, { lo = 5_000_00; hi = null; points = 25 }]), (#obligationsRatioBps, [{ lo = 0; hi = ?2000; points = 30 }]), (#bureauScore, [{ lo = 700; hi = null; points = 35 }]), (#bureauFlags, [{ lo = 0; hi = ?0; points = 10 }]), (#termDays, [{ lo = 0; hi = ?365; points = 10 }]), (#amount, [{ lo = 0; hi = null; points = 1 }])]; declineBelow = 50; referBelow = 80 }),
+  #registerPasskey({ party = 7; credentialId = OV.CREDENTIAL; publicKeySpki = OV.SPKI }),
+  #openApplication({ party = ?7; book = "HQ"; request = { product = "PL-STD"; amount = 120_000_00; currency = "EGP"; termDays = 730; purpose = "car" }; channel = "branch" }),
+  #recordApplicationData({ application = 900; facts = { income = 20_000_00; obligations = 2_000_00; proposedInstalment = 5_000_00; dependants = 2 }; commitments = [("employer", segHash32), ("address", segHash32)] }),
+  #assessAffordability({ application = 900 }),
+  #requestBureauReport({ application = 900; bureau = "I-SCORE"; consentCommit = segHash32 }),
+  #scoreApplication({ application = 900 }),
+  #underwrite({ application = 900; decision = #approve({ amount = 100_000_00; termDays = 730; rateBps = 1800; conditions = ["salary-assignment", "insurance"] }); rationale = "" }),
+  #issueOffer({ application = 900; terms = { amount = 90_000_00; termDays = 730; rateBps = 1800; product = "PL-STD"; currency = "EGP"; conditions = ["salary-assignment", "insurance"] } }),
+  #acceptOffer({ application = 900; assertion = { credentialId = OV.CREDENTIAL; authenticatorData = OV.ASSERTIONS[0].2; clientDataJSON = OV.ASSERTIONS[0].3; signature = OV.ASSERTIONS[0].4 } }),
+  #declineOffer({ application = 901 }),
+  #recordDocument({ application = 900; kind = #facilityAgreement; sha256 = segHash32; signed = null }),
+  #recordConditionsMet({ application = 900; conditions = ["insurance"] }),
+  #fulfilApplication({ application = 900 }),
+  #withdrawApplication({ application = 903; reason = "found another lender" }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -333,8 +353,8 @@ for (x in P.catalogue().vals()) {
 Debug.print("count: catalogue entries guarding a command = " # Nat.toText(commandEntries));
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
-assert (methodEntries == 19);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request
-assert (commandEntries == 151);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery)
+assert (methodEntries == 20);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting)
+assert (commandEntries == 168);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();

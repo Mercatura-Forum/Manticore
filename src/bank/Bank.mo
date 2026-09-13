@@ -81,6 +81,8 @@ import AlT "AlertTypes";
 import AlertCore "AlertCore";
 import ColT "CollectionsTypes";
 import CollectionsCore "CollectionsCore";
+import OT "OriginationTypes";
+import OriginationCore "OriginationCore";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -894,6 +896,19 @@ shared (initMsg) persistent actor class Bank(init : {
   public shared ({ caller }) func ingestMessage(rail : Text, xml : Blob, signature : ?Blob) : async Result.Result<BankCore.IngestResult, T.BankError> {
     switch (requireMethodPermission(caller, "ingestMessage")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     BankCore.ingestMessage(bank, bankBlocks(), journal, journalBlocks(), me(), now(), rail, xml, signature, verifyConnectorSignature, bankRecorder())
+  };
+
+  // ─── origination (origination and underwriting): the bureau's report ───
+
+  /// A credit bureau's report on an application, from the bureau's connector: the caller holds
+  /// `origination.bureau.record`; the report's signature is judged under the bureau key the policy
+  /// registers, over the report's canonical bytes; the report is the block, attributed to the caller.
+  public shared ({ caller }) func recordBureauReport(application : Nat, report : OT.BureauReport, signature : Blob) : async Result.Result<{ block : Nat }, T.BankError> {
+    switch (requireMethodPermission(caller, "recordBureauReport")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    switch (BankCore.planBureauReport(bank, application, report, signature, verifyConnectorSignature)) {
+      case (#err(e)) fail<{ block : Nat }>(caller, "origination.bureau.record", { error = e; record = true });
+      case (#ok(ev)) #ok({ block = commitBank(caller, ev).index });
+    }
   };
 
   /// The post-quantum connector schemes (M-6). Verification is over the exact message bytes.
@@ -2468,6 +2483,63 @@ shared (initMsg) persistent actor class Bank(init : {
     let page = CollectionsCore.worklist(bank.collections, staff, cursor, limit);
     let scope = readScope(caller);
     { entries = Array.filter<ColT.ExposureView>(page.entries, func(v) { BankCore.mayReadOptBook(scope, ProductCore.bookOf(bank.product, v.account)) }); cursor = page.cursor }
+  };
+
+  // ─── origination (origination and underwriting): the applications ───
+
+  /// One application, within the caller's books.
+  public shared query ({ caller }) func application(id : Nat) : async Result.Result<?OT.ApplicationView, T.BankError> {
+    switch (OriginationCore.view(bank.origination, id)) {
+      case null #ok(null);
+      case (?v) { if (BankCore.mayReadBook(readScope(caller), v.book)) #ok(?v) else #err(#OutsideBookScope({ book = v.book })) };
+    }
+  };
+
+  /// The applications in a stage, paged, filtered to the caller's books.
+  public shared query ({ caller }) func applicationsByStage(stage : OT.Stage, cursor : ?Blob, limit : Nat) : async { entries : [OT.ApplicationView]; cursor : ?Blob } {
+    let page = OriginationCore.listByStage(bank.origination, stage, cursor, limit);
+    let scope = readScope(caller);
+    { entries = Array.filter<OT.ApplicationView>(page.entries, func(v) { BankCore.mayReadBook(scope, v.book) }); cursor = page.cursor }
+  };
+
+  /// A party's applications, paged, filtered to the caller's books.
+  public shared query ({ caller }) func applicationsOfParty(party : Nat, cursor : ?Blob, limit : Nat) : async { entries : [OT.ApplicationView]; cursor : ?Blob } {
+    let page = OriginationCore.listByParty(bank.origination, party, cursor, limit);
+    let scope = readScope(caller);
+    { entries = Array.filter<OT.ApplicationView>(page.entries, func(v) { BankCore.mayReadBook(scope, v.book) }); cursor = page.cursor }
+  };
+
+  /// The application a loan account was drawn from, if it was.
+  public shared query ({ caller }) func applicationOfAccount(account : Nat) : async Result.Result<?Nat, T.BankError> {
+    switch (scopedAccount(caller, account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    #ok(OriginationCore.applicationOfAccount(bank.origination, account))
+  };
+
+  /// Which of an approval's conditions are met, by the names the approval block carries.
+  public shared query ({ caller }) func applicationConditions(id : Nat, names : [Text]) : async Result.Result<[(Text, Bool)], T.BankError> {
+    switch (OriginationCore.view(bank.origination, id)) {
+      case null #err(#OriginationError({ error = #UnknownApplication({ application = id }) }));
+      case (?v) { if (BankCore.mayReadBook(readScope(caller), v.book)) #ok(OriginationCore.conditionsOf(bank.origination, id, names)) else #err(#OutsideBookScope({ book = v.book })) };
+    }
+  };
+
+  /// Whether a party has a passkey registered under a credential id (the key itself is never served).
+  public shared query ({ caller }) func hasPasskey(party : Nat, credentialId : Blob) : async Result.Result<Bool, T.BankError> {
+    switch (PartyCore.bookOf(bank.party, party)) {
+      case null #err(#PartyError({ error = #UnknownParty({ party }) }));
+      case (?book) { if (BankCore.mayReadBook(readScope(caller), book)) #ok(OriginationCore.passkey(bank.origination, party, credentialId) != null) else #err(#OutsideBookScope({ book })) };
+    }
+  };
+
+  /// The origination pipeline at a glance: the models in force, the counts, the applications per stage.
+  public query func originationStatus() : async { policy : ?OT.Policy; affordability : ?{ id : Text; version : Nat }; scorecard : ?{ id : Text; version : Nat }; counts : { applications : Nat; fulfilled : Nat; declined : Nat; withdrawn : Nat; expired : Nat; passkeys : Nat }; stages : [(Text, Nat)] } {
+    {
+      policy = OriginationCore.policy(bank.origination);
+      affordability = switch (OriginationCore.affordabilityModel(bank.origination)) { case (?m) ?{ id = m.id; version = m.version }; case null null };
+      scorecard = switch (OriginationCore.scorecard(bank.origination)) { case (?c) ?{ id = c.id; version = c.version }; case null null };
+      counts = OriginationCore.counts(bank.origination);
+      stages = OriginationCore.stageDistribution(bank.origination);
+    }
   };
 
   /// The collections book at a glance: the policy, the counts, the exposures per stage.

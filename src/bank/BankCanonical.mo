@@ -46,6 +46,7 @@ import AT "ArchiveTypes";
 import MT "MonitoringTypes";
 import AlT "AlertTypes";
 import ColT "CollectionsTypes";
+import OCan "OriginationCanonical";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -584,6 +585,24 @@ module {
       case (#recordPromiseToPay(x)) { w.byte(0xF3); w.nat(x.account); w.nat(x.amount); w.nat(x.by) };
       case (#assignCollector(x)) { w.byte(0xF4); w.nat(x.account); w.principal(x.staff) };
       case (#closeRecovery(x)) { w.byte(0xF5); w.nat(x.account) };
+      // ── origination and underwriting (origination and underwriting) ──
+      case (#setOriginationPolicy(p)) { w.byte(0xA2); OCan.writePolicy(w, p) };
+      case (#setAffordabilityModel(m)) { w.byte(0xA3); OCan.writeAffordabilityModel(w, m) };
+      case (#setScorecard(c)) { w.byte(0xA4); OCan.writeScorecard(w, c) };
+      case (#registerPasskey(x)) { w.byte(0xA5); w.nat(x.party); w.blob(x.credentialId); w.blob(x.publicKeySpki) };
+      case (#openApplication(x)) { w.byte(0xA6); w.optNat(x.party); w.text(x.book); OCan.writeRequest(w, x.request); w.text(x.channel) };
+      case (#recordApplicationData(x)) { w.byte(0xA7); w.nat(x.application); OCan.writeFacts(w, x.facts); OCan.writeCommitments(w, x.commitments) };
+      case (#assessAffordability(x)) { w.byte(0xA8); w.nat(x.application) };
+      case (#requestBureauReport(x)) { w.byte(0xA9); w.nat(x.application); w.text(x.bureau); w.blob(x.consentCommit) };
+      case (#scoreApplication(x)) { w.byte(0xAA); w.nat(x.application) };
+      case (#underwrite(x)) { w.byte(0xAB); w.nat(x.application); OCan.writeDecision(w, x.decision); w.text(x.rationale) };
+      case (#issueOffer(x)) { w.byte(0xAC); w.nat(x.application); OCan.writeTerms(w, x.terms) };
+      case (#acceptOffer(x)) { w.byte(0xAD); w.nat(x.application); OCan.writeAssertion(w, x.assertion) };
+      case (#declineOffer(x)) { w.byte(0xAE); w.nat(x.application) };
+      case (#recordDocument(x)) { w.byte(0xAF); w.nat(x.application); OCan.writeKind(w, x.kind); w.blob(x.sha256); OCan.writeOptAssertion(w, x.signed) };
+      case (#recordConditionsMet(x)) { w.byte(0xB5); w.nat(x.application); w.len16(x.conditions.size()); for (c in x.conditions.vals()) w.text(c) };
+      case (#fulfilApplication(x)) { w.byte(0xB6); w.nat(x.application) };
+      case (#withdrawApplication(x)) { w.byte(0xB7); w.nat(x.application); w.text(x.reason) };
       case (#openPacking(x)) { w.byte(0xD4); w.text(x.period) };
       case (#rollPackToArchive(x)) { w.byte(0xD5); w.nat(x.pack); w.nat64(x.cid); w.principal(x.archive) };
       case (#declareShardRule(x)) { w.byte(0xD6); w.nat(x.self); writeShards(w, x.shards) };
@@ -1302,6 +1321,7 @@ module {
       case (#monitoring(me)) { w.byte(0x47); writeMonitoringEvent(w, me) };
       case (#alert(ae)) { w.byte(0x48); writeAlertEvent(w, ae) };
       case (#collections(ce)) { w.byte(0x4E); writeCollectionsEvent(w, ce) };
+      case (#origination(oe)) { w.byte(0x4F); OCan.writeEvent(w, oe) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -2242,6 +2262,29 @@ module {
       };
       case 0xD1 { let ?id = r.text() else return null; ?#retireMonitoringRule({ id }) };
       case 0xD2 { let ?alert = r.nat() else return null; let ?reason = r.text() else return null; ?#clearAlert({ alert; reason }) };
+      case 0xA2 { let ?p = OCan.readPolicy(r) else return null; ?#setOriginationPolicy(p) };
+      case 0xA3 { let ?m = OCan.readAffordabilityModel(r) else return null; ?#setAffordabilityModel(m) };
+      case 0xA4 { let ?c = OCan.readScorecard(r) else return null; ?#setScorecard(c) };
+      case 0xA5 { let ?party = r.nat() else return null; let ?credentialId = r.blob() else return null; let ?publicKeySpki = r.blob() else return null; ?#registerPasskey({ party; credentialId; publicKeySpki }) };
+      case 0xA6 {
+        let ?party = r.optNat() else return null; let ?book = r.text() else return null; let ?request = OCan.readRequest(r) else return null; let ?channel = r.text() else return null;
+        ?#openApplication({ party; book; request; channel })
+      };
+      case 0xA7 { let ?application = r.nat() else return null; let ?facts = OCan.readFacts(r) else return null; let ?commitments = OCan.readCommitments(r) else return null; ?#recordApplicationData({ application; facts; commitments }) };
+      case 0xA8 { let ?application = r.nat() else return null; ?#assessAffordability({ application }) };
+      case 0xA9 { let ?application = r.nat() else return null; let ?bureau = r.text() else return null; let ?consentCommit = r.blob() else return null; ?#requestBureauReport({ application; bureau; consentCommit }) };
+      case 0xAA { let ?application = r.nat() else return null; ?#scoreApplication({ application }) };
+      case 0xAB { let ?application = r.nat() else return null; let ?decision = OCan.readDecision(r) else return null; let ?rationale = r.text() else return null; ?#underwrite({ application; decision; rationale }) };
+      case 0xAC { let ?application = r.nat() else return null; let ?terms = OCan.readTerms(r) else return null; ?#issueOffer({ application; terms }) };
+      case 0xAD { let ?application = r.nat() else return null; let ?assertion = OCan.readAssertion(r) else return null; ?#acceptOffer({ application; assertion }) };
+      case 0xAE { let ?application = r.nat() else return null; ?#declineOffer({ application }) };
+      case 0xAF {
+        let ?application = r.nat() else return null; let ?kind = OCan.readKind(r) else return null; let ?sha256 = r.blob() else return null; let ?signed = OCan.readOptAssertion(r) else return null;
+        ?#recordDocument({ application; kind; sha256; signed })
+      };
+      case 0xB5 { let ?application = r.nat() else return null; let ?conditions = rTexts(r) else return null; ?#recordConditionsMet({ application; conditions }) };
+      case 0xB6 { let ?application = r.nat() else return null; ?#fulfilApplication({ application }) };
+      case 0xB7 { let ?application = r.nat() else return null; let ?reason = r.text() else return null; ?#withdrawApplication({ application; reason }) };
       case 0xF0 { let ?p = rCollectionsPolicy(r) else return null; ?#setCollectionsPolicy(p) };
       case 0xF1 { let ?account = r.nat() else return null; let ?reason = r.text() else return null; ?#markUnlikelyToPay({ account; reason }) };
       case 0xF2 {
@@ -2392,6 +2435,7 @@ module {
       case 0x47 { let ?me = readMonitoringEvent(r) else return null; ?#monitoring(me) };
       case 0x48 { let ?ae = readAlertEvent(r) else return null; ?#alert(ae) };
       case 0x4E { let ?ce = readCollectionsEvent(r) else return null; ?#collections(ce) };
+      case 0x4F { let ?oe = OCan.readEvent(r) else return null; ?#origination(oe) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

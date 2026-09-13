@@ -24,6 +24,7 @@ import RepT "../src/bank/ReportTypes";
 import C "../src/bank/BankCanonical";
 import P "../src/bank/Permissions";
 import Reconstruct "../src/bank/Reconstruct";
+import OV "OriginationVectors";
 import Text "mo:core/Text";
 
 let alice = Principal.fromBlob("\A1\01");
@@ -254,6 +255,7 @@ let sampleStatement : RepT.StatementRef = {
   atHeight = 417;
 };
 
+let segHash32 : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 let commands : [T.Command] = [
   #defineRole({ id = "checker"; name = "Checker"; permissions = ["command.approve", "role.grant"] }),
   #grantRole({ subject = alice; role = "checker"; scope = fullScope }),
@@ -470,6 +472,28 @@ let commands : [T.Command] = [
   #revokeDebitAuthority({ rail = "RTGS"; debtor = 311; creditorBic = "CIBEEGCX"; currency = "EGP" }),
   #decideMandate({ rail = "RTGS"; mandateId = "MNDT-1"; accepted = false; reason = ?"customer declined" }),
   #decideMandate({ rail = "RTGS"; mandateId = "MNDT-2"; accepted = true; reason = null }),
+  // origination and underwriting (origination and underwriting)
+  #setOriginationPolicy({ rpId = "bank.example"; origin = "https://bank.example"; offerValidityDays = 14; bureaus = [("I-SCORE", #none, ""), ("PQ-BUREAU", #mldsa44, Blob.fromArray([9, 8, 7]))] }),
+  #setAffordabilityModel({ id = "retail-v1"; version = 1; rules = [{ id = "dsr-45"; kind = #maxDebtServiceRatioBps(4500); onFail = #fail }, { id = "res"; kind = #minResidualIncome(2_500_00); onFail = #fail }, { id = "term"; kind = #maxTermDays(1826); onFail = #fail }, { id = "amt"; kind = #maxAmount(500_000_00); onFail = #refer }, { id = "inc"; kind = #minIncome(3_000_00); onFail = #refer }] }),
+  #setScorecard({ id = "retail-card"; version = 2; attributes = [(#income, [{ lo = 0; hi = ?4_999_99; points = 10 }, { lo = 5_000_00; hi = null; points = 25 }]), (#obligationsRatioBps, [{ lo = 0; hi = ?2000; points = 30 }]), (#bureauScore, [{ lo = 700; hi = null; points = 35 }]), (#bureauFlags, [{ lo = 0; hi = ?0; points = 10 }]), (#termDays, [{ lo = 0; hi = ?365; points = 10 }]), (#amount, [{ lo = 0; hi = null; points = 1 }])]; declineBelow = 50; referBelow = 80 }),
+  #registerPasskey({ party = 7; credentialId = OV.CREDENTIAL; publicKeySpki = OV.SPKI }),
+  #openApplication({ party = ?7; book = "HQ"; request = { product = "PL-STD"; amount = 120_000_00; currency = "EGP"; termDays = 730; purpose = "car" }; channel = "branch" }),
+  #openApplication({ party = null; book = "BR01"; request = { product = "PL-STD"; amount = 30_000_00; currency = "EGP"; termDays = 365; purpose = "" }; channel = "web" }),
+  #recordApplicationData({ application = 900; facts = { income = 20_000_00; obligations = 2_000_00; proposedInstalment = 5_000_00; dependants = 2 }; commitments = [("employer", segHash32), ("address", segHash32)] }),
+  #assessAffordability({ application = 900 }),
+  #requestBureauReport({ application = 900; bureau = "I-SCORE"; consentCommit = segHash32 }),
+  #scoreApplication({ application = 900 }),
+  #underwrite({ application = 900; decision = #approve({ amount = 100_000_00; termDays = 730; rateBps = 1800; conditions = ["salary-assignment", "insurance"] }); rationale = "" }),
+  #underwrite({ application = 901; decision = #decline({ reasons = ["affordability"] }); rationale = "score below the floor" }),
+  #underwrite({ application = 902; decision = #refer({ to = "credit-committee" }); rationale = "" }),
+  #issueOffer({ application = 900; terms = { amount = 90_000_00; termDays = 730; rateBps = 1800; product = "PL-STD"; currency = "EGP"; conditions = ["salary-assignment", "insurance"] } }),
+  #acceptOffer({ application = 900; assertion = { credentialId = OV.CREDENTIAL; authenticatorData = OV.ASSERTIONS[0].2; clientDataJSON = OV.ASSERTIONS[0].3; signature = OV.ASSERTIONS[0].4 } }),
+  #declineOffer({ application = 901 }),
+  #recordDocument({ application = 900; kind = #facilityAgreement; sha256 = segHash32; signed = null }),
+  #recordDocument({ application = 900; kind = #other("payslip"); sha256 = segHash32; signed = ?{ credentialId = OV.CREDENTIAL; authenticatorData = OV.ASSERTIONS[0].2; clientDataJSON = OV.ASSERTIONS[0].3; signature = OV.ASSERTIONS[0].4 } }),
+  #recordConditionsMet({ application = 900; conditions = ["insurance"] }),
+  #fulfilApplication({ application = 900 }),
+  #withdrawApplication({ application = 903; reason = "found another lender" }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -535,7 +559,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13; a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -580,6 +604,22 @@ let golden : [(Text, Text, Text)] = [
   ("migrateAccount", "f2c7d8cb19ce50832863137ee8a0c8c50b48bc670b654a2edd22c7b093a22e37", "69054684afb694cbb45830c7a830fbd9843ba4b1b9876799a43ec23f846f9a88"),
   ("openTill", "548a8d1cbdac46b960851f12efdf218e9fa38f4a58527403c2ce4e0737e7b08c", "e9896bb907a7b2b16b93a945853b3ca4c8085dc1a3905be40e47bc5f45f54d17"),
   ("createCustomer", "be7bdba924af2d0d7cad930fa350a61e6e94665d5a67c7340dfdeceac8f091fc", "2598e939f8e91518e8c5c85d8edb73d641ba15c17f6b10baabbb8ceca535df21"),
+  ("setOriginationPolicy", "80aa8c6431c03d9624c49464ecf2999df0607fbb0b03edd606ff1798281945fe", "62fefefd76eea84087071df914b894336b1d430a0b7a9c7b4cfc913672b4127b"),
+  ("setAffordabilityModel", "a26d28d79298096cea3838fedae0bee35862271550aba4c2984b68f255d64406", "bef62871c0fe46cf54345e79469355e632a04e43e039f2b865835241aa6a2059"),
+  ("setScorecard", "3471eb0b251af7d0bb11b5621afbb532668f2876d1ce4997bbe06adec319429c", "e1333dbda8df7d71a581d020579e4927eeb67e7aed7879995ad969bc9e1f4d03"),
+  ("registerPasskey", "c064a78eda4db9ab710a2d236ae39c360ca96522b23a08390cc8e3b54161118f", "0cc4a577fd6cb5934d1e24121cb56411c2919165f4a15b3bc6583e42bbed8849"),
+  ("openApplication", "5ffed3439ecc89af098b6283d68807e117c5cb54af0ce73e93e9376c272a0a61", "f835ee0f227d6b708a7bcaa859e7c8b7ef254e2838eb84df611215b3a6be4595"),
+  ("recordApplicationData", "3cb9d53d3f411e0400daad99fee6437185eac42b86f8754ff96fa34d9959e656", "af267124868f223ad5de1456122d151cc8fc1c507b8941e4986cbf9ceec66f76"),
+  ("assessAffordability", "6b1f033af7d6edd3e24760a1f3cee8e2d941c2e166961635251b5d5044d43723", "ba091006225236f9682944149922d3b3e1d548280549d006536d05b628090d8b"),
+  ("requestBureauReport", "e39d11f23f06017c124186b20ff33cd1961d63c2652e31a82ac6801fcf355dc5", "0b7be6eec763e9c646dcb88c0c86e0192114aaf78048cbd5dc917739f53bb891"),
+  ("scoreApplication", "ac4d854be10ba399b9fe9823e21438388ea284a902f587fd337921eba0ba3a6c", "b7d6cebddfbcd00747558567ce17c7b7c156c676681f51749b5e058844f8f3fb"),
+  ("underwrite", "64c6d2bc01cde4ab658a04222dc6e67ac2361b50d126430573d4e036e815f39d", "343e9960e0c74fe90fe6bca643f1bfccfd1f0ccf8d4d05abcd388a11f1eece12"),
+  ("issueOffer", "7482d09fe2e295e8653d5f6649303ad17b3718085a1f0537c4bedfdcbeb2bc20", "47ec324f98e7a3187048053f79d7bd1418341cc890c264a8e2277cfbcf156dd6"),
+  ("declineOffer", "20b534e6181a9fc3f3b16d507c8886ed0a82a2e4177bc84802b8c1fc98034187", "269de81902f252d988372efab8923a1423d2bf3323f12f36cc80ab5664bc2f4a"),
+  ("recordDocument", "b5194d1082c38fb6328d15f7cca9f2764d69b6559853ee3330e2b93dc887dfa1", "88bee7a16d51ba9e415299060794daa713116dfdd964bbcd5e1b2cbb10eb30e3"),
+  ("recordConditionsMet", "15e88c88052edfcbf6a39afad1bb3e8c048862726a1e61264442a0f8fc7dacf3", "a8f3ad82e0fb65d1841092397764c308808d8b9413180e7e599a5a4701d17795"),
+  ("fulfilApplication", "1c5fc41aa147d5d4bb713c6cd62f541635868d81eece4a2606579814e30aa0bc", "de7c60bdc65c70631589febd8c5ce6c0b0f861863be657f875a72d2303f72ff3"),
+  ("withdrawApplication", "64b1e008e72c060d5a8f6ea20cc1412a55b109d34237c1652670e84fad6fb8ed", "1de82a9bf9980e87bb13acdd758e1ffdfdff10aca94d60c61540041455251887"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {
