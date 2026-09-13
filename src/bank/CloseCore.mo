@@ -12,6 +12,7 @@
 /// every time rather than carried.
 
 import Nat "mo:core/Nat";
+import Nat8 "mo:core/Nat8";
 import Text "mo:core/Text";
 import Principal "mo:core/Principal";
 import Map "mo:core/Map";
@@ -68,6 +69,14 @@ module {
     schedules : Map.Map<Text, ScheduleEntry>;
     /// (book, period) -> closed. The bank layer refuses a posting touching the book.
     closedBooks : Map.Map<(Text, Text), Nat>;
+    /// currency -> its own working-day calendar (S4.1); a value date in the currency is a business day in both.
+    calendars : Map.Map<Text, JT.CalendarConfig>;
+    /// from -> the redenomination declared, with the products it re-versioned and whether the end-of-day job completed it.
+    /// The record stays after completion: the day's plan is derived from what was declared for the day, which must not
+    /// change while the run is open.
+    redenominations : Map.Map<Text, { redenomination : T.Redenomination; products : [Text]; completed : Bool }>;
+    /// from -> to, for every currency closed by a completed redenomination.
+    closedCurrencies : Map.Map<Text, Text>;
   };
 
   func cmpTN(a : (Text, Nat), b : (Text, Nat)) : Order.Order {
@@ -88,6 +97,9 @@ module {
       runs = Map.empty<(Text, Text), RunEntry>();
       schedules = Map.empty<Text, ScheduleEntry>();
       closedBooks = Map.empty<(Text, Text), Nat>();
+      calendars = Map.empty<Text, JT.CalendarConfig>();
+      redenominations = Map.empty<Text, { redenomination : T.Redenomination; products : [Text]; completed : Bool }>();
+      closedCurrencies = Map.empty<Text, Text>();
     }
   };
 
@@ -98,6 +110,50 @@ module {
   // ═══════════════════════════════════════════════════════
 
   public func functional(s : State) : ?JT.Currency { s.functional };
+  public func currencyCalendar(s : State, currency : Text) : ?JT.CalendarConfig { Map.get(s.calendars, Text.compare, currency) };
+  public func listCurrencyCalendars(s : State) : [(Text, JT.CalendarConfig)] { Map.toArray(s.calendars) };
+  public type RedenominationEntry = { redenomination : T.Redenomination; products : [Text]; completed : Bool };
+  /// The redenomination of a currency declared and not yet carried out.
+  public func pendingRedenomination(s : State, from : Text) : ?RedenominationEntry { switch (Map.get(s.redenominations, Text.compare, from)) { case (?e) { if (e.completed) null else ?e }; case null null } };
+  public func pendingRedenominations(s : State) : [RedenominationEntry] { Array.filter<RedenominationEntry>(Array.map<(Text, RedenominationEntry), RedenominationEntry>(Map.toArray(s.redenominations), func((_, r)) { r }), func(e) { not e.completed }) };
+  /// The completed redenomination a product went through, if any: its day, its old currency and its ratio — what an
+  /// accrual window spanning the day needs to value the old-currency days.
+  public func redenominationOfProduct(s : State, product : Text) : ?{ day : Nat; from : Text; to : Text; ratioNumerator : Nat; ratioDenominator : Nat } {
+    var best : ?{ day : Nat; from : Text; to : Text; ratioNumerator : Nat; ratioDenominator : Nat } = null;
+    for ((_, e) in Map.entries(s.redenominations)) {
+      if (e.completed and Array.find<Text>(e.products, func(p) { Text.equal(p, product) }) != null) {
+        let r = e.redenomination;
+        switch (best) { case (?b) { if (r.day > b.day) best := ?{ day = r.day; from = r.from; to = r.to; ratioNumerator = r.ratioNumerator; ratioDenominator = r.ratioDenominator } }; case null best := ?{ day = r.day; from = r.from; to = r.to; ratioNumerator = r.ratioNumerator; ratioDenominator = r.ratioDenominator } };
+      };
+    };
+    best
+  };
+  /// Every redenomination declared for a business date, completed or not: what the date's end-of-day plan is built from.
+  public func redenominationsDeclaredOn(s : State, day : Nat) : [RedenominationEntry] { Array.filter<RedenominationEntry>(Array.map<(Text, RedenominationEntry), RedenominationEntry>(Map.toArray(s.redenominations), func((_, r)) { r }), func(e) { e.redenomination.day == day }) };
+  /// The successor of a currency closed by a redenomination, if it was.
+  public func closedTo(s : State, currency : Text) : ?Text { Map.get(s.closedCurrencies, Text.compare, currency) };
+  /// The bank's calendar merged with the currencies' own: a rest day or holiday of any is one of the result; the
+  /// shift policy is the bank's (`#reject` in a bank deployment — the product layer resolves, the journal refuses).
+  public func mergedCalendar(s : State, bank : ?JT.CalendarConfig, currencies : [Text]) : ?JT.CalendarConfig {
+    var out = bank;
+    for (c in currencies.vals()) {
+      switch (Map.get(s.calendars, Text.compare, c)) {
+        case (?cal) {
+          out := switch (out) {
+            case null ?cal;
+            case (?b) ?{ restDays = union(b.restDays, cal.restDays); holidays = union(b.holidays, cal.holidays); policy = b.policy };
+          };
+        };
+        case null {};
+      };
+    };
+    out
+  };
+  func union(a : [Nat], b : [Nat]) : [Nat] {
+    let out = List.fromArray<Nat>(a);
+    for (x in b.vals()) { if (Array.find<Nat>(a, func(y) { y == x }) == null) List.add(out, x) };
+    List.toArray(out)
+  };
   public func getPair(s : State, currency : Text) : ?Fx.PositionPair { Map.get(s.pairs, Text.compare, currency) };
   public func listPairs(s : State) : [Fx.PositionPair] {
     Array.map<(Text, Fx.PositionPair), Fx.PositionPair>(Map.toArray(s.pairs), func((_, p)) { p })
@@ -224,6 +280,18 @@ module {
       case (#backValueApproved(x)) {
         Map.add(s.approvals, cmpTN, (x.book, x.valueDate), { approver = x.approver; reason = x.reason; atBlock = blockIndex });
       };
+      case (#currencyCalendarSet(x)) { switch (x.calendar) { case (?c) Map.add(s.calendars, Text.compare, x.currency, c); case null ignore Map.delete(s.calendars, Text.compare, x.currency) } };
+      case (#redenominationDeclared(x)) { Map.add(s.redenominations, Text.compare, x.redenomination.from, { redenomination = x.redenomination; products = x.products; completed = false }) };
+      case (#balanceRedenominated(_)) {};   // the money is the journal's
+      case (#redenominationCompleted(x)) {
+        switch (Map.get(s.redenominations, Text.compare, x.from)) { case (?e) Map.add(s.redenominations, Text.compare, x.from, { e with completed = true }); case null {} };
+        Map.add(s.closedCurrencies, Text.compare, x.from, x.to);
+        // the position pair of the old currency, if one exists, is the new currency's from here on
+        switch (Map.get(s.pairs, Text.compare, x.from)) {
+          case (?p) { ignore Map.delete(s.pairs, Text.compare, x.from); Map.add(s.pairs, Text.compare, x.to, { p with currency = x.to }) };
+          case null {};
+        };
+      };
       case (#fxDealBooked(_)) {};      // the money is the journal's; nothing to fold
       case (#fxRevalued(_)) {};
       case (#fxRealised(_)) {};
@@ -303,6 +371,12 @@ module {
     };
     w.nat(Map.size(s.windows));
     for ((_, win) in Map.entries(s.windows)) { w.text(win.book); w.nat(win.freeDays); w.nat(win.approvedDays) };
+    w.nat(Map.size(s.calendars));
+    for ((c, cal) in Map.entries(s.calendars)) { w.text(c); w.calendar(?cal) };
+    w.nat(Map.size(s.redenominations));
+    for ((_, e) in Map.entries(s.redenominations)) { let r = e.redenomination; w.text(r.from); w.text(r.to); w.nat(Nat8.toNat(r.minorUnits)); w.nat(r.ratioNumerator); w.nat(r.ratioDenominator); w.text(r.bridgeAccount); w.text(r.roundingAccount); w.nat(r.day); w.bool(e.completed); w.nat(e.products.size()); for (p in e.products.vals()) w.text(p) };
+    w.nat(Map.size(s.closedCurrencies));
+    for ((f, t) in Map.entries(s.closedCurrencies)) { w.text(f); w.text(t) };
     w.nat(Map.size(s.approvals));
     for (((b, d), a) in Map.entries(s.approvals)) { w.text(b); w.nat(d); w.principal(a.approver); w.text(a.reason); w.nat(a.atBlock) };
     w.nat(Map.size(s.runs));

@@ -196,6 +196,14 @@ module {
         }
       };
       // ── cards (cards): the configuration and the record-only lifecycle acts whose block carries the instruction whole ──
+      // ── the close layer's currency acts (S4.1): the event carries the instruction; a redenomination's act is the
+      // declaration followed by one product re-versioning per product of the currency
+      case (#close(#currencyCalendarSet(x))) { if (act.size() > 1) return []; [#setCurrencyCalendar({ currency = x.currency; calendar = x.calendar })] };
+      case (#close(#redenominationDeclared(x))) {
+        var i = 1;
+        while (i < act.size()) { switch (act[i]) { case (#product(#productRedenominated(_))) {}; case (_) return [] }; i += 1 };
+        [#redenominateCurrency(x.redenomination)]
+      };
       case (#card(ce)) {
         if (act.size() > 1) return [];
         switch (ce) {
@@ -296,6 +304,7 @@ module {
      "setTradePolicy", "presentDocuments", "examinePresentation", "waiveDiscrepancies", "recordDemand", "presentCollection", "acceptCollection", "protestCollection", "recordTradeMessage",
      "setIslamicPolicy", "approveShariaProduct", "flagShariaBook", "closeShariaContract", "openInvestmentPool", "updatePoolReserves",
      "setTreasuryPolicy", "registerSecurity", "publishCurve", "setTreasuryLimit", "registerNostro", "cancelDeal",
-     "setCardPolicy", "declareCardScheme", "defineCardProduct", "activateCard", "blockCard", "unblockCard", "closeCard", "setCardControls", "openDispute", "recordPreArbitration", "markFraud"]
+     "setCardPolicy", "declareCardScheme", "defineCardProduct", "activateCard", "blockCard", "unblockCard", "closeCard", "setCardControls", "openDispute", "recordPreArbitration", "markFraud",
+     "setCurrencyCalendar", "redenominateCurrency"]
   };
 }

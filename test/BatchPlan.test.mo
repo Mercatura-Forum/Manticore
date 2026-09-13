@@ -9,9 +9,11 @@
 //   * the jobs come out in their declared order, because they have real dependencies: a
 //     percent-of-interest charge reads job 1's accrual, a band reads job 3's result, a
 //     provision reads job 4's band;
-//   * **the shard size changes the number of items and never the set of entities**,
-//     which is criterion E1's arithmetic half: at sizes 1, 7 and 1,000 the entity count
-//     and the per-job coverage are identical;
+//   * **the shard size changes nothing in the plan**: since the audit of 13 September (finding A1) an item
+//     is a walk of one product's accounts (or one book's instructions, offers, facilities, instruments,
+//     contracts, deals or cards) and the shard size is the page a chunk takes, so the plan and its hash
+//     are identical at sizes 1, 7 and 1,000 and no count of rows is an input — nothing that happens during
+//     a run can change the plan under it (finding B1);
 //   * a standing instruction's recurrence is computable from its record alone;
 //   * the retry policy and the run-state vocabulary say what they mean.
 //
@@ -33,20 +35,22 @@ import BT "../src/bank/BatchTypes";
 
 // ─── a portfolio to plan over ────────────────────────────────────────────────
 
-func product(id : Text, ccy : Text, accounts : Nat, accrues : Bool, credit : Bool, term : Bool, charges : Bool)
-  : { product : Text; currency : JT.Currency; accounts : Nat; accrues : Bool; credit : Bool; term : Bool; charges : Bool } {
-  { product = id; currency = ccy; accounts; accrues; credit; term; charges }
+func product(id : Text, ccy : Text, accrues : Bool, credit : Bool, term : Bool, charges : Bool)
+  : { product : Text; currency : JT.Currency; accrues : Bool; credit : Bool; term : Bool; charges : Bool } {
+  { product = id; currency = ccy; accrues; credit; term; charges }
 };
 
 let portfolio = [
-  product("CUR", "EGP", 137, true, false, false, true),    // a current account with charges
-  product("FD", "EGP", 41, true, false, true, false),      // a term deposit
-  product("LOAN", "EGP", 89, true, true, false, true),     // a loan with a penalty charge
-  product("SAVUSD", "USD", 23, true, false, false, false), // a second currency
+  product("CUR", "EGP", true, false, false, true),    // a current account with charges
+  product("FD", "EGP", true, false, true, false),      // a term deposit
+  product("LOAN", "EGP", true, true, false, true),     // a loan with a penalty charge
+  product("SAVUSD", "USD", true, false, false, false), // a second currency
 ];
+let allDomains = { facilities = true; trade = true; sharia = true; treasury = true; cards = true };
+let noDomains = { facilities = false; trade = false; sharia = false; treasury = false; cards = false };
 
 func input(shardSize : Nat) : Batch.Input {
-  { products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; trade = 0; sharia = 0; treasury = 0; cards = 0; shardSize }
+  { products = portfolio; domains = noDomains; redenominations = []; shardSize }
 };
 
 func planOf(shardSize : Nat) : [Batch.PlanItem] {
@@ -55,6 +59,7 @@ func planOf(shardSize : Nat) : [Batch.PlanItem] {
     case (#err(e)) { Debug.print("plan failed: " # debug_show (e)); assert false; [] };
   }
 };
+func countJob(items : [Batch.PlanItem], job : Batch.Job) : Nat { var n = 0; for (i in items.vals()) { if (i.job == job) n += 1 }; n };
 
 // ─── 1. the plan is deterministic, and its hash is a function of it ──────────
 
@@ -65,48 +70,42 @@ assert (Batch.planHash(p128) == Batch.planHash(p128again));
 assert (Batch.planHash(p128).size() == 32);
 Debug.print("count: plan items at the default shard size = " # Nat.toText(p128.size()));
 
-// a different shard size is a different plan, and says so
-let p7 = planOf(7);
-assert (Batch.planHash(p7) != Batch.planHash(p128));
-Debug.print("count: plan items at shard size 7 = " # Nat.toText(p7.size()));
-
-// and the hash is sensitive to every field of every item
-var hashChecks = 0;
-let base = p128[p128.size() - 1];
-for (mutation in ([
-  { base with from = base.from + 1 },
-  { base with to = base.to + 1 },
-  { base with product = base.product # "x" },
-  { base with currency = "KWD" },
-  { base with job = #accrual },
-] : [Batch.PlanItem]).vals()) {
-  let mutated = Array.tabulate<Batch.PlanItem>(p128.size(), func(i) { if (i == p128.size() - 1) mutation else p128[i] });
-  if (Batch.planHash(mutated) == Batch.planHash(p128)) {
-    Debug.print("a mutated plan hashed the same");
-    assert false;
-  };
-  hashChecks += 1;
-};
-Debug.print("count: single-field plan mutations that changed the hash = " # Nat.toText(hashChecks));
-assert (hashChecks == 5);
-
-// ─── 2. the jobs come out in their declared order ───────────────────────────
-
-for (shardSize in [1, 7, 128, 1_000].vals()) {
+// the shard size is the page a chunk walks, never a shape of the plan
+var sameAtEverySize = 0;
+for (shardSize in [1, 7, 128, 1_000, Batch.MAX_SHARD_SIZE].vals()) {
   let items = planOf(shardSize);
+  assert (items.size() == p128.size() and Batch.planHash(items) == Batch.planHash(p128));
   if (not Batch.inJobOrder(items)) { Debug.print("the plan is out of job order at shard size " # Nat.toText(shardSize)); assert false };
+  sameAtEverySize += 1;
 };
-Debug.print("count: shard sizes whose plan is in job order = 4");
+Debug.print("count: shard sizes whose plan and hash are identical and in job order = " # Nat.toText(sameAtEverySize));
 
-// the ten jobs are a total order with no gaps, and each has a name
+// every single-field change to an input changes the hash: the plan is a function of its inputs and nothing else
+var hashChecks = 0;
+func differs(i : Batch.Input) { switch (Batch.plan(i)) { case (#ok(items)) { assert (Batch.planHash(items) != Batch.planHash(p128)); hashChecks += 1 }; case (#err(_)) assert false } };
+differs({ input(128) with products = [portfolio[0], portfolio[1], portfolio[2]] });
+differs({ input(128) with products = Array.concat<{ product : Text; currency : JT.Currency; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>(portfolio, [product("NEW", "EGP", false, false, false, false)]) });
+differs({ input(128) with products = [{ portfolio[0] with charges = false }, portfolio[1], portfolio[2], portfolio[3]] });
+differs({ input(128) with products = [{ portfolio[0] with currency = "USD" }, portfolio[1], portfolio[2], portfolio[3]] });
+differs({ input(128) with domains = { noDomains with treasury = true } });
+differs({ input(128) with domains = allDomains });
+differs({ input(128) with redenominations = [{ from = "USD"; to = "USN"; products = ["SAVUSD"] }] });
+Debug.print("count: single-field plan mutations that changed the hash = " # Nat.toText(hashChecks));
+
+// ─── 2. the jobs come out in their declared order ────────────────────────────
+
+// the jobs are a total order of ranks with no gaps, and each has a name; the rank is the job's name in every
+// encoding, the position its place in the day — they differ for the redenomination alone, which is first
 var rank = 1;
 for (j in Batch.jobs().vals()) {
   assert (Batch.jobRank(j) == rank);
   assert (Text.encodeUtf8(Batch.jobText(j)).size() > 0);
+  assert (Batch.jobPosition(j) == (if (j == #redenomination) 0 else rank));
   rank += 1;
 };
 Debug.print("count: jobs in the declared order = " # Nat.toText(Batch.jobs().size()));
-assert (Batch.jobs().size() == 16);
+assert (Batch.jobs().size() == 17);
+assert (Batch.jobRank(#redenomination) == 17 and Batch.jobPosition(#redenomination) == 0);
 
 // accrual is first and the till check is the last posting job, because the first must precede
 // anything that reads accrued interest and the till check is the one that blocks a close;
@@ -126,164 +125,79 @@ assert (Batch.jobRank(#ageing) > Batch.jobRank(#instalmentsDue));
 assert (Batch.jobRank(#provisioning) > Batch.jobRank(#ageing));
 Debug.print("count: job dependency orderings asserted = 8");
 
-// ─── 3. E1's arithmetic half: the shard size changes items, not entities ────
+// ─── 3. what the plan holds: one item per product per job the product's terms call for, the book's items always ───
 
-let sizes = [1, 7, 128, 1_000];
-let entityCounts = List.empty<Nat>();
-let itemCounts = List.empty<Nat>();
-for (shardSize in sizes.vals()) {
-  let items = planOf(shardSize);
-  List.add(entityCounts, Batch.entityCount(items));
-  List.add(itemCounts, items.size());
-};
-let entities = List.toArray(entityCounts);
-let counts = List.toArray(itemCounts);
-Debug.print("entities at shard sizes " # debug_show (sizes) # " = " # debug_show (entities));
-Debug.print("items at the same sizes = " # debug_show (counts));
-var i = 1;
-while (i < entities.size()) {
-  if (entities[i] != entities[0]) { Debug.print("the entity count changed with the shard size"); assert false };
-  i += 1;
-};
-// and the item count really does change, so the comparison is not vacuous
-assert (counts[0] != counts[counts.size() - 1]);
-assert (counts[0] > counts[counts.size() - 1]);
-Debug.print("count: shard sizes covering an identical entity set = " # Nat.toText(sizes.size()));
-
-// the coverage per job is identical too, not only the total
-func coverage(items : [Batch.PlanItem], job : Batch.Job) : Nat {
-  var n = 0;
-  for (it in items.vals()) {
-    if (Batch.jobRank(it.job) == Batch.jobRank(job)) {
-      if (Batch.itemIsPerProduct(it)) n += 1 else n += it.to - it.from;
-    };
+// a per-account job's item is a walk of the product's accounts: the classification the run uses
+for (i in p128.vals()) {
+  let walks = Batch.walksAccounts(i);
+  switch (i.job) {
+    case (#charges or #instalmentsDue or #ageing or #provisioning or #maturity or #statementCut or #monitoring) assert (walks and i.product.size() > 0);
+    case (_) assert (not walks);
   };
-  n
 };
-var jobChecks = 0;
-for (job in Batch.jobs().vals()) {
-  let want = coverage(planOf(1), job);
-  for (shardSize in sizes.vals()) {
-    let got = coverage(planOf(shardSize), job);
-    if (got != want) {
-      Debug.print("job " # Batch.jobText(job) # " covers " # Nat.toText(got) # " at shard " # Nat.toText(shardSize) # " but " # Nat.toText(want) # " at 1");
-      assert false;
-    };
-  };
-  jobChecks += 1;
+var coverageChecks = 0;
+func expectCount(items : [Batch.PlanItem], job : Batch.Job, want : Nat) {
+  let got = countJob(items, job);
+  if (got != want) { Debug.print("job " # Batch.jobText(job) # ": " # Nat.toText(got) # " items, wanted " # Nat.toText(want)); assert false };
+  coverageChecks += 1;
 };
-Debug.print("count: jobs whose coverage is shard-size independent = " # Nat.toText(jobChecks));
-assert (jobChecks == 16);
+expectCount(p128, #accrual, 4);          // every product accrues
+expectCount(p128, #charges, 2);          // CUR and LOAN carry charges
+expectCount(p128, #instalmentsDue, 1);   // the loan
+expectCount(p128, #ageing, 1);
+expectCount(p128, #provisioning, 1);
+expectCount(p128, #maturity, 1);         // the term deposit
+expectCount(p128, #standingInstructions, 1);   // the book's, always
+expectCount(p128, #statementCut, 4);     // every product
+expectCount(p128, #tillCheck, 1);        // the book's, always
+expectCount(p128, #monitoring, 4);       // every product, rule or no rule
+expectCount(p128, #offerExpiry, 1);      // the book's, always
+for (job in ([#facilities, #trade, #sharia, #treasury, #cards] : [Batch.Job]).vals()) expectCount(p128, job, 0);
+// the domain items follow the features active when the run opened, one each
+let withDomains = switch (Batch.plan({ input(128) with domains = allDomains })) { case (#ok(xs)) xs; case (#err(_)) { assert false; [] } };
+for (job in ([#facilities, #trade, #sharia, #treasury, #cards] : [Batch.Job]).vals()) expectCount(withDomains, job, 1);
+assert (withDomains.size() == p128.size() + 5 and Batch.inJobOrder(withDomains));
+let onlyTreasury = switch (Batch.plan({ input(128) with domains = { noDomains with treasury = true } })) { case (#ok(xs)) xs; case (#err(_)) { assert false; [] } };
+expectCount(onlyTreasury, #treasury, 1); expectCount(onlyTreasury, #cards, 0);
+Debug.print("count: per-job item counts asserted = " # Nat.toText(coverageChecks));
 
-// the per-account jobs cover exactly the accounts of the products they apply to
-let accrualItems = coverage(p128, #accrual);
-assert (accrualItems == 4);                        // one per product that accrues
-let chargeItems = coverage(p128, #charges);
-assert (chargeItems == 137 + 89);                   // the two products with charges
-let creditItems = coverage(p128, #instalmentsDue);
-assert (creditItems == 89);                         // the loan only
-let termItems = coverage(p128, #maturity);
-assert (termItems == 41);                           // the term product only
-let cutItems = coverage(p128, #statementCut);
-assert (cutItems == 137 + 41 + 89 + 23);            // every account
-let instructionItems = coverage(p128, #standingInstructions);
-assert (instructionItems == 17);
-assert (coverage(p128, #tillCheck) == 1);
-assert (coverage(p128, #offerExpiry) == 0);         // no offers stand: no expiry item, so a book without origination plans as before
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 5; facilities = 0; trade = 0; sharia = 0; treasury = 0; cards = 0; shardSize = 128 })) {
-  case (#ok(withOffers)) { assert (coverage(withOffers, #offerExpiry) == 1); assert (withOffers.size() == p128.size() + 1) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
-};
-assert (coverage(p128, #facilities) == 0);
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 3; trade = 0; sharia = 0; treasury = 0; cards = 0; shardSize = 128 })) {
-  case (#ok(withFacilities)) { assert (coverage(withFacilities, #facilities) == 1); assert (withFacilities.size() == p128.size() + 1) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
-};
-assert (coverage(p128, #trade) == 0);
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; trade = 4; sharia = 0; treasury = 0; cards = 0; shardSize = 128 })) {
-  case (#ok(withTrade)) { assert (coverage(withTrade, #trade) == 1); assert (withTrade.size() == p128.size() + 1) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
-};
-assert (coverage(p128, #sharia) == 0);
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; trade = 0; sharia = 2; treasury = 0; cards = 0; shardSize = 128 })) {
-  case (#ok(withSharia)) { assert (coverage(withSharia, #sharia) == 1); assert (withSharia.size() == p128.size() + 1) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
-};
-assert (coverage(p128, #treasury) == 0);
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; trade = 0; sharia = 0; treasury = 3; cards = 0; shardSize = 128 })) {
-  case (#ok(withTreasury)) { assert (coverage(withTreasury, #treasury) == 1); assert (withTreasury.size() == p128.size() + 1) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
-};
-assert (coverage(p128, #cards) == 0);
-switch (Batch.plan({ products = portfolio; instructions = 17; tills = 3; monitoringRules = 2; offers = 0; facilities = 0; trade = 0; sharia = 0; treasury = 0; cards = 5; shardSize = 128 })) {
-  case (#ok(withCards)) { assert (coverage(withCards, #cards) == 1); assert (withCards.size() == p128.size() + 1) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
-};
-Debug.print("count: per-job coverage figures asserted = 17");
+// a redenomination puts its per-product walks and its completion item first
+let rdPlan = switch (Batch.plan({ input(128) with redenominations = [{ from = "USD"; to = "USN"; products = ["SAVUSD"] }] })) { case (#ok(xs)) xs; case (#err(_)) { assert false; [] } };
+assert (rdPlan[0].job == #redenomination and Text.equal(rdPlan[0].product, "SAVUSD") and Batch.walksAccounts(rdPlan[0]));
+assert (rdPlan[1].job == #redenomination and rdPlan[1].product.size() == 0 and not Batch.walksAccounts(rdPlan[1]) and Text.equal(rdPlan[1].currency, "USD"));
+assert (rdPlan.size() == p128.size() + 2 and Batch.inJobOrder(rdPlan));
+Debug.print("count: redenomination items planned first = 2");
 
-// ─── 4. what a plan refuses ─────────────────────────────────────────────────
+// ─── 4. refusals and the empty portfolio ─────────────────────────────────────
 
 var planRefusals = 0;
 for (bad in [0, Batch.MAX_SHARD_SIZE + 1].vals()) {
   switch (Batch.plan(input(bad))) {
+    case (#ok(_)) assert false;
     case (#err(#invalidShardSize(d))) { assert (d.shardSize == bad); planRefusals += 1 };
-    case (other) { Debug.print(debug_show (other)); assert false };
+    case (#err(_)) assert false;
   };
 };
-// a portfolio large enough to exceed the item bound at shard size 1
-let huge = Array.tabulate<{ product : Text; currency : JT.Currency; accounts : Nat; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>(
-  30, func(k) { product("P" # Nat.toText(k), "EGP", 1_000, true, true, true, true) });
-switch (Batch.plan({ products = huge; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; trade = 0; sharia = 0; treasury = 0; cards = 0; shardSize = 1 })) {
+// a registry so large the plan would exceed its bound is refused, not truncated
+let huge = Array.tabulate<{ product : Text; currency : JT.Currency; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>(Batch.MAX_PLAN_ITEMS / 3, func(i) { product("P" # Nat.toText(i), "EGP", true, true, true, true) });
+switch (Batch.plan({ products = huge; domains = noDomains; redenominations = []; shardSize = 128 })) {
+  case (#ok(_)) assert false;
   case (#err(#planTooLarge(d))) { assert (d.items > Batch.MAX_PLAN_ITEMS); planRefusals += 1 };
-  case (other) { Debug.print(debug_show (other)); assert false };
+  case (#err(_)) assert false;
 };
 Debug.print("count: plans refused = " # Nat.toText(planRefusals));
-assert (planRefusals == 3);
 
-// an empty portfolio plans nothing at all, rather than an empty shard nobody notices
-switch (Batch.plan({ products = []; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; trade = 0; sharia = 0; treasury = 0; cards = 0; shardSize = 128 })) {
-  case (#ok(items)) { assert (items.size() == 0); assert (Batch.entityCount(items) == 0) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
+// no products and no domains: the book's three items and nothing else
+switch (Batch.plan({ products = []; domains = noDomains; redenominations = []; shardSize = 128 })) {
+  case (#ok(items)) { assert (items.size() == 3); assert (items[0].job == #standingInstructions and items[1].job == #tillCheck and items[2].job == #offerExpiry) };
+  case (#err(_)) assert false;
 };
-// a product with no accounts contributes no shard, and no accrual item either
-switch (Batch.plan({ products = [product("EMPTY", "EGP", 0, true, true, true, true)]; instructions = 0; tills = 0; monitoringRules = 0; offers = 0; facilities = 0; trade = 0; sharia = 0; treasury = 0; cards = 0; shardSize = 128 })) {
-  case (#ok(items)) { assert (items.size() == 0) };
-  case (#err(e)) { Debug.print(debug_show (e)); assert false };
+// a product whose terms call for nothing beyond the statement cut and monitoring
+switch (Batch.plan({ products = [product("PLAIN", "EGP", false, false, false, false)]; domains = noDomains; redenominations = []; shardSize = 128 })) {
+  case (#ok(items)) { assert (items.size() == 5); assert (countJob(items, #statementCut) == 1 and countJob(items, #monitoring) == 1 and countJob(items, #accrual) == 0) };
+  case (#err(_)) assert false;
 };
 Debug.print("count: empty-portfolio plans verified = 2");
-
-// shards partition their product's accounts exactly: no gap, no overlap
-var partitions = 0;
-for (shardSize in sizes.vals()) {
-  let items = planOf(shardSize);
-  for (job in Batch.jobs().vals()) {
-    for (p in portfolio.vals()) {
-      let mine = List.empty<Batch.PlanItem>();
-      for (it in items.vals()) {
-        if (Batch.jobRank(it.job) == Batch.jobRank(job) and Text.equal(it.product, p.product) and not Batch.itemIsPerProduct(it)) {
-          List.add(mine, it);
-        };
-      };
-      let arr = List.toArray(mine);
-      if (arr.size() > 0) {
-        // positions are 1-based and the range is half-open, so the first shard starts
-        // at 1, each one starts where the last ended, and the last ends one past the
-        // highest account: no gap and no overlap, whatever the shard size
-        assert (arr[0].from == 1);
-        var k = 1;
-        while (k < arr.size()) {
-          assert (arr[k].from == arr[k - 1].to);
-          assert (arr[k].to > arr[k].from);
-          k += 1;
-        };
-        assert (arr[arr.size() - 1].to == p.accounts + 1);
-        partitions += 1;
-      };
-    };
-  };
-};
-Debug.print("count: shard partitions verified = " # Nat.toText(partitions));
-assert (partitions > 0);
 
 // ─── 5. a standing instruction's recurrence ─────────────────────────────────
 

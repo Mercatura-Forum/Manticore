@@ -78,6 +78,10 @@ module {
       posted : Nat; examined : Nat; zeroMovement : Nat;
       failures : [Failure];
     };
+    /// A chunk that ended inside one item: the item is a walk of its own (the treasury job's deals and
+    /// breaks) and stopped at this cursor, so the next advance resumes the walk there instead of the
+    /// item's start. Recorded after the chunk's own block; absent when the chunk closed its items whole.
+    #eodItemCursor : { book : BookId; businessDate : Day; item : Nat; cursor : Blob };
     #eodCompleted : {
       book : BookId; businessDate : Day;
       posted : Nat; examined : Nat; zeroMovement : Nat; failures : Nat;
@@ -151,6 +155,8 @@ module {
     items : Nat;
     entities : Nat;
     cursor : Nat;
+    /// Where the item at `cursor` stopped, when a chunk ended inside it.
+    itemCursor : ?Blob;
     posted : Nat;
     examined : Nat;
     zeroMovement : Nat;

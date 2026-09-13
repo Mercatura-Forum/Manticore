@@ -41,6 +41,16 @@ module {
     w.text(x.book); w.nat(x.freeDays); w.nat(x.approvedDays);
   };
 
+  public func wRedenomination(w : C.Writer, r : T.Redenomination) {
+    w.text(r.from); w.text(r.to); w.byte(r.minorUnits); w.nat(r.ratioNumerator); w.nat(r.ratioDenominator); w.text(r.bridgeAccount); w.text(r.roundingAccount); w.nat(r.day);
+  };
+  public func rRedenomination(r : C.Reader) : ?T.Redenomination {
+    let ?from = r.text() else return null; let ?to = r.text() else return null; let ?minorUnits = r.byte() else return null;
+    let ?ratioNumerator = r.nat() else return null; let ?ratioDenominator = r.nat() else return null;
+    let ?bridgeAccount = r.text() else return null; let ?roundingAccount = r.text() else return null; let ?day = r.nat() else return null;
+    ?{ from; to; minorUnits; ratioNumerator; ratioDenominator; bridgeAccount; roundingAccount; day }
+  };
+
   public func wDirection(w : C.Writer, d : T.Direction) {
     w.byte(switch (d) { case (#gain) 0; case (#loss) 1; case (#unchanged) 2 });
   };
@@ -63,6 +73,13 @@ module {
       case (#fxRateSet(x)) { w.byte(0x03); wRate(w, x.rate) };
       case (#backValueWindowSet(x)) { w.byte(0x04); wWindow(w, x.window) };
       case (#backValueApproved(x)) { w.byte(0x05); w.text(x.book); w.nat(x.valueDate); w.principal(x.approver); w.text(x.reason) };
+      case (#currencyCalendarSet(x)) { w.byte(0x19); w.text(x.currency); w.calendar(x.calendar) };
+      case (#redenominationDeclared(x)) { w.byte(0x1A); wRedenomination(w, x.redenomination); w.len16(x.products.size()); for (p in x.products.vals()) w.text(p) };
+      case (#balanceRedenominated(x)) {
+        w.byte(0x1B); w.text(x.from); w.text(x.to); w.text(x.account); w.optBlob(x.subledger); w.optNat(x.productAccount);
+        w.nat(x.oldAmount); w.nat(x.newAmount); w.bool(x.creditBalance); w.nat(x.day);
+      };
+      case (#redenominationCompleted(x)) { w.byte(0x1C); w.text(x.from); w.text(x.to); w.nat(x.rows); w.nat(x.oldTotal); w.nat(x.newTotal); w.nat(x.roundingAmount); w.bool(x.roundingDebit); w.nat(x.day) };
       case (#fxDealBooked(x)) {
         w.byte(0x06); w.text(x.sell); w.nat(x.sellAmount); w.text(x.buy); w.nat(x.buyAmount);
         w.nat(x.rateNumerator); w.nat(x.rateDenominator); w.nat(x.asOf); w.nat(x.day);
@@ -291,6 +308,25 @@ module {
         let ?book = r.text() else return null;
         let ?period = r.text() else return null;
         ?#bookClosedForPeriod({ book; period })
+      };
+      case 0x19 { let ?currency = r.text() else return null; let ?calendar = r.calendar() else return null; ?#currencyCalendarSet({ currency; calendar }) };
+      case 0x1A {
+        let ?redenomination = rRedenomination(r) else return null;
+        let ?n = r.len16() else return null;
+        let products = List.empty<Text>();
+        var i = 0; while (i < n) { let ?p = r.text() else return null; List.add(products, p); i += 1 };
+        ?#redenominationDeclared({ redenomination; products = List.toArray(products) })
+      };
+      case 0x1B {
+        let ?from = r.text() else return null; let ?to = r.text() else return null; let ?account = r.text() else return null;
+        let ?subledger = r.optBlob() else return null; let ?productAccount = r.optNat() else return null;
+        let ?oldAmount = r.nat() else return null; let ?newAmount = r.nat() else return null; let ?creditBalance = r.bool() else return null; let ?day = r.nat() else return null;
+        ?#balanceRedenominated({ from; to; account; subledger; productAccount; oldAmount; newAmount; creditBalance; day })
+      };
+      case 0x1C {
+        let ?from = r.text() else return null; let ?to = r.text() else return null; let ?rows = r.nat() else return null; let ?oldTotal = r.nat() else return null;
+        let ?newTotal = r.nat() else return null; let ?roundingAmount = r.nat() else return null; let ?roundingDebit = r.bool() else return null; let ?day = r.nat() else return null;
+        ?#redenominationCompleted({ from; to; rows; oldTotal; newTotal; roundingAmount; roundingDebit; day })
       };
       case 0x18 {
         let ?book = r.text() else return null;

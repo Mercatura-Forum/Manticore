@@ -33,6 +33,7 @@ module {
     items : Nat;
     entities : Nat;
     var cursor : Nat;
+    var itemCursor : ?Blob;
     var posted : Nat;
     var examined : Nat;
     var zeroMovement : Nat;
@@ -52,6 +53,12 @@ module {
     /// (book, business date) -> the run. Keyed on the date, which is what makes the
     /// date exclusion a map lookup rather than a scan.
     runs : Map.Map<(Text, Nat), RunEntry>;
+    /// the runs not yet completed or failed — what a posting's date gate and a configuration act consult, so neither
+    /// scans every run the bank ever made (the adversarial audit of 13 September, finding α3)
+    openRuns : Map.Map<(Text, Nat), ()>;
+    /// per book, the business dates of its runs in descending order of opening, newest first, at most the two latest:
+    /// what "the book's previous run day" reads without a scan
+    lastRunDays : Map.Map<Text, (Nat, Nat)>;
     instructions : Map.Map<Text, InstructionEntry>;
     /// account -> the latest statement cut recorded for it.
     cuts : Map.Map<Nat, T.StatementCut>;
@@ -65,6 +72,8 @@ module {
   public func newState() : State {
     {
       runs = Map.empty<(Text, Nat), RunEntry>();
+      openRuns = Map.empty<(Text, Nat), ()>();
+      lastRunDays = Map.empty<Text, (Nat, Nat)>();
       instructions = Map.empty<Text, InstructionEntry>();
       cuts = Map.empty<Nat, T.StatementCut>();
       retry = Map.empty<Text, Batch.RetryPolicy>();
@@ -88,18 +97,26 @@ module {
   /// value-dated on or before that date is refused: the book for the date is closed to
   /// new history for the duration of the run.
   public func openRunCovering(s : State, book : Text, valueDate : JT.Day) : ?RunEntry {
-    for (((b, d), r) in Map.entries(s.runs)) {
-      if (Text.equal(b, book) and valueDate <= d) {
-        switch (r.state) {
-          case (#completed) {};
-          case (#failed(_)) {};
-          case (_) return ?r;
-        };
-      };
+    for (((b, d), _) in Map.entries(s.openRuns)) {
+      if (Text.equal(b, book) and valueDate <= d) { switch (Map.get(s.runs, cmpTN, (b, d))) { case (?r) return ?r; case null {} } };
     };
     null
   };
+  /// The books with a run open, in any state short of completed or failed.
+  public func openRunCount(s : State) : Nat { Map.size(s.openRuns) };
+  public func anyOpenRun(s : State) : ?RunEntry {
+    for ((k, _) in Map.entries(s.openRuns)) { switch (Map.get(s.runs, cmpTN, k)) { case (?r) return ?r; case null {} } };
+    null
+  };
 
+  /// The business date of the book's latest run before `day`, when the runs opened in date order (they do: a run is
+  /// for the journal's business date, which only rolls forward); 0 when there is none.
+  public func previousRunDay(s : State, book : Text, day : Nat) : Nat {
+    switch (Map.get(s.lastRunDays, Text.compare, book)) {
+      case (?(latest, before)) { if (latest < day) latest else if (before < day) before else 0 };
+      case null 0;
+    }
+  };
   public func isComplete(r : RunEntry) : Bool {
     switch (r.state) { case (#completed) true; case (_) false }
   };
@@ -122,6 +139,19 @@ module {
 
   /// Every live instruction of a book, in identifier order, which is the order the plan
   /// shards them in.
+  /// One page of a book's live instructions, by id from `from` (inclusive), at most `limit` examined of the map's
+  /// entries: what the end-of-day walks a chunk at a time. `next` is the id to resume at, when more remain.
+  public func instructionsOfFrom(s : State, book : Text, from : ?Text, limit : Nat) : { rows : [InstructionEntry]; next : ?Text } {
+    let rows = List.empty<InstructionEntry>();
+    var examined = 0;
+    let it = switch (from) { case (?f) Map.entriesFrom(s.instructions, Text.compare, f); case null Map.entries(s.instructions) };
+    for ((id, e) in it) {
+      if (examined >= limit) return { rows = List.toArray(rows); next = ?id };
+      examined += 1;
+      if (Text.equal(e.instruction.book, book) and not e.cancelled) List.add(rows, e);
+    };
+    { rows = List.toArray(rows); next = null }
+  };
   public func instructionsOf(s : State, book : Text) : [InstructionEntry] {
     let out = List.empty<InstructionEntry>();
     for ((_, e) in Map.entries(s.instructions)) {
@@ -167,7 +197,7 @@ module {
       book = r.book; businessDate = r.businessDate; shardSize = r.shardSize;
       openedAtBlock = r.openedAtBlock; openedAtHeight = r.openedAtHeight;
       maxAccount = r.maxAccount; planHash = r.planHash; items = r.items; entities = r.entities;
-      cursor = r.cursor; posted = r.posted; examined = r.examined; zeroMovement = r.zeroMovement;
+      cursor = r.cursor; itemCursor = r.itemCursor; posted = r.posted; examined = r.examined; zeroMovement = r.zeroMovement;
       failures = List.toArray(r.failures); state = Batch.runStateText(r.state); chunks = r.chunks;
     }
   };
@@ -220,15 +250,21 @@ module {
           book = x.book; businessDate = x.businessDate; shardSize = x.shardSize;
           openedAtBlock = blockIndex; openedAtHeight = x.openedAtHeight;
           maxAccount = x.maxAccount; planHash = x.planHash; items = x.items; entities = x.entities;
-          var cursor = 0; var posted = 0; var examined = 0; var zeroMovement = 0; var chunks = 0;
+          var cursor = 0; var itemCursor = null; var posted = 0; var examined = 0; var zeroMovement = 0; var chunks = 0;
           failures = List.empty<T.Failure>();
           var state = #open;
         };
         Map.add(s.runs, cmpTN, (x.book, x.businessDate), entry);
+        Map.add(s.openRuns, cmpTN, (x.book, x.businessDate), ());
+        switch (Map.get(s.lastRunDays, Text.compare, x.book)) {
+          case (?(latest, before)) { if (x.businessDate > latest) Map.add(s.lastRunDays, Text.compare, x.book, (x.businessDate, latest)) else if (x.businessDate > before) Map.add(s.lastRunDays, Text.compare, x.book, (latest, x.businessDate)) };
+          case null Map.add(s.lastRunDays, Text.compare, x.book, (x.businessDate, 0));
+        };
       };
       case (#eodChunk(x)) {
         let r = mustRun(s, x.book, x.businessDate);
         r.cursor := x.cursorTo;
+        r.itemCursor := null;      // set again by the item-cursor block that follows a chunk ending inside an item
         r.posted += x.posted;
         r.examined += x.examined;
         r.zeroMovement += x.zeroMovement;
@@ -236,6 +272,7 @@ module {
         r.state := #running;
         for (f in x.failures.vals()) { List.add(r.failures, f) };
       };
+      case (#eodItemCursor(x)) { mustRun(s, x.book, x.businessDate).itemCursor := ?x.cursor };
       case (#eodFailureResolved(x)) {
         let r = mustRun(s, x.book, x.businessDate);
         let kept = List.empty<T.Failure>();
@@ -266,8 +303,8 @@ module {
         List.clear(r.failures);
         List.addAll(r.failures, List.values(kept));
       };
-      case (#eodCompleted(x)) { mustRun(s, x.book, x.businessDate).state := #completed };
-      case (#eodFailed(x)) { mustRun(s, x.book, x.businessDate).state := #failed(x.reason) };
+      case (#eodCompleted(x)) { mustRun(s, x.book, x.businessDate).state := #completed; ignore Map.delete(s.openRuns, cmpTN, (x.book, x.businessDate)) };
+      case (#eodFailed(x)) { mustRun(s, x.book, x.businessDate).state := #failed(x.reason); ignore Map.delete(s.openRuns, cmpTN, (x.book, x.businessDate)) };
       case (#loanAged(_)) {};               // the figures are recomputable; the block is the record
       case (#depositMatured(_)) {};
       case (#instalmentDue(_)) {};
@@ -291,7 +328,7 @@ module {
       w.text(r.book); w.nat(r.businessDate); w.nat(r.shardSize);
       w.nat(r.openedAtBlock); w.nat(r.openedAtHeight); w.nat(r.maxAccount);
       w.blobRaw(r.planHash); w.nat(r.items); w.nat(r.entities);
-      w.nat(r.cursor); w.nat(r.posted); w.nat(r.examined); w.nat(r.zeroMovement); w.nat(r.chunks);
+      w.nat(r.cursor); w.optBlob(r.itemCursor); w.nat(r.posted); w.nat(r.examined); w.nat(r.zeroMovement); w.nat(r.chunks);
       w.text(Batch.runStateText(r.state));
       w.len16(List.size(r.failures));
       for (f in List.values(r.failures)) {

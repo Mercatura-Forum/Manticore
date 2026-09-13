@@ -517,14 +517,21 @@ expectErr(#bookFxDeal({
   rateAsOf = day(2026, 1, 15); postingDate = today; valueDate = day(2026, 1, 15);
   period = "2026-01"; narration = "wrong rate";
 }), "InvalidRate");
-// and a deal at a day with no rate is refused rather than using another day's
+// and a deal at a business day with no rate is refused rather than using another day's (18 January 2026 is a Sunday,
+// a business day under this calendar; the 16th is a Friday and is refused as a rest day before the rate is looked for)
 expectErr(#bookFxDeal({
   sell = "EGP"; sellAmount = 48_000_00; sellFrom = #glAccount("1999");
   buy = "USD"; buyAmount = 1_000_00; buyTo = #glAccount("1001");
   rateAsOf = day(2026, 1, 16); postingDate = today; valueDate = day(2026, 1, 16);
+  period = "2026-01"; narration = "a rest day";
+}), "ValueDateNotBusinessInCurrency");
+expectErr(#bookFxDeal({
+  sell = "EGP"; sellAmount = 48_000_00; sellFrom = #glAccount("1999");
+  buy = "USD"; buyAmount = 1_000_00; buyTo = #glAccount("1001");
+  rateAsOf = day(2026, 1, 18); postingDate = today; valueDate = day(2026, 1, 18);
   period = "2026-01"; narration = "no rate that day";
 }), "MissingRate");
-Debug.print("count: FX deals booked and refused = 3");
+Debug.print("count: FX deals booked and refused = 4");
 
 // the position as the close sees it
 let posBefore = switch (Core.positionView(bs, js, "USD", JAN31)) {

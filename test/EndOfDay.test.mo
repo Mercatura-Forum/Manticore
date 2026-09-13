@@ -669,7 +669,7 @@ let r7 = runOf(e7);
 // the opening block's hash and counts are the plan's own, re-derived from the inputs
 // the block recorded rather than from whatever the state happens to be now
 func derivedPlan(w : World, r : BatchCore.RunEntry) : [Batch.PlanItem] {
-  switch (Batch.plan(Core.planInput(w.bs, w.bb, r.book, r.maxAccount, r.shardSize))) {
+  switch (Batch.plan(Core.planInput(w.bs, r.book, r.businessDate, r.openedAtBlock, r.shardSize))) {
     case (#ok(items)) items;
     case (#err(e)) { Debug.print(debug_show (e)); assert false; [] };
   }
@@ -677,7 +677,10 @@ func derivedPlan(w : World, r : BatchCore.RunEntry) : [Batch.PlanItem] {
 let plan7 = derivedPlan(e7, r7);
 assert (Batch.planHash(plan7) == r7.planHash);
 assert (plan7.size() == r7.items);
-assert (Batch.entityCount(plan7) == r7.entities);
+// the entities are the opening's figure, from the folds' counters: every account of the products the plan walks in
+// the book, plus one per accruing product, plus the book's instructions and tills (never a hash input)
+assert (r7.entities == Core.planEntities(e7.bs, e7.bb, r7.book, plan7));
+assert (r7.entities > 0);
 assert (r7.planHash.size() == 32);
 Debug.print("count: plan items the opening block fixed = " # Nat.toText(r7.items));
 Debug.print("count: entities the opening block fixed = " # Nat.toText(r7.entities));
@@ -741,8 +744,10 @@ for (i in runs.keys()) {
     # " examined " # Nat.toText(runs[i].examined) # " zero " # Nat.toText(runs[i].zeroMovement)
     # " chunks " # Nat.toText(runs[i].chunks));
 };
-// the item count changes with the shard size and nothing else does
-assert (runs[0].items > runs[2].items);
+// the item count no longer changes with the shard size — an item is a walk, the size is its page — so the plan's
+// hash is the same at every size and the number of chunks is what moves (S4.1 audit, finding A1)
+assert (runs[0].items == runs[2].items and runs[0].planHash == runs[2].planHash);
+assert (runs[0].chunks > runs[2].chunks);
 var i1 = 1;
 while (i1 < runs.size()) {
   assert (runs[i1].posted == runs[0].posted);
@@ -968,7 +973,13 @@ assert (BatchCore.failureCount(refRun) == 0);
 let refFingerprint = JCore.fingerprint(reference.js);
 let refKeys = postingKeys(reference.js, reference.jb);
 let refDigest = postingDigest(reference.js, reference.jb);
-let boundaries = refRun.items;
+// an item is a walk of one account (or one row) per chunk at shard size 1, so a chunk of one item is one step of one
+// walk: the boundaries are every such step — counted once on a probe world driven one step at a time
+let probe = build(smallSpec);
+ignore probe.cmd(#openEndOfDay({ book = "BR01"; businessDate = EOD; shardSize = 1 }));
+var boundaries = 0;
+label steps loop { let a = probe.advance(1); boundaries += 1; if (a.completed) break steps };
+assert (BatchCore.isComplete(runOf(probe)));
 Debug.print("count: chunk boundaries in the interrupted run = " # Nat.toText(boundaries - 1));
 assert (boundaries - 1 >= 40);
 
@@ -978,15 +989,18 @@ var stop = 1;
 while (stop < boundaries) {
   let w = build(smallSpec);
   ignore w.cmd(#openEndOfDay({ book = "BR01"; businessDate = EOD; shardSize = 1 }));
-  // work up to the boundary one item at a time, which is what makes the stop exact
+  // work up to the boundary one step at a time, which is what makes the stop exact: a step advances the item cursor
+  // or the item, never neither
   var done = 0;
   while (done < stop) {
+    let before = runOf(w).cursor;
+    let beforeSub = runOf(w).itemCursor;
     let a = w.advance(1);
-    assert (a.cursorTo == a.cursorFrom + 1);
+    assert (a.cursorTo >= a.cursorFrom);
+    assert (runOf(w).cursor > before or runOf(w).itemCursor != beforeSub or a.completed);
     assert (not a.completed or done == boundaries - 1);
     done += 1;
   };
-  assert (runOf(w).cursor == stop);
   assert (not BatchCore.isComplete(runOf(w)));
   // … and then resume, as a restarted canister would
   resumedAdvances += workOpen(w, Batch.MAX_ADVANCE_LIMIT);
@@ -1521,17 +1535,17 @@ assert (zeroLegFailures == 0);
 // reference is carried by the escalation block.
 
 let eA = build({ curs = 3; savs = 3; loans = 2; fds = 2; usds = 2; dry = 2; instructions = 0; failing = 0; openTill = false; periods = months; activate = true });
-// no rule: no monitoring item
-let planNoRule = switch (Batch.plan(Core.planInput(eA.bs, eA.bb, "BR01", Core.highestAccount(eA.bs), 4))) { case (#ok(xs)) xs; case (#err(_)) { assert false; loop {} } };
-for (i in planNoRule.vals()) { assert (i.job != #monitoring) };
-// one end-of-day rule, defined the dual way
-ignore eA.cmd(#defineMonitoringRule({ id = "velocity-1"; currency = null; spec = #velocity({ count = 1; windowDays = 1 }) }));
-let planWithRule = switch (Batch.plan(Core.planInput(eA.bs, eA.bb, "BR01", Core.highestAccount(eA.bs), 4))) { case (#ok(xs)) xs; case (#err(_)) { assert false; loop {} } };
+// the monitoring item is in the plan whether a rule exists or not (a plan is a function of the registry, never of
+// what happens to be defined on the day — the audit of 13 September, finding B1); the item examines nothing until a
+// rule exists, and the same plan holds after one is defined the dual way
+let planNoRule = switch (Batch.plan(Core.planInput(eA.bs, "BR01", EOD, Core.height(eA.bs), 4))) { case (#ok(xs)) xs; case (#err(_)) { assert false; loop {} } };
 var monitoringItems = 0;
-for (i in planWithRule.vals()) { if (i.job == #monitoring) { monitoringItems += 1; assert (Batch.jobRank(i.job) == 10) } };
-assert (monitoringItems > 0 and planWithRule.size() == planNoRule.size() + monitoringItems);
+for (i in planNoRule.vals()) { if (i.job == #monitoring) { monitoringItems += 1; assert (Batch.jobRank(i.job) == 10) } };
+ignore eA.cmd(#defineMonitoringRule({ id = "velocity-1"; currency = null; spec = #velocity({ count = 1; windowDays = 1 }) }));
+let planWithRule = switch (Batch.plan(Core.planInput(eA.bs, "BR01", EOD, Core.height(eA.bs), 4))) { case (#ok(xs)) xs; case (#err(_)) { assert false; loop {} } };
+assert (monitoringItems > 0 and Batch.planHash(planWithRule) == Batch.planHash(planNoRule));
 assert (Batch.inJobOrder(planWithRule));
-Debug.print("count: monitoring shards planned once a rule exists = " # Nat.toText(monitoringItems));
+Debug.print("count: monitoring items planned, one per product, rule or no rule = " # Nat.toText(monitoringItems));
 
 // the evaluation this battery controls: every even account is found (velocity-1 v1, citing the
 // account id as its posting), one chosen account is refused as too wide

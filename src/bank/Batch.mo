@@ -33,6 +33,7 @@
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
 import List "mo:core/List";
+import Array "mo:core/Array";
 import Blob "mo:core/Blob";
 import Sha256 "mo:sha2/Sha256";
 
@@ -64,11 +65,12 @@ module {
     #sharia;                  // 14: Murabaha profit and late-payment charity, Ijarah rentals and depreciation (Islamic banking)
     #treasury;                // 15: deal accruals, coupons, marks against the day's curves, legs falling due, break aging, overdue confirmations (treasury)
     #cards;                   // 16: holds expired by the scheme's window, dispute steps due, statement cycles cut (cards)
+    #redenomination;          // 17: a declared redenomination carried out — the products re-versioned, every balance re-expressed, the currency closed (S4.1)
   };
 
   public func jobs() : [Job] {
     [#accrual, #charges, #instalmentsDue, #ageing, #provisioning, #maturity,
-     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities, #trade, #sharia, #treasury, #cards]
+     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities, #trade, #sharia, #treasury, #cards, #redenomination]
   };
 
   public func jobText(j : Job) : Text {
@@ -78,7 +80,7 @@ module {
       case (#provisioning) "provisioning"; case (#maturity) "maturity";
       case (#standingInstructions) "standingInstructions";
       case (#statementCut) "statementCut"; case (#tillCheck) "tillCheck";
-      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities"; case (#trade) "trade"; case (#sharia) "sharia"; case (#treasury) "treasury"; case (#cards) "cards";
+      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities"; case (#trade) "trade"; case (#sharia) "sharia"; case (#treasury) "treasury"; case (#cards) "cards"; case (#redenomination) "redenomination";
     }
   };
 
@@ -86,9 +88,15 @@ module {
     switch (j) {
       case (#accrual) 1; case (#charges) 2; case (#instalmentsDue) 3; case (#ageing) 4;
       case (#provisioning) 5; case (#maturity) 6; case (#standingInstructions) 7;
-      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12; case (#trade) 13; case (#sharia) 14; case (#treasury) 15; case (#cards) 16;
+      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12; case (#trade) 13; case (#sharia) 14; case (#treasury) 15; case (#cards) 16; case (#redenomination) 17;
     }
   };
+
+  /// Where a job's items stand in the plan. The rank is the job's name in every encoding and never changes; the
+  /// position is the order of the day's work. They differ once: a redenomination re-expresses every balance of its
+  /// currency **before** the day's accrual, charges and statements, so those run in the new currency on the
+  /// converted balances — its rank names it (17), its position is first (0).
+  public func jobPosition(j : Job) : Nat { switch (j) { case (#redenomination) 0; case (other) jobRank(other) } };
 
   /// One unit of work. A per-account job's item covers a half-open range of positions
   /// in the product's own ordered account list; a per-product job's item covers the
@@ -130,6 +138,7 @@ module {
       case (#sharia) ?"product.credit";           // the Sharia book likewise: profit recognised, rentals, depreciation, charity
       case (#treasury) ?"close.fx";             // the treasury book moves money across currencies: accruals, marks, settlements
       case (#cards) ?"product.account.money";    // expired holds release the customer's funds; a statement cut records
+      case (#redenomination) ?"close.fx";        // every balance of the currency re-expressed through the bridge: cross-currency postings
     }
   };
 
@@ -139,6 +148,12 @@ module {
   public let MAX_FAILURES : Nat = 512;
   public let DEFAULT_RETRY_LIMIT : Nat = 3;
   public let MAX_ADVANCE_LIMIT : Nat = 64;
+  /// How many of a book's deals the treasury job walks in one chunk, and how many open breaks: the item is a
+  /// walk of its own, resumed from a recorded cursor, so its cost per message is bounded whatever the book holds.
+  public let ROWS_PER_CHUNK : Nat = 64;
+  public let ALERTS_PER_CHUNK : Nat = 256;
+  public let TREASURY_DEALS_PER_CHUNK : Nat = ROWS_PER_CHUNK;
+  public let TREASURY_BREAKS_PER_CHUNK : Nat = ALERTS_PER_CHUNK;
 
   public type Fault = {
     #invalidShardSize : { shardSize : Nat };
@@ -147,129 +162,76 @@ module {
 
   /// What a plan is built from. Passed in rather than read here, so the plan is a
   /// function of its inputs and a test can build one without a journal.
+  /// What the plan is a function of — and nothing else. Every field is fixed for the life of a run: the
+  /// products are the registry as it stood at the block that opened the run (a version registered later
+  /// waits for the next run), the domain flags are the features active at that block, the redenominations
+  /// are those declared for the date. Nothing here counts rows: an item over a product, a book's
+  /// instructions, tills, offers, facilities, instruments, contracts, deals or cards is in the plan whether
+  /// the book holds one of them or none — an item over nothing examines nothing — so no account opening,
+  /// closing, capture, settlement or definition during the run can change the plan's hash and leave the
+  /// run unadvanceable (the adversarial audit of 13 September, finding B1).
   public type Input = {
-    /// (product id, currency, the number of accounts at or below `maxAccount`,
-    /// whether the product accrues interest, whether it is a credit product,
-    /// whether it is a term product, whether it has charges).
     products : [{
       product : Text;
       currency : JT.Currency;
-      accounts : Nat;
       accrues : Bool;
       credit : Bool;
       term : Bool;
       charges : Bool;
     }];
-    /// How many standing instructions exist for the book.
-    instructions : Nat;
-    /// How many tills the book has open.
-    tills : Nat;
-    /// How many monitoring rules run at end of day. None, and the plan has no monitoring items,
-    /// so a book that declared no rules plans exactly as before.
-    monitoringRules : Nat;
-    /// How many credit offers stand open in the book. None, and the plan has no expiry item.
-    offers : Nat;
-    /// How many facilities of the book are not closed. None, and the plan has no facilities item.
-    facilities : Nat;
-    /// How many trade instruments of the book are open. None, and the plan has no trade item.
-    trade : Nat;
-    /// How many Sharia contracts of the book are open. None, and the plan has no sharia item.
-    sharia : Nat;
-    /// How many treasury deals of the book are open, plus its open nostro breaks. None, and the plan has no treasury item.
-    treasury : Nat;
-    /// How many cards of the book are not closed, plus its open disputes. None, and the plan has no cards item.
-    cards : Nat;
+    /// the domains whose feature is active at the run's opening block
+    domains : { facilities : Bool; trade : Bool; sharia : Bool; treasury : Bool; cards : Bool };
+    redenominations : [{ from : JT.Currency; to : JT.Currency; products : [Text] }];
+    /// how many entities a per-account, per-instruction, per-offer or per-row item walks in one chunk
     shardSize : Nat;
   };
 
-  func shardsOf(items : List.List<PlanItem>, job : Job, product : Text, currency : JT.Currency, accounts : Nat, shardSize : Nat) {
-    if (accounts == 0) return;
-    var from = 0;
-    while (from < accounts) {
-      let to = if (from + shardSize < accounts) from + shardSize else accounts;
-      // a per-account shard always has a non-empty range, so it is never mistaken for
-      // a per-product item
-      List.add(items, { job; product; currency; from = from + 1; to = to + 1 });
-      from := to;
-    };
+  func perProduct(items : List.List<PlanItem>, job : Job, product : Text, currency : JT.Currency) {
+    List.add(items, { job; product; currency; from = 0; to = 0 });
+  };
+  func perBook(items : List.List<PlanItem>, job : Job) {
+    List.add(items, { job; product = ""; currency = ""; from = 0; to = 0 });
   };
 
-  /// Build the plan. Deterministic in its input and in the order of `products`, which
-  /// the caller supplies sorted.
   public func plan(input : Input) : { #ok : [PlanItem]; #err : Fault } {
     if (input.shardSize == 0 or input.shardSize > MAX_SHARD_SIZE) {
       return #err(#invalidShardSize({ shardSize = input.shardSize }));
     };
     let items = List.empty<PlanItem>();
-    // 1. accrual: one item per product and currency that accrues
-    for (p in input.products.vals()) {
-      if (p.accrues and p.accounts > 0) {
-        List.add(items, { job = #accrual; product = p.product; currency = p.currency; from = 0; to = 0 });
+    // 0. redenomination, first: every account of a product in the currency re-expressed (one walk per product),
+    //    then the book's other balances in the currency and the completion (one item per redenomination)
+    for (rd in input.redenominations.vals()) {
+      for (p in input.products.vals()) {
+        if (Array.find<Text>(rd.products, func(id) { Text.equal(id, p.product) }) != null) perProduct(items, #redenomination, p.product, rd.from);
       };
+      List.add(items, { job = #redenomination; product = ""; currency = rd.from; from = 0; to = 0 });
     };
-    // 2. charges, per account, for products that declare any
-    for (p in input.products.vals()) {
-      if (p.charges) shardsOf(items, #charges, p.product, p.currency, p.accounts, input.shardSize);
-    };
-    // 3, 4, 5. the credit jobs, per account
+    // 1. the accrual, one aggregate item per accruing product
+    for (p in input.products.vals()) { if (p.accrues) perProduct(items, #accrual, p.product, p.currency) };
+    // 2. charges, a walk of the product's accounts
+    for (p in input.products.vals()) { if (p.charges) perProduct(items, #charges, p.product, p.currency) };
+    // 3–5. the credit jobs
     for (job in ([#instalmentsDue, #ageing, #provisioning] : [Job]).vals()) {
-      for (p in input.products.vals()) {
-        if (p.credit) shardsOf(items, job, p.product, p.currency, p.accounts, input.shardSize);
-      };
+      for (p in input.products.vals()) { if (p.credit) perProduct(items, job, p.product, p.currency) };
     };
-    // 6. maturity, per account, for term products
-    for (p in input.products.vals()) {
-      if (p.term) shardsOf(items, #maturity, p.product, p.currency, p.accounts, input.shardSize);
-    };
-    // 7. standing instructions, sharded over the instruction list
-    if (input.instructions > 0) {
-      var from = 0;
-      while (from < input.instructions) {
-        let to = if (from + input.shardSize < input.instructions) from + input.shardSize else input.instructions;
-        List.add(items, { job = #standingInstructions; product = ""; currency = ""; from = from + 1; to = to + 1 });
-        from := to;
-      };
-    };
-    // 8. the statement cut, per account, for every product
-    for (p in input.products.vals()) {
-      shardsOf(items, #statementCut, p.product, p.currency, p.accounts, input.shardSize);
-    };
-    // 9. the till check, one item for the book
-    if (input.tills > 0) {
-      List.add(items, { job = #tillCheck; product = ""; currency = ""; from = 0; to = 0 });
-    };
-    // 10. monitoring, per account, for every product, after every posting job has landed — the
-    // window rules read the day the batch just finished writing. An account with no activity on
-    // the date costs the job one row read and nothing else.
-    if (input.monitoringRules > 0) {
-      for (p in input.products.vals()) {
-        shardsOf(items, #monitoring, p.product, p.currency, p.accounts, input.shardSize);
-      };
-    };
-    // 11. offer expiry, one item for the book, only while offers stand open
-    if (input.offers > 0) {
-      List.add(items, { job = #offerExpiry; product = ""; currency = ""; from = 0; to = 0 });
-    };
-    // 12. the facilities, one item for the book while any stands open
-    if (input.facilities > 0) {
-      List.add(items, { job = #facilities; product = ""; currency = ""; from = 0; to = 0 });
-    };
-    // 13. the trade book, one item for the book while any instrument is open
-    if (input.trade > 0) {
-      List.add(items, { job = #trade; product = ""; currency = ""; from = 0; to = 0 });
-    };
-    // 14. the Sharia book, one item for the book while any contract is open
-    if (input.sharia > 0) {
-      List.add(items, { job = #sharia; product = ""; currency = ""; from = 0; to = 0 });
-    };
-    // 15. the treasury book, one item for the book while any deal or break is open
-    if (input.treasury > 0) {
-      List.add(items, { job = #treasury; product = ""; currency = ""; from = 0; to = 0 });
-    };
-    // 16. the card book, one item for the book while any card or dispute is open
-    if (input.cards > 0) {
-      List.add(items, { job = #cards; product = ""; currency = ""; from = 0; to = 0 });
-    };
+    // 6. maturities
+    for (p in input.products.vals()) { if (p.term) perProduct(items, #maturity, p.product, p.currency) };
+    // 7. the book's standing instructions, walked
+    perBook(items, #standingInstructions);
+    // 8. the statement cut, every product
+    for (p in input.products.vals()) { perProduct(items, #statementCut, p.product, p.currency) };
+    // 9. the tills of the book
+    perBook(items, #tillCheck);
+    // 10. monitoring, every product
+    for (p in input.products.vals()) { perProduct(items, #monitoring, p.product, p.currency) };
+    // 11. offers lapsing
+    perBook(items, #offerExpiry);
+    // 12–16. the domain books, where the domain's feature was active when the run opened
+    if (input.domains.facilities) perBook(items, #facilities);
+    if (input.domains.trade) perBook(items, #trade);
+    if (input.domains.sharia) perBook(items, #sharia);
+    if (input.domains.treasury) perBook(items, #treasury);
+    if (input.domains.cards) perBook(items, #cards);
     if (List.size(items) > MAX_PLAN_ITEMS) return #err(#planTooLarge({ items = List.size(items) }));
     #ok(List.toArray(items))
   };
@@ -299,7 +261,7 @@ module {
   public func inJobOrder(items : [PlanItem]) : Bool {
     var previous = 0;
     for (i in items.vals()) {
-      let r = jobRank(i.job);
+      let r = jobPosition(i.job);
       if (r < previous) return false;
       previous := r;
     };
@@ -314,12 +276,13 @@ module {
   /// of it, and the till check names one entity and examines every open till of the
   /// book. So `examined` is at least `entities` and usually more. What both figures are
   /// is **independent of the shard size**, which is the property chunking has to have.
-  public func entityCount(items : [PlanItem]) : Nat {
-    var n = 0;
-    for (i in items.vals()) {
-      if (itemIsPerProduct(i)) n += 1 else n += i.to - i.from;
-    };
-    n
+  /// The items that walk one product's accounts: every per-account job's item, and a redenomination's per-product item.
+  public func walksAccounts(i : PlanItem) : Bool {
+    if (i.product.size() == 0) return false;
+    switch (i.job) {
+      case (#charges or #instalmentsDue or #ageing or #provisioning or #maturity or #statementCut or #monitoring or #redenomination) true;
+      case (_) false;
+    }
   };
 
   /// The retry policy, declared as data. An item that fails is retried on the next

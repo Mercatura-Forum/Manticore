@@ -34,6 +34,19 @@ module {
   /// in a bucket nobody chose.
   public type Endpoint = { #account : Nat; #glAccount : JT.AccountCode };
 
+  /// A currency redenominated (S4.1): every balance in `from` re-expressed in `to` at the ratio — `newMinor =
+  /// oldMinor × ratioNumerator / ratioDenominator`, rounded half-even per balance row — through the bridge account
+  /// (which keeps, in `from`, the record of what was converted and, in `to`, its counterpart), the sum of the
+  /// per-row rounding differences posted to the rounding account so the bridge's two sides are each other at the
+  /// ratio exactly. Declared by a dual act; carried out by the end-of-day job of the day; `from` is closed to new
+  /// postings when the job completes.
+  public type Redenomination = {
+    from : JT.Currency; to : JT.Currency; minorUnits : Nat8;
+    ratioNumerator : Nat; ratioDenominator : Nat;
+    bridgeAccount : JT.AccountCode; roundingAccount : JT.AccountCode;
+    day : Day;
+  };
+
   /// Everything the close layer records. Each of these is a block in the bank log.
   public type CloseEvent = {
     /// The functional currency, declared once. Every revaluation posts in it and
@@ -46,6 +59,15 @@ module {
     /// one, a posting in the approval band is refused; beyond the approval band
     /// nothing admits it.
     #backValueApproved : { book : BookId; valueDate : Day; approver : Principal; reason : Text };
+    /// A currency's own working-day calendar (S4.1): a value date in that currency is a business day in the bank's
+    /// calendar and in the currency's; null removes it.
+    #currencyCalendarSet : { currency : JT.Currency; calendar : ?JT.CalendarConfig };
+    /// The declaration names the products re-versioned into the new currency by the same act.
+    #redenominationDeclared : { redenomination : Redenomination; products : [Text] };
+    /// One balance row re-expressed: the account (and sub-ledger) whose `from` balance was moved to `to`.
+    #balanceRedenominated : { from : JT.Currency; to : JT.Currency; account : JT.AccountCode; subledger : ?Blob; productAccount : ?Nat; oldAmount : Nat; newAmount : Nat; creditBalance : Bool; day : Day };
+    /// The job's last act: the rounding difference posted, the pair re-keyed, `from` closed.
+    #redenominationCompleted : { from : JT.Currency; to : JT.Currency; rows : Nat; oldTotal : Nat; newTotal : Nat; roundingAmount : Nat; roundingDebit : Bool; day : Day };
     /// A cross-currency deal, booked as four legs through the position pair.
     #fxDealBooked : {
       sell : JT.Currency; sellAmount : Nat; buy : JT.Currency; buyAmount : Nat;
@@ -131,6 +153,11 @@ module {
     #YearEndError : { reason : Text };
     #YearEndAlreadyRolled : { book : BookId; period : JT.PeriodId };
     #NotReconciled : { book : BookId; period : JT.PeriodId; state : Text };
+    /// A value date that is not a business day in one of the currencies' own calendars (S4.1).
+    #ValueDateNotBusinessInCurrency : { currency : JT.Currency; day : Day };
+    #RedenominationRefused : { reason : Text };
+    /// The currency was redenominated: new postings go in its successor.
+    #CurrencyClosed : { currency : JT.Currency; successor : JT.Currency };
   };
 
   // ─── views ────────────────────────────────────────────────────────────────

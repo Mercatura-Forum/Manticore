@@ -16,7 +16,7 @@ module {
       case (?1) ?#accrual; case (?2) ?#charges; case (?3) ?#instalmentsDue;
       case (?4) ?#ageing; case (?5) ?#provisioning; case (?6) ?#maturity;
       case (?7) ?#standingInstructions; case (?8) ?#statementCut; case (?9) ?#tillCheck;
-      case (?10) ?#monitoring; case (?11) ?#offerExpiry; case (?12) ?#facilities; case (?13) ?#trade; case (?14) ?#sharia; case (?15) ?#treasury; case (?16) ?#cards;
+      case (?10) ?#monitoring; case (?11) ?#offerExpiry; case (?12) ?#facilities; case (?13) ?#trade; case (?14) ?#sharia; case (?15) ?#treasury; case (?16) ?#cards; case (?17) ?#redenomination;
       case (_) null;
     }
   };
@@ -100,6 +100,7 @@ module {
       case (#eodFailureResolved(x)) {
         w.byte(0x15); w.text(x.book); w.nat(x.businessDate); w.nat(x.item); w.text(x.entity); w.text(x.justification);
       };
+      case (#eodItemCursor(x)) { w.byte(0x16); w.text(x.book); w.nat(x.businessDate); w.nat(x.item); w.blob(x.cursor) };
       case (#eodRetry(x)) {
         w.byte(0x14); w.text(x.book); w.nat(x.businessDate);
         w.nat(x.resolved.size());
@@ -188,6 +189,13 @@ module {
         let ?entity = r.text() else return null;
         let ?justification = r.text() else return null;
         ?#eodFailureResolved({ book; businessDate; item; entity; justification })
+      };
+      case 0x16 {
+        let ?book = r.text() else return null;
+        let ?businessDate = r.nat() else return null;
+        let ?item = r.nat() else return null;
+        let ?cursor = r.blob() else return null;
+        ?#eodItemCursor({ book; businessDate; item; cursor })
       };
       case 0x20 {
         let ?account = r.nat() else return null;
