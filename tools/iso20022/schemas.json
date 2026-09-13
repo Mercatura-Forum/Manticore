@@ -214,5 +214,59 @@
   "bytes": 81317,
   "url": "https://www.iso20022.org/sites/default/files/documents/messages/sese/schemas/sese.023.001.09.xsd",
   "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "cain.001.001.04.xsd": {
+  "sha256": "4459ea90d11073d29ece5dfe11fef1abf77cc68c53d21238ba09f020e878f5af",
+  "bytes": 230551,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/cain/schemas/cain.001.001.04.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "cain.002.001.04.xsd": {
+  "sha256": "b527eca9c1118efc4b981e91cbe8f48edf6bb5e35439be718c9e4e80677288bc",
+  "bytes": 105740,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/cain/schemas/cain.002.001.04.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "cain.003.001.04.xsd": {
+  "sha256": "4c36e579370b0ac5ed4e4899025d9e7e2ed3a345d8575ddf2c9ffb24b1753bdb",
+  "bytes": 251603,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/cain/schemas/cain.003.001.04.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "cain.004.001.04.xsd": {
+  "sha256": "5e96dbe3642adec58982585db53e373029e5ad33cdd4b1b829324cb8dacd2416",
+  "bytes": 108418,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/cain/schemas/cain.004.001.04.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "cain.005.001.04.xsd": {
+  "sha256": "fa93e00b4c933676b5062e4dd4b9f4b260af2b3e1a3f1f8f02b48fadc0199fe5",
+  "bytes": 98391,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/cain/schemas/cain.005.001.04.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "cain.006.001.04.xsd": {
+  "sha256": "054715ccc0e734270aaee5ebfa95c0082ee3a36014e277d4707aca8f3a74b994",
+  "bytes": 69923,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/cain/schemas/cain.006.001.04.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "caaa.001.001.13.xsd": {
+  "sha256": "1ef1479cdb4f99be19709a60a4b2cc364fb8d12889fa080fee1020402a129321",
+  "bytes": 133992,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/caaa/schemas/caaa.001.001.13.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "caaa.002.001.13.xsd": {
+  "sha256": "2ac188ce89e58da1f9e92e30f2c9a96dfe7b540fb098ffc8902cfef179870efb",
+  "bytes": 121000,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/caaa/schemas/caaa.002.001.13.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
+ },
+ "casp.001.001.06.xsd": {
+  "sha256": "c280ff45972b24ed14dd1c943363ed85dbfd9117cca2a37c7177dd5ad700cd44",
+  "bytes": 143100,
+  "url": "https://www.iso20022.org/sites/default/files/documents/messages/casp/schemas/casp.001.001.06.xsd",
+  "source": "ISO 20022 message definitions, public catalogue (www.iso20022.org)"
  }
 }

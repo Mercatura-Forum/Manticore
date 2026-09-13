@@ -203,13 +203,16 @@ def main():
     ap.add_argument("--schemas", default=os.path.join(os.path.dirname(__file__), "schemas"))
     ap.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "..", "..", "src", "bank", "IsoProfiles.mo"))
     ap.add_argument("--json-dir", default=os.path.join(os.path.dirname(__file__), "profiles"))
+    ap.add_argument("--only", default="", help="comma-separated families to profile instead of the canister's list")
+    ap.add_argument("--json-only", action="store_true", help="write the JSON profiles and not IsoProfiles.mo (families the hub or a battery validates, not the canister)")
     a = ap.parse_args()
+    families = FAMILIES if not a.only else [(f, f.upper().replace(".", "_")) for f in a.only.split(",")]
     os.makedirs(a.json_dir, exist_ok=True)
     consts = []
     names = []
     namespaces = []
     total_types = 0
-    for family, const in FAMILIES:
+    for family, const in families:
         path = os.path.join(a.schemas, family + ".xsd")
         src_hash = hashlib.sha256(open(path, "rb").read()).hexdigest()
         schema = load(path)
@@ -299,8 +302,11 @@ module {
               f"  public func byNamespace(namespace : Text) : ?Schema {{\n    switch (namespace) {{\n{cases}      case (_) null;\n    }}\n  }};\n"
               f"  /// Every profile, built on each call (the caller keeps it if it needs it more than once).\n"
               f"  public func all() : [Schema] {{ [{calls}] }};\n}}\n")
+    if a.json_only:
+        print(f"wrote {len(families)} JSON profiles to {a.json_dir} ({total_types} types); IsoProfiles.mo untouched")
+        return
     open(a.out, "w").write(header + "\n".join(consts) + "\n" + footer)
-    print(f"wrote {a.out}: {total_types} types over {len(FAMILIES)} families")
+    print(f"wrote {a.out}: {total_types} types over {len(families)} families")
 
 
 if __name__ == "__main__":
