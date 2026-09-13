@@ -223,6 +223,17 @@ module {
     // the financial intelligence unit. Dual, so no one person can make a finding go away.
     p("alert.clear", "alert", #approve, #command("clearAlert"), false, true),
     p("alert.escalate", "alert", #update, #command("escalateAlert"), false, true),
+    // ── collections and recovery (collections and recovery) ──
+    // The policy (the day thresholds, the suspense stage, the modification-loss rule) and the qualitative
+    // default are decisions about how the book is classified and provisioned: dual. A collector's action,
+    // a promise and an assignment are the collector's own record: single, under a scope. Closing a recovery
+    // ends a claim: dual.
+    p("collections.policy", "collections", #update, #command("setCollectionsPolicy"), false, true),
+    p("collections.utp", "collections", #update, #command("markUnlikelyToPay"), false, true),
+    p("collections.action", "collections", #create, #command("recordCollectionAction"), false, false),
+    p("collections.promise", "collections", #create, #command("recordPromiseToPay"), false, false),
+    p("collections.assign", "collections", #update, #command("assignCollector"), false, false),
+    p("collections.recovery.close", "collections", #update, #command("closeRecovery"), false, true),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -463,6 +474,12 @@ module {
       case (#retireMonitoringRule(_)) "retireMonitoringRule";
       case (#clearAlert(_)) "clearAlert";
       case (#escalateAlert(_)) "escalateAlert";
+      case (#setCollectionsPolicy(_)) "setCollectionsPolicy";
+      case (#markUnlikelyToPay(_)) "markUnlikelyToPay";
+      case (#recordCollectionAction(_)) "recordCollectionAction";
+      case (#recordPromiseToPay(_)) "recordPromiseToPay";
+      case (#assignCollector(_)) "assignCollector";
+      case (#closeRecovery(_)) "closeRecovery";
       case (#openPacking(_)) "openPacking";
       case (#rollPackToArchive(_)) "rollPackToArchive";
       case (#declareShardRule(_)) "declareShardRule";

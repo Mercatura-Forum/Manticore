@@ -45,6 +45,7 @@ import Iban "Iban";
 import AT "ArchiveTypes";
 import MT "MonitoringTypes";
 import AlT "AlertTypes";
+import ColT "CollectionsTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -576,6 +577,13 @@ module {
       case (#retireMonitoringRule(x)) { w.byte(0xD1); w.text(x.id) };
       case (#clearAlert(x)) { w.byte(0xD2); w.nat(x.alert); w.text(x.reason) };
       case (#escalateAlert(x)) { w.byte(0xD3); w.nat(x.alert); w.text(x.reportRef) };
+      // ── collections and recovery (collections and recovery) ──
+      case (#setCollectionsPolicy(p)) { w.byte(0xF0); wCollectionsPolicy(w, p) };
+      case (#markUnlikelyToPay(x)) { w.byte(0xF1); w.nat(x.account); w.text(x.reason) };
+      case (#recordCollectionAction(x)) { w.byte(0xF2); w.nat(x.account); wCollectionAction(w, x.action); w.text(x.outcome); w.optNat(x.next) };
+      case (#recordPromiseToPay(x)) { w.byte(0xF3); w.nat(x.account); w.nat(x.amount); w.nat(x.by) };
+      case (#assignCollector(x)) { w.byte(0xF4); w.nat(x.account); w.principal(x.staff) };
+      case (#closeRecovery(x)) { w.byte(0xF5); w.nat(x.account) };
       case (#openPacking(x)) { w.byte(0xD4); w.text(x.period) };
       case (#rollPackToArchive(x)) { w.byte(0xD5); w.nat(x.pack); w.nat64(x.cid); w.principal(x.archive) };
       case (#declareShardRule(x)) { w.byte(0xD6); w.nat(x.self); writeShards(w, x.shards) };
@@ -623,6 +631,81 @@ module {
       case (#alertOpened(x)) { w.byte(0x01); writeFinding(w, x.finding); w.byte(switch (x.source) { case (#posting) 0; case (#endOfDay) 1 }) };
       case (#alertCleared(x)) { w.byte(0x02); w.nat(x.alert); w.text(x.reason) };
       case (#alertEscalated(x)) { w.byte(0x03); w.nat(x.alert); w.text(x.reportRef) };
+    }
+  };
+
+  // ── collections (collections and recovery) ──
+
+  func wStage(w : C.Writer, s : ColT.Stage) { w.byte(ColT.stageCode(s)) };
+  func rStage(r : C.Reader) : ?ColT.Stage { let ?b = r.byte() else return null; ColT.stageOfCode(b) };
+  func wCollectionsPolicy(w : C.Writer, p : ColT.Policy) { w.nat(p.delinquentDpd); w.nat(p.defaultDpd); wStage(w, p.suspendInterestFrom); w.bool(p.recogniseModificationLoss) };
+  func rCollectionsPolicy(r : C.Reader) : ?ColT.Policy {
+    let ?delinquentDpd = r.nat() else return null; let ?defaultDpd = r.nat() else return null;
+    let ?suspendInterestFrom = rStage(r) else return null; let ?recogniseModificationLoss = r.bool() else return null;
+    ?{ delinquentDpd; defaultDpd; suspendInterestFrom; recogniseModificationLoss }
+  };
+  func wCollectionAction(w : C.Writer, a : ColT.Action) {
+    switch (a) {
+      case (#call) w.byte(0); case (#letter) w.byte(1); case (#visit) w.byte(2); case (#legalNotice) w.byte(3); case (#fieldAgent) w.byte(4);
+      case (#other(t)) { w.byte(5); w.text(t) };
+    }
+  };
+  func rCollectionAction(r : C.Reader) : ?ColT.Action {
+    switch (r.byte()) {
+      case (?0) ?#call; case (?1) ?#letter; case (?2) ?#visit; case (?3) ?#legalNotice; case (?4) ?#fieldAgent;
+      case (?5) { let ?t = r.text() else return null; ?#other(t) };
+      case (_) null;
+    }
+  };
+  func wReason(w : C.Writer, x : ColT.Reason) {
+    w.byte(switch (x) { case (#daysPastDue) 0; case (#unlikelyToPay) 1; case (#collectionAction) 2; case (#restructured) 3; case (#writtenOff) 4; case (#recovery) 5; case (#cured) 6; case (#closed) 7 })
+  };
+  func rReason(r : C.Reader) : ?ColT.Reason {
+    switch (r.byte()) {
+      case (?0) ?#daysPastDue; case (?1) ?#unlikelyToPay; case (?2) ?#collectionAction; case (?3) ?#restructured; case (?4) ?#writtenOff;
+      case (?5) ?#recovery; case (?6) ?#cured; case (?7) ?#closed; case (_) null;
+    }
+  };
+  func writeCollectionsEvent(w : C.Writer, e : ColT.CollectionsEvent) {
+    switch (e) {
+      case (#policySet(p)) { w.byte(0x01); wCollectionsPolicy(w, p) };
+      case (#stageDerived(x)) { w.byte(0x02); w.nat(x.account); wStage(w, x.from); wStage(w, x.to); w.nat(x.dpd); w.nat(x.day); wReason(w, x.reason); w.text(x.note) };
+      case (#actionRecorded(x)) { w.byte(0x03); w.nat(x.account); wCollectionAction(w, x.action); w.text(x.outcome); w.optNat(x.next); w.nat(x.day) };
+      case (#promiseRecorded(x)) { w.byte(0x04); w.nat(x.account); w.nat(x.amount); w.nat(x.by); w.nat(x.day); w.nat(x.baseline) };
+      case (#promiseJudged(x)) { w.byte(0x05); w.nat(x.account); w.nat(x.amount); w.nat(x.by); w.bool(x.kept); w.nat(x.day) };
+      case (#collectorAssigned(x)) { w.byte(0x06); w.nat(x.account); w.principal(x.staff) };
+      case (#interestSuspended(x)) { w.byte(0x07); w.nat(x.account); w.nat(x.amount); w.nat(x.day) };
+      case (#suspenseReleased(x)) { w.byte(0x08); w.nat(x.account); w.nat(x.amount); w.nat(x.day) };
+    }
+  };
+  func readCollectionsEvent(r : C.Reader) : ?ColT.CollectionsEvent {
+    let ?tag = r.byte() else return null;
+    switch (tag) {
+      case 0x01 { let ?p = rCollectionsPolicy(r) else return null; ?#policySet(p) };
+      case 0x02 {
+        let ?account = r.nat() else return null; let ?from = rStage(r) else return null; let ?to = rStage(r) else return null;
+        let ?dpd = r.nat() else return null; let ?day = r.nat() else return null; let ?reason = rReason(r) else return null; let ?note = r.text() else return null;
+        ?#stageDerived({ account; from; to; dpd; day; reason; note })
+      };
+      case 0x03 {
+        let ?account = r.nat() else return null; let ?action = rCollectionAction(r) else return null; let ?outcome = r.text() else return null;
+        let ?next = r.optNat() else return null; let ?day = r.nat() else return null;
+        ?#actionRecorded({ account; action; outcome; next; day })
+      };
+      case 0x04 {
+        let ?account = r.nat() else return null; let ?amount = r.nat() else return null; let ?by = r.nat() else return null;
+        let ?day = r.nat() else return null; let ?baseline = r.nat() else return null;
+        ?#promiseRecorded({ account; amount; by; day; baseline })
+      };
+      case 0x05 {
+        let ?account = r.nat() else return null; let ?amount = r.nat() else return null; let ?by = r.nat() else return null;
+        let ?kept = r.bool() else return null; let ?day = r.nat() else return null;
+        ?#promiseJudged({ account; amount; by; kept; day })
+      };
+      case 0x06 { let ?account = r.nat() else return null; let ?staff = r.principal() else return null; ?#collectorAssigned({ account; staff }) };
+      case 0x07 { let ?account = r.nat() else return null; let ?amount = r.nat() else return null; let ?day = r.nat() else return null; ?#interestSuspended({ account; amount; day }) };
+      case 0x08 { let ?account = r.nat() else return null; let ?amount = r.nat() else return null; let ?day = r.nat() else return null; ?#suspenseReleased({ account; amount; day }) };
+      case _ null;
     }
   };
 
@@ -1218,6 +1301,7 @@ module {
       case (#archive(ae)) { w.byte(0x46); writeArchiveEvent(w, ae) };
       case (#monitoring(me)) { w.byte(0x47); writeMonitoringEvent(w, me) };
       case (#alert(ae)) { w.byte(0x48); writeAlertEvent(w, ae) };
+      case (#collections(ce)) { w.byte(0x4E); writeCollectionsEvent(w, ce) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -2158,6 +2242,16 @@ module {
       };
       case 0xD1 { let ?id = r.text() else return null; ?#retireMonitoringRule({ id }) };
       case 0xD2 { let ?alert = r.nat() else return null; let ?reason = r.text() else return null; ?#clearAlert({ alert; reason }) };
+      case 0xF0 { let ?p = rCollectionsPolicy(r) else return null; ?#setCollectionsPolicy(p) };
+      case 0xF1 { let ?account = r.nat() else return null; let ?reason = r.text() else return null; ?#markUnlikelyToPay({ account; reason }) };
+      case 0xF2 {
+        let ?account = r.nat() else return null; let ?action = rCollectionAction(r) else return null;
+        let ?outcome = r.text() else return null; let ?next = r.optNat() else return null;
+        ?#recordCollectionAction({ account; action; outcome; next })
+      };
+      case 0xF3 { let ?account = r.nat() else return null; let ?amount = r.nat() else return null; let ?by = r.nat() else return null; ?#recordPromiseToPay({ account; amount; by }) };
+      case 0xF4 { let ?account = r.nat() else return null; let ?staff = r.principal() else return null; ?#assignCollector({ account; staff }) };
+      case 0xF5 { let ?account = r.nat() else return null; ?#closeRecovery({ account }) };
       case 0xD3 { let ?alert = r.nat() else return null; let ?reportRef = r.text() else return null; ?#escalateAlert({ alert; reportRef }) };
       case 0xD4 { let ?period = r.text() else return null; ?#openPacking({ period }) };
       case 0xD5 { let ?pack = r.nat() else return null; let ?cid = r.nat64() else return null; let ?archive = r.principal() else return null; ?#rollPackToArchive({ pack; cid; archive }) };
@@ -2297,6 +2391,7 @@ module {
       case 0x46 { let ?ae = readArchiveEvent(r) else return null; ?#archive(ae) };
       case 0x47 { let ?me = readMonitoringEvent(r) else return null; ?#monitoring(me) };
       case 0x48 { let ?ae = readAlertEvent(r) else return null; ?#alert(ae) };
+      case 0x4E { let ?ce = readCollectionsEvent(r) else return null; ?#collections(ce) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

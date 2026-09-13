@@ -26,6 +26,7 @@ import IdxT "IndexTypes";
 import AT "ArchiveTypes";
 import MT "MonitoringTypes";
 import AlT "AlertTypes";
+import ColT "CollectionsTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -390,6 +391,13 @@ module {
     // ── alerts: the review of what monitoring found ──
     #clearAlert : { alert : AlT.AlertId; reason : Text };
     #escalateAlert : { alert : AlT.AlertId; reportRef : Text };
+    // ── collections and recovery (collections and recovery): the decided transitions of a troubled exposure's life ──
+    #setCollectionsPolicy : ColT.Policy;
+    #markUnlikelyToPay : { account : ProdT.AccountId; reason : Text };
+    #recordCollectionAction : { account : ProdT.AccountId; action : ColT.Action; outcome : Text; next : ?Day };
+    #recordPromiseToPay : { account : ProdT.AccountId; amount : Nat; by : Day };
+    #assignCollector : { account : ProdT.AccountId; staff : Principal };
+    #closeRecovery : { account : ProdT.AccountId };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -493,6 +501,8 @@ module {
     #monitoring : MT.MonitoringEvent;
     /// Alerts: a finding recorded, and its review.
     #alert : AlT.AlertEvent;
+    /// Collections: the stage of an exposure and the acts on it (collections and recovery).
+    #collections : ColT.CollectionsEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -620,6 +630,7 @@ module {
     #ArchiveError : { error : AT.ArchiveError };
     #MonitoringError : { error : MT.MonitoringError };
     #AlertError : { error : AlT.AlertError };
+    #CollectionsError : { error : ColT.CollectionsError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };

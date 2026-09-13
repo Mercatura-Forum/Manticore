@@ -335,7 +335,7 @@ class Reader(V.Reader):
              0x07: "penaltyIncome", 0x08: "feeReceivable", 0x09: "penaltyReceivable",
              0x0A: "taxPayable", 0x0B: "overdraftPortfolio", 0x0C: "writeOff",
              0x0D: "recovery", 0x0E: "allowance", 0x0F: "impairmentExpense",
-             0x10: "suspense", 0x11: "cash"}
+             0x10: "suspense", 0x11: "cash", 0x12: "modificationAdjustment"}
     PERIODS = ["daily", "monthly", "quarterly", "semiAnnual", "annual", "atMaturity"]
     ROUNDING = ["halfEven", "halfUp", "down"]
     BASIS = ["dailyBalance", "averageDailyBalance"]
@@ -1266,6 +1266,19 @@ class Reader(V.Reader):
             return {"clearAlert": {"alert": self.nat(), "reason": self.text()}}
         if tag == 0xD3:
             return {"escalateAlert": {"alert": self.nat(), "reportRef": self.text()}}
+        # collections and recovery (collections and recovery)
+        if tag == 0xF0:
+            return {"setCollectionsPolicy": self.collections_policy()}
+        if tag == 0xF1:
+            return {"markUnlikelyToPay": {"account": self.nat(), "reason": self.text()}}
+        if tag == 0xF2:
+            return {"recordCollectionAction": {"account": self.nat(), "action": self.collection_action(), "outcome": self.text(), "next": self.opt(self.nat)}}
+        if tag == 0xF3:
+            return {"recordPromiseToPay": {"account": self.nat(), "amount": self.nat(), "by": self.nat()}}
+        if tag == 0xF4:
+            return {"assignCollector": {"account": self.nat(), "staff": self.principal()}}
+        if tag == 0xF5:
+            return {"closeRecovery": {"account": self.nat()}}
         if tag == 0xD4:
             return {"openPacking": {"period": self.text()}}
         if tag == 0xD5:
@@ -1444,6 +1457,43 @@ class Reader(V.Reader):
     def finding(self):
         return {"rule": self.text(), "version": self.nat(), "account": self.nat(), "day": self.nat(),
                 "postings": self.nats(), "detail": self.text()}
+
+    # ── collections and recovery (collections and recovery) ──
+    STAGES = ["current", "overdue", "delinquent", "default", "collections", "restructuring", "writeOff", "recovery", "closed"]
+    REASONS = ["daysPastDue", "unlikelyToPay", "collectionAction", "restructured", "writtenOff", "recovery", "cured", "closed"]
+
+    def stage(self):
+        return self.STAGES[self.byte()]
+
+    def collections_policy(self):
+        return {"delinquentDpd": self.nat(), "defaultDpd": self.nat(), "suspendInterestFrom": self.stage(), "recogniseModificationLoss": self.byte() == 1}
+
+    def collection_action(self):
+        t = self.byte()
+        if t == 5:
+            return {"other": self.text()}
+        return ["call", "letter", "visit", "legalNotice", "fieldAgent"][t]
+
+    def collections_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"policySet": self.collections_policy()}
+        if t == 0x02:
+            return {"stageDerived": {"account": self.nat(), "from": self.stage(), "to": self.stage(), "dpd": self.nat(), "day": self.nat(),
+                                     "reason": self.REASONS[self.byte()], "note": self.text()}}
+        if t == 0x03:
+            return {"actionRecorded": {"account": self.nat(), "action": self.collection_action(), "outcome": self.text(), "next": self.opt(self.nat), "day": self.nat()}}
+        if t == 0x04:
+            return {"promiseRecorded": {"account": self.nat(), "amount": self.nat(), "by": self.nat(), "day": self.nat(), "baseline": self.nat()}}
+        if t == 0x05:
+            return {"promiseJudged": {"account": self.nat(), "amount": self.nat(), "by": self.nat(), "kept": self.byte() == 1, "day": self.nat()}}
+        if t == 0x06:
+            return {"collectorAssigned": {"account": self.nat(), "staff": self.principal()}}
+        if t == 0x07:
+            return {"interestSuspended": {"account": self.nat(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x08:
+            return {"suspenseReleased": {"account": self.nat(), "amount": self.nat(), "day": self.nat()}}
+        raise ValueError(f"unknown collections event tag {t:#x}")
 
     def alert_event(self):
         sub = self.byte()
@@ -1764,6 +1814,8 @@ class Reader(V.Reader):
             return {"monitoring": self.monitoring_event()}
         if tag == 0x48:
             return {"alert": self.alert_event()}
+        if tag == 0x4E:
+            return {"collections": self.collections_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:

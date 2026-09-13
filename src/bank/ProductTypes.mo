@@ -58,6 +58,9 @@ module {
     #impairmentExpense;
     #suspense;
     #cash;                   // the till or vault counterpart
+    /// The IFRS 9 §5.4.3 adjustment of a restructured loan's gross carrying amount (collections and recovery): a contra to the
+    /// principal, so the borrower's contractual balance stays what the schedule says.
+    #modificationAdjustment;
   };
 
   public type RoleMapping = { role : Role; account : JT.AccountCode };
@@ -84,6 +87,7 @@ module {
       case (#impairmentExpense) #expense;
       case (#suspense) #asset;
       case (#cash) #asset;
+      case (#modificationAdjustment) #asset;
     }
   };
 
@@ -120,7 +124,7 @@ module {
       case (#overdraftPortfolio) "overdraftPortfolio"; case (#writeOff) "writeOff";
       case (#recovery) "recovery"; case (#allowance) "allowance";
       case (#impairmentExpense) "impairmentExpense"; case (#suspense) "suspense";
-      case (#cash) "cash";
+      case (#cash) "cash"; case (#modificationAdjustment) "modificationAdjustment";
     }
   };
 

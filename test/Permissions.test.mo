@@ -261,6 +261,12 @@ let commands : [T.Command] = [
   // ── alerts ──
   #clearAlert({ alert = 901; reason = "the customer's salary, as expected" }),
   #escalateAlert({ alert = 902; reportRef = "STR-2026-000017" }),
+  #setCollectionsPolicy({ delinquentDpd = 31; defaultDpd = 90; suspendInterestFrom = #default_; recogniseModificationLoss = true }),
+  #markUnlikelyToPay({ account = 7; reason = "bankruptcy filing" }),
+  #recordCollectionAction({ account = 7; action = #call; outcome = "no answer"; next = ?20710 }),
+  #recordPromiseToPay({ account = 7; amount = 5_000_00; by = 20715 }),
+  #assignCollector({ account = 7; staff = p1 }),
+  #closeRecovery({ account = 7 }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -328,7 +334,7 @@ Debug.print("count: catalogue entries guarding a command = " # Nat.toText(comman
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
 assert (methodEntries == 19);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request
-assert (commandEntries == 145);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day)
+assert (commandEntries == 151);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();

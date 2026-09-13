@@ -96,6 +96,8 @@ import ArchiveCore "ArchiveCore";
 import MonitoringCore "MonitoringCore";
 import MT "MonitoringTypes";
 import AlertCore "AlertCore";
+import ColT "CollectionsTypes";
+import CollectionsCore "CollectionsCore";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -187,6 +189,9 @@ module {
     monitoring : MonitoringCore.State;
     /// Alerts: findings recorded, and their review. Rows in stable memory; the finding is its block.
     alerts : AlertCore.State;
+    /// Collections and recovery (collections and recovery): the stage of every lending exposure, the policy, the collectors'
+    /// records. Rows in stable memory; every transition is a block.
+    collections : CollectionsCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -253,6 +258,7 @@ module {
       archive = ArchiveCore.newState();
       monitoring = MonitoringCore.newState();
       alerts = AlertCore.newState(arena);
+      collections = CollectionsCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -2899,10 +2905,27 @@ module {
             // nothing to post; and the period close needs evidence that *every*
             // business day was run, which a refusal would not give it. The accounts
             // examined are reported either way.
+            // the part held in suspense (collections and recovery): its own posting to the suspense role and a block per exposure
+            var suspenseJournal : [JournalStep] = [];
+            var suspenseExtra : [T.Event] = [];
+            if (r.suspended.size() > 0) {
+              var total = 0;
+              for ((_, amt) in r.suspended.vals()) total += amt;
+              let ?receivable = Products.roleAccount(v.terms, #interestReceivable) else return #err(#ProductError({ error = #RoleUnmapped({ product = x.product; role = "interestReceivable" }) }));
+              let ?suspense = Products.roleAccount(v.terms, #suspense) else return #err(#ProductError({ error = #RoleUnmapped({ product = x.product; role = "suspense" }) }));
+              switch (postOne(js, journalCaller, now, Posting.simple("accrual-suspense", [x.product, x.currency, Nat.toText(x.day)],
+                Posting.leg(receivable, null, #debit, x.currency, total), Posting.leg(suspense, null, #credit, x.currency, total), x.day, x.day, x.period, x.narration # " (held in suspense)"))) {
+                case (#err(e)) return #err(e);
+                case (#ok(plan)) {
+                  suspenseJournal := plan.journal;
+                  suspenseExtra := Array.map<(ProdT.AccountId, Nat), T.Event>(r.suspended, func((account, amount)) { #collections(#interestSuspended({ account; amount; day = x.day })) });
+                };
+              };
+            };
             if (r.amount == 0) {
               return #ok({
                 bankEvent = ?#product(#accrualPosted({ product = x.product; currency = x.currency; day = x.day; amount = 0; accounts = r.examined }));
-                extra = []; journal = [];
+                extra = suspenseExtra; journal = suspenseJournal;
               });
             };
             switch (accrualLegs(v.terms, x.currency, r.amount)) {
@@ -2912,7 +2935,7 @@ module {
                   case (#err(e)) #err(e);
                   case (#ok(plan)) #ok({
                     bankEvent = ?#product(#accrualPosted({ product = x.product; currency = x.currency; day = x.day; amount = r.amount; accounts = r.accounts }));
-                    extra = []; journal = plan.journal;
+                    extra = suspenseExtra; journal = Array.concat<JournalStep>(plan.journal, suspenseJournal);
                   });
                 }
               };
@@ -2992,9 +3015,44 @@ module {
         };
         let out = Loans.reschedule(current.rows, { effective = x.effective; terms = x.terms; rate = x.rate }, terms.rounding);
         if (out.reamortised == 0) return #err(#ProductError({ error = #InvalidSchedule({ reason = "the new terms generate no instalments" }) }));
+        // the exposure's stage moves to restructuring (collections and recovery), and under the policy's rule the IFRS 9 §5.4.3
+        // modification gain or loss — carrying amount against the modified flows discounted at the original
+        // rate — posts against the modification-adjustment contra of the loan
+        let extra = List.empty<T.Event>();
+        var journal : [JournalStep] = [];
+        switch (CollectionsCore.policy(bs.collections)) {
+          case null {};
+          case (?pol) {
+            switch (CollectionsCore.noteRestructured(bs.collections, x.account, x.effective)) { case (?ev) List.add(extra, #collections(ev)); case null {} };
+            if (pol.recogniseModificationLoss) {
+              let ?it = terms.interest else return #err(#ProductError({ error = #InvalidTerms({ reason = "a loan product needs interest terms" }) }));
+              let originalRate = switch (a.openingRate) {
+                case (?r) r;
+                case null { switch (Products.rateAt(it.chart, out.outstandingAtEffective)) { case (?r) r; case null x.rate } };
+              };
+              let carrying = Loans.allocationTotal(loanOutstanding(js, a, terms, x.effective));
+              let arrearsNow = Loans.arrears(current.rows, loanRepaid(js, a, terms, x.effective), x.effective);
+              let pastDueUnpaid = if (arrearsNow.dueToDate > arrearsNow.paid) arrearsNow.dueToDate - arrearsNow.paid else 0;
+              let m = Loans.modificationGainLoss(out.rows, x.effective, originalRate, it.convention, carrying, terms.rounding, pastDueUnpaid);
+              let amount = if (m.loss > 0) m.loss else m.gain;
+              if (amount > 0) {
+                let ?adjustment = Products.roleAccount(terms, #modificationAdjustment) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "modificationAdjustment" }) }));
+                let ?expense = Products.roleAccount(terms, #impairmentExpense) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "impairmentExpense" }) }));
+                let ?period = periodForDay(js, x.effective) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(x.effective) }) }));
+                let legs = if (m.loss > 0) [Posting.leg(expense, null, #debit, a.currency, amount), Posting.leg(adjustment, ?a.subledger, #credit, a.currency, amount)]
+                           else [Posting.leg(adjustment, ?a.subledger, #debit, a.currency, amount), Posting.leg(expense, null, #credit, a.currency, amount)];
+                switch (postLegs(js, journalCaller, now, "modification", [authId, Nat.toText(x.account), Nat.toText(x.effective)], legs, x.effective, x.effective, period,
+                                 if (m.loss > 0) "modification loss on restructuring" else "modification gain on restructuring")) {
+                  case (#err(e)) return #err(e);
+                  case (#ok(plan)) journal := plan.journal;
+                };
+              };
+            };
+          };
+        };
         #ok({
           bankEvent = ?#product(#loanRescheduled({ account = x.account; version = ProductCore.scheduleCount(a) + 1; effective = x.effective; schedule = out.rows }));
-          extra = []; journal = [];
+          extra = List.toArray(extra); journal;
         })
       };
 
@@ -3025,7 +3083,8 @@ module {
               case (#err(e)) #err(e);
               case (#ok(plan)) #ok({
                 bankEvent = ?#product(#recoveryReceived({ account = m.account; amount = m.amount; day = m.valueDate }));
-                extra = []; journal = plan.journal;
+                extra = switch (CollectionsCore.noteRecovered(bs.collections, m.account, m.amount, m.valueDate)) { case (?ev) [#collections(ev)]; case null [] };
+                journal = plan.journal;
               });
             }
           };
@@ -3748,6 +3807,52 @@ module {
         }
       };
 
+      // ── collections and recovery (collections and recovery): the decided transitions ──
+
+      case (#setCollectionsPolicy(pol)) {
+        switch (CollectionsCore.planPolicy(pol)) {
+          case (#err(e)) #err(#CollectionsError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#collections(ev); extra = []; journal = [] });
+        }
+      };
+      case (#markUnlikelyToPay(x)) {
+        switch (requireLoanAccount(bs, bb, x.account)) { case (?e) return #err(e); case null {} };
+        switch (CollectionsCore.planUnlikelyToPay(bs.collections, x.account, x.reason, JCore.effectiveToday(js, now))) {
+          case (#err(e)) #err(#CollectionsError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#collections(ev); extra = []; journal = [] });
+        }
+      };
+      case (#recordCollectionAction(x)) {
+        switch (requireLoanAccount(bs, bb, x.account)) { case (?e) return #err(e); case null {} };
+        switch (CollectionsCore.planAction(bs.collections, x.account, x.action, x.outcome, x.next, JCore.effectiveToday(js, now))) {
+          case (#err(e)) #err(#CollectionsError({ error = e }));
+          case (#ok(evs)) #ok({ bankEvent = ?#collections(evs[0]); extra = Array.map<ColT.CollectionsEvent, T.Event>(Array.sliceToArray<ColT.CollectionsEvent>(evs, 1, evs.size()), func(e) { #collections(e) }); journal = [] });
+        }
+      };
+      case (#recordPromiseToPay(x)) {
+        switch (requireLoanAccount(bs, bb, x.account)) { case (?e) return #err(e); case null {} };
+        let ?acct = ProductCore.get(bs.product, productBlocks(bb), x.account) else return #err(#ProductError({ error = #UnknownAccount({ account = x.account }) }));
+        let ?acctTerms = ProductCore.termsOf(bs.product, acct) else return #err(#ProductError({ error = #UnknownVersion({ product = acct.product; version = acct.version }) }));
+        let today = JCore.effectiveToday(js, now);
+        switch (CollectionsCore.planPromise(bs.collections, x.account, x.amount, x.by, today, loanRepaid(js, acct, acctTerms, today))) {
+          case (#err(e)) #err(#CollectionsError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#collections(ev); extra = []; journal = [] });
+        }
+      };
+      case (#assignCollector(x)) {
+        switch (requireLoanAccount(bs, bb, x.account)) { case (?e) return #err(e); case null {} };
+        switch (CollectionsCore.planAssign(bs.collections, x.account, x.staff)) {
+          case (#err(e)) #err(#CollectionsError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#collections(ev); extra = []; journal = [] });
+        }
+      };
+      case (#closeRecovery(x)) {
+        switch (CollectionsCore.planCloseRecovery(bs.collections, x.account, JCore.effectiveToday(js, now))) {
+          case (#err(e)) #err(#CollectionsError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#collections(ev); extra = []; journal = [] });
+        }
+      };
+
       // ── closed-month packing ──
 
       case (#openPacking(x)) {
@@ -4257,7 +4362,10 @@ module {
   /// as the sum of per-account folds over the journal's value-dated balances. The
   /// aggregate is rounded once; per-account figures are rounded at capitalisation,
   /// and the residue between the two is what a run reports.
-  public func accrualFor(bs : State, bb : Blocks, js : JCore.State, product : Text, ccy : Text, day : ProdT.Day) : Result.Result<{ amount : Nat; accounts : Nat; examined : Nat }, T.BankError> {
+  /// `amount` is the accrual that is income; `suspended` the accounts whose accrual the collections policy
+  /// holds in suspense (collections and recovery: an exposure at or past the policy's suspending stage), each rounded on its own
+  /// so the exposure row carries exactly what the posting holds for it.
+  public func accrualFor(bs : State, bb : Blocks, js : JCore.State, product : Text, ccy : Text, day : ProdT.Day) : Result.Result<{ amount : Nat; accounts : Nat; examined : Nat; suspended : [(ProdT.AccountId, Nat)] }, T.BankError> {
     let ?v = ProductCore.currentVersion(bs.product, product) else return #err(#ProductError({ error = #UnknownProduct({ product }) }));
     if (not Text.equal(v.terms.currency, ccy)) {
       return #err(#ProductError({ error = #CurrencyMismatch({ expected = v.terms.currency; actual = ccy }) }));
@@ -4267,6 +4375,8 @@ module {
     var negative = false;
     var counted = 0;
     var examined = 0;
+    let suspended = List.empty<(ProdT.AccountId, Nat)>();
+    let policy = CollectionsCore.policy(bs.collections);
     for (a in ProductCore.accountsOfProduct(bs.product, productBlocks(bb), product).vals()) {
       if (Text.equal(a.currency, ccy) and a.status != #closed) {
         examined += 1;
@@ -4275,17 +4385,25 @@ module {
           case (#ok(x)) {
             if (x.numerator != 0) {
               counted += 1;
-              if (x.negative) negative := true;
-              num := num * x.denominator + x.numerator * den;
-              den := den * x.denominator;
+              let inSuspense = switch (policy, CollectionsCore.row(bs.collections, a.id)) {
+                case (?pol, ?r) v.terms.kind == #loan and CollectionsCore.suspends(pol, r.stage) and not x.negative;
+                case (_, _) false;
+              };
+              if (inSuspense) {
+                let rounded = I.round(x, v.terms.rounding);
+                if (rounded.amount > 0) List.add(suspended, (a.id, rounded.amount));
+              } else {
+                if (x.negative) negative := true;
+                num := num * x.denominator + x.numerator * den;
+                den := den * x.denominator;
+              };
             };
           };
         };
       };
     };
-    let ?terms = ProductCore.currentVersion(bs.product, product) else return #err(#ProductError({ error = #UnknownProduct({ product }) }));
-    let r = I.round({ numerator = num; denominator = den; negative }, terms.terms.rounding);
-    #ok({ amount = r.amount; accounts = counted; examined })
+    let r = I.round({ numerator = num; denominator = den; negative }, v.terms.rounding);
+    #ok({ amount = r.amount; accounts = counted; examined; suspended = List.toArray(suspended) })
   };
 
   /// One account's accrual over `[from, to)`, on the terms of the version it was
@@ -4642,11 +4760,26 @@ module {
         };
         if (wo.fromAllowance > 0) List.add(legs, Posting.leg(allowance, ?a.subledger, #debit, a.currency, wo.fromAllowance));
         if (wo.toExpense > 0) List.add(legs, Posting.leg(writeOffAccount, null, #debit, a.currency, wo.toExpense));
+        // interest held in suspense for this exposure (collections and recovery) was never income: it leaves against the write-off
+        // expense, and the exposure's stage moves to write-off in its own block
+        let extra = List.empty<T.Event>();
+        switch (CollectionsCore.row(bs.collections, x.account)) {
+          case (?r) {
+            if (r.suspenseHeld > 0) {
+              let ?suspense = Products.roleAccount(terms, #suspense) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "suspense" }) }));
+              List.add(legs, Posting.leg(suspense, ?a.subledger, #debit, a.currency, r.suspenseHeld));
+              List.add(legs, Posting.leg(writeOffAccount, null, #credit, a.currency, r.suspenseHeld));
+              List.add(extra, #collections(#suspenseReleased({ account = x.account; amount = r.suspenseHeld; day = x.valueDate })));
+            };
+            switch (CollectionsCore.noteWrittenOff(bs.collections, 0, x.account, total, x.valueDate)) { case (?ev) List.add(extra, #collections(ev)); case null {} };
+          };
+          case null {};
+        };
         switch (postLegs(js, journalCaller, now, "write-off", [authId, Nat.toText(x.account)], List.toArray(legs), x.postingDate, x.valueDate, x.period, x.narration)) {
           case (#err(e)) #err(e);
           case (#ok(plan)) #ok({
             bankEvent = ?#product(#loanWrittenOff({ account = x.account; components = outstanding; fromAllowance = wo.fromAllowance; toExpense = wo.toExpense; day = x.valueDate }));
-            extra = []; journal = plan.journal;
+            extra = List.toArray(extra); journal = plan.journal;
           });
         }
       };
@@ -5948,7 +6081,7 @@ module {
       case (#accrual) jobAccrual(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period);
       case (#charges) forShard(bs, bb, run, item, only, func(a) { jobCharge(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
       case (#instalmentsDue) forShard(bs, bb, run, item, only, func(a) { jobInstalment(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
-      case (#ageing) forShard(bs, bb, run, item, only, func(a) { jobAgeing(bs, bb, js, acc, item, index, day, a) });
+      case (#ageing) forShard(bs, bb, run, item, only, func(a) { jobAgeing(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
       case (#provisioning) forShard(bs, bb, run, item, only, func(a) { jobProvision(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
       case (#maturity) forShard(bs, bb, run, item, only, func(a) { jobMaturity(bs, js, jb, journalCaller, now, acc, item, index, day, period, a) });
       case (#standingInstructions) jobInstructions(bs, bb, js, jb, journalCaller, now, acc, run, item, index, day, period, only);
@@ -5999,11 +6132,27 @@ module {
         record(acc, #product(#accrualPosted({
           product = item.product; currency = item.currency; day; amount = r.amount; accounts = r.examined;
         })));
-        if (r.amount == 0) { acc.zeroMovement += r.examined; return };
         let ?v = ProductCore.currentVersion(bs.product, item.product) else {
           fail(acc, index, item.job, item.product, "the product is no longer registered");
           return;
         };
+        // interest on exposures in suspense (collections and recovery): one posting to the suspense role for the sum, a block per exposure
+        if (r.suspended.size() > 0) {
+          var total = 0;
+          for ((_, amt) in r.suspended.vals()) total += amt;
+          switch (Products.roleAccount(v.terms, #interestReceivable), Products.roleAccount(v.terms, #suspense)) {
+            case (?receivable, ?suspense) {
+              let input = Posting.simple("accrual-suspense", [item.product, item.currency, Nat.toText(day)],
+                Posting.leg(receivable, null, #debit, item.currency, total), Posting.leg(suspense, null, #credit, item.currency, total), day, day, period, "end-of-day accrual held in suspense");
+              switch (batchPost(js, jb, journalCaller, now, acc, input)) {
+                case (?why) fail(acc, index, item.job, item.product, why);
+                case null { for ((account, amount) in r.suspended.vals()) record(acc, #collections(#interestSuspended({ account; amount; day }))) };
+              };
+            };
+            case (_, _) fail(acc, index, item.job, item.product, "the product maps no suspense account for interest on exposures in default");
+          };
+        };
+        if (r.amount == 0) { acc.zeroMovement += r.examined; return };
         switch (accrualLegs(v.terms, item.currency, r.amount)) {
           case (#err(e)) fail(acc, index, item.job, item.product, debug_show (e));
           case (#ok((debit, credit))) {
@@ -6130,8 +6279,8 @@ module {
   /// The band recomputed from job 3's result and recorded. Nothing is posted: a band is
   /// a classification, and the posting it implies is job 5's.
   func jobAgeing(
-    bs : State, bb : Blocks, js : JCore.State, acc : ChunkAcc, item : Batch.PlanItem, index : Nat,
-    day : ProdT.Day, a : ProductCore.AccountEntry,
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, a : ProductCore.AccountEntry,
   ) {
     acc.examined += 1;
     let ?terms = ProductCore.termsOf(bs.product, a) else {
@@ -6139,13 +6288,54 @@ module {
       return;
     };
     let ?sv = ProductCore.schedule(bs.product, productBlocks(bb), a) else { acc.zeroMovement += 1; return };
-    let arr = Loans.arrears(sv.rows, loanRepaid(js, a, terms, day), day);
+    let repaid = loanRepaid(js, a, terms, day);
+    let arr = Loans.arrears(sv.rows, repaid, day);
     record(acc, #batch(#loanAged({
       account = a.id; day; band = Loans.band(terms, arr);
       overdueDays = arr.overdueDays; overdueTotal = arr.overdueTotal;
       instalmentsOverdue = arr.instalmentsOverdue;
     })));
     if (arr.overdueTotal == 0) acc.zeroMovement += 1;
+    // ── the exposure's stage (collections and recovery): derived from the days past due under the recorded policy; a block only
+    // when it moves. A cure out of a suspending stage releases the interest held in suspense to income.
+    switch (CollectionsCore.policy(bs.collections)) {
+      case null {};
+      case (?pol) {
+        let before = CollectionsCore.row(bs.collections, a.id);
+        switch (CollectionsCore.transitionFor(bs.collections, a.id, arr.overdueDays, day, 0)) {
+          case null {};
+          case (?ev) {
+            record(acc, #collections(ev));
+            switch (before, ev) {
+              case (?r, #stageDerived(x)) {
+                if (r.suspenseHeld > 0 and CollectionsCore.suspends(pol, r.stage) and not CollectionsCore.suspends(pol, x.to)) {
+                  releaseSuspense(bs, js, jb, journalCaller, now, acc, index, item.job, terms, a, r.suspenseHeld, day, period);
+                };
+              };
+              case (_, _) {};
+            };
+          };
+        };
+        // a promise that fell due before today is judged against the repayments since it was made
+        switch (CollectionsCore.duePromise(bs.collections, a.id, day)) {
+          case (?p) record(acc, #collections(#promiseJudged({ account = a.id; amount = p.amount; by = p.by; kept = CollectionsCore.judgePromise(p, repaid); day })));
+          case null {};
+        };
+      };
+    };
+  };
+
+  /// Interest held in suspense while an exposure was in default returns to income on its cure (collections and recovery).
+  func releaseSuspense(
+    bs : State, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64, acc : ChunkAcc, index : Nat, job : Batch.Job,
+    terms : ProdT.ProductTerms, a : ProductCore.AccountEntry, amount : Nat, day : ProdT.Day, period : JT.PeriodId,
+  ) {
+    ignore bs;
+    let ?suspense = Products.roleAccount(terms, #suspense) else { fail(acc, index, job, Nat.toText(a.id), "the product maps no suspense account"); return };
+    let ?income = Products.roleAccount(terms, #interestIncome) else { fail(acc, index, job, Nat.toText(a.id), "the product maps no interest income"); return };
+    let legs = [Posting.leg(suspense, ?a.subledger, #debit, a.currency, amount), Posting.leg(income, null, #credit, a.currency, amount)];
+    batchLegs(js, jb, journalCaller, now, acc, index, job, Nat.toText(a.id), "suspense-release", [Nat.toText(a.id), Nat.toText(day)], legs, day, period, "interest in suspense released on cure");
+    record(acc, #collections(#suspenseReleased({ account = a.id; amount; day })));
   };
 
   // ─── job 5: provision staging ─────────────────────────────────────────────
@@ -6416,6 +6606,14 @@ module {
     null
   };
 
+  /// A collections act names a loan account that exists and has been disbursed.
+  func requireLoanAccount(bs : State, bb : Blocks, account : ProdT.AccountId) : ?T.BankError {
+    let ?a = ProductCore.get(bs.product, productBlocks(bb), account) else return ?#ProductError({ error = #UnknownAccount({ account }) });
+    let ?terms = ProductCore.termsOf(bs.product, a) else return ?#ProductError({ error = #UnknownVersion({ product = a.product; version = a.version }) });
+    if (terms.kind != #loan) return ?#CollectionsError({ error = #NotALoan({ account }) });
+    null
+  };
+
   func requireOpenBook(bs : State, book : T.BookId) : ?T.BankError {
     switch (Map.get(bs.books, Text.compare, book)) {
       case null ?#UnknownBook({ book });
@@ -6681,7 +6879,15 @@ module {
         ignore Map.delete(s.openOverrides, Nat.compare, x.override_);
       };
       case (#party(pe)) { PartyCore.apply(s.party, block.index, pe) };
-      case (#product(pe)) { ProductCore.apply(s.product, block.index, pe) };
+      case (#product(pe)) {
+        ProductCore.apply(s.product, block.index, pe);
+        // the exposure rows carry what left and what came back (collections and recovery); the stage moves are their own blocks
+        switch (pe) {
+          case (#loanWrittenOff(x)) CollectionsCore.addWrittenOff(s.collections, x.account, Loans.allocationTotal(x.components));
+          case (#recoveryReceived(x)) CollectionsCore.addRecovered(s.collections, x.account, x.amount);
+          case (_) {};
+        };
+      };
       case (#close(ce)) { CloseCore.apply(s.close, block.index, ce) };
       case (#batch(be)) { BatchCore.apply(s.batch, block.index, be) };
       case (#report(re)) { ReportCore.apply(s.report, block.index, re) };
@@ -6689,6 +6895,7 @@ module {
       case (#archive(ae)) { ArchiveCore.apply(s.archive, block.index, ae) };
       case (#monitoring(me)) { MonitoringCore.apply(s.monitoring, block.index, me) };
       case (#alert(ae)) { AlertCore.apply(s.alerts, block.index, ae) };
+      case (#collections(ce)) { CollectionsCore.apply(s.collections, block.index, ce) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -6817,6 +7024,7 @@ module {
       case (#archive(_)) "archive";
       case (#monitoring(_)) "monitoring";
       case (#alert(_)) "alert";
+      case (#collections(_)) "collections";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -7108,6 +7316,7 @@ module {
     ArchiveCore.fingerprintInto(w, s.archive);
     MonitoringCore.fingerprintInto(w, s.monitoring);
     AlertCore.fingerprintInto(w, s.alerts);
+    CollectionsCore.fingerprintInto(w, s.collections);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);

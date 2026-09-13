@@ -31,6 +31,7 @@ import Array "mo:core/Array";
 
 import T "ProductTypes";
 import I "Interest";
+import DC "DayCount";
 import Products "Products";
 
 module {
@@ -275,5 +276,34 @@ module {
       reamortised = renumbered.size();
       outstandingAtEffective = outstanding;
     }
+  };
+
+  /// The modification gain or loss of a restructuring (IFRS 9 §5.4.3), stated as this bank computes it and as
+  /// the Python oracle of `bank_s31.py` reproduces it. The gross carrying amount before the modification
+  /// (`carrying`: principal, interest, fees and penalties outstanding at the effective day) is compared with
+  /// the present value of the modified contractual cash flows, discounted at the **original** contractual
+  /// rate: every instalment of the new schedule due on or after the effective day contributes
+  /// `round(cashFlow × 1 / (1 + rate × fraction(effective, dueDate)))` — simple discounting per flow over the
+  /// product's day-count convention, each flow rounded on its own under the product's rounding, so the
+  /// figure is exact, bounded and identical on both sides. What had fallen due and was unpaid at the
+  /// effective day (`pastDueUnpaid`) is present-valued at par — it is due now — and the retained instalments
+  /// of the old schedule are not flows of the modification. A positive result is a loss (the modified flows
+  /// are worth less than the carrying amount), a negative one a gain.
+  public func modificationGainLoss(
+    newRows : [T.Instalment], effective : T.Day, originalRate : I.Rate, convention : DC.Convention, carrying : Nat, mode : I.Rounding, pastDueUnpaid : Nat,
+  ) : { presentValue : Nat; loss : Nat; gain : Nat } {
+    var pv : Nat = pastDueUnpaid;
+    for (r in newRows.vals()) {
+      let flow = r.principal + r.interest + r.fees;
+      if (flow > 0 and r.dueDate > effective) {
+        let f = DC.fraction(convention, effective, r.dueDate);
+        // discount factor = f.den × rate.den / (f.den × rate.den + rate.num × f.num)
+        let dfNum = f.denominator * originalRate.denominator;
+        let dfDen = f.denominator * originalRate.denominator + originalRate.numerator * f.numerator;
+        let x : I.Signed = { numerator = flow * dfNum; denominator = dfDen; negative = false };
+        pv += I.round(x, mode).amount;
+      };
+    };
+    if (carrying > pv) { { presentValue = pv; loss = carrying - pv; gain = 0 } } else { { presentValue = pv; loss = 0; gain = pv - carrying } }
   };
 };

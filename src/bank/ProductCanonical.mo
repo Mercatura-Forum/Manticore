@@ -57,7 +57,7 @@ module {
       case (#penaltyIncome) 0x07; case (#feeReceivable) 0x08; case (#penaltyReceivable) 0x09;
       case (#taxPayable) 0x0A; case (#overdraftPortfolio) 0x0B; case (#writeOff) 0x0C;
       case (#recovery) 0x0D; case (#allowance) 0x0E; case (#impairmentExpense) 0x0F;
-      case (#suspense) 0x10; case (#cash) 0x11;
+      case (#suspense) 0x10; case (#cash) 0x11; case (#modificationAdjustment) 0x12;
     });
   };
 
@@ -277,7 +277,7 @@ module {
       case (?0x07) ?#penaltyIncome; case (?0x08) ?#feeReceivable; case (?0x09) ?#penaltyReceivable;
       case (?0x0A) ?#taxPayable; case (?0x0B) ?#overdraftPortfolio; case (?0x0C) ?#writeOff;
       case (?0x0D) ?#recovery; case (?0x0E) ?#allowance; case (?0x0F) ?#impairmentExpense;
-      case (?0x10) ?#suspense; case (?0x11) ?#cash; case (_) null;
+      case (?0x10) ?#suspense; case (?0x11) ?#cash; case (?0x12) ?#modificationAdjustment; case (_) null;
     }
   };
 

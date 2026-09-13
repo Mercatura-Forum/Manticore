@@ -445,6 +445,15 @@ let commands : [T.Command] = [
   #revokeDebitAuthority({ rail = "RTGS"; debtor = 311; creditorBic = "CIBEEGCX"; currency = "EGP" }),
   #decideMandate({ rail = "RTGS"; mandateId = "MNDT-1"; accepted = false; reason = ?"customer declined" }),
   #decideMandate({ rail = "RTGS"; mandateId = "MNDT-2"; accepted = true; reason = null }),
+  // collections and recovery (collections and recovery)
+  #setCollectionsPolicy({ delinquentDpd = 31; defaultDpd = 90; suspendInterestFrom = #default_; recogniseModificationLoss = true }),
+  #setCollectionsPolicy({ delinquentDpd = 16; defaultDpd = 60; suspendInterestFrom = #delinquent; recogniseModificationLoss = false }),
+  #markUnlikelyToPay({ account = 89; reason = "insolvency petition filed" }),
+  #recordCollectionAction({ account = 89; action = #call; outcome = "no answer"; next = ?20730 }),
+  #recordCollectionAction({ account = 89; action = #other("sms"); outcome = "delivered"; next = null }),
+  #recordPromiseToPay({ account = 89; amount = 1_500_00; by = 20740 }),
+  #assignCollector({ account = 89; staff = carol }),
+  #closeRecovery({ account = 89 }),
 ];
 
 /// The command a proposal and an override in the event list below carry.
@@ -691,6 +700,17 @@ List.add(events, #alert(#alertOpened({ finding = sampleFinding; source = #postin
 List.add(events, #alert(#alertOpened({ finding = { sampleFinding with postings = [] }; source = #endOfDay })));
 List.add(events, #alert(#alertCleared({ alert = 903; reason = "documented payroll" })));
 List.add(events, #alert(#alertEscalated({ alert = 904; reportRef = "STR-2026-000017" })));
+// every collections event variant (collections and recovery)
+List.add(events, #collections(#policySet({ delinquentDpd = 31; defaultDpd = 90; suspendInterestFrom = #default_; recogniseModificationLoss = true })));
+List.add(events, #collections(#stageDerived({ account = 89; from = #current; to = #overdue; dpd = 3; day = 20726; reason = #daysPastDue; note = "" })));
+List.add(events, #collections(#stageDerived({ account = 89; from = #delinquent; to = #default_; dpd = 40; day = 20760; reason = #unlikelyToPay; note = "insolvency petition filed" })));
+List.add(events, #collections(#actionRecorded({ account = 89; action = #legalNotice; outcome = "served"; next = ?20790; day = 20761 })));
+List.add(events, #collections(#actionRecorded({ account = 89; action = #other("sms"); outcome = "delivered"; next = null; day = 20762 })));
+List.add(events, #collections(#promiseRecorded({ account = 89; amount = 1_500_00; by = 20770; day = 20762; baseline = 12_000_00 })));
+List.add(events, #collections(#promiseJudged({ account = 89; amount = 1_500_00; by = 20770; kept = false; day = 20771 })));
+List.add(events, #collections(#collectorAssigned({ account = 89; staff = carol })));
+List.add(events, #collections(#interestSuspended({ account = 89; amount = 412_33; day = 20761 })));
+List.add(events, #collections(#suspenseReleased({ account = 89; amount = 412_33; day = 20800 })));
 // every packing event variant
 let segHash : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 List.add(events, #packing(#packOpened({ pack = 1; period = "2026-09"; periodEnd = 20726; lo = 0; hi = 4_211; bankLo = 0; bankHi = 17_902 })));

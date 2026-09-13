@@ -79,6 +79,8 @@ import Monitoring "Monitoring";
 import MonitoringCore "MonitoringCore";
 import AlT "AlertTypes";
 import AlertCore "AlertCore";
+import ColT "CollectionsTypes";
+import CollectionsCore "CollectionsCore";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -2445,6 +2447,33 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   public query func alertStatus() : async { opened : Nat; cleared : Nat; escalated : Nat; open : Nat } { AlertCore.counts(bank.alerts) };
+
+  // ─── collections and recovery (collections and recovery) ──────────────────────────────────────
+
+  /// One exposure's stage and record, within the caller's book scope.
+  public shared query ({ caller }) func exposure(account : Nat) : async Result.Result<?ColT.ExposureView, T.BankError> {
+    switch (scopedAccount(caller, account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    #ok(CollectionsCore.view(bank.collections, account))
+  };
+
+  /// The exposures in a stage, paged, filtered to the caller's books.
+  public shared query ({ caller }) func exposuresByStage(stage : ColT.Stage, cursor : ?Blob, limit : Nat) : async { entries : [ColT.ExposureView]; cursor : ?Blob } {
+    let page = CollectionsCore.listByStage(bank.collections, stage, cursor, limit);
+    let scope = readScope(caller);
+    { entries = Array.filter<ColT.ExposureView>(page.entries, func(v) { BankCore.mayReadOptBook(scope, ProductCore.bookOf(bank.product, v.account)) }); cursor = page.cursor }
+  };
+
+  /// A collector's worklist: their exposures not yet closed, paged, filtered to the caller's books.
+  public shared query ({ caller }) func collectorWorklist(staff : Principal, cursor : ?Blob, limit : Nat) : async { entries : [ColT.ExposureView]; cursor : ?Blob } {
+    let page = CollectionsCore.worklist(bank.collections, staff, cursor, limit);
+    let scope = readScope(caller);
+    { entries = Array.filter<ColT.ExposureView>(page.entries, func(v) { BankCore.mayReadOptBook(scope, ProductCore.bookOf(bank.product, v.account)) }); cursor = page.cursor }
+  };
+
+  /// The collections book at a glance: the policy, the counts, the exposures per stage.
+  public query func collectionsStatus() : async { policy : ?ColT.Policy; counts : { exposures : Nat; transitions : Nat; actions : Nat; promises : Nat; promisesKept : Nat; promisesBroken : Nat }; stages : [(Text, Nat)] } {
+    { policy = CollectionsCore.policy(bank.collections); counts = CollectionsCore.counts(bank.collections); stages = CollectionsCore.stageDistribution(bank.collections) }
+  };
 
   /// The suspicious-transaction report for an escalated alert — and for nothing else. Every field
   /// is read from the alert's blocks and the postings it cites: the rule as its version said it,
