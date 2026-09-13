@@ -267,32 +267,36 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
     };
   };
 
-  func checkDedupAndTime(caller : Principal, created_at_time : ?Nat64, amount : Nat, memo : ?Blob) : { #ok; #TooOld; #InFuture : Nat64; #Duplicate : Nat } {
+  /// The deduplication check: the window and the drift first, then the key against what the ledger has RECORDED.
+  /// Nothing is written here — a transfer refused after this check (allowance, funds, supply, the journal's gate)
+  /// must leave no trace, or its own retry with the same `created_at_time` would be answered `#Duplicate` pointing
+  /// at a block that never held it (ICRC-1: the ledger must not deduplicate a transfer that was rejected). The key
+  /// comes back with `#ok` and is recorded by `recordDedup` once the block is appended, with that block's index.
+  func checkDedupAndTime(caller : Principal, created_at_time : ?Nat64, amount : Nat, memo : ?Blob) : { #ok : ?(Blob, Nat64); #TooOld; #InFuture : Nat64; #Duplicate : Nat } {
     pruneDedupMap();
     switch (created_at_time) {
-      case null #ok;
+      case null #ok(null);
       case (?ts) {
         let n = now();
         if (ts + TX_WINDOW_NS + PERMITTED_DRIFT_NS < n) return #TooOld;
         if (ts > n + PERMITTED_DRIFT_NS) return #InFuture(n);
         let dedupKey = buildDedupKey(caller, ts, amount, memo);
-        // Bloom fast path (keyed on timestamp for window; dedupKey for exact match)
-        if (not Bloom.mightContain(bloomState, ts, n)) {
-          Bloom.add(bloomState, ts, n);
-          Map.add(recentTxEntries, Blob.compare, dedupKey, { blockIndex = BLog.length(blockState); timestamp = ts });
-          dedupMapSize += 1;
-          return #ok;
-        };
-        // Exact check with full dedup key
+        if (not Bloom.mightContain(bloomState, ts, n)) return #ok(?(dedupKey, ts));
         switch (Map.get(recentTxEntries, Blob.compare, dedupKey)) {
           case (?entry) #Duplicate(entry.blockIndex);
-          case null {
-            Bloom.add(bloomState, ts, n);
-            Map.add(recentTxEntries, Blob.compare, dedupKey, { blockIndex = BLog.length(blockState); timestamp = ts });
-            dedupMapSize += 1;
-            #ok
-          };
+          case null #ok(?(dedupKey, ts));
         };
+      };
+    };
+  };
+  /// Record the key of a transfer the ledger has just appended, against the block that holds it.
+  func recordDedup(dedup : ?(Blob, Nat64), blockIndex : Nat) {
+    switch (dedup) {
+      case null {};
+      case (?(dedupKey, ts)) {
+        Bloom.add(bloomState, ts, now());
+        Map.add(recentTxEntries, Blob.compare, dedupKey, { blockIndex; timestamp = ts });
+        dedupMapSize += 1;
       };
     };
   };
@@ -426,12 +430,6 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   /// with the same created_at_time answers #Duplicate of a phantom index. Above
   /// the gate a refusal forgets the key, so dedup covers recorded movements only
   /// (the ICRC-1 meaning of a duplicate). Below the gate nothing changes.
-  func forgetDedup(caller : Principal, created_at_time : ?Nat64, amount : Nat, memo : ?Blob) {
-    switch (created_at_time) {
-      case (?ts) { if (Map.delete(recentTxEntries, Blob.compare, buildDedupKey(caller, ts, amount, memo))) dedupMapSize -= 1 };
-      case null {};
-    };
-  };
 
   func idemKey(caller : Principal, created_at_time : ?Nat64, amount : Nat, memo : ?Blob) : Blob {
     switch (created_at_time) {
@@ -539,47 +537,50 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
   /// A transfer above the gate: burn, mint or regular, as one balanced posting
   /// followed by the ICRC-3 block. Validation and dedup happened in the caller.
-  func journalTransfer(caller : Principal, from : T.Account, to : T.Account, spender : ?T.Account, amount : Nat, fee : Nat, memo : ?Blob, created_at_time : ?Nat64) : { #Ok : Nat; #Err : T.TransferError } {
+  func journalTransfer(caller : Principal, from : T.Account, to : T.Account, spender : ?T.Account, amount : Nat, fee : Nat, memo : ?Blob, created_at_time : ?Nat64, dedup : ?(Blob, Nat64)) : { #Ok : Nat; #Err : T.TransferError } {
     let key = idemKey(caller, created_at_time, amount, memo);
     if (isMintingAccount(to)) {
       if (amount == 0) return #Err(#BadBurn({ min_burn_amount = 1 }));
-      switch (ensureMigrated(from)) { case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); return #Err(mapPostError(e, from)) }; case (#ok(_)) {} };
+      switch (ensureMigrated(from)) { case (#err(e)) { return #Err(mapPostError(e, from)) }; case (#ok(_)) {} };
       let legs = [holderLeg(from, #debit, amount + fee), issuanceLeg(#credit, amount + fee)];
       switch (journalPost(legs, "1burn", "icrc:" # Nat.toText(BLog.length(blockState)), key)) {
-        case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); return #Err(mapPostError(e, from)) };
+        case (#err(e)) { return #Err(mapPostError(e, from)) };
         case (#ok(j)) {
           balState.tokenPool += amount + fee;
           let tx = makeTx("burn", ?from, null, spender, amount, ?fee, memo);
           let idx = appendAndCertify(tx, ?fee);
+          recordDedup(dedup, idx);
           switch (j) { case (?ji) Map.add(icrcToJournal, Nat.compare, idx, ji); case null {} };
           return #Ok(idx);
         };
       };
     };
     if (isMintingAccount(from)) {
-      if (amount > balState.tokenPool) { forgetDedup(caller, created_at_time, amount, memo); return #Err(#GenericError({ error_code = 1; message = "Mint exceeds supply" })) };
-      switch (ensureMigrated(to)) { case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); return #Err(mapPostError(e, to)) }; case (#ok(_)) {} };
+      if (amount > balState.tokenPool) { return #Err(#GenericError({ error_code = 1; message = "Mint exceeds supply" })) };
+      switch (ensureMigrated(to)) { case (#err(e)) { return #Err(mapPostError(e, to)) }; case (#ok(_)) {} };
       let legs = if (amount == 0) [] else [issuanceLeg(#debit, amount), holderLeg(to, #credit, amount)];
       switch (journalPost(legs, "1mint", "icrc:" # Nat.toText(BLog.length(blockState)), key)) {
-        case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); return #Err(mapPostError(e, to)) };
+        case (#err(e)) { return #Err(mapPostError(e, to)) };
         case (#ok(j)) {
           Bal.reducePool(balState, amount);
           let tx = makeTx("mint", null, ?to, spender, amount, null, memo);
           let idx = appendAndCertify(tx, null);
+          recordDedup(dedup, idx);
           switch (j) { case (?ji) Map.add(icrcToJournal, Nat.compare, idx, ji); case null {} };
           return #Ok(idx);
         };
       };
     };
-    switch (ensureMigrated(from)) { case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); return #Err(mapPostError(e, from)) }; case (#ok(_)) {} };
-    switch (ensureMigrated(to)) { case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); return #Err(mapPostError(e, to)) }; case (#ok(_)) {} };
-    switch (feeCollector) { case (?fc) { switch (ensureMigrated(fc)) { case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); return #Err(mapPostError(e, fc)) }; case (#ok(_)) {} } }; case null {} };
+    switch (ensureMigrated(from)) { case (#err(e)) { return #Err(mapPostError(e, from)) }; case (#ok(_)) {} };
+    switch (ensureMigrated(to)) { case (#err(e)) { return #Err(mapPostError(e, to)) }; case (#ok(_)) {} };
+    switch (feeCollector) { case (?fc) { switch (ensureMigrated(fc)) { case (#err(e)) { return #Err(mapPostError(e, fc)) }; case (#ok(_)) {} } }; case null {} };
     switch (journalPost(transferLegs(from, to, amount, fee), if (spender == null) "1xfer" else "2xfer", "icrc:" # Nat.toText(BLog.length(blockState)), key)) {
-      case (#err(e)) { forgetDedup(caller, created_at_time, amount, memo); #Err(mapPostError(e, from)) };
+      case (#err(e)) { #Err(mapPostError(e, from)) };
       case (#ok(j)) {
         if (fee > 0 and feeCollector == null) balState.tokenPool += fee;
         let tx = makeTx("transfer", ?from, ?to, spender, amount, ?fee, memo);
         let idx = appendAndCertify(tx, ?fee);
+        recordDedup(dedup, idx);
         switch (j) { case (?ji) Map.add(icrcToJournal, Nat.compare, idx, ji); case null {} };
         #Ok(idx)
       };
@@ -616,14 +617,14 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       case (?e) return #Err(#GenericError({ error_code = 101; message = e })); case null {};
     };
 
-    switch (checkDedupAndTime(caller, transferArgs.created_at_time, amount, transferArgs.memo)) {
+    let dedup = switch (checkDedupAndTime(caller, transferArgs.created_at_time, amount, transferArgs.memo)) {
       case (#TooOld) return #Err(#TooOld);
       case (#InFuture(t)) return #Err(#CreatedInFuture({ ledger_time = t }));
       case (#Duplicate(idx)) return #Err(#Duplicate({ duplicate_of = idx }));
-      case (#ok) {};
+      case (#ok(d)) d;
     };
 
-    if (journalActive()) return journalTransfer(caller, from, to, null, amount, fee, transferArgs.memo, transferArgs.created_at_time);
+    if (journalActive()) return journalTransfer(caller, from, to, null, amount, fee, transferArgs.memo, transferArgs.created_at_time, dedup);
 
     // Burn — enforce min_burn_amount
     if (isMintingAccount(to)) {
@@ -634,6 +635,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("burn", ?from, null, null, amount, ?fee, transferArgs.memo);
       let idx = appendAndCertify(tx, ?fee);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -645,6 +647,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("mint", null, ?to, null, amount, null, transferArgs.memo);
       let idx = appendAndCertify(tx, null);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -655,6 +658,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
     };
     let tx = makeTx("transfer", ?from, ?to, null, amount, ?fee, transferArgs.memo);
     let idx = appendAndCertify(tx, ?fee);
+    recordDedup(dedup, idx);
     #Ok(idx)
   };
 
@@ -693,11 +697,11 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       case (?e) return #Err(#GenericError({ error_code = 101; message = e })); case null {};
     };
 
-    switch (checkDedupAndTime(caller, approveArgs.created_at_time, approveArgs.amount, approveArgs.memo)) {
+    let dedup = switch (checkDedupAndTime(caller, approveArgs.created_at_time, approveArgs.amount, approveArgs.memo)) {
       case (#TooOld) return #Err(#TooOld);
       case (#InFuture(t)) return #Err(#CreatedInFuture({ ledger_time = t }));
       case (#Duplicate(idx)) return #Err(#Duplicate({ duplicate_of = idx }));
-      case (#ok) {};
+      case (#ok(d)) d;
     };
 
     if (journalActive()) {
@@ -716,13 +720,13 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       switch (journalPost(feeLegs, "2approve", "icrc:" # Nat.toText(BLog.length(blockState)), idemKey(caller, approveArgs.created_at_time, approveArgs.amount, approveArgs.memo))) {
         case (#err(_)) {
           ignore Allow.approve(allowState, from, spender, saved.allowance, saved.expires_at, null);
-          forgetDedup(caller, approveArgs.created_at_time, approveArgs.amount, approveArgs.memo);
           return #Err(#InsufficientFunds({ balance = holderBalance(from) }));
         };
         case (#ok(j)) {
           if (fee > 0 and feeCollector == null) balState.tokenPool += fee;
           let tx = makeTx("approve", ?from, null, ?spender, approveArgs.amount, ?fee, approveArgs.memo);
           let idx = appendAndCertify(tx, ?fee);
+          recordDedup(dedup, idx);
           switch (j) { case (?ji) Map.add(icrcToJournal, Nat.compare, idx, ji); case null {} };
           return #Ok(idx);
         };
@@ -754,6 +758,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
     let tx = makeTx("approve", ?from, null, ?spender, approveArgs.amount, ?fee, approveArgs.memo);
     let idx = appendAndCertify(tx, ?fee);
+    recordDedup(dedup, idx);
     #Ok(idx)
   };
 
@@ -791,11 +796,11 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       case (?e) return #Err(#GenericError({ error_code = 101; message = e })); case null {};
     };
 
-    switch (checkDedupAndTime(caller, tfArgs.created_at_time, amount, tfArgs.memo)) {
+    let dedup = switch (checkDedupAndTime(caller, tfArgs.created_at_time, amount, tfArgs.memo)) {
       case (#TooOld) return #Err(#TooOld);
       case (#InFuture(t)) return #Err(#CreatedInFuture({ ledger_time = t }));
       case (#Duplicate(idx)) return #Err(#Duplicate({ duplicate_of = idx }));
-      case (#ok) {};
+      case (#ok(d)) d;
     };
 
     // Check + use allowance (skip if self-transfer)
@@ -807,7 +812,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
     if (needsAllowance) {
       switch (Allow.useAllowance(allowState, from, spender, amount + fee)) {
-        case (#err(#InsufficientAllowance(a))) { if (journalActive()) forgetDedup(caller, tfArgs.created_at_time, amount, tfArgs.memo); return #Err(#InsufficientAllowance(a)) };
+        case (#err(#InsufficientAllowance(a))) return #Err(#InsufficientAllowance(a));
         case (#ok(())) {};
       };
     };
@@ -815,7 +820,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
     if (journalActive()) {
       // Above the gate: the same three cases as below, as one posting; the
       // allowance is restored exactly when the posting is refused.
-      let r = journalTransfer(caller, from, to, ?spender, amount, fee, tfArgs.memo, tfArgs.created_at_time);
+      let r = journalTransfer(caller, from, to, ?spender, amount, fee, tfArgs.memo, tfArgs.created_at_time, dedup);
       switch (r) {
         case (#Ok(idx)) return #Ok(idx);
         case (#Err(e)) {
@@ -862,6 +867,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("burn", ?from, null, ?spender, amount, null, tfArgs.memo);
       let idx = appendAndCertify(tx, null);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -879,6 +885,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("mint", null, ?to, ?spender, amount, null, tfArgs.memo);
       let idx = appendAndCertify(tx, null);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -896,6 +903,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
     let tx = makeTx("transfer", ?from, ?to, ?spender, amount, ?fee, tfArgs.memo);
     let idx = appendAndCertify(tx, ?fee);
+    recordDedup(dedup, idx);
     #Ok(idx)
   };
 
@@ -1318,23 +1326,22 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
     if (isMintingAccount(a.from) or isMintingAccount(a.to)) return #Err(#GenericError({ error_code = 902; message = "reservations cannot mint or burn" }));
     let fee = switch (a.fee) { case (?f) { if (f != tokenFee) return #Err(#BadFee({ expected_fee = tokenFee })); f }; case null tokenFee };
     switch (validateMemo(a.memo)) { case (?e) return #Err(#GenericError({ error_code = 101; message = e })); case null {} };
-    switch (checkDedupAndTime(caller, a.created_at_time, a.amount, a.memo)) {
+    let dedup = switch (checkDedupAndTime(caller, a.created_at_time, a.amount, a.memo)) {
       case (#TooOld) return #Err(#TooOld);
       case (#InFuture(t)) return #Err(#CreatedInFuture({ ledger_time = t }));
       case (#Duplicate(idx)) return #Err(#Duplicate({ duplicate_of = idx }));
-      case (#ok) {};
+      case (#ok(d)) d;
     };
     let spender : T.Account = { owner = caller; subaccount = null };
     let needsAllowance = not T.accountsEqual(a.from, spender) and not Principal.equal(a.from.owner, caller);
     var allowanceUsed = 0;
     if (needsAllowance) {
       switch (Allow.useAllowance(allowState, a.from, spender, a.amount + fee)) {
-        case (#err(#InsufficientAllowance(x))) { forgetDedup(caller, a.created_at_time, a.amount, a.memo); return #Err(#InsufficientAllowance(x)) };
+        case (#err(#InsufficientAllowance(x))) { return #Err(#InsufficientAllowance(x)) };
         case (#ok(())) allowanceUsed := a.amount + fee;
       };
     };
     func restoreAllowance() {
-      forgetDedup(caller, a.created_at_time, a.amount, a.memo);
       if (allowanceUsed > 0) { let cur = Allow.getAllowance(allowState, a.from, spender); ignore Allow.approve(allowState, a.from, spender, cur.allowance + allowanceUsed, cur.expires_at, null) };
     };
     switch (ensureMigrated(a.from)) { case (#err(e)) { restoreAllowance(); return #Err(#InsufficientFunds({ balance = holderBalance(a.from) })) }; case (#ok(_)) {} };
@@ -1354,13 +1361,9 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
       case (#ok(#event(e))) {
         let b = commitJournal(selfPrincipal(), e);
         Map.add(reservations, Nat.compare, b.index, { reserver = caller; from = a.from; to = a.to; spender = if (needsAllowance) ?spender else null; amount = a.amount; fee; memo = a.memo; allowanceUsed });
-        // A replay of this reservation (same caller, created_at_time, amount, memo)
-        // must answer #Duplicate with the reservation's identity, so the dedup
-        // entry — registered before the reservation existed — is pointed at it.
-        switch (a.created_at_time) {
-          case (?ts) Map.add(recentTxEntries, Blob.compare, buildDedupKey(caller, ts, a.amount, a.memo), { blockIndex = b.index; timestamp = ts });
-          case null {};
-        };
+        // a replay of this reservation (same caller, created_at_time, amount, memo) answers #Duplicate with the
+        // reservation's identity: the key is recorded now, against the journal block the reservation holds
+        recordDedup(dedup, b.index);
         certifyCurrent();
         #Ok(b.index)
       };

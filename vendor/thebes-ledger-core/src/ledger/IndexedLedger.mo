@@ -225,32 +225,37 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
     };
   };
 
-  func checkDedupAndTime(caller : Principal, created_at_time : ?Nat64, amount : Nat, memo : ?Blob) : { #ok; #TooOld; #InFuture : Nat64; #Duplicate : Nat } {
+  /// The deduplication check: the window and the drift first, then the key against what the ledger has RECORDED.
+  /// Nothing is written here — a transfer refused after this check (allowance, funds, supply) must leave no trace,
+  /// or its own retry with the same `created_at_time` would be answered `#Duplicate` pointing at a block that
+  /// never held it (ICRC-1: the ledger must not deduplicate a transfer that was rejected). The key comes back with
+  /// `#ok` and is recorded by `recordDedup` once the block is appended, with that block's index.
+  func checkDedupAndTime(caller : Principal, created_at_time : ?Nat64, amount : Nat, memo : ?Blob) : { #ok : ?(Blob, Nat64); #TooOld; #InFuture : Nat64; #Duplicate : Nat } {
     pruneDedupMap();
     switch (created_at_time) {
-      case null #ok;
+      case null #ok(null);
       case (?ts) {
         let n = now();
         if (ts + TX_WINDOW_NS + PERMITTED_DRIFT_NS < n) return #TooOld;
         if (ts > n + PERMITTED_DRIFT_NS) return #InFuture(n);
         let dedupKey = buildDedupKey(caller, ts, amount, memo);
         // Bloom fast path (keyed on timestamp for window; dedupKey for exact match)
-        if (not Bloom.mightContain(bloomState, ts, n)) {
-          Bloom.add(bloomState, ts, n);
-          Map.add(recentTxEntries, Blob.compare, dedupKey, { blockIndex = BLog.length(blockState); timestamp = ts });
-          dedupMapSize += 1;
-          return #ok;
-        };
-        // Exact check with full dedup key
+        if (not Bloom.mightContain(bloomState, ts, n)) return #ok(?(dedupKey, ts));
         switch (Map.get(recentTxEntries, Blob.compare, dedupKey)) {
           case (?entry) #Duplicate(entry.blockIndex);
-          case null {
-            Bloom.add(bloomState, ts, n);
-            Map.add(recentTxEntries, Blob.compare, dedupKey, { blockIndex = BLog.length(blockState); timestamp = ts });
-            dedupMapSize += 1;
-            #ok
-          };
+          case null #ok(?(dedupKey, ts));
         };
+      };
+    };
+  };
+  /// Record the key of a transfer the ledger has just appended, against the block that holds it.
+  func recordDedup(dedup : ?(Blob, Nat64), blockIndex : Nat) {
+    switch (dedup) {
+      case null {};
+      case (?(dedupKey, ts)) {
+        Bloom.add(bloomState, ts, now());
+        Map.add(recentTxEntries, Blob.compare, dedupKey, { blockIndex; timestamp = ts });
+        dedupMapSize += 1;
       };
     };
   };
@@ -319,11 +324,11 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       case (?e) return #Err(#GenericError({ error_code = 101; message = e })); case null {};
     };
 
-    switch (checkDedupAndTime(caller, transferArgs.created_at_time, amount, transferArgs.memo)) {
+    let dedup = switch (checkDedupAndTime(caller, transferArgs.created_at_time, amount, transferArgs.memo)) {
       case (#TooOld) return #Err(#TooOld);
       case (#InFuture(t)) return #Err(#CreatedInFuture({ ledger_time = t }));
       case (#Duplicate(idx)) return #Err(#Duplicate({ duplicate_of = idx }));
-      case (#ok) {};
+      case (#ok(d)) d;
     };
 
     // Burn — enforce min_burn_amount
@@ -335,6 +340,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("burn", ?from, null, null, amount, ?fee, transferArgs.memo);
       let idx = appendAndCertify(tx, ?fee);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -346,6 +352,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("mint", null, ?to, null, amount, null, transferArgs.memo);
       let idx = appendAndCertify(tx, null);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -356,6 +363,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
     };
     let tx = makeTx("transfer", ?from, ?to, null, amount, ?fee, transferArgs.memo);
     let idx = appendAndCertify(tx, ?fee);
+    recordDedup(dedup, idx);
     #Ok(idx)
   };
 
@@ -394,11 +402,11 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       case (?e) return #Err(#GenericError({ error_code = 101; message = e })); case null {};
     };
 
-    switch (checkDedupAndTime(caller, approveArgs.created_at_time, approveArgs.amount, approveArgs.memo)) {
+    let dedup = switch (checkDedupAndTime(caller, approveArgs.created_at_time, approveArgs.amount, approveArgs.memo)) {
       case (#TooOld) return #Err(#TooOld);
       case (#InFuture(t)) return #Err(#CreatedInFuture({ ledger_time = t }));
       case (#Duplicate(idx)) return #Err(#Duplicate({ duplicate_of = idx }));
-      case (#ok) {};
+      case (#ok(d)) d;
     };
 
     // Deduct fee FIRST (atomic: if approve fails, restore fee)
@@ -426,6 +434,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
 
     let tx = makeTx("approve", ?from, null, ?spender, approveArgs.amount, ?fee, approveArgs.memo);
     let idx = appendAndCertify(tx, ?fee);
+    recordDedup(dedup, idx);
     #Ok(idx)
   };
 
@@ -463,11 +472,11 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       case (?e) return #Err(#GenericError({ error_code = 101; message = e })); case null {};
     };
 
-    switch (checkDedupAndTime(caller, tfArgs.created_at_time, amount, tfArgs.memo)) {
+    let dedup = switch (checkDedupAndTime(caller, tfArgs.created_at_time, amount, tfArgs.memo)) {
       case (#TooOld) return #Err(#TooOld);
       case (#InFuture(t)) return #Err(#CreatedInFuture({ ledger_time = t }));
       case (#Duplicate(idx)) return #Err(#Duplicate({ duplicate_of = idx }));
-      case (#ok) {};
+      case (#ok(d)) d;
     };
 
     // Check + use allowance (skip if self-transfer)
@@ -509,6 +518,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("burn", ?from, null, ?spender, amount, null, tfArgs.memo);
       let idx = appendAndCertify(tx, null);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -526,6 +536,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       };
       let tx = makeTx("mint", null, ?to, ?spender, amount, null, tfArgs.memo);
       let idx = appendAndCertify(tx, null);
+      recordDedup(dedup, idx);
       return #Ok(idx);
     };
 
@@ -543,6 +554,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
 
     let tx = makeTx("transfer", ?from, ?to, ?spender, amount, ?fee, tfArgs.memo);
     let idx = appendAndCertify(tx, ?fee);
+    recordDedup(dedup, idx);
     #Ok(idx)
   };
 
