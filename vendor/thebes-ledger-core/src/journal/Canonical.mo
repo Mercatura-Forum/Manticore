@@ -258,6 +258,7 @@ module {
         case (#pendings(x)) {
           byte(0x07); nat(x.open.size()); for (i in x.open.vals()) { nat(i) };
           nat(x.byAccount.size()); for ((a, n) in x.byAccount.vals()) { text(a); nat(n) };
+          nat(x.byCurrency.size()); for ((c, n) in x.byCurrency.vals()) { text(c); nat(n) };
         };
       };
     };
@@ -561,7 +562,9 @@ module {
           var i = 0; while (i < no) { let ?x = nat() else return null; List.add(open, x); i += 1 };
           let ?na = count() else return null; let byAccount = List.empty<(T.AccountCode, Nat)>();
           i := 0; while (i < na) { let ?a = text() else return null; let ?n = nat() else return null; List.add(byAccount, (a, n)); i += 1 };
-          ?#pendings({ open = List.toArray(open); byAccount = List.toArray(byAccount) })
+          let ?nc = count() else return null; let byCurrency = List.empty<(T.Currency, Nat)>();
+          i := 0; while (i < nc) { let ?c = text() else return null; let ?n = nat() else return null; List.add(byCurrency, (c, n)); i += 1 };
+          ?#pendings({ open = List.toArray(open); byAccount = List.toArray(byAccount); byCurrency = List.toArray(byCurrency) })
         };
         case _ null;
       }

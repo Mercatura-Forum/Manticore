@@ -253,6 +253,8 @@ module {
     openPendings : Map.Map<Nat, ()>;
     pendingByPeriod : Map.Map<T.PeriodId, Nat>;
     pendingByAccount : Map.Map<T.AccountCode, Nat>;
+    /// Open pending legs per currency: what a currency's retirement asks before it closes the currency, in constant time.
+    pendingByCurrency : Map.Map<T.Currency, Nat>;
     /// In stable memory: one entry a posting, so on the heap it grew with the journal. `var`
     /// because a closed month's keys are dropped after the dedup window by rebuilding the index
     /// without them (`beginIdempotencyRebuild` … `finishIdempotencyRebuild`).
@@ -317,6 +319,7 @@ module {
       openPendings = Map.empty<Nat, ()>();
       pendingByPeriod = Map.empty<T.PeriodId, Nat>();
       pendingByAccount = Map.empty<T.AccountCode, Nat>();
+      pendingByCurrency = Map.empty<T.Currency, Nat>();
       var idempotencyIndex = RI.newStateIn(arena, { keyBytes = IDEM_KEY_BYTES; valBytes = IDEM_VAL_BYTES });
       var idempotencyCount = 0;
       var idempotencyRebuild = null;
@@ -1810,7 +1813,7 @@ module {
         applyPendingLegs(state, record.legs, 1);
         Map.add(state.openPendings, Nat.compare, block.index, ());
         bump(state.pendingByPeriod, record.period, 1);
-        for (l in record.legs.vals()) { bump(state.pendingByAccount, l.account, 1) };
+        for (l in record.legs.vals()) { bump(state.pendingByAccount, l.account, 1); bump(state.pendingByCurrency, l.currency, 1) };
         registerIdempotency(state, block.caller, record, block.index, #pending);
       };
       case (#post({ pendingIndex; resolution })) {
@@ -1829,7 +1832,7 @@ module {
         }, ?resolution.period);
         ignore Map.delete(state.openPendings, Nat.compare, pendingIndex);
         bump(state.pendingByPeriod, record.period, -1);
-        for (l in record.legs.vals()) { bump(state.pendingByAccount, l.account, -1) };
+        for (l in record.legs.vals()) { bump(state.pendingByAccount, l.account, -1); bump(state.pendingByCurrency, l.currency, -1) };
         linkRelation(state, pendingIndex, record.relation);
       };
       case (#void({ pendingIndex; reason })) {
@@ -1845,7 +1848,7 @@ module {
         }, null);
         ignore Map.delete(state.openPendings, Nat.compare, pendingIndex);
         bump(state.pendingByPeriod, record.period, -1);
-        for (l in record.legs.vals()) { bump(state.pendingByAccount, l.account, -1) };
+        for (l in record.legs.vals()) { bump(state.pendingByAccount, l.account, -1); bump(state.pendingByCurrency, l.currency, -1) };
         state.voidedCount += 1;
       };
       case (#currencyRegistered(c)) { Map.add(state.currencies, Text.compare, c.code, c.minorUnits) };
@@ -1991,7 +1994,7 @@ module {
       case (#valueDated(from)) { let r = datedPart(state, state.valueDatedIndex, from, periodEnd); { part = #dated({ valueDated = true; rows = r.rows }); next = switch (r.next) { case (?c) #valueDated(?c); case null #postingDated(null) } } };
       case (#postingDated(from)) { let r = datedPart(state, state.postingDatedIndex, from, periodEnd); { part = #dated({ valueDated = false; rows = r.rows }); next = switch (r.next) { case (?c) #postingDated(?c); case null #pendings } } };
       case (#pendings) {
-        { part = #pendings({ open = Array.map<(Nat, ()), Nat>(Map.toArray(state.openPendings), func((i, _)) { i }); byAccount = Map.toArray(state.pendingByAccount) }); next = #done }
+        { part = #pendings({ open = Array.map<(Nat, ()), Nat>(Map.toArray(state.openPendings), func((i, _)) { i }); byAccount = Map.toArray(state.pendingByAccount); byCurrency = Map.toArray(state.pendingByCurrency) }); next = #done }
       };
       case (#done) Runtime.trap("JournalCore: a checkpoint part past the end");
     }
@@ -2099,6 +2102,7 @@ module {
         case (#pendings(x)) {
           for (i in x.open.vals()) Map.add(s.openPendings, Nat.compare, i, ());
           for ((a, n) in x.byAccount.vals()) Map.add(s.pendingByAccount, Text.compare, a, n);
+          for ((c, n) in x.byCurrency.vals()) Map.add(s.pendingByCurrency, Text.compare, c, n);
         };
       };
     };
@@ -2294,6 +2298,8 @@ module {
   };
 
   public func pendingCount(state : State) : Nat { Map.size(state.openPendings) };
+  /// The open pending legs in a currency, from the fold's counter.
+  public func pendingLegsInCurrency(state : State, currency : T.Currency) : Nat { switch (Map.get(state.pendingByCurrency, Text.compare, currency)) { case (?n) n; case null 0 } };
   public func postedCount(state : State) : Nat { state.postedCount };
   public func voidedCount(state : State) : Nat { state.voidedCount };
   public func leadsheetSchema(state : State) : [T.LeadsheetRange] { state.leadsheet };

@@ -279,7 +279,7 @@ module {
     #balances : [{ account : AccountCode; subledger : Blob; currency : Currency; drPosted : Nat; crPosted : Nat; drPending : Nat; crPending : Nat }];
     #periodBalances : [{ period : PeriodId; account : AccountCode; currency : Currency; debits : Nat; credits : Nat }];
     #dated : { valueDated : Bool; rows : [{ account : AccountCode; currency : Currency; subledger : Blob; day : Day; debits : Nat; credits : Nat }] };
-    #pendings : { open : [Nat]; byAccount : [(AccountCode, Nat)] };
+    #pendings : { open : [Nat]; byAccount : [(AccountCode, Nat)]; byCurrency : [(Currency, Nat)] };
   };
 
   /// One block of the journal log. `hash` covers every other field; `parentHash`

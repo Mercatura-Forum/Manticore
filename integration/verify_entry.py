@@ -269,7 +269,8 @@ class Reader:
             value_dated = self.byte() == 1
             return {"dated": {"valueDated": value_dated, "rows": [{"account": self.text(), "currency": self.text(), "subledger": self.blob(), "day": self.nat(), "debits": self.nat(), "credits": self.nat()} for _ in range(self.nat())]}}
         if tag == 0x07:
-            return {"pendings": {"open": [self.nat() for _ in range(self.nat())], "byAccount": [(self.text(), self.nat()) for _ in range(self.nat())]}}
+            return {"pendings": {"open": [self.nat() for _ in range(self.nat())], "byAccount": [(self.text(), self.nat()) for _ in range(self.nat())],
+                                 "byCurrency": [(self.text(), self.nat()) for _ in range(self.nat())]}}
         raise ValueError(f"unknown checkpoint part tag {tag:#x}")
 
     def event(self):
