@@ -31,6 +31,8 @@ import ProdT "ProductTypes";
 import R "StableRows";
 import Posting "Posting";
 import JT "mo:journal/JournalTypes";
+import Map "mo:core/Map";
+import Int "mo:core/Int";
 
 module {
 
@@ -77,6 +79,7 @@ module {
   public type State = {
     rows : RI.State;          // facility(8) -> Row
     byParty : RI.State;       // party(8) ‖ facility(8) -> stage(1)
+    byBook : RI.State;        // book(32) ‖ id(8) -> 0
     byStage : RI.State;       // stage(1) ‖ facility(8) -> 0
     drawings : RI.State;      // facility(8) ‖ account(8) -> open(1)
     drawingOf : RI.State;     // account(8) -> facility(8)
@@ -87,6 +90,8 @@ module {
     subledgers : RI.State;    // the facility and participant sub-ledgers this shard posts to (32) -> 1
     var facilities : Nat;
     var closed : Nat;
+    openByCurrency : Map.Map<Text, Nat>;
+    openByBook : Map.Map<Text, Nat>;
     var drawn : Nat;
     var accruals : Nat;
     var fixingCount : Nat;
@@ -96,6 +101,7 @@ module {
     {
       rows = RI.newStateIn(arena, { keyBytes = 8; valBytes = ROW_BYTES });
       byParty = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
+      byBook = RI.newStateIn(arena, { keyBytes = 40; valBytes = 1 });
       byStage = RI.newStateIn(arena, { keyBytes = 9; valBytes = 1 });
       drawings = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
       drawingOf = RI.newStateIn(arena, { keyBytes = 8; valBytes = 8 });
@@ -104,6 +110,8 @@ module {
       covenants = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
       fixings = RI.newStateIn(arena, { keyBytes = 12; valBytes = 4 });
       subledgers = RI.newStateIn(arena, { keyBytes = 32; valBytes = 1 });
+      openByCurrency = Map.empty<Text, Nat>();
+      openByBook = Map.empty<Text, Nat>();
       var facilities = 0; var closed = 0; var drawn = 0; var accruals = 0; var fixingCount = 0;
     }
   };
@@ -206,10 +214,30 @@ module {
     switch (RI.get(s.rows, R.key(id, 8))) { case (?v) ?decodeRow(v); case null null }
   };
 
+  /// The open facilities per currency, kept by the fold: what a redenomination asks before it closes a currency (S4.1).
+  func bumpCurrency(s : State, ccy : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByCurrency, Text.compare, ccy) else Map.add(s.openByCurrency, Text.compare, ccy, Int.abs(next));
+  };
+  public func openInCurrency(s : State, ccy : Text) : Nat { switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 } };
+  func bumpBook(s : State, book : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByBook, Text.compare, book) else Map.add(s.openByBook, Text.compare, book, Int.abs(next));
+  };
+  /// The open facilities of a book, from the fold's counter: what the end-of-day plan asks — no walk (S4.1).
+  public func openCountInBook(s : State, book : Text) : Nat { switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 } };
+  func stageOpen(st : FT.Stage) : Bool { st == #open or st == #blocked };
   func putRow(s : State, id : FT.FacilityId, r : Row, block : Nat) {
     let r2 = { r with lastBlock = block };
+    // the per-currency open count follows the stage across the write
+    let was = switch (row(s, id)) { case (?o) stageOpen(o.stage); case null false };
+    let is = stageOpen(r2.stage);
+    if (is and not was) { bumpCurrency(s, r2.currency, 1); bumpBook(s, r2.book, 1) } else if (was and not is) { bumpCurrency(s, r2.currency, -1); bumpBook(s, r2.book, -1) };
     ignore RI.put(s.rows, R.key(id, 8), encodeRow(r2));
     ignore RI.put(s.byParty, R.key2(r2.party, 8, id, 8), Blob.fromArray([FT.stageCode(r2.stage)]));
+    ignore RI.put(s.byBook, bookKey(r2.book, id), Blob.fromArray([0]));
     ignore RI.put(s.byStage, R.key2(Nat8.toNat(FT.stageCode(r2.stage)), 1, id, 8), Blob.fromArray([0]));
   };
 
@@ -644,7 +672,35 @@ module {
     for ((k, _) in page.entries.vals()) { let id = R.getNat(Blob.toArray(k), 1, 8); switch (row(s, id)) { case (?r) { if (r.stage == stage) List.add(out, id) }; case null {} } };
     { ids = List.toArray(out); cursor = page.cursor }
   };
+  /// Every facility not yet closed whose currency is `ccy` — the guard a redenomination reads.
+  /// The open (or blocked) facilities in a currency by a walk of the stage index: the unit tests hold it equal to
+  /// the fold's counter above; the bank reads the counter.
+  public func openInCurrencyWalked(s : State, ccy : Text) : Nat {
+    var n = 0;
+    for (st in [#open, #blocked].vals()) {
+      let (lo, hi) = R.prefixRange(Nat8.toNat(FT.stageCode(st)), 1, 8);
+      var cursor : ?Blob = null;
+      label walk loop {
+        let page = RI.range(s.byStage, lo, hi, cursor, MAX_PAGE);
+        for ((k, _) in page.entries.vals()) { let id = R.getNat(Blob.toArray(k), 1, 8); switch (row(s, id)) { case (?r) { if (r.stage == st and Text.equal(r.currency, ccy)) n += 1 }; case null {} } };
+        switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
+      };
+    };
+    n
+  };
   /// Every facility of a book not yet closed — what the batch walks; bounded by the rows.
+  func bookKey(book : Text, id : Nat) : Blob { Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Blob.toArray(R.key(id, 8)))) };
+  public func bookCursor(book : Text, id : Nat) : Blob { bookKey(book, id) };
+  /// The open facilities of a book, one page off the book index from a cursor (`bookCursor(book, id)` to resume at an id):
+  /// what the end-of-day walks a chunk at a time (the adversarial audit of 13 September, finding A2).
+  public func openInBookFrom(s : State, book : Text, cursor : ?Blob, limit : Nat) : { ids : [FT.FacilityId]; cursor : ?Blob } {
+    let lo = bookKey(book, 0);
+    let hi = Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Array.repeat<Nat8>(255, 8)));
+    let page = RI.range(s.byBook, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let out = List.empty<Nat>();
+    for ((k, _) in page.entries.vals()) { let id = R.getNat(Blob.toArray(k), 32, 8); switch (row(s, id)) { case (?r) { if (stageOpen(r.stage)) List.add(out, id) }; case null {} } };
+    { ids = List.toArray(out); cursor = page.cursor }
+  };
   public func openInBook(s : State, book : Text) : [FT.FacilityId] {
     let out = List.empty<FT.FacilityId>();
     for (st in [#open, #blocked].vals()) {
@@ -686,8 +742,12 @@ module {
     };
   };
   public func fingerprintInto(w : C.Writer, s : State) {
+    w.nat(Map.size(s.openByBook));
+    for ((k, v) in Map.entries(s.openByBook)) { w.text(k); w.nat(v) };
+    w.nat(Map.size(s.openByCurrency));
+    for ((k, v) in Map.entries(s.openByCurrency)) { w.text(k); w.nat(v) };
     w.nat(s.facilities); w.nat(s.closed); w.nat(s.drawn); w.nat(s.accruals); w.nat(s.fixingCount);
-    fingerprintRows(w, s.rows, 8); fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byStage, 9);
+    fingerprintRows(w, s.rows, 8); fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byBook, 40); fingerprintRows(w, s.byStage, 9);
     fingerprintRows(w, s.drawings, 16); fingerprintRows(w, s.drawingOf, 8); fingerprintRows(w, s.shares, 16);
     fingerprintRows(w, s.receivables, 16); fingerprintRows(w, s.covenants, 16); fingerprintRows(w, s.fixings, 12); fingerprintRows(w, s.subledgers, 32);
   };

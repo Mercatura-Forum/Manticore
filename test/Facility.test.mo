@@ -196,6 +196,11 @@ Debug.print("count: lease rows folded = 2");
 // ─── indexes, counts, fingerprint ─────────────────────────────────────────────
 if (Core.listByParty(s, 7, null, 20).ids.size() != 8) fail("by party " # debug_show (Core.listByParty(s, 7, null, 20).ids));
 if (Core.openInBook(s, "HQ").size() != 7 or Core.openInBook(s, "BR01").size() != 0) fail("open in book");
+// the fold's counters (S4.1) equal the walks
+if (Core.openCountInBook(s, "HQ") != 7 or Core.openCountInBook(s, "BR01") != 0) fail("open count in book " # Nat.toText(Core.openCountInBook(s, "HQ")));
+for (c in ["EGP", "USD", "XXX"].vals()) { if (Core.openInCurrency(s, c) != Core.openInCurrencyWalked(s, c)) fail("open in currency " # c # ": counter " # Nat.toText(Core.openInCurrency(s, c)) # " walk " # Nat.toText(Core.openInCurrencyWalked(s, c))) };
+if (Core.openInCurrency(s, "EGP") == 0) fail("open in EGP counted");
+Debug.print("count: facility counters held equal to a walk = 4");
 let cs = Core.counts(s);
 if (cs.facilities != 8 or cs.closed != 1 or cs.drawn != 3 or cs.fixings != 3) fail("counts " # debug_show (cs));
 let dist = Core.kindDistribution(s);

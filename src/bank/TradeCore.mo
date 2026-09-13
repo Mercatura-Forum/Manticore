@@ -32,6 +32,7 @@ import PT "PartyTypes";
 import ProdT "ProductTypes";
 import Posting "Posting";
 import R "StableRows";
+import Map "mo:core/Map";
 
 module {
 
@@ -192,6 +193,7 @@ module {
     claims : RI.State;        // instrument(8) ‖ seq(8) -> row
     messages : RI.State;      // instrument(8) ‖ seq(8) -> row
     byParty : RI.State;       // party(8) ‖ id(8) -> 0
+    byBook : RI.State;        // book(32) ‖ id(8) -> 0
     byState : RI.State;       // state(1) ‖ id(8) -> 0 (readers filter by the row)
     byExpiry : RI.State;      // expiry(4) ‖ id(8) -> 0 (readers filter by the row)
     byFacility : RI.State;    // facility(8) ‖ id(8) -> 0
@@ -203,6 +205,8 @@ module {
     var contingentCollections : Nat;
     var issued : Nat;
     var open : Nat;
+    openByCurrency : Map.Map<Text, Nat>;
+    openByBook : Map.Map<Text, Nat>;
     var claimsTotal : Nat;
     var amendments : Nat;
     var messagesTotal : Nat;
@@ -216,12 +220,15 @@ module {
       claims = RI.newStateIn(arena, { keyBytes = 16; valBytes = CLAIM_ROW_BYTES });
       messages = RI.newStateIn(arena, { keyBytes = 16; valBytes = MESSAGE_ROW_BYTES });
       byParty = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
+      byBook = RI.newStateIn(arena, { keyBytes = 40; valBytes = 1 });
       byState = RI.newStateIn(arena, { keyBytes = 9; valBytes = 1 });
       byExpiry = RI.newStateIn(arena, { keyBytes = 12; valBytes = 1 });
       byFacility = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
       byReference = RI.newStateIn(arena, { keyBytes = 8; valBytes = 8 });
       subledgers = RI.newStateIn(arena, { keyBytes = 32; valBytes = 1 });
       var policy = null; var contingentLcs = 0; var contingentGuarantees = 0; var contingentCollections = 0;
+      openByCurrency = Map.empty<Text, Nat>();
+      openByBook = Map.empty<Text, Nat>();
       var issued = 0; var open = 0; var claimsTotal = 0; var amendments = 0; var messagesTotal = 0; var paid = 0; var expired = 0;
     }
   };
@@ -733,6 +740,7 @@ module {
   func index(s : State, r : InstrumentRow) {
     ignore RI.put(s.byParty, R.key2(r.party, 8, r.id, 8), Blob.fromArray([0]));
     ignore RI.put(s.byState, R.key2(Nat8.toNat(stateCode(r.state)), 1, r.id, 8), Blob.fromArray([0]));
+    ignore RI.put(s.byBook, bookKey(r.book, r.id), Blob.fromArray([0]));
     ignore RI.put(s.byExpiry, R.key2(r.expiry, 4, r.id, 8), Blob.fromArray([0]));
     switch (r.facility) { case (?f) ignore RI.put(s.byFacility, R.key2(f, 8, r.id, 8), Blob.fromArray([0])); case null {} };
   };
@@ -743,10 +751,24 @@ module {
       tolerance; claims = 0; amendments = 0; messages = 0; termsHash; lastBlock = id; book;
     }
   };
+  /// The open instruments per currency, kept by the fold: what a redenomination asks before it closes a currency (S4.1).
+  func bumpCurrency(s : State, ccy : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByCurrency, Text.compare, ccy) else Map.add(s.openByCurrency, Text.compare, ccy, Int.abs(next));
+  };
+  public func openInCurrency(s : State, ccy : Text) : Nat { switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 } };
+  func bumpBook(s : State, book : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByBook, Text.compare, book) else Map.add(s.openByBook, Text.compare, book, Int.abs(next));
+  };
+  /// The open instruments of a book, from the fold's counter: what the end-of-day plan asks — no walk (S4.1).
+  public func openCountInBook(s : State, book : Text) : Nat { switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 } };
   func moveState(s : State, r : InstrumentRow, to : TrT.InstrumentState, block : Nat) : InstrumentRow {
     let wasOpen = isOpen(r);
     let r2 = { r with state = to; lastBlock = block };
-    if (wasOpen and not isOpen(r2)) { if (s.open > 0) s.open -= 1 };
+    if (wasOpen and not isOpen(r2)) { if (s.open > 0) s.open -= 1; bumpCurrency(s, r.currency, -1); bumpBook(s, r.book, -1) };
     ignore RI.put(s.byState, R.key2(Nat8.toNat(stateCode(to)), 1, r.id, 8), Blob.fromArray([0]));
     r2
   };
@@ -765,7 +787,7 @@ module {
   func register(s : State, r : InstrumentRow, reference : Text) {
     putRow(s, r); index(s, r);
     ignore RI.put(s.byReference, refKey(reference), R.key(r.id, 8));
-    s.issued += 1; s.open += 1;
+    s.issued += 1; s.open += 1; bumpCurrency(s, r.currency, 1); bumpBook(s, r.book, 1);
     memo(s, r, outstanding(r));
   };
   func docsHash(docs : [TrT.DocumentRef]) : Blob {
@@ -1039,6 +1061,18 @@ module {
     };
     List.toArray(out)
   };
+  func bookKey(book : Text, id : Nat) : Blob { Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Blob.toArray(R.key(id, 8)))) };
+  public func bookCursor(book : Text, id : Nat) : Blob { bookKey(book, id) };
+  /// The open instruments of a book, one page off the book index from a cursor (`bookCursor(book, id)` to resume at an id):
+  /// what the end-of-day walks a chunk at a time (the adversarial audit of 13 September, finding A2).
+  public func openInBookFrom(s : State, book : Text, cursor : ?Blob, limit : Nat) : { ids : [TrT.InstrumentId]; cursor : ?Blob } {
+    let lo = bookKey(book, 0);
+    let hi = Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Array.repeat<Nat8>(255, 8)));
+    let page = RI.range(s.byBook, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let out = List.empty<Nat>();
+    for ((k, _) in page.entries.vals()) { let id = R.getNat(Blob.toArray(k), 32, 8); switch (row(s, id)) { case (?r) { if (isOpen(r)) List.add(out, id) }; case null {} } };
+    { ids = List.toArray(out); cursor = page.cursor }
+  };
   public func openInBook(s : State, book : Text) : [InstrumentRow] { Array.filter<InstrumentRow>(openAll(s), func(r) { Text.equal(r.book, book) }) };
   /// The undertakings outstanding against a facility — what reduces its availability (corporate lending).
   public func contingentOnFacility(s : State, facility : Nat) : Nat {
@@ -1076,6 +1110,10 @@ module {
     w.nat(n);
   };
   public func fingerprintInto(w : C.Writer, s : State) {
+    w.nat(Map.size(s.openByBook));
+    for ((k, v) in Map.entries(s.openByBook)) { w.text(k); w.nat(v) };
+    w.nat(Map.size(s.openByCurrency));
+    for ((k, v) in Map.entries(s.openByCurrency)) { w.text(k); w.nat(v) };
     switch (s.policy) {
       case null w.byte(0);
       case (?p) {
@@ -1089,7 +1127,7 @@ module {
     w.nat(s.contingentLcs); w.nat(s.contingentGuarantees); w.nat(s.contingentCollections);
     w.nat(s.issued); w.nat(s.open); w.nat(s.claimsTotal); w.nat(s.amendments); w.nat(s.messagesTotal); w.nat(s.paid); w.nat(s.expired);
     fingerprintRows(w, s.instruments, 8); fingerprintRows(w, s.claims, 16); fingerprintRows(w, s.messages, 16);
-    fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byState, 9); fingerprintRows(w, s.byExpiry, 12); fingerprintRows(w, s.byFacility, 16);
+    fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byBook, 40); fingerprintRows(w, s.byState, 9); fingerprintRows(w, s.byExpiry, 12); fingerprintRows(w, s.byFacility, 16);
     fingerprintRows(w, s.byReference, 8); fingerprintRows(w, s.subledgers, 32);
   };
 }

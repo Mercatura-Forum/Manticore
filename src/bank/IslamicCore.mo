@@ -33,6 +33,8 @@ import Products "Products";
 import I "Interest";
 import Posting "Posting";
 import R "StableRows";
+import Map "mo:core/Map";
+import Int "mo:core/Int";
 
 module {
 
@@ -134,6 +136,7 @@ module {
     pools : RI.State;         // pool(32) -> row
     distributions : RI.State; // pool(32) ‖ period(8) -> row
     byParty : RI.State;       // party(8) ‖ id(8)
+    byBook : RI.State;        // book(32) ‖ id(8) -> 0
     byStage : RI.State;       // stage(1) ‖ id(8)
     byReference : RI.State;   // sha(reference)[0..8) -> id(8)
     approvals : RI.State;     // product(32) -> ref(32) ‖ sha256(32)
@@ -142,6 +145,8 @@ module {
     var policy : ?IT.Policy;
     var opened : Nat;
     var open : Nat;
+    openByCurrency : Map.Map<Text, Nat>;
+    openByBook : Map.Map<Text, Nat>;
     var charity : Nat;        // Σ recorded non-compliance and late-payment amounts
     var distributionsTotal : Nat;
   };
@@ -153,11 +158,14 @@ module {
       pools = RI.newStateIn(arena, { keyBytes = 32; valBytes = POOL_ROW_BYTES });
       distributions = RI.newStateIn(arena, { keyBytes = 40; valBytes = DISTRIBUTION_ROW_BYTES });
       byParty = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
+      byBook = RI.newStateIn(arena, { keyBytes = 40; valBytes = 1 });
       byStage = RI.newStateIn(arena, { keyBytes = 9; valBytes = 1 });
       byReference = RI.newStateIn(arena, { keyBytes = 8; valBytes = 8 });
       approvals = RI.newStateIn(arena, { keyBytes = 32; valBytes = 64 });
       shariaBooks = RI.newStateIn(arena, { keyBytes = 32; valBytes = 1 });
       subledgers = RI.newStateIn(arena, { keyBytes = 32; valBytes = 1 });
+      openByCurrency = Map.empty<Text, Nat>();
+      openByBook = Map.empty<Text, Nat>();
       var policy = null; var opened = 0; var open = 0; var charity = 0; var distributionsTotal = 0;
     }
   };
@@ -171,7 +179,7 @@ module {
   public func approval(s : State, product : ProdT.ProductId) : ?IT.BoardApproval {
     switch (RI.get(s.approvals, R.textKey(product, 32))) { case (?v) { let a = Blob.toArray(v); ?{ ref = R.getText(a, 0, 32); sha256 = R.getBlob(a, 32, 32) } }; case null null }
   };
-  public func isShariaBook(s : State, book : Text) : Bool { switch (RI.get(s.shariaBooks, R.textKey(book, 32))) { case (?v) Blob.toArray(v)[0] == 1; case null false } };
+  public func isShariaBook(s : State, book : Text) : Bool { if (Text.encodeUtf8(book).size() > 32) return false; switch (RI.get(s.shariaBooks, R.textKey(book, 32))) { case (?v) Blob.toArray(v)[0] == 1; case null false } };
   func putRow(s : State, r : ContractRow) { ignore RI.put(s.contracts, R.key(r.id, 8), encodeContract(r)) };
   func putInstalment(s : State, r : InstalmentRow) { ignore RI.put(s.instalments, R.key2(r.contract, 8, r.number, 8), encodeInstalment(r)) };
   func putPool(s : State, r : PoolRow) { ignore RI.put(s.pools, poolKey(r.id), encodePool(r)) };
@@ -328,12 +336,13 @@ module {
     #ok(#policySet(p))
   };
   public func planApproveProduct(product : ProdT.ProductId, approval : IT.BoardApproval, today : Nat) : Result.Result<IT.IslamicEvent, IT.IslamicError> {
-    if (approval.ref == "") return #err(invalid("the board's approval carries its reference", "governance"));
+    // the reference is a 32-byte row field: refused here, typed, before the fold would trap on it
+    if (approval.ref == "" or Text.encodeUtf8(approval.ref).size() > 32) return #err(invalid("the board's approval carries its reference, in one to thirty-two bytes", "governance"));
     if (approval.sha256.size() != 32) return #err(invalid("the resolution is recorded by its SHA-256", "governance"));
     #ok(#productApproved({ product; approval; day = today }))
   };
   public func planFlagBook(book : Text, sharia : Bool, today : Nat) : Result.Result<IT.IslamicEvent, IT.IslamicError> {
-    if (book == "") return #err(invalid("a book", "governance"));
+    if (book == "" or Text.encodeUtf8(book).size() > 32) return #err(invalid("a book, named in one to thirty-two bytes", "governance"));
     #ok(#bookFlagged({ book; sharia; day = today }))
   };
 
@@ -581,6 +590,8 @@ module {
   public func planOpenPool(s : State, p : IT.Pool, today : Nat) : Result.Result<IT.IslamicEvent, IT.IslamicError> {
     let ?pol = s.policy else return #err(#NoPolicy);
     if (p.id == "" or p.currency == "" or p.product == "") return #err(invalid("a pool has an identifier, a currency and the account product it pools", "FAS 27"));
+    // the identifier and the product are 32-byte row fields, the currency an 8-byte one: refused typed, never a trap
+    if (Text.encodeUtf8(p.id).size() > 32 or Text.encodeUtf8(p.product).size() > 32 or Text.encodeUtf8(p.currency).size() > 8) return #err(invalid("a pool's identifier and product are at most thirty-two bytes, its currency eight", "FAS 27"));
     if (pool(s, p.id) != null) return #err(invalid("a pool with this identifier exists", "FAS 27"));
     if (p.mudaribBps >= 10_000) return #err(invalid("the mudarib's share is a part of the profit", "FAS 27 ¶12"));
     if (p.perBps > pol.perCeilingBps) return #err(#ReserveOverCeiling({ pool = p.id; which = "PER"; bps = p.perBps; ceiling = pol.perCeilingBps }));
@@ -600,6 +611,8 @@ module {
   /// weighted balances. Every figure is stated on the event.
   public func planDistribute(s : State, poolId : IT.PoolId, period : Text, from : Nat, to : Nat, income : Nat, weights : [(ProdT.AccountId, Nat)], today : Nat) : Result.Result<IT.IslamicEvent, IT.IslamicError> {
     let ?p = pool(s, poolId) else return #err(#UnknownPool({ pool = poolId }));
+    // the label is the row key's second half, an 8-byte field: refused here, typed, before any key is built from it
+    if (period.size() == 0 or Text.encodeUtf8(period).size() > 8) return #err(invalid("a period label of one to eight bytes", "FAS 27"));
     if (distribution(s, poolId, period) != null) return #err(#PeriodAlreadyDistributed({ pool = poolId; period }));
     if (to < from) return #err(invalid("a period", "FAS 27"));
     let d = distribute(income, p.mudaribBps, p.perBps, p.irrBps, weights);
@@ -611,11 +624,26 @@ module {
   func index(s : State, r : ContractRow) {
     ignore RI.put(s.byParty, R.key2(r.party, 8, r.id, 8), Blob.fromArray([0]));
     ignore RI.put(s.byStage, R.key2(Nat8.toNat(stageCode(r.stage)), 1, r.id, 8), Blob.fromArray([0]));
+    ignore RI.put(s.byBook, bookKey(r.book, r.id), Blob.fromArray([0]));
   };
+  /// The open contracts per currency, kept by the fold: what a redenomination asks before it closes a currency (S4.1).
+  func bumpCurrency(s : State, ccy : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByCurrency, Text.compare, ccy) else Map.add(s.openByCurrency, Text.compare, ccy, Int.abs(next));
+  };
+  public func openInCurrency(s : State, ccy : Text) : Nat { switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 } };
+  func bumpBook(s : State, book : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByBook, Text.compare, book) else Map.add(s.openByBook, Text.compare, book, Int.abs(next));
+  };
+  /// The open contracts of a book, from the fold's counter: what the end-of-day plan asks — no walk (S4.1).
+  public func openCountInBook(s : State, book : Text) : Nat { switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 } };
   func moveStage(s : State, r : ContractRow, to : IT.Stage, block : Nat) : ContractRow {
     let wasOpen = isOpen(r);
     let r2 = { r with stage = to; lastBlock = block };
-    if (wasOpen and not isOpen(r2)) { if (s.open > 0) s.open -= 1 };
+    if (wasOpen and not isOpen(r2)) { if (s.open > 0) s.open -= 1; bumpCurrency(s, r.currency, -1); bumpBook(s, r.book, -1) };
     ignore RI.put(s.byStage, R.key2(Nat8.toNat(stageCode(to)), 1, r.id, 8), Blob.fromArray([0]));
     r2
   };
@@ -646,7 +674,7 @@ module {
         putRow(s, r); index(s, r);
         ignore RI.put(s.byReference, refKey(reference), R.key(block, 8));
         holdSub(s, contractSub(block));
-        s.opened += 1; s.open += 1;
+        s.opened += 1; s.open += 1; bumpCurrency(s, r.currency, 1); bumpBook(s, r.book, 1);
       };
       case (#assetAcquired(x)) { switch (row(s, x.contract)) { case (?r) putRow(s, moveStage(s, r, #acquired, block)); case null {} } };
       case (#murabahaSold(x)) {
@@ -795,6 +823,18 @@ module {
     };
     List.toArray(out)
   };
+  func bookKey(book : Text, id : Nat) : Blob { Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Blob.toArray(R.key(id, 8)))) };
+  public func bookCursor(book : Text, id : Nat) : Blob { bookKey(book, id) };
+  /// The open contracts of a book, one page off the book index from a cursor (`bookCursor(book, id)` to resume at an id):
+  /// what the end-of-day walks a chunk at a time (the adversarial audit of 13 September, finding A2).
+  public func openInBookFrom(s : State, book : Text, cursor : ?Blob, limit : Nat) : { ids : [IT.ContractId]; cursor : ?Blob } {
+    let lo = bookKey(book, 0);
+    let hi = Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Array.repeat<Nat8>(255, 8)));
+    let page = RI.range(s.byBook, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let out = List.empty<Nat>();
+    for ((k, _) in page.entries.vals()) { let id = R.getNat(Blob.toArray(k), 32, 8); switch (row(s, id)) { case (?r) { if (isOpen(r)) List.add(out, id) }; case null {} } };
+    { ids = List.toArray(out); cursor = page.cursor }
+  };
   public func openInBook(s : State, book : Text) : [ContractRow] { Array.filter<ContractRow>(openAll(s), func(r) { Text.equal(r.book, book) }) };
   public func pools(s : State) : [PoolRow] {
     let out = List.empty<PoolRow>();
@@ -836,6 +876,10 @@ module {
     w.nat(n);
   };
   public func fingerprintInto(w : C.Writer, s : State) {
+    w.nat(Map.size(s.openByBook));
+    for ((k, v) in Map.entries(s.openByBook)) { w.text(k); w.nat(v) };
+    w.nat(Map.size(s.openByCurrency));
+    for ((k, v) in Map.entries(s.openByCurrency)) { w.text(k); w.nat(v) };
     switch (s.policy) {
       case null w.byte(0);
       case (?p) {
@@ -848,6 +892,6 @@ module {
     };
     w.nat(s.opened); w.nat(s.open); w.nat(s.charity); w.nat(s.distributionsTotal);
     fingerprintRows(w, s.contracts, 8); fingerprintRows(w, s.instalments, 16); fingerprintRows(w, s.pools, 32); fingerprintRows(w, s.distributions, 40);
-    fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byStage, 9); fingerprintRows(w, s.byReference, 8); fingerprintRows(w, s.approvals, 32); fingerprintRows(w, s.shariaBooks, 32); fingerprintRows(w, s.subledgers, 32);
+    fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byBook, 40); fingerprintRows(w, s.byStage, 9); fingerprintRows(w, s.byReference, 8); fingerprintRows(w, s.approvals, 32); fingerprintRows(w, s.shariaBooks, 32); fingerprintRows(w, s.subledgers, 32);
   };
 }

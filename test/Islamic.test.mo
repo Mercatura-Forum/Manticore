@@ -261,6 +261,14 @@ if (st.contracts != 7 or st.pools != 1 or st.distributions != 1 or st.charity !=
 if (Core.listByParty(s, 7, null, 10).ids.size() != 7) fail("by party");
 if (Core.listByStage(s, #settled, null, 10).ids.size() != 2 or Core.listByStage(s, #closed, null, 10).ids.size() != 1 or Core.listByStage(s, #defaulted, null, 10).ids.size() != 1) fail("by stage");
 if (Core.openAll(s).size() != 3) fail("open: the Murabaha, the Ijarah, the Mudarabah — " # Nat.toText(Core.openAll(s).size()));
+// the fold's counters (S4.1) equal the walk: three open, all in EGP, all in one book
+let openRows = Core.openAll(s);
+let theBook = openRows[0].book;
+var egp = 0; var inBook = 0; for (r in openRows.vals()) { if (Text.equal(r.currency, "EGP")) egp += 1; if (Text.equal(r.book, theBook)) inBook += 1 };
+if (egp == 0 or inBook == 0) fail("the open contracts are in EGP and in one book");
+if (Core.openInCurrency(s, "EGP") != egp or Core.openInCurrency(s, "USD") != 0) fail("open in currency counter " # Nat.toText(Core.openInCurrency(s, "EGP")) # " vs walk " # Nat.toText(egp));
+if (Core.openCountInBook(s, theBook) != inBook or Core.openCountInBook(s, "NO-SUCH-BOOK") != 0) fail("open in book counter " # Nat.toText(Core.openCountInBook(s, theBook)) # " vs walk " # Nat.toText(inBook));
+Debug.print("count: contract counters held equal to a walk = 2");
 if (Core.approval(s, "ISAV") == null or Core.approval(s, "SAV") != null) fail("approvals");
 ignore act(Core.planFlagBook("BR01", true, day0));
 if (not Core.isShariaBook(s, "BR01") or Core.isShariaBook(s, "HQ")) fail("the book flag");

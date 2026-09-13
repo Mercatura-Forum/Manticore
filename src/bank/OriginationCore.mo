@@ -643,6 +643,18 @@ module {
     List.toArray(out)
   };
   public func offeredInBook(s : State, book : Text) : Nat { offeredInBookIds(s, book).size() };
+  /// One page of the offered applications of a book off the stage index, from a cursor: what the end-of-day walks a
+  /// chunk at a time (the adversarial audit of 13 September, finding A2). `limit` bounds the index entries examined.
+  public func offeredInBookFrom(s : State, book : Text, cursor : ?Blob, limit : Nat) : { ids : [OT.ApplicationId]; cursor : ?Blob } {
+    let (lo, hi) = R.prefixRange(Nat8.toNat(OT.stageCode(#offered)), 1, 8);
+    let page = RI.range(s.byStage, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let out = List.empty<OT.ApplicationId>();
+    for ((k, _) in page.entries.vals()) {
+      let id = R.getNat(Blob.toArray(k), 1, 8);
+      switch (row(s, id)) { case (?r) { if (r.stage == #offered and Text.equal(r.book, book)) List.add(out, id) }; case null {} };
+    };
+    { ids = List.toArray(out); cursor = page.cursor }
+  };
 
   func request(r : Row) : OT.Request { { product = r.product; amount = r.amount; currency = r.currency; termDays = r.termDays; purpose = "" } };
   func conditionKey(id : OT.ApplicationId, c : Text) : Blob { R.key2(id, 8, textKey(c), 8) };

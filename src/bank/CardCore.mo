@@ -33,6 +33,7 @@ import PT "PartyTypes";
 import ProdT "ProductTypes";
 import Posting "Posting";
 import R "StableRows";
+import Map "mo:core/Map";
 
 module {
 
@@ -189,6 +190,7 @@ module {
     byAccount : RI.State;      // account(8) ‖ id(8)
     byParty : RI.State;        // party(8) ‖ id(8)
     byState : RI.State;        // state(1) ‖ id(8)
+    byBook : RI.State;         // book(32) ‖ card(8) -> 0: the book of the card's account, for the end-of-day walk
     auths : RI.State;          // id(8) -> row
     byCardDay : RI.State;      // card(8) ‖ day(4) ‖ id(8)
     byHold : RI.State;         // hold(8) -> auth(8)
@@ -213,6 +215,8 @@ module {
     var exceptions : Nat;
     var disputesTotal : Nat;
     var disputesOpen : Nat;
+    openByCurrency : Map.Map<Text, Nat>;  // open disputes per currency of the disputed item
+    openByBook : Map.Map<Text, Nat>;      // cards not closed per book of their account
     var statementCount : Nat;
     var schemeCount : Nat;
     var productCount : Nat;
@@ -225,6 +229,7 @@ module {
       byAccount = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
       byParty = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
       byState = RI.newStateIn(arena, { keyBytes = 9; valBytes = 1 });
+      byBook = RI.newStateIn(arena, { keyBytes = 40; valBytes = 1 });
       auths = RI.newStateIn(arena, { keyBytes = 8; valBytes = AUTH_ROW_BYTES });
       byCardDay = RI.newStateIn(arena, { keyBytes = 20; valBytes = 1 });
       byHold = RI.newStateIn(arena, { keyBytes = 8; valBytes = 8 });
@@ -239,6 +244,8 @@ module {
       products = RI.newStateIn(arena, { keyBytes = 32; valBytes = PRODUCT_ROW_BYTES });
       subledgers = RI.newStateIn(arena, { keyBytes = 32; valBytes = 1 });
       var policy = null; var issued = 0; var active = 0; var authorizations = 0; var approved = 0; var declined = 0; var openHolds = 0; var clearedCount = 0; var exceptions = 0;
+      openByCurrency = Map.empty<Text, Nat>();
+      openByBook = Map.empty<Text, Nat>();
       var disputesTotal = 0; var disputesOpen = 0; var statementCount = 0; var schemeCount = 0; var productCount = 0;
     }
   };
@@ -255,7 +262,49 @@ module {
   public func scheme(s : State, id : Text) : ?SchemeRow { switch (RI.get(s.schemes, R.textKey(id, 16))) { case (?v) ?decodeScheme(id, v); case null null } };
   public func product(s : State, id : Text) : ?ProductRow { switch (RI.get(s.products, R.textKey(id, 32))) { case (?v) ?decodeProduct(id, v); case null null } };
   public func batchKnown(s : State, hash : Blob) : Bool { hash.size() == 32 and RI.get(s.batches, hash) != null };
-  func putCard(s : State, r : CardRow) { ignore RI.put(s.cards, R.key(r.id, 8), encodeCard(r)) };
+  /// The fold is handed the book of an account by the bank (a card row carries the account, the product core the
+  /// book), so the per-book open count is kept here and the plan reads it without a walk (S4.1).
+  public type BookOf = ProdT.AccountId -> Text;
+  func cardOpen(st : CT.CardState) : Bool { st != #closed };
+  func bumpBook(s : State, book : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByBook, Text.compare, book) else Map.add(s.openByBook, Text.compare, book, Int.abs(next));
+  };
+  public func openInBook(s : State, book : Text) : Nat { switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 } };
+  public func openDisputeCount(s : State) : Nat { s.disputesOpen };
+  func bookKey(book : Text, id : Nat) : Blob { Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Blob.toArray(R.key(id, 8)))) };
+  public func bookCursor(book : Text, id : Nat) : Blob { bookKey(book, id) };
+  func putCard(s : State, r : CardRow, bookOf : BookOf) {
+    let was = switch (card(s, r.id)) { case (?o) cardOpen(o.state); case null false };
+    let is = cardOpen(r.state);
+    let book = bookOf(r.account);
+    if (is and not was) { bumpBook(s, book, 1); ignore RI.put(s.byBook, bookKey(book, r.id), Blob.fromArray([0])) } else if (was and not is) bumpBook(s, book, -1);
+    ignore RI.put(s.cards, R.key(r.id, 8), encodeCard(r))
+  };
+  /// The active cards of a book, one page off the book index from a cursor: what the end-of-day's statement cycle
+  /// walks a chunk at a time (the adversarial audit of 13 September, finding A2).
+  public func activeInBookFrom(s : State, book : Text, cursor : ?Blob, limit : Nat) : { rows : [CardRow]; cursor : ?Blob } {
+    let lo = bookKey(book, 0);
+    let hi = Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Array.repeat<Nat8>(255, 8)));
+    let page = RI.range(s.byBook, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let out = List.empty<CardRow>();
+    for ((k, _) in page.entries.vals()) { switch (card(s, R.getNat(Blob.toArray(k), 32, 8))) { case (?r) { if (r.state == #active) List.add(out, r) }; case null {} } };
+    { rows = List.toArray(out); cursor = page.cursor }
+  };
+  /// The open disputes, one page off the stage index (the five open stages are contiguous codes) from a cursor.
+  public func openDisputesFrom(s : State, cursor : ?Blob, limit : Nat) : { rows : [DisputeRow]; cursor : ?Blob } {
+    let lo = R.key2(Nat8.toNat(stageCode(#opened)), 1, 0, 8);
+    let hi = Blob.fromArray(Array.concat<Nat8>([stageCode(#preArbitration)], Array.repeat<Nat8>(255, 8)));
+    let page = RI.range(s.byStage, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let out = List.empty<DisputeRow>();
+    for ((k, _) in page.entries.vals()) { switch (dispute(s, R.getNat(Blob.toArray(k), 1, 8))) { case (?d) { if (d.stage != #resolved) List.add(out, d) }; case null {} } };
+    { rows = List.toArray(out); cursor = page.cursor }
+  };
+  /// The step-due event for one open dispute, if its due day has passed unreported.
+  public func dueDispute(d : DisputeRow, day : Nat) : ?CT.CardEvent {
+    if (not d.alerted and d.dueDay <= day and d.stage != #resolved) ?#disputeStepDue({ dispute = d.id; stage = d.stage; dueDay = d.dueDay; day }) else null
+  };
   func putAuth(s : State, r : AuthRow) { ignore RI.put(s.auths, R.key(r.id, 8), encodeAuth(r)) };
   func putCleared(s : State, r : ClearedRow) { ignore RI.put(s.cleared, R.key(r.id, 8), encodeCleared(r)) };
   func putDispute(s : State, r : DisputeRow) { ignore RI.put(s.disputes, R.key(r.id, 8), encodeDispute(r)) };
@@ -533,13 +582,21 @@ module {
   func withControls(r : CardRow, c : CT.Controls, block : Nat) : CardRow {
     { r with controlsBlock = block; dailyLimit = c.dailyLimit; perTransactionLimit = c.perTransactionLimit; velocityCount = c.velocityCount; velocityWindowMinutes = c.velocityWindowMinutes; channels = channelsByte(c.channels); lastBlock = block }
   };
+  /// The open disputes per currency, kept by the fold: what a redenomination asks before it closes a currency (S4.1).
+  func bumpCurrency(s : State, ccy : Text, delta : Int) {
+    let cur : Int = switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByCurrency, Text.compare, ccy) else Map.add(s.openByCurrency, Text.compare, ccy, Int.abs(next));
+  };
+  public func openInCurrency(s : State, ccy : Text) : Nat { switch (Map.get(s.openByCurrency, Text.compare, ccy)) { case (?v) v; case null 0 } };
+  func disputeCurrency(s : State, d : DisputeRow) : Text { switch (clearedRow(s, d.transaction)) { case (?t) t.currency; case null "" } };
   func withDisputeStage(s : State, d : DisputeRow, st : CT.DisputeStage, dueDay : Nat) : DisputeRow {
     ignore RI.put(s.byStage, R.key2(Nat8.toNat(stageCode(st)), 1, d.id, 8), Blob.fromArray([1]));
-    if (st == #resolved and d.stage != #resolved) s.disputesOpen -= 1;
+    if (st == #resolved and d.stage != #resolved) { s.disputesOpen -= 1; bumpCurrency(s, disputeCurrency(s, d), -1) };
     { d with stage = st; dueDay; alerted = false }
   };
 
-  public func fold(s : State, block : Nat, ev : CT.CardEvent) {
+  public func fold(s : State, block : Nat, ev : CT.CardEvent, bookOf : BookOf) {
     switch (ev) {
       case (#policySet(p)) s.policy := ?p;
       case (#schemeDeclared(x)) {
@@ -560,19 +617,19 @@ module {
           controlsBlock = block; issuedDay = x.day; replaces = switch (x.replaces) { case (?o) o; case null 0 }; replacedBy = 0; authorizations = 0; declines = 0; openHolds = 0; heldAmount = 0; clearedCount = 0; clearedAmount = 0; lastBlock = block;
           dailyLimit = 0; perTransactionLimit = 0; velocityCount = 0; velocityWindowMinutes = 0; channels = 0;
         }, x.controls, block);
-        putCard(s, r);
+        putCard(s, r, bookOf);
         ignore RI.put(s.byToken, x.tokenHash, R.key(block, 8));
         ignore RI.put(s.byAccount, R.key2(x.account, 8, block, 8), Blob.fromArray([1]));
         ignore RI.put(s.byParty, R.key2(x.party, 8, block, 8), Blob.fromArray([1]));
         ignore RI.put(s.byState, R.key2(1, 1, block, 8), Blob.fromArray([1]));
-        switch (x.replaces) { case (?old) { switch (card(s, old)) { case (?o) putCard(s, withState(s, { o with replacedBy = block }, #closed, block)); case null {} } }; case null {} };
+        switch (x.replaces) { case (?old) { switch (card(s, old)) { case (?o) putCard(s, withState(s, { o with replacedBy = block }, #closed, block), bookOf); case null {} } }; case null {} };
         s.issued += 1;
       };
-      case (#cardActivated(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #active, block)); case null {} } };
-      case (#cardBlocked(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #blocked, block)); case null {} } };
-      case (#cardUnblocked(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #active, block)); case null {} } };
-      case (#cardClosed(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #closed, block)); case null {} } };
-      case (#controlsSet(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withControls(r, x.controls, block)); case null {} } };
+      case (#cardActivated(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #active, block), bookOf); case null {} } };
+      case (#cardBlocked(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #blocked, block), bookOf); case null {} } };
+      case (#cardUnblocked(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #active, block), bookOf); case null {} } };
+      case (#cardClosed(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withState(s, r, #closed, block), bookOf); case null {} } };
+      case (#controlsSet(x)) { switch (card(s, x.card)) { case (?r) putCard(s, withControls(r, x.controls, block), bookOf); case null {} } };
       case (#authorised(x)) {
         let req = x.request;
         let cardId = switch (x.card) { case (?c) c; case null 0 };
@@ -588,7 +645,7 @@ module {
         if (cardId != 0) {
           ignore RI.put(s.byCardDay, Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.key2(cardId, 8, x.day, 4)), Blob.toArray(R.key(block, 8)))), Blob.fromArray([1]));
           switch (card(s, cardId)) {
-            case (?c) putCard(s, { c with authorizations = c.authorizations + 1; declines = c.declines + (if (approved) 0 else 1); openHolds = c.openHolds + (if (ownHold) 1 else 0); heldAmount = c.heldAmount + (if (ownHold) holdAmount else 0); lastBlock = block });
+            case (?c) putCard(s, { c with authorizations = c.authorizations + 1; declines = c.declines + (if (approved) 0 else 1); openHolds = c.openHolds + (if (ownHold) 1 else 0); heldAmount = c.heldAmount + (if (ownHold) holdAmount else 0); lastBlock = block }, bookOf);
             case null {};
           };
         };
@@ -607,7 +664,7 @@ module {
             switch (card(s, a.card)) {
               case (?c) {
                 let held : Nat = if (c.heldAmount + x.to >= x.from) c.heldAmount + x.to - x.from else 0;
-                putCard(s, { c with heldAmount = held; openHolds = if (a.holdOpen and not stillOpen and c.openHolds > 0) c.openHolds - 1 else c.openHolds; lastBlock = block });
+                putCard(s, { c with heldAmount = held; openHolds = if (a.holdOpen and not stillOpen and c.openHolds > 0) c.openHolds - 1 else c.openHolds; lastBlock = block }, bookOf);
               };
               case null {};
             };
@@ -621,7 +678,7 @@ module {
           case (?a) {
             if (a.holdOpen) {
               putAuth(s, { a with holdOpen = false });
-              switch (card(s, a.card)) { case (?c) putCard(s, { c with openHolds = if (c.openHolds > 0) c.openHolds - 1 else 0; heldAmount = if (c.heldAmount >= a.holdAmount) c.heldAmount - a.holdAmount else 0; lastBlock = block }); case null {} };
+              switch (card(s, a.card)) { case (?c) putCard(s, { c with openHolds = if (c.openHolds > 0) c.openHolds - 1 else 0; heldAmount = if (c.heldAmount >= a.holdAmount) c.heldAmount - a.holdAmount else 0; lastBlock = block }, bookOf); case null {} };
               if (s.openHolds > 0) s.openHolds -= 1;
             };
           };
@@ -635,7 +692,7 @@ module {
         putCleared(s, { id = block; card = cardId; auth = authId; amount = x.item.amount; currency = x.item.currency; mcc = x.item.mcc; interchange = x.interchange; fee = x.fee; posting = switch (x.posting) { case (?p) p; case null 0 }; day = x.day; outcome; refund = x.item.refund; disputed = false; fraud = false; scheme = x.scheme });
         if (cardId != 0) {
           ignore RI.put(s.clearedByCard, R.key2(cardId, 8, block, 8), Blob.fromArray([1]));
-          switch (card(s, cardId)) { case (?c) { if (outcome != 3) putCard(s, { c with clearedCount = c.clearedCount + 1; clearedAmount = c.clearedAmount + x.item.amount; lastBlock = block }) }; case null {} };
+          switch (card(s, cardId)) { case (?c) { if (outcome != 3) putCard(s, { c with clearedCount = c.clearedCount + 1; clearedAmount = c.clearedAmount + x.item.amount; lastBlock = block }, bookOf) }; case null {} };
         };
         switch (x.outcome) {
           case (#postedAgainstHold(h)) {
@@ -643,7 +700,7 @@ module {
               case (?a) {
                 if (a.holdOpen) {
                   putAuth(s, { a with holdOpen = false });
-                  switch (card(s, a.card)) { case (?c) putCard(s, { c with openHolds = if (c.openHolds > 0) c.openHolds - 1 else 0; heldAmount = if (c.heldAmount >= a.holdAmount) c.heldAmount - a.holdAmount else 0 }); case null {} };
+                  switch (card(s, a.card)) { case (?c) putCard(s, { c with openHolds = if (c.openHolds > 0) c.openHolds - 1 else 0; heldAmount = if (c.heldAmount >= a.holdAmount) c.heldAmount - a.holdAmount else 0 }, bookOf); case null {} };
                   if (s.openHolds > 0) s.openHolds -= 1;
                 };
               };
@@ -660,6 +717,7 @@ module {
         switch (clearedRow(s, x.transaction)) { case (?t) putCleared(s, { t with disputed = true }); case null {} };
         holdSub(s, disputeSub(block));
         s.disputesTotal += 1; s.disputesOpen += 1;
+        switch (clearedRow(s, x.transaction)) { case (?t) bumpCurrency(s, t.currency, 1); case null bumpCurrency(s, "", 1) };
       };
       case (#provisionalCredited(x)) { switch (dispute(s, x.dispute)) { case (?d) putDispute(s, { withDisputeStage(s, d, #provisionalCredit, d.dueDay) with provisional = x.amount }); case null {} } };
       // a chargeback raised with no provisional credit yet credits the cardholder directly: that credit is conditional too, so the row records it as the provisional figure the resolution settles
@@ -670,7 +728,7 @@ module {
       case (#disputeStepDue(x)) { switch (dispute(s, x.dispute)) { case (?d) putDispute(s, { d with alerted = true }); case null {} } };
       case (#fraudMarked(x)) {
         switch (clearedRow(s, x.transaction)) { case (?t) putCleared(s, { t with fraud = true }); case null {} };
-        if (x.blocked) { switch (card(s, x.card)) { case (?r) { if (r.state != #closed and r.state != #blocked) putCard(s, withState(s, r, #blocked, block)) }; case null {} } };
+        if (x.blocked) { switch (card(s, x.card)) { case (?r) { if (r.state != #closed and r.state != #blocked) putCard(s, withState(s, r, #blocked, block), bookOf) }; case null {} } };
       };
       case (#statementCut(x)) {
         ignore RI.put(s.statements, R.key2(x.card, 8, x.cycleEnd, 4), encodeStatement({ card = x.card; cycleEnd = x.cycleEnd; balance = x.balance; minimumDue = x.minimumDue; dueDay = x.dueDay; purchases = x.purchases; payments = x.payments; interest = x.interest }));
@@ -713,9 +771,13 @@ module {
     w.nat(n);
   };
   public func fingerprintInto(w : C.Writer, s : State) {
+    w.nat(Map.size(s.openByBook));
+    for ((k, v) in Map.entries(s.openByBook)) { w.text(k); w.nat(v) };
+    w.nat(Map.size(s.openByCurrency));
+    for ((k, v) in Map.entries(s.openByCurrency)) { w.text(k); w.nat(v) };
     switch (s.policy) { case null w.byte(0); case (?p) { w.byte(1); for (t in accountsOf(p).vals()) w.text(t); w.nat(p.provisionalCreditCeiling); w.nat(p.clearingTolerance); w.nat(p.stanReplayDays) } };
     w.nat(s.issued); w.nat(s.active); w.nat(s.authorizations); w.nat(s.approved); w.nat(s.declined); w.nat(s.openHolds); w.nat(s.clearedCount); w.nat(s.exceptions); w.nat(s.disputesTotal); w.nat(s.disputesOpen); w.nat(s.statementCount); w.nat(s.schemeCount); w.nat(s.productCount);
-    fingerprintRows(w, s.cards, 8); fingerprintRows(w, s.byToken, 32); fingerprintRows(w, s.byAccount, 16); fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byState, 9);
+    fingerprintRows(w, s.cards, 8); fingerprintRows(w, s.byToken, 32); fingerprintRows(w, s.byAccount, 16); fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byState, 9); fingerprintRows(w, s.byBook, 40);
     fingerprintRows(w, s.auths, 8); fingerprintRows(w, s.byCardDay, 20); fingerprintRows(w, s.byHold, 8); fingerprintRows(w, s.byRef, 12); fingerprintRows(w, s.cleared, 8); fingerprintRows(w, s.clearedByCard, 16); fingerprintRows(w, s.batches, 32);
     fingerprintRows(w, s.disputes, 8); fingerprintRows(w, s.byStage, 9); fingerprintRows(w, s.statements, 12); fingerprintRows(w, s.schemes, 16); fingerprintRows(w, s.products, 32); fingerprintRows(w, s.subledgers, 32);
   };

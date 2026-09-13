@@ -579,6 +579,12 @@ class Reader(V.Reader):
             return {"tillClosed": {"till": self.text()}}
         if t == 0x18:
             return {"accountRateSet": {"account": self.nat(), "rate": self.p_rate(), "effective": self.nat()}}
+        if t == 0x19:
+            return {"productRedenominated": {"id": self.text(), "version": self.nat(), "supersedes": self.nat(), "from": self.text(), "to": self.text(), "terms": self.p_terms()}}
+        if t == 0x1A:
+            return {"accountRedenominated": {"account": self.nat(), "version": self.nat(), "from": self.text(), "to": self.text()}}
+        if t == 0x1B:
+            return {"scheduleTermsSet": {"account": self.nat(), "terms": self.p_schedule_terms(), "effective": self.nat()}}
         raise ValueError("unknown product event tag %#x" % t)
 
 
@@ -691,6 +697,18 @@ class Reader(V.Reader):
             return {"periodEndClosed": {"book": self.text(), "period": self.text()}}
         if t == 0x17:
             return {"bookClosedForPeriod": {"book": self.text(), "period": self.text()}}
+        if t == 0x19:
+            return {"currencyCalendarSet": {"currency": self.text(), "calendar": self.calendar()}}
+        if t == 0x1A:
+            rd = self.c_redenomination()
+            return {"redenominationDeclared": {"redenomination": rd, "products": [self.text() for _ in range(self.len16())]}}
+        if t == 0x1B:
+            return {"balanceRedenominated": {"from": self.text(), "to": self.text(), "account": self.text(), "subledger": self.opt_blob_(),
+                                            "productAccount": self.opt_nat(), "oldAmount": self.nat(), "newAmount": self.nat(),
+                                            "creditBalance": self.bool(), "day": self.nat()}}
+        if t == 0x1C:
+            return {"redenominationCompleted": {"from": self.text(), "to": self.text(), "rows": self.nat(), "oldTotal": self.nat(),
+                                               "newTotal": self.nat(), "roundingAmount": self.nat(), "roundingDebit": self.bool(), "day": self.nat()}}
         if t == 0x18:
             book = self.text()
             period = self.text()
@@ -703,10 +721,14 @@ class Reader(V.Reader):
                                       "accountsClosed": closed, "results": results}}
         raise ValueError("unknown close event tag %#x" % t)
 
+    def c_redenomination(self):
+        return {"from": self.text(), "to": self.text(), "minorUnits": self.byte(), "ratioNumerator": self.nat(), "ratioDenominator": self.nat(),
+                "bridgeAccount": self.text(), "roundingAccount": self.text(), "day": self.nat()}
+
     # ─── the end-of-day batch ──────────────────────────────────────────
 
     JOBS = {1: "accrual", 2: "charges", 3: "instalmentsDue", 4: "ageing", 5: "provisioning",
-            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade", 14: "sharia", 15: "treasury", 16: "cards"}
+            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade", 14: "sharia", 15: "treasury", 16: "cards", 17: "redenomination"}
 
     def b_job(self):
         rank = self.nat()
@@ -765,6 +787,9 @@ class Reader(V.Reader):
             return {"eodFailureResolved": {"book": self.text(), "businessDate": self.nat(),
                                            "item": self.nat(), "entity": self.text(),
                                            "justification": self.text()}}
+        if t == 0x16:
+            return {"eodItemCursor": {"book": self.text(), "businessDate": self.nat(),
+                                      "item": self.nat(), "cursor": self.blob()}}
         if t == 0x20:
             return {"loanAged": {"account": self.nat(), "day": self.nat(),
                                  "band": (self.text() if self.byte() == 1 else None),
@@ -1458,6 +1483,8 @@ class Reader(V.Reader):
         # the extension tag 0xEF with a second byte: 0x01.. Islamic banking (Islamic banking), 0x20.. treasury (treasury)
         if tag == 0xEF:
             sub = self.byte()
+            if sub >= 0x50:
+                return self.currency_command(sub)
             if sub >= 0x30:
                 return self.card_command(sub)
             if sub >= 0x20:
@@ -2302,6 +2329,13 @@ class Reader(V.Reader):
         if b == 1:
             return {"postedDirect": {"belowFloor": self.bool()}}
         return {"exception": {"reason": self.text()}}
+
+    def currency_command(self, sub):
+        if sub == 0x50:
+            return {"setCurrencyCalendar": {"currency": self.text(), "calendar": self.calendar()}}
+        if sub == 0x51:
+            return {"redenominateCurrency": self.c_redenomination()}
+        raise ValueError(f"unknown currency command sub-tag {sub:#x}")
 
     def card_command(self, sub):
         D = self.dates

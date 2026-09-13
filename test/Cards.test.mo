@@ -33,7 +33,7 @@ let arena = RI.newArena();
 let s = Core.newState(arena);
 var block = 700;
 func next() : Nat { block += 1; block };
-func apply(ev : CT.CardEvent) : Nat { let b = next(); Core.fold(s, b, ev); b };
+func apply(ev : CT.CardEvent) : Nat { let b = next(); Core.fold(s, b, ev, func(_) { "HQ" }); b };
 func ok<X>(r : { #ok : X; #err : CT.CardError }, what : Text) : X { switch (r) { case (#ok(x)) x; case (#err(e)) { fail(what # " refused: " # debug_show (e)); loop {} } } };
 func refused<X>(r : { #ok : X; #err : CT.CardError }, what : Text) : CT.CardError { switch (r) { case (#ok(_)) { fail(what # " accepted"); loop {} }; case (#err(e)) e } };
 func actOk(r : { #ok : CT.CardEvent; #err : CT.CardError }, what : Text) : Nat { apply(ok(r, what)) };
@@ -178,6 +178,9 @@ Debug.print("count: replacement and closure = 2");
 
 // 6. status and fingerprint
 let st = Core.status(s);
+if (Core.openInBook(s, "HQ") != Core.cardsInState(s, #issued).size() + Core.cardsInState(s, #active).size() + Core.cardsInState(s, #blocked).size() or Core.openInBook(s, "BR01") != 0) fail("cards open in book counter " # Nat.toText(Core.openInBook(s, "HQ")));
+if (Core.openDisputeCount(s) != Core.openDisputes(s).size()) fail("open dispute counter");
+Debug.print("count: card counters held equal to a walk = 2");
 if (st.cards != 2 or st.authorizations != 4 or st.approved != 3 or st.declined != 1 or st.disputes != 1 or st.openDisputes != 0 or st.cleared != 1 or st.schemes != 1 or st.products != 1) fail("status " # debug_show st);
 let f1 = fp(s);
 if (not Blob.equal(f1, fp(s))) fail("fingerprint unstable");

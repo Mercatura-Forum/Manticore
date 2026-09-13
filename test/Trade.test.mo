@@ -251,6 +251,8 @@ if (st.instruments != 4 or st.claims != 6 or st.amendments != 1 or st.open != 0)
 if (Core.listByParty(s, 7, null, 10).ids.size() != 4) fail("by party");
 if (Core.listByState(s, #closed, null, 10).ids.size() != 1 or Core.listByState(s, #released, null, 10).ids.size() != 1 or Core.listByState(s, #matured, null, 10).ids.size() != 1 or Core.listByState(s, #paid, null, 10).ids.size() != 1) fail("by state");
 if (Core.openAll(s).size() != 0) fail("open all");
+if (Core.openInCurrency(s, "EGP") != 0 or Core.openInCurrency(s, "USD") != 0 or Core.openCountInBook(s, "HQ") != 0) fail("the per-currency and per-book counters return to zero with the last instrument closed");
+Debug.print("count: instrument counters at zero after every close = 3");
 if (Core.claimsOf(s, lc).size() != 3 or Core.messagesOf(s, lc).size() != 0) fail("claims of the credit");
 ignore act(Core.planRecordMessage(s, lc, #mt(707), #outgoing, h("mt707"), day0 + 30));
 refused(Core.planRecordMessage(s, lc, #mt(103), #outgoing, h("mt103"), day0 + 30), "an MT 103 as a trade message");
