@@ -282,7 +282,7 @@ var mutants = 0;
 for (delta in [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946].vals()) {
   let bad : T.Event = #commandProposed({
     command = ?baseEntry;
-    commandHash = Blob.fromArray(Array.tabulate<Nat8>(32, func(i) { Nat8.fromNat((i + delta) % 256) }));
+    commandHash = Blob.fromArray(Array.tabulate<Nat8>(32, func(i) { Nat8.fromNat((i + delta) % 256) })); commandEncoding = 2 : Nat8;
     permission = P.commandName(baseEntry); book = null;
     maker; required = 1; eligibleRole = "checker";
     expiresAt = clock + 3600 * SECOND; justification = "tampered";
@@ -717,6 +717,39 @@ while (pi < Core.height(bs)) {
   };
   pi += 1;
 };
+// ── the encoding freeze (the review of 12 September): a proposal made under version 1 is approved against
+// version 1's bytes and reconstructed under version 1 after version 2 became the current encoding; one made
+// now carries version 2 and reconstructs under it; a pack would drop both bodies
+let v1Command : T.Command = #openBook({ id = "BR10"; name = "Tenth branch"; parent = null });
+let ?v1Hash = C.commandHashAt(1, v1Command) else { assert false; loop {} };
+let v1Block = bcommit(maker, #commandProposed({
+  command = ?v1Command; commandHash = v1Hash; commandEncoding = 1 : Nat8; permission = "book.create"; book = null;
+  maker; required = 1; eligibleRole = "checker"; expiresAt = clock + 3_600_000_000_000; justification = "made before the freeze";
+}));
+assert (approveOk(checker1, v1Block.index).executed);
+let ?v1View = Core.getProposal(bs, BankMemLog.reader(bchain), v1Block.index) else { assert false; loop {} };
+assert (v1View.commandEncoding == 1);
+let ?v1Rec = Core.reconstructProposal(bs, BankMemLog.reader(bchain), v1Block.index) else { assert false; loop {} };
+assert (v1Rec.matches and v1Rec.command == ?v1Command);
+let v2Index = proposeOk(maker, #openBook({ id = "BR11"; name = "Eleventh branch"; parent = null }), "made under version 2");
+assert (approveOk(checker1, v2Index).executed);
+let ?v2View = Core.getProposal(bs, BankMemLog.reader(bchain), v2Index) else { assert false; loop {} };
+assert (v2View.commandEncoding == C.COMMAND_ENCODING and v2View.commandHash != v1Hash);
+let ?v2Rec = Core.reconstructProposal(bs, BankMemLog.reader(bchain), v2Index) else { assert false; loop {} };
+assert (v2Rec.matches);
+// the same body hashed under the other version would not be accepted: the hash names its encoding
+assert (C.commandHashAt(2, v1Command) != ?v1Hash);
+var dropped1 = 0; var dropped2 = 0;
+for (idx in [v1Block.index, v2Index].vals()) {
+  let b = BankMemLog.blocks(bchain)[idx];
+  let raw = C.encodeBlock(b.index, b.timestamp, b.caller, b.parentHash, b.event).bytes;
+  let kept = Core.keptBytes(bs, BankMemLog.reader(bchain), idx, raw);
+  assert (kept.size() < raw.size());
+  if (idx == v1Block.index) dropped1 += 1 else dropped2 += 1;
+};
+Debug.print("count: proposal bodies dropped by the pack rule per encoding version (1, 2) = " # Nat.toText(dropped1 + dropped2));
+assert (dropped1 == 1 and dropped2 == 1);
+
 Debug.print("count: executed proposals examined for reconstruction = " # Nat.toText(executedProposals));
 Debug.print("count: proposal bodies rebuilt from their acts to the kept hash = " # Nat.toText(rebuilt));
 Debug.print("count: command families rebuilt = " # Nat.toText(List.size(familiesSeen)));
@@ -772,7 +805,7 @@ label keptWalk for (b in BankMemLog.blocks(bchain).vals()) {
 Debug.print("count: proposal bodies a pack drops = " # Nat.toText(bodiesDropped));
 Debug.print("count: blocks a pack keeps whole = " # Nat.toText(blocksKeptWhole));
 Debug.print("count: mismatched-hash fixture proposals kept untouched = " # Nat.toText(tamperedFixtures));
-assert (bodiesDropped == rebuilt);
+assert (bodiesDropped == rebuilt + dropped1 + dropped2);   // the reconstruction battery above, plus the two version proposals
 let keptReplay = Core.replay(installer, List.toArray(keptBlocks));
 assert (Core.fingerprint(keptReplay) == fp() and Core.height(keptReplay) == Core.height(bs));
 Debug.print("count: bank blocks replayed from what a pack keeps, to the live fingerprint = " # Nat.toText(List.size(keptBlocks)));

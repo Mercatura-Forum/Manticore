@@ -163,7 +163,7 @@ let commands : [T.Command] = [
   #reverseManualEntry({ original = 1; book = "HQ"; postingDate = 20705; valueDate = 20705; period = "2026-09"; narration = ""; idempotencyKey = Blob.fromArray([2]) }),
   #postManualEntryForParty({ party = 1; entry = { book = "HQ"; postingDate = 20705; valueDate = 20705; period = "2026-09"; legs = []; narration = ""; idempotencyKey = Blob.fromArray([3]); correctionOf = null } }),
   #createParty({ kind = #natural; salt = salt32; identityCommit = salt32; dedupCommit = null; attributes = []; book = "HQ"; cddLevel = #standard; riskRating = #low; pep = false; reviewDue = 21000 }),
-  #createCustomer({ party = { kind = #natural; salt = salt32; identityCommit = salt32; dedupCommit = null; attributes = []; book = "HQ"; cddLevel = #standard; riskRating = #low; pep = false; reviewDue = 21000 }; documents = []; screening = null; lifecycle = #prospect; extensions = []; accounts = [] }),
+  #createCustomer({ party = { kind = #natural; salt = salt32; identityCommit = salt32; dedupCommit = null; attributes = []; book = "HQ"; cddLevel = #standard; riskRating = #low; pep = false; reviewDue = 21000 }; documents = []; screening = null; lifecycle = #prospect; extensions = []; accounts = []; application = null }),
   #amendParty({ party = 1; attributes = [] }),
   #setPartyLifecycle({ party = 1; to = #active }),
   #setPartyCdd({ party = 1; level = #enhanced; riskRating = #high; pep = true; reviewDue = 21000 }),

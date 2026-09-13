@@ -1141,8 +1141,7 @@ func customer(i : Nat, lifecycle : PT.Lifecycle, screening : ?T.CustomerScreenin
   let salt = saltFor(i);
   #createCustomer({
     party = { kind = #natural; salt; identityCommit = Commit.identity(salt, #natural, ["Person " # Nat.toText(i), "2980101123456" # Nat.toText(i)]); dedupCommit = ?Commit.dedup(institutionSalt, "nationalId", "2980101123456" # Nat.toText(i)); attributes = []; book = "BR01"; cddLevel = #standard; riskRating = #low; pep = false; reviewDue = TODAY + 365 };
-    documents = docs; screening; lifecycle; extensions = []; accounts;
-  })
+    documents = docs; screening; lifecycle; extensions = []; accounts; application = null })
 };
 let twoDocs : [PT.DocumentRef] = [{ kind = "identity"; commit = Commit.document(saltFor(9), "identity", Blob.fromArray([1])); issued = 20000; expires = null }, { kind = "address"; commit = Commit.document(saltFor(9), "address", Blob.fromArray([2])); issued = 20000; expires = null }];
 let clearDecision : T.CustomerScreening = { listVersion = "UN-2026-09"; listRoot; decision = #clear; screener; justificationCommit = Commit.justification("no match") };

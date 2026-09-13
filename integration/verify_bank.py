@@ -23,6 +23,14 @@ import verify_entry as V
 
 BLOCK_DOMAIN = b"THEBES-BANK-BLOCK-v2"
 COMMAND_DOMAIN = b"THEBES-BANK-COMMAND-v1"
+# The command encodings this verifier implements (the review of 12 September: frozen per version). A block
+# whose recorded `commandEncoding` is not here is refused, never hashed under a version of ours.
+SUPPORTED_COMMAND_ENCODINGS = (1, 2)
+CURRENT_COMMAND_ENCODING = 2
+
+
+def command_domain(version):
+    return b"THEBES-BANK-COMMAND-v%d" % version
 # block format 2 (block format 2): a proposal's body is the block's trailer
 SUPPORTED_BLOCK_VERSIONS = (0x02,)
 
@@ -931,7 +939,10 @@ class Reader(V.Reader):
                                                     "attempts": self.nat(), "reason": self.text()}}}
         raise ValueError(f"unknown report event tag {t:#x}")
 
-    def command(self):
+    def command(self, encoding=CURRENT_COMMAND_ENCODING):
+        """A command under a recorded encoding version. Version 1 is every family's bytes before 2026-09-13;
+        version 2 appends `application : ?Nat` to createCustomer and is otherwise version 1."""
+        assert encoding in SUPPORTED_COMMAND_ENCODINGS, f"command encoding {encoding} is not one this verifier implements"
         tag = self.byte()
         if tag == 0x01:
             return {"defineRole": {"id": self.text(), "name": self.text(), "permissions": self.texts()}}
@@ -1010,7 +1021,8 @@ class Reader(V.Reader):
             lifecycle = self.lifecycle()
             extensions = self.extension_values()
             accounts = [{"product": self.text(), "currency": self.text(), "termDays": self.opt(self.nat), "allocationOrder": self.p_components(), "activate": self.byte() == 1} for _ in range(self.len16())]
-            return {"createCustomer": {"party": party, "documents": documents, "screening": screening, "lifecycle": lifecycle, "extensions": extensions, "accounts": accounts}}
+            application = self.opt(self.nat) if encoding >= 2 else None
+            return {"createCustomer": {"party": party, "documents": documents, "screening": screening, "lifecycle": lifecycle, "extensions": extensions, "accounts": accounts, "application": application}}
         if tag == 0x51:
             return {"amendParty": {"party": self.nat(), "attributes": self.field_commits()}}
         if tag == 0x52:
@@ -1697,7 +1709,7 @@ class Reader(V.Reader):
             return {"featureActivationSet": {"feature": self.text(), "height": self.nat64()}}
         if tag == 0x30:
             # the body is not in the preimage: _decode_block reads it from the trailer and fills "command"
-            return {"commandProposed": {"command": None, "commandHash": self.blob(), "permission": self.text(), "book": self.opt(self.text),
+            return {"commandProposed": {"command": None, "commandHash": self.blob(), "commandEncoding": self.byte(), "permission": self.text(), "book": self.opt(self.text),
                                         "maker": self.principal(), "required": self.nat(),
                                         "eligibleRole": self.text(), "expiresAt": self.nat64(),
                                         "justification": self.text()}}
@@ -1719,7 +1731,8 @@ class Reader(V.Reader):
         if tag == 0x34:
             return {"commandExpired": {"proposal": self.nat()}}
         if tag == 0x35:
-            return {"emergencyOverride": {"command": self.command(), "commandHash": self.blob(),
+            enc = self.byte()
+            return {"emergencyOverride": {"commandEncoding": enc, "command": self.command(enc), "commandHash": self.blob(),
                                           "actor_": self.principal(), "witness": self.principal(),
                                           "justification": self.text()}}
         if tag == 0x36:
@@ -1764,9 +1777,11 @@ class Reader(V.Reader):
         raise ValueError(f"unknown bank event tag {tag:#x}")
 
 
-def command_hash(command_bytes):
-    """The hash a checker approves, over the canonical command bytes."""
-    return _domain_hash(COMMAND_DOMAIN, command_bytes)
+def command_hash(command_bytes, version=CURRENT_COMMAND_ENCODING):
+    """The hash a checker approves, over the canonical command bytes under the recorded encoding version —
+    the domain names the version, so a body hashed under another version never matches."""
+    assert version in SUPPORTED_COMMAND_ENCODINGS, f"command encoding {version} is not one this verifier implements"
+    return _domain_hash(command_domain(version), command_bytes)
 
 
 def decode_block(raw):
@@ -1791,11 +1806,13 @@ def _decode_block(raw):
     stored = r.take(32)
     # the trailer: a proposal block's body, bound to the preimage by its commandHash, or 0 once a pack dropped it
     if "commandProposed" in event:
+        enc = event["commandProposed"]["commandEncoding"]
+        assert enc in SUPPORTED_COMMAND_ENCODINGS, f"proposal block records command encoding {enc}, which this verifier does not implement"
         flag = r.byte()
         if flag == 1:
             start = r.p
-            body = r.command()
-            assert command_hash(raw[start:r.p]) == event["commandProposed"]["commandHash"], "the trailer's body does not hash to the preimage's commandHash"
+            body = r.command(enc)
+            assert command_hash(raw[start:r.p], enc) == event["commandProposed"]["commandHash"], "the trailer's body does not hash to the preimage's commandHash under its recorded encoding"
             event["commandProposed"]["command"] = body
         elif flag != 0:
             raise ValueError("bad trailer flag %d" % flag)
@@ -1819,9 +1836,10 @@ def split_trailer(raw):
 
 
 def command_bytes_of(raw):
-    """Extract the canonical command bytes from a proposal or override block, so
-    the command hash can be recomputed from the block rather than taken from it.
-    This is what makes 'the approved bytes execute' checkable from outside."""
+    """Extract the canonical command bytes from a proposal or override block, so the command hash can be
+    recomputed from the block rather than taken from it, with the encoding version the block recorded —
+    this is what makes 'the approved bytes execute' checkable from outside. Returns (bytes, version), or
+    None for a proposal whose body a pack dropped."""
     r = Reader(raw)
     version = r.byte()
     assert version in SUPPORTED_BLOCK_VERSIONS
@@ -1829,18 +1847,19 @@ def command_bytes_of(raw):
     tag = r.byte()
     assert tag in (0x30, 0x35), f"block {tag:#x} carries no command"
     if tag == 0x35:
+        enc = r.byte()
         start = r.p
-        r.command()
-        return raw[start:r.p]
+        r.command(enc)
+        return raw[start:r.p], enc
     # a proposal: the body is the trailer behind the hash — None once a pack dropped it
     r.p -= 1
-    r.bank_event()
+    ev = r.bank_event()["commandProposed"]
     r.take(32)
     if r.byte() != 1:
         return None
     start = r.p
-    r.command()
-    return raw[start:r.p]
+    r.command(ev["commandEncoding"])
+    return raw[start:r.p], ev["commandEncoding"]
 
 
 def certified_roots(tip, root_key_der, canister_id_bytes):

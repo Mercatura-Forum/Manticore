@@ -178,6 +178,9 @@ module {
     lifecycle : PT.Lifecycle;
     extensions : [PT.ExtensionValue];
     accounts : [CustomerAccount];
+    /// The origination application this onboarding fulfils (origination and underwriting); none until applications exist — a value
+    /// is refused as `UnknownApplication` until then. Carried by command encoding 2 and later.
+    application : ?Nat;
   };
 
   public type Command = {
@@ -458,7 +461,9 @@ module {
     /// covers. The command itself travels behind the hash as the block's trailer (block format 2), bound to
     /// the preimage by `commandHash`: `?Command` here is the trailer, `null` once a pack has dropped it under
     /// §18.2's rule (block format 2).
-    #commandProposed : { command : ?Command; commandHash : Blob; permission : PermissionId; book : ?BookId; maker : Principal; required : Nat; eligibleRole : RoleId; expiresAt : Nat64; justification : Text };
+    /// `commandEncoding` names the frozen encoder the body and `commandHash` were made with; a reconstruction
+    /// re-hashes under it, never under the current one (the review of 12 September).
+    #commandProposed : { command : ?Command; commandHash : Blob; commandEncoding : Nat8; permission : PermissionId; book : ?BookId; maker : Principal; required : Nat; eligibleRole : RoleId; expiresAt : Nat64; justification : Text };
     #commandApproved : { proposal : Nat; commandHash : Blob; checker : Principal };
     #commandRejected : { proposal : Nat; checker : Principal; reason : Text };
     /// The execution: what it posted, and what it charged the maker's daily limit (`charge`, computed by the
@@ -468,7 +473,7 @@ module {
     /// The authority block of an override. It does not carry the postings it
     /// causes, because their indices are not known until they are committed; the
     /// `#commandExecuted` block that follows records them and names this block.
-    #emergencyOverride : { command : Command; commandHash : Blob; actor_ : Principal; witness : Principal; justification : Text };
+    #emergencyOverride : { command : Command; commandEncoding : Nat8; commandHash : Blob; actor_ : Principal; witness : Principal; justification : Text };
     #overrideReviewed : { override_ : Nat; reviewer : Principal; disposition : Text };
     /// Everything the party layer records, under one case so there is one log.
     #party : PT.PartyEvent;
@@ -531,6 +536,7 @@ module {
     /// the trailer (`null` where no reconstruction hashes to `commandHash`)
     command : ?Command;
     commandHash : Blob;
+    commandEncoding : Nat8;
     permission : PermissionId;
     book : ?BookId;
     maker : Principal;
@@ -583,6 +589,8 @@ module {
     #OverDailyLimit : { currency : JT.Currency; amount : Nat; consumed : Nat; limit : Nat };
     #RequiresDualAuthorisation : { permission : PermissionId; required : Nat };
     #UnknownProposal : { index : Nat };
+    /// `createCustomer.application` names an origination application; none exists before origination and underwriting lands.
+    #UnknownApplication : { application : Nat };
     #ProposalNotAwaiting : { index : Nat };
     #ProposalExpired : { index : Nat; expiresAt : Nat64 };
     #SelfApproval : { maker : Principal };

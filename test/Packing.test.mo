@@ -176,7 +176,7 @@ func isSettled(i : Nat) : Bool { i % 8 == 0 };
 func bankEventFor(i : Nat) : BT.Event {
   if (isProposal(i)) {
     let c = bankCommands[(i / 4) % bankCommands.size()];
-    #commandProposed({ command = ?c; commandHash = BC.commandHash(c); permission = "x"; book = ?"BR01"; maker; required = 1; eligibleRole = "checker"; expiresAt = Nat64.fromNat(i) * 1_000_000_000 + 86_400_000_000_000; justification = "month " # Nat.toText(i) })
+    #commandProposed({ command = ?c; commandHash = BC.commandHash(c); commandEncoding = 2 : Nat8; permission = "x"; book = ?"BR01"; maker; required = 1; eligibleRole = "checker"; expiresAt = Nat64.fromNat(i) * 1_000_000_000 + 86_400_000_000_000; justification = "month " # Nat.toText(i) })
   } else if (i % 4 == 1) {
     #commandApproved({ proposal = i - 1; commandHash = BC.commandHash(bankCommands[((i - 1) / 4) % bankCommands.size()]); checker = ME })
   } else if (i % 4 == 2) {

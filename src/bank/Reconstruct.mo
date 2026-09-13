@@ -144,7 +144,7 @@ module {
     };
     let party = { kind = p.kind; salt = p.salt; identityCommit = p.identityCommit; dedupCommit = p.dedupCommit; attributes = p.attributes; book = p.book; cddLevel = p.cddLevel; riskRating = p.riskRating; pep = p.pep; reviewDue = p.reviewDue };
     Array.map<[T.CustomerAccount], T.Command>(variants, func(accounts) {
-      #createCustomer({ party; documents = List.toArray(docs); screening; lifecycle; extensions; accounts })
+      #createCustomer({ party; documents = List.toArray(docs); screening; lifecycle; extensions; accounts ; application = null })
     })
   };
 

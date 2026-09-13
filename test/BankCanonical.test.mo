@@ -22,6 +22,9 @@ import ProdT "../src/bank/ProductTypes";
 import CT "../src/bank/CloseTypes";
 import RepT "../src/bank/ReportTypes";
 import C "../src/bank/BankCanonical";
+import P "../src/bank/Permissions";
+import Reconstruct "../src/bank/Reconstruct";
+import Text "mo:core/Text";
 
 let alice = Principal.fromBlob("\A1\01");
 let bob = Principal.fromBlob("\B0\02");
@@ -290,12 +293,10 @@ let commands : [T.Command] = [
     screening = ?{ listVersion = "2026-09"; listRoot = commit32(14); decision = #clear; screener = bob; justificationCommit = commit32(15) };
     lifecycle = #active;
     extensions = [{ schema = "kyc"; name = "sector"; value = #enumerated("retail") }];
-    accounts = [{ product = "SAV-01"; currency = "EGP"; termDays = null; allocationOrder = []; activate = true }, { product = "TD-12"; currency = "EGP"; termDays = ?365; allocationOrder = [#interest, #principal]; activate = false }];
-  }),
+    accounts = [{ product = "SAV-01"; currency = "EGP"; termDays = null; allocationOrder = []; activate = true }, { product = "TD-12"; currency = "EGP"; termDays = ?365; allocationOrder = [#interest, #principal]; activate = false }]; application = null }),
   #createCustomer({
     party = { kind = #legal; salt = salt32; identityCommit = commit32(11); dedupCommit = null; attributes = []; book = "HQ"; cddLevel = #simplified; riskRating = #low; pep = false; reviewDue = 21001 };
-    documents = []; screening = null; lifecycle = #prospect; extensions = []; accounts = [];
-  }),
+    documents = []; screening = null; lifecycle = #prospect; extensions = []; accounts = []; application = null }),
   #amendParty({ party = 17; attributes = [{ name = "address"; commit = commit32(12) }] }),
   #setPartyLifecycle({ party = 17; to = #active }),
   #setPartyLifecycle({ party = 17; to = #blocked }),
@@ -529,5 +530,91 @@ for (m in mutations.vals()) {
 Debug.print("count: single-field mutations that changed the command hash = " # Nat.toText(mutationChecks));
 assert (mutationChecks == 13);
 assert (commands.size() >= 50);
+
+// ─── the encoding freeze: golden vectors per reconstructible family ─────────────────────────────
+// Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
+// is byte-identical to what it was at proposal time. The first command of each reconstructible family in
+// the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
+// on 2026-09-13; a drift in any family's bytes fails this test — the change must be a new version with a
+// new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
+func hex(b : Blob) : Text {
+  let digits = "0123456789abcdef";
+  var out = "";
+  for (x in b.vals()) { let n = Nat8.toNat(x); out #= Text.fromChar(Text.toArray(digits)[n / 16]) # Text.fromChar(Text.toArray(digits)[n % 16]) };
+  out
+};
+let GOLDEN_PRINT = false;
+let golden : [(Text, Text, Text)] = [
+  ("openBook", "a7203909a19209d57fb1179a8556e3374bd540213e4df2f7b8f5c85105779f00", "95d49526fbd1c8c37c7aa63e66e1eae4bf533795e871d69a50520ad8d4ca62a1"),
+  ("closeBook", "6661f47455b71ca3ea6b213966e8345ca6fb91dad9e4d18a6c299c8a59cbb272", "392c346e4e6fab4cb81895a747b2aaaff97f142e7e4967c108a11e2c43cf1a34"),
+  ("defineRole", "fee7c398a9c59cac7dc2336d6461aff0f0b1d3d9bdd84c36aeb7ba420329c84b", "edbeca1e04ec480c0d2de93f967ad55c34883673ff8cb52bf26229f94ee15835"),
+  ("grantRole", "e47f91c06794dbe411b2da0e6ff2acb0af34666fe51f5a580119f41763f55426", "b39922f7e1cad1a81b597c4de7a7f0d92508276bfd3a040af8912e7905df6f74"),
+  ("revokeRole", "5527addaabd7054526d76022f3f8e8eba80e473af4fde8e8e00cbb5b73085014", "cab0972e79f403fdee4e7a0a93c69ef7821582f6e3bc0337b0e96146d3ad338c"),
+  ("setDualPolicy", "97ad214a54ef2187be67c2f11475535ab58fedee0bf94e183b07380956df6364", "7d8209af6a16531efd562b1b4bd36be678ccdf06df05abbacb5d56f3dc5fb1c1"),
+  ("clearDualPolicy", "3001948a541ef6b140796bbcc0e75ac103502c4b8ae5dc40ef8838675cf4d4b0", "3f241008d1cf1fb4cc77a66b9c9ea28b0b674c687bb6320a75f89756446fccb4"),
+  ("transferBankAdmin", "dd8ac9a795db0aaacf0efedf9c0a6ef918d24e4a0c81f076fb354b3671e15bf9", "147eed2d7562f7746c7fa31f119fb38271c0dbbee8dff950f3d70a2b1448c2c4"),
+  ("setFeatureActivation", "c0756c1ffba7ad7f23b237b80a63b199489ea6d7007ed9af35690e72016eab01", "fb8ee0ddeb01da9fe9b8a62bcbc10f9d8e5dc50b415eb111b3ae0fb4d2f028df"),
+  ("createParty", "038cad0fb0ddd0f837ee284a6c4342dd493006644dd1e9dd91126373cd67af26", "ad9c9c9d446310a13217c35310ecea6daca2c213efd5f2077dcf823a79f1b24d"),
+  ("amendParty", "24b5d0345bddd14003b6d415aeaca388114985da5ee2adb7c2b574fabd4a615b", "5499bd3387b374353b26ccdb89ca759844a9f8a1cfa13f24a55eb1d8b0a1e5f2"),
+  ("setPartyLifecycle", "780fe48da9824156c737c29db45151a27f2619edef34dfa57e2c01c819aa4c87", "c936ff075e81671ff230c08dd718dcf1a43cbfe25e44f9d48c92662a5a23ff73"),
+  ("setPartyCdd", "988d3cb72a3f08efc89205d69cb4b9ba6e7abae72cd545cb251c2b90f9b2dff4", "22abd2bcae4a71f32a13984d64d32a4814902d95efde5cdfcb5c10e475aa35d0"),
+  ("addPartyDocument", "db9eb1341c3152302ed2cabe0bde1d4e3399f05ca9c6ca36a0c40b826197345f", "f6227607423bc8060711a3b26c650e90cf815b362cccc89f3ba7ae6acd068572"),
+  ("addPartyRelationship", "e2d3ad5288d265b1788413160c501706db6189a30988f45075c2921ad93879c3", "ebaf0c468ad7315fe12316118c58fbd4f63c3863b223b23801398a7422922e3c"),
+  ("setPartyExtension", "ad63c6759ba6c6e286e17a4a8c03d0966b75889f62f27815121f5d6dcf0582f9", "a70d3c120e7640903486d0269c678ca9d57492233909be591ef4e6aa9a40e848"),
+  ("commitScreeningList", "0eb51a40066ddc105203881f397fccd055b4cb575256b8556a6c0b5173dd8dd0", "ea59ef24e9e975d3607061ec6ebb29b8899860be28555f4759e537ee698f52e5"),
+  ("recordScreeningDecision", "6a71072f35a08ea6495722e142a68bed74ab183980ed4d8e5c19c5e1af93f3c3", "f65738a5244e8a546093ae22406d4374503ed92f92bf40348a12113f3f6c8b3c"),
+  ("registerSchema", "9236f0aaab95d72990ddb612f38d74dfff076efa71b5ad98538fc55ac3c907cb", "c0705a3c77492de056e2a6d289f6584a47aae080b6fec6bc9169505a71cb3845"),
+  ("registerCollateral", "2b261713262057dd112de57935f959e7e72cfc17f59670a4a545cb5e5dbe9053", "bad288549d90b775da7a7cad8a2a90cd95ea0f346f5ee2dbe5e19ed387695fd1"),
+  ("revalueCollateral", "020af9b4396ffed2b04bcb1c2b2b4504a207f629efd851542ce3e6cfd2a9689f", "e107f3629b7ebc451cd6beaae5fd782aabf6a7953ce6df1af77e3444efcd194e"),
+  ("allocateCollateral", "f9e5629c49089246fcd7d7ee7c6723bf40da9dc452fa0d0d307d4ac2a3ce8e00", "ed0f6f5dfbc6d000a5fba676adb3ea587e530d89fb4035007bc679693056aab4"),
+  ("releaseCollateral", "4501e9343f9c247925f128d7073f7dc8b873c35fc46c6c3ce632e3242301ec45", "a9fc4a2a83c24e40ab241d53da60da73ee2873e226432181341149d13acfbbf3"),
+  ("addStaff", "8724694411d39551c1a474235accb09b2bf48dfcc0091458881878bf47ea3d28", "aaeaf37957fcb4d45205316beaebe5144a892117a609efe7d867a058e9280bb4"),
+  ("removeStaff", "8597353faf8d2514e165221e02a0aaf84706906caeb3d5f54b43312dc52efc9a", "c362ce1177dcc7c9280e127d1e7cfc54181981da91f79a38ee8ea72ee3cc7809"),
+  ("setAccountFormat", "2875ec6aa94c1e89ab95abfea6a6e3864732663776969799e1f3b896a720fa7f", "44b64be66efdf64d488b87dcf32c6cd9cde16a274e8011d90ff1d6896e9a4927"),
+  ("setReviewGrace", "a29f16e6478fa09b797996dc16a8951d47d197a8e85ecaafacaf5a34ea4495b2", "9994b373d13e1c07a8d2099ceba743aab47223ee580352978430532bbd20f680"),
+  ("registerProduct", "a0528113753afe63b1f2bf093490b3d2f45e28bb485dc4d83b7fbc64fe5dc558", "b9ce5026680ef8c2786f9fab82d10aea93f596505badac701d8f40c852d801ca"),
+  ("amendProduct", "4547ccb53fa55c60c68c8df34f074b1daccc3d0ebf4da06c5b341f3810b64696", "cd1a915d6956f804368d3fc50bfcf641de7309c081c764b4d742edc5ad21d7a9"),
+  ("closeProductToNewAccounts", "e1279d342b5d290e6d63456bc09ea910b8ba2feeea9179af87ae5a1d6c4d522a", "a1ea207edd2914c8cd08a933d2a1c71141acf62e24675b1dcd222c2ff80963e2"),
+  ("openAccount", "1e197ca273813b62e7e32e10a61699df6f06483baeebf26094dec53d447b4bbe", "c15145a698ab030e39569cb384d9d31d3eca969554c2b28af7cc559f9f347876"),
+  ("setAccountStatus", "5a90c9370ed0a322db1de5c035855f5ee414e5cdc8758167e3e8f385fdb3ce54", "53bd5ba0ace509392ed188a0d9ec67f5b8927bf835ff03d6b09b5abe8a51b21a"),
+  ("migrateAccount", "f2c7d8cb19ce50832863137ee8a0c8c50b48bc670b654a2edd22c7b093a22e37", "69054684afb694cbb45830c7a830fbd9843ba4b1b9876799a43ec23f846f9a88"),
+  ("openTill", "548a8d1cbdac46b960851f12efdf218e9fa38f4a58527403c2ce4e0737e7b08c", "e9896bb907a7b2b16b93a945853b3ca4c8085dc1a3905be40e47bc5f45f54d17"),
+  ("createCustomer", "be7bdba924af2d0d7cad930fa350a61e6e94665d5a67c7340dfdeceac8f091fc", "2598e939f8e91518e8c5c85d8edb73d641ba15c17f6b10baabbb8ceca535df21"),
+];
+var goldenChecked = 0;
+for (family in Reconstruct.families().vals()) {
+  let ?c = Array.find<T.Command>(commands, func(x) { Text.equal(P.commandName(x), family) }) else { Debug.print("no fixture command for family " # family); assert false; loop {} };
+  let ?h1 = C.commandHashAt(1, c) else { Debug.print("version 1 cannot encode " # family); assert false; loop {} };
+  let ?h2 = C.commandHashAt(2, c) else { Debug.print("version 2 cannot encode " # family); assert false; loop {} };
+  if (GOLDEN_PRINT) { Debug.print("  (\"" # family # "\", \"" # hex(h1) # "\", \"" # hex(h2) # "\"),") }
+  else {
+    let ?(_, g1, g2) = Array.find<(Text, Text, Text)>(golden, func((f, _, _)) { Text.equal(f, family) }) else { Debug.print("no golden vector for family " # family); assert false; loop {} };
+    if (not Text.equal(hex(h1), g1)) { Debug.print("ENCODING DRIFT: version-1 bytes of " # family # " changed: the change must be a new encoder version"); assert false };
+    if (not Text.equal(hex(h2), g2)) { Debug.print("ENCODING DRIFT: version-2 bytes of " # family # " changed: the change must be a new encoder version"); assert false };
+    goldenChecked += 1;
+  };
+};
+// version 1 and version 2 differ exactly where the freeze says — createCustomer's bytes, and nowhere else;
+// the hashes differ everywhere because the domain carries the version
+var sameAcrossVersions = 0;
+for (c in commands.vals()) {
+  switch (C.commandBytesAt(1, c), C.commandBytesAt(2, c), C.commandHashAt(1, c), C.commandHashAt(2, c)) {
+    case (?a, ?b, ?ha, ?hb) {
+      assert (ha != hb);
+      switch (c) { case (#createCustomer(_)) assert (a != b); case (_) { assert (a == b); sameAcrossVersions += 1 } };
+    };
+    case (_, _, _, _) { Debug.print("a command the current encodings cannot represent"); assert false };
+  };
+};
+// a command version 1 cannot carry: createCustomer with an application
+let ?customerFixture = Array.find<T.Command>(commands, func(x) { Text.equal(P.commandName(x), "createCustomer") }) else { assert false; loop {} };
+let withApplication : T.Command = switch (customerFixture) { case (#createCustomer(cc)) #createCustomer({ cc with application = ?7 }); case (_) { assert false; loop {} } };
+assert (C.commandHashAt(1, withApplication) == null and C.commandHashAt(2, withApplication) != null);
+assert (C.commandHashAt(3, withApplication) == null and not C.supportsCommandEncoding(0) and not C.supportsCommandEncoding(3));
+if (not GOLDEN_PRINT) {
+  Debug.print("count: golden command-hash vectors checked under two encodings = " # Nat.toText(goldenChecked));
+  assert (goldenChecked == Reconstruct.families().size());
+};
+Debug.print("count: commands whose bytes are identical under encodings 1 and 2 = " # Nat.toText(sameAcrossVersions));
 
 Debug.print("BANK CANONICAL TEST GREEN");

@@ -29,6 +29,7 @@ import Array "mo:core/Array";
 import List "mo:core/List";
 import Principal "mo:core/Principal";
 import Sha256 "mo:sha2/Sha256";
+import Runtime "mo:core/Runtime";
 
 import C "mo:journal/Canonical";
 import JT "mo:journal/JournalTypes";
@@ -58,6 +59,17 @@ module {
   public let BLOCK_VERSION : Nat8 = 0x02;
   public let SUPPORTED_BLOCK_VERSIONS : [Nat8] = [0x02];
   public let BLOCK_DOMAIN : Text = "THEBES-BANK-BLOCK-v2";
+  /// The command encoding in force for new proposals. The encoders are **frozen per version** (the review of
+  /// 12 September): once a pack has dropped a proposal's body, the command is recoverable only while the
+  /// encoding of its family is byte-identical to what it was at proposal time, so a change to any existing
+  /// family's bytes is a new version with a new encoder function, the old one kept — the rule the block
+  /// decoder already follows. A new family (a new tag) may join the current version: it changes no existing
+  /// family's bytes. Version 1 is the encoding of every command before 2026-09-13; version 2 appends
+  /// `application : ?Nat` to `createCustomer` (the origination link of origination and underwriting) and is otherwise version 1.
+  public let COMMAND_ENCODING : Nat8 = 2;
+  public func supportsCommandEncoding(v : Nat8) : Bool { v == 1 or v == 2 };
+  public func commandDomain(v : Nat8) : Text { "THEBES-BANK-COMMAND-v" # Nat8.toText(v) };
+  /// The version-1 domain, kept by name for the readers of the design notes.
   public let COMMAND_DOMAIN : Text = "THEBES-BANK-COMMAND-v1";
 
   public func supportsVersion(v : Nat8) : Bool {
@@ -339,7 +351,28 @@ module {
     ?{ cash; retainedEarnings = re; investing; financing; monetary }
   };
 
-  public func writeCommand(w : C.Writer, c : T.Command) {
+  /// The current encoding of a command — what a new proposal hashes and carries.
+  public func writeCommand(w : C.Writer, c : T.Command) { ignore writeCommandAt(COMMAND_ENCODING, w, c) };
+
+  /// A command's bytes under a recorded encoding version. False when the version is not one this build
+  /// knows, or the command carries a field that version cannot represent (version 1 has no `application`
+  /// on `createCustomer`): the caller treats either as "no bytes", never as an encoding.
+  public func writeCommandAt(version : Nat8, w : C.Writer, c : T.Command) : Bool {
+    switch (version) {
+      case 1 {
+        switch (c) { case (#createCustomer(cc)) { if (cc.application != null) return false }; case (_) {} };
+        writeCommandBody(w, c, false); true
+      };
+      case 2 { writeCommandBody(w, c, true); true };
+      case (_) false;
+    }
+  };
+
+  /// The one body both versions share: `withApplication` is the only difference between them — version 2
+  /// writes `createCustomer`'s `application` after the accounts. FROZEN for every family listed as of
+  /// 2026-09-13 (the golden vectors in test/BankCanonical.test.mo fail the build the moment a family's
+  /// bytes drift); a change to an existing family's bytes is version 3, written as a new function.
+  func writeCommandBody(w : C.Writer, c : T.Command, withApplication : Bool) {
     switch (c) {
       case (#defineRole(x)) { w.byte(0x01); w.text(x.id); w.text(x.name); w.len16(x.permissions.size()); for (p in x.permissions.vals()) { w.text(p) } };
       case (#grantRole(x)) { w.byte(0x02); w.principal(x.subject); w.text(x.role); wScope(w, x.scope) };
@@ -391,6 +424,7 @@ module {
         wExtensionValues(w, c.extensions);
         w.len16(c.accounts.size());
         for (a in c.accounts.vals()) { w.text(a.product); w.text(a.currency); w.optNat(a.termDays); PC.wComponents(w, a.allocationOrder); w.bool(a.activate) };
+        if (withApplication) w.optNat(c.application);
       };
       case (#setPartyLifecycle(x)) { w.byte(0x52); w.nat(x.party); wLifecycle(w, x.to) };
       case (#setPartyCdd(x)) { w.byte(0x53); w.nat(x.party); wCdd(w, x.level); wRisk(w, x.riskRating); w.bool(x.pep); w.nat(x.reviewDue) };
@@ -1148,7 +1182,7 @@ module {
       case (#featureActivationSet(x)) { w.byte(0x18); w.text(x.feature); w.nat64(x.height) };
       case (#commandProposed(x)) {
         // the body is not here: it is the block's trailer (encodeBlockAtVersion), bound by commandHash
-        w.byte(0x30); w.blob(x.commandHash); w.text(x.permission); writeOptText(w, x.book); w.principal(x.maker);
+        w.byte(0x30); w.blob(x.commandHash); w.byte(x.commandEncoding); w.text(x.permission); writeOptText(w, x.book); w.principal(x.maker);
         w.nat(x.required); w.text(x.eligibleRole); w.nat64(x.expiresAt); w.text(x.justification);
       };
       case (#commandApproved(x)) { w.byte(0x31); w.nat(x.proposal); w.blob(x.commandHash); w.principal(x.checker) };
@@ -1159,7 +1193,7 @@ module {
       };
       case (#commandExpired(x)) { w.byte(0x34); w.nat(x.proposal) };
       case (#emergencyOverride(x)) {
-        w.byte(0x35); writeCommand(w, x.command); w.blob(x.commandHash); w.principal(x.actor_);
+        w.byte(0x35); w.byte(x.commandEncoding); ignore writeCommandAt(x.commandEncoding, w, x.command); w.blob(x.commandHash); w.principal(x.actor_);
         w.principal(x.witness); w.text(x.justification);
       };
       case (#overrideReviewed(x)) { w.byte(0x36); w.nat(x.override_); w.principal(x.reviewer); w.text(x.disposition) };
@@ -1601,7 +1635,14 @@ module {
     }
   };
 
-  public func readCommand(r : C.Reader) : ?T.Command {
+  /// A command under the current encoding.
+  public func readCommand(r : C.Reader) : ?T.Command { readCommandAt(COMMAND_ENCODING, r) };
+
+  public func readCommandAt(version : Nat8, r : C.Reader) : ?T.Command {
+    switch (version) { case 1 readCommandBody(r, false); case 2 readCommandBody(r, true); case (_) null }
+  };
+
+  func readCommandBody(r : C.Reader, withApplication : Bool) : ?T.Command {
     let ?tag = r.byte() else return null;
     switch (tag) {
       case 0x01 { let ?id = r.text() else return null; let ?name = r.text() else return null; let ?permissions = rTexts(r) else return null; ?#defineRole({ id; name; permissions }) };
@@ -1709,7 +1750,8 @@ module {
           List.add(accounts, { product; currency; termDays; allocationOrder; activate });
           i += 1;
         };
-        ?#createCustomer({ party = { kind; salt; identityCommit; dedupCommit; attributes; book; cddLevel; riskRating; pep; reviewDue }; documents = List.toArray(docs); screening; lifecycle; extensions; accounts = List.toArray(accounts) })
+        let application : ?Nat = if (withApplication) { let ?a = r.optNat() else return null; a } else null;
+        ?#createCustomer({ party = { kind; salt; identityCommit; dedupCommit; attributes; book; cddLevel; riskRating; pep; reviewDue }; documents = List.toArray(docs); screening; lifecycle; extensions; accounts = List.toArray(accounts); application })
       };
       case 0x51 { let ?party = r.nat() else return null; let ?attributes = rFields(r) else return null; ?#amendParty({ party; attributes }) };
       case 0x52 { let ?party = r.nat() else return null; let ?to = rLifecycle(r) else return null; ?#setPartyLifecycle({ party; to }) };
@@ -2191,6 +2233,8 @@ module {
       case 0x18 { let ?feature = r.text() else return null; let ?height = r.nat64() else return null; ?#featureActivationSet({ feature; height }) };
       case 0x30 {
         let ?commandHash = r.blob() else return null;
+        let ?commandEncoding = r.byte() else return null;
+        if (not supportsCommandEncoding(commandEncoding)) return null;
         let ?permission = r.text() else return null;
         let ?book = readOptText(r) else return null;
         let ?maker = r.principal() else return null;
@@ -2199,7 +2243,7 @@ module {
         let ?expiresAt = r.nat64() else return null;
         let ?justification = r.text() else return null;
         // the body, if the block carries one, is read from the trailer by decodeBlock
-        ?#commandProposed({ command = null; commandHash; permission; book; maker; required; eligibleRole; expiresAt; justification })
+        ?#commandProposed({ command = null; commandHash; commandEncoding; permission; book; maker; required; eligibleRole; expiresAt; justification })
       };
       case 0x31 { let ?proposal = r.nat() else return null; let ?commandHash = r.blob() else return null; let ?checker = r.principal() else return null; ?#commandApproved({ proposal; commandHash; checker }) };
       case 0x32 { let ?proposal = r.nat() else return null; let ?checker = r.principal() else return null; let ?reason = r.text() else return null; ?#commandRejected({ proposal; checker; reason }) };
@@ -2221,12 +2265,14 @@ module {
       };
       case 0x34 { let ?proposal = r.nat() else return null; ?#commandExpired({ proposal }) };
       case 0x35 {
-        let ?command = readCommand(r) else return null;
+        let ?commandEncoding = r.byte() else return null;
+        if (not supportsCommandEncoding(commandEncoding)) return null;
+        let ?command = readCommandAt(commandEncoding, r) else return null;
         let ?commandHash = r.blob() else return null;
         let ?actor_ = r.principal() else return null;
         let ?witness = r.principal() else return null;
         let ?justification = r.text() else return null;
-        ?#emergencyOverride({ command; commandHash; actor_; witness; justification })
+        ?#emergencyOverride({ command; commandEncoding; commandHash; actor_; witness; justification })
       };
       case 0x36 { let ?override_ = r.nat() else return null; let ?reviewer = r.principal() else return null; let ?disposition = r.text() else return null; ?#overrideReviewed({ override_; reviewer; disposition }) };
       case 0x50 {
@@ -2274,10 +2320,23 @@ module {
   };
 
   /// The hash a checker approves and the executor re-derives.
+  /// The hash a new proposal carries: the current encoding under its domain.
   public func commandHash(c : T.Command) : Blob {
+    let ?h = commandHashAt(COMMAND_ENCODING, c) else Runtime.trap("BankCanonical: the current encoding represents every command");
+    h
+  };
+
+  /// The hash under a recorded version — what a reconstruction is compared with, and what a body's check
+  /// at approval uses; null when the version is unknown or cannot represent the command.
+  public func commandHashAt(version : Nat8, c : T.Command) : ?Blob {
+    switch (commandBytesAt(version, c)) { case (?b) ?sha256Domain(commandDomain(version), Blob.toArray(b)); case null null }
+  };
+
+  /// A command's canonical bytes under a version — the preimage of `commandHashAt`.
+  public func commandBytesAt(version : Nat8, c : T.Command) : ?Blob {
     let w = C.Writer();
-    writeCommand(w, c);
-    sha256Domain(COMMAND_DOMAIN, w.toArray())
+    if (not writeCommandAt(version, w, c)) return null;
+    ?w.toBlob()
   };
 
   public func encodeBlock(index : Nat, timestamp : Nat64, caller : Principal, parentHash : ?Blob, event : T.Event) : { bytes : Blob; hash : Blob } {
@@ -2297,7 +2356,7 @@ module {
     w.blobRaw(hash);
     // the trailer: a proposal's body, behind the hash and bound to the preimage by commandHash
     switch (event) {
-      case (#commandProposed(x)) { switch (x.command) { case (?c) { w.byte(1); writeCommand(w, c) }; case null w.byte(0) } };
+      case (#commandProposed(x)) { switch (x.command) { case (?c) { w.byte(1); ignore writeCommandAt(x.commandEncoding, w, c) }; case null w.byte(0) } };
       case (_) {};
     };
     { bytes = w.toBlob(); hash }
@@ -2342,8 +2401,8 @@ module {
         switch (r.byte()) {
           case (?0) event0;
           case (?1) {
-            let ?c = readCommand(r) else return null;
-            if (commandHash(c) != x.commandHash) return null;
+            let ?c = readCommandAt(x.commandEncoding, r) else return null;
+            if (commandHashAt(x.commandEncoding, c) != ?x.commandHash) return null;
             #commandProposed({ x with command = ?c })
           };
           case (_) return null;

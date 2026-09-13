@@ -303,12 +303,10 @@ let commands : [T.Command] = [
     screening = ?{ listVersion = "2026-09"; listRoot = commit32(14); decision = #clear; screener = bob; justificationCommit = commit32(15) };
     lifecycle = #active;
     extensions = [{ schema = "kyc"; name = "sector"; value = #enumerated("retail") }];
-    accounts = [{ product = "SAV-01"; currency = "EGP"; termDays = null; allocationOrder = []; activate = true }, { product = "TD-12"; currency = "EGP"; termDays = ?365; allocationOrder = [#interest, #principal]; activate = false }];
-  }),
+    accounts = [{ product = "SAV-01"; currency = "EGP"; termDays = null; allocationOrder = []; activate = true }, { product = "TD-12"; currency = "EGP"; termDays = ?365; allocationOrder = [#interest, #principal]; activate = false }]; application = null }),
   #createCustomer({
     party = { kind = #legal; salt = salt32; identityCommit = commit32(11); dedupCommit = null; attributes = []; book = "HQ"; cddLevel = #simplified; riskRating = #low; pep = false; reviewDue = 21001 };
-    documents = []; screening = null; lifecycle = #prospect; extensions = []; accounts = [];
-  }),
+    documents = []; screening = null; lifecycle = #prospect; extensions = []; accounts = []; application = null }),
   #amendParty({ party = 17; attributes = [{ name = "address"; commit = commit32(12) }] }),
   #setPartyLifecycle({ party = 17; to = #active }),
   #setPartyLifecycle({ party = 17; to = #blocked }),
@@ -470,7 +468,7 @@ List.add(events, #commandRejected({ proposal = 7; checker = alice; reason = "wro
 List.add(events, #commandExecuted({ proposal = 7; commandHash = C.commandHash(base); postings = [11, 12, 13]; charge = ?{ day = 20705; totals = [("EGP", 1_250_000), ("USD", 7)] } }));
 List.add(events, #commandExecuted({ proposal = 7; commandHash = C.commandHash(base); postings = []; charge = null }));
 List.add(events, #commandExpired({ proposal = 7 }));
-List.add(events, #emergencyOverride({ command = base; commandHash = C.commandHash(base); actor_ = bob; witness = alice; justification = "checker unreachable" }));
+List.add(events, #emergencyOverride({ command = base; commandHash = C.commandHash(base); commandEncoding = 2 : Nat8; actor_ = bob; witness = alice; justification = "checker unreachable" }));
 List.add(events, #overrideReviewed({ override_ = 9; reviewer = carol; disposition = "accepted, rate limit reviewed" }));
 List.add(events, #operationRefused({ subject = bob; permission = "journal.entry.create"; reason = #overCeiling; detail = "60000 over 50000" }));
 List.add(events, #operationRefused({ subject = bob; permission = "command.approve"; reason = #selfApproval; detail = "" }));
@@ -650,7 +648,7 @@ List.add(events, #batch(#instalmentDue({ account = 89; day = 20726; instalment =
 // one proposal per command variant, so every command encoding is exercised
 for (c in commands.vals()) {
   List.add(events, #commandProposed({
-    command = ?c; commandHash = C.commandHash(c); permission = P.commandName(c); book = ?"BR01"; maker = bob;
+    command = ?c; commandHash = C.commandHash(c); commandEncoding = 2 : Nat8; permission = P.commandName(c); book = ?"BR01"; maker = bob;
     required = 1; eligibleRole = "checker"; expiresAt = 1_900_000_000_000_000_000 : Nat64;
     justification = "because";
   }));

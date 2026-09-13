@@ -415,7 +415,7 @@ module {
     let ?b = C.decodeBlock(raw) else return raw;
     let #commandProposed(x) = b.event else return raw;
     if (x.command == null) return raw;
-    switch (reconstruction(bb, row, x.commandHash)) {
+    switch (reconstruction(bb, row, x.commandHash, x.commandEncoding)) {
       case (?(_, true)) {
         let ?parts = C.splitTrailer(raw) else return raw;
         Blob.fromArray(Array.concat<Nat8>(Blob.toArray(parts.head), [0]))
@@ -449,10 +449,10 @@ module {
     // from the act's events when one hashes to the kept hash (§18.2), else nothing
     let command : ?T.Command = switch (x.command) {
       case (?c) ?c;
-      case null { switch (reconstruction(bb, row, x.commandHash)) { case (?(c, true)) ?c; case (_) null } };
+      case null { switch (reconstruction(bb, row, x.commandHash, x.commandEncoding)) { case (?(c, true)) ?c; case (_) null } };
     };
     ?{
-      index; command; commandHash = x.commandHash; permission = x.permission; book = x.book;
+      index; command; commandHash = x.commandHash; commandEncoding = x.commandEncoding; permission = x.permission; book = x.book;
       maker = x.maker; required = x.required; eligibleRole = x.eligibleRole; expiresAt = x.expiresAt;
       justification = x.justification; approvals; status;
     }
@@ -472,11 +472,13 @@ module {
   /// hashes to the hash the proposal block keeps — the rule under which a pack may drop the body. `null`
   /// when the proposal was not executed or its family is not reconstructed; `(c, false)` when the best
   /// candidate does not hash right (so the body must be kept).
-  public func reconstruction(bb : Blocks, row : MC.ProposalRow, commandHash : Blob) : ?(T.Command, Bool) {
+  /// The candidates are re-hashed under the encoding the proposal block recorded — never under the current
+  /// one — so a body dropped under version 1 is recovered for as long as version 1's encoder is kept.
+  public func reconstruction(bb : Blocks, row : MC.ProposalRow, commandHash : Blob, encoding : Nat8) : ?(T.Command, Bool) {
     let ?events = actEvents(bb, row) else return null;
     let cands = Reconstruct.candidates(events);
     if (cands.size() == 0) return null;
-    for (c in cands.vals()) { if (C.commandHash(c) == commandHash) return ?(c, true) };
+    for (c in cands.vals()) { if (C.commandHashAt(encoding, c) == ?commandHash) return ?(c, true) };
     ?(cands[0], false)
   };
 
@@ -486,7 +488,7 @@ module {
     let ?row = proposalRow(s, index) else return null;
     let proposed = blockAt(bb, index, "a proposal");
     let #commandProposed(x) = proposed.event else return null;
-    switch (reconstruction(bb, row, x.commandHash)) {
+    switch (reconstruction(bb, row, x.commandHash, x.commandEncoding)) {
       case (?(c, ok)) ?{ command = ?c; matches = ok; family = P.commandName(c) };
       case null ?{ command = null; matches = false; family = "" };
     }
@@ -504,7 +506,7 @@ module {
       let #overrideReviewed(r) = blockAt(bb, row.reviewedAt, "an override's review").event else Runtime.trap("BankCore: block " # Nat.toText(row.reviewedAt) # " is named as a review but is not one");
       (?r.reviewer, ?r.disposition)
     };
-    ?{ index; command = x.command; commandHash = x.commandHash; actor_ = x.actor_; witness = x.witness; justification = x.justification; postings; reviewedBy; disposition }
+    ?{ index; command = x.command; commandHash = x.commandHash; commandEncoding = x.commandEncoding; actor_ = x.actor_; witness = x.witness; justification = x.justification; postings; reviewedBy; disposition }
   };
 
   /// Every row key in `idx` from `cursor` on, in key order, in pages of `MAX_PAGE`. The whole range
@@ -6455,7 +6457,7 @@ module {
     let expiresAt = now + Nat64.fromNat(policy.ttlSeconds) * 1_000_000_000;
     #ok({
       event = #commandProposed({
-        command = ?command; commandHash = hash; permission = perm.id; book = commandBookOf(bs, command); maker = caller;
+        command = ?command; commandHash = hash; commandEncoding = C.COMMAND_ENCODING; permission = perm.id; book = commandBookOf(bs, command); maker = caller;
         required = policy.required; eligibleRole = policy.eligibleRole;
         expiresAt; justification;
       });
@@ -6479,8 +6481,8 @@ module {
     };
     // An awaiting proposal always carries its body: a pack drops bodies of settled proposals only.
     let ?command = e.command else Runtime.trap("BankCore: proposal " # Nat.toText(index) # " is awaiting approval without its command body");
-    // The bytes the checker is approving must still be the bytes recorded.
-    let recomputed = C.commandHash(command);
+    // The bytes the checker is approving must still be the bytes recorded — under the encoding recorded.
+    let ?recomputed = C.commandHashAt(e.commandEncoding, command) else return #err({ error = #CommandHashMismatch({ recorded = e.commandHash; recomputed = "" }); record = true });
     if (not MC.hashesAgree(e.commandHash, recomputed)) {
       return #err({ error = #CommandHashMismatch({ recorded = e.commandHash; recomputed }); record = true });
     };
@@ -6589,7 +6591,7 @@ module {
       case (#ok(_)) {};
     };
     #ok({
-      event = #emergencyOverride({ command; commandHash = C.commandHash(command); actor_ = caller; witness; justification });
+      event = #emergencyOverride({ command; commandEncoding = C.COMMAND_ENCODING; commandHash = C.commandHash(command); actor_ = caller; witness; justification });
       permission = perm.id;
     })
   };

@@ -682,7 +682,7 @@ let archiveCommands : [T.Command] = [
   #adoptArchiveChild({ cid = 7; moduleHash = childHash; controllers = [operatorKey]; purpose = "operator-deployed" }),
 ];
 for (c in archiveCommands.vals()) {
-  let e : T.Event = #commandProposed({ command = ?c; commandHash = C.commandHash(c); permission = P.commandName(c); book = null; maker; required = 1; eligibleRole = "checker"; expiresAt = clock; justification = "x" });
+  let e : T.Event = #commandProposed({ command = ?c; commandHash = C.commandHash(c); commandEncoding = 2 : Nat8; permission = P.commandName(c); book = null; maker; required = 1; eligibleRole = "checker"; expiresAt = clock; justification = "x" });
   let enc = C.encodeBlock(roundTrips, clock, maker, null, e);
   switch (C.decodeBlock(enc.bytes)) { case (?b) assert (b.event == e); case null { Debug.print("decode failed: " # P.commandName(c)); assert false } };
   roundTrips += 1;

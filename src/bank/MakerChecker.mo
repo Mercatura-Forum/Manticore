@@ -45,6 +45,7 @@ module {
     index : Nat;                    // bank block index of #commandProposed
     command : ?T.Command;           // the body, or its reconstruction; null where neither is available
     commandHash : Blob;
+    commandEncoding : Nat8;         // the frozen encoder the hash and the body were made with
     permission : T.PermissionId;
     book : ?T.BookId;
     maker : Principal;
@@ -227,7 +228,7 @@ module {
 
   public func view(e : Entry) : T.ProposalView {
     {
-      index = e.index; command = e.command; commandHash = e.commandHash; permission = e.permission; book = e.book;
+      index = e.index; command = e.command; commandHash = e.commandHash; commandEncoding = e.commandEncoding; permission = e.permission; book = e.book;
       maker = e.maker; required = e.required; eligibleRole = e.eligibleRole;
       expiresAt = e.expiresAt; justification = e.justification;
       status = statusView(e);
@@ -252,6 +253,7 @@ module {
     index : Nat;
     command : T.Command;
     commandHash : Blob;
+    commandEncoding : Nat8;
     actor_ : Principal;
     witness : Principal;
     justification : Text;
