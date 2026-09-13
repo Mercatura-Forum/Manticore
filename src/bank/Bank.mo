@@ -90,6 +90,8 @@ import TellerCore "TellerCore";
 import TrT "TradeTypes";
 import TradeCore "TradeCore";
 import TradeMessages "TradeMessages";
+import IT "IslamicTypes";
+import IslamicCore "IslamicCore";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -2844,6 +2846,56 @@ shared (initMsg) persistent actor class Bank(init : {
   /// The wording text of an undertaking, from its issuing block.
   func wordingOf(id : Nat) : ?Text {
     switch (bankBlock(id)) { case (?b) { switch (b.event) { case (#trade(#guaranteeIssued(x))) ?x.wordingText; case (_) null } }; case null null }
+  };
+
+  // ─── Islamic banking (Islamic banking) ─────────────────────────────────────────────────
+
+  func shariaView(caller : Principal, id : Nat) : Result.Result<?IT.ContractView, T.BankError> {
+    switch (IslamicCore.row(bank.islamic, id)) {
+      case null #ok(null);
+      case (?r) { if (not BankCore.mayReadBook(readScope(caller), r.book)) #err(#OutsideBookScope({ book = r.book })) else #ok(?IslamicCore.view(r)) };
+    }
+  };
+  /// A contract's row: kind, stage, the party and account, principal, the profit total and recognised, collected, the counts.
+  public shared query ({ caller }) func shariaContract(id : Nat) : async Result.Result<?IT.ContractView, T.BankError> { shariaView(caller, id) };
+  /// The terms a contract was opened with, from its block.
+  public shared query ({ caller }) func shariaContractTerms(id : Nat) : async Result.Result<?IT.Kind, T.BankError> {
+    switch (shariaView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok(null); case (#ok(?_)) #ok(BankCore.islamicKind(bankBlocks(), id)) }
+  };
+  /// The instalments (Murabaha) or rentals (Ijarah) of a contract with what was paid and what went to charity.
+  public shared query ({ caller }) func shariaInstalments(id : Nat) : async Result.Result<[IslamicCore.InstalmentRow], T.BankError> {
+    switch (shariaView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok([]); case (#ok(?_)) #ok(IslamicCore.instalmentsOf(bank.islamic, id)) }
+  };
+  public shared query ({ caller }) func shariaContractsOfParty(party : Nat, cursor : ?Blob, limit : Nat) : async { entries : [IT.ContractView]; cursor : ?Blob } {
+    let page = IslamicCore.listByParty(bank.islamic, party, cursor, limit);
+    let out = List.empty<IT.ContractView>();
+    for (id in page.ids.vals()) { switch (shariaView(caller, id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+  public shared query ({ caller }) func shariaContractsByStage(stage : IT.Stage, cursor : ?Blob, limit : Nat) : async { entries : [IT.ContractView]; cursor : ?Blob } {
+    let page = IslamicCore.listByStage(bank.islamic, stage, cursor, limit);
+    let out = List.empty<IT.ContractView>();
+    for (id in page.ids.vals()) { switch (shariaView(caller, id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+  /// A pool with its reserves and the count of its distributions.
+  public query func shariaPool(id : Text) : async ?IT.PoolView {
+    switch (IslamicCore.pool(bank.islamic, id)) {
+      case null null;
+      case (?p) {
+        let accounts = switch (bankBlock(p.openedBlock)) { case (?b) { switch (b.event) { case (#islamic(#poolOpened(x))) x.pool.incomeAccounts; case (_) [] } }; case null [] };
+        ?IslamicCore.poolView(bank.islamic, p, accounts)
+      };
+    }
+  };
+  /// A pool's distributions, one row per period.
+  public query func shariaDistributions(pool : Text) : async [IslamicCore.DistributionRow] { IslamicCore.distributionsOf(bank.islamic, pool) };
+  /// The board approval a product carries, if any.
+  public query func shariaApproval(product : Text) : async ?IT.BoardApproval { IslamicCore.approval(bank.islamic, product) };
+  public query func isShariaBook(book : Text) : async Bool { IslamicCore.isShariaBook(bank.islamic, book) };
+  /// The Sharia book at a glance: the policy, the counts, the charity total.
+  public query func shariaStatus() : async { policy : ?IT.Policy; status : { contracts : Nat; open : Nat; charity : Nat; distributions : Nat; pools : Nat } } {
+    { policy = IslamicCore.policy(bank.islamic); status = IslamicCore.status(bank.islamic) }
   };
 
   /// The collections book at a glance: the policy, the counts, the exposures per stage.

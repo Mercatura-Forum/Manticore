@@ -32,6 +32,7 @@
 /// cannot be grown by an unknown caller.
 
 import Nat "mo:core/Nat";
+import Int "mo:core/Int";
 import Nat64 "mo:core/Nat64";
 import Nat8 "mo:core/Nat8";
 import Text "mo:core/Text";
@@ -108,6 +109,8 @@ import TellerCore "TellerCore";
 import TrT "TradeTypes";
 import TradeCore "TradeCore";
 import TradeMessages "TradeMessages";
+import IT "IslamicTypes";
+import IslamicCore "IslamicCore";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -213,6 +216,8 @@ module {
     teller : TellerCore.State;
     /// Trade finance (trade finance): documentary credits, undertakings, collections, bills, their claims and messages.
     trade : TradeCore.State;
+    /// Islamic banking (Islamic banking): the Sharia contracts, their instalments, the investment pools, the governance record.
+    islamic : IslamicCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -284,6 +289,7 @@ module {
       facility = FacilityCore.newState(arena);
       teller = TellerCore.newState(arena);
       trade = TradeCore.newState(arena);
+      islamic = IslamicCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -782,6 +788,19 @@ module {
       case (#closeLetterOfCredit(x) or #releaseGuarantee(x)) { switch (TradeCore.row(bs.trade, x.instrument)) { case (?r) [(r.currency, TradeCore.outstanding(r))]; case null [] } };
       case (#reduceGuarantee(x)) { switch (TradeCore.row(bs.trade, x.instrument)) { case (?r) [(r.currency, if (r.amount > x.to) r.amount - x.to else 0)]; case null [] } };
       case (#payCollection(x) or #returnCollection(x) or #rediscountBill(x) or #settleBill(x) or #dishonourBill(x)) { switch (TradeCore.row(bs.trade, x.instrument)) { case (?r) [(r.currency, r.amount)]; case null [] } };
+      // Islamic banking (Islamic banking): the contract's currency
+      case (#openShariaContract(x)) { switch (x.kind) { case (#murabaha(m)) [(x.currency, m.costPrice + m.markup)]; case (#ijarah(i)) [(x.currency, i.cost)]; case (#musharakah(m)) [(x.currency, m.bankCapital)]; case (#mudarabah(m)) [(x.currency, m.capital)]; case (#salam(s)) [(x.currency, s.priceAdvanced)]; case (#istisna(s)) [(x.currency, s.price)] } };
+      case (#acquireMurabahaAsset(x) or #sellMurabaha(x) or #commenceIjarah(x) or #contributeCapital(x) or #deliverSalam(x) or #recordSalamFailure(x) or #settleShariaContract(x) or #transferIjarahOwnership(x) or #collectIstisnaBilling(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, r.principal)]; case null [] } };
+      case (#collectInstalment(x) or #collectRental(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) { switch (IslamicCore.instalment(bs.islamic, x.contract, r.instalmentsPaid + 1)) { case (?i) [(r.currency, i.amount)]; case null [] } }; case null [] } };
+      case (#grantRebate(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, x.amount)]; case null [] } };
+      case (#distributeMusharakahProfit(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, x.profit)]; case null [] } };
+      case (#allocateMusharakahLoss(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, x.loss)]; case null [] } };
+      case (#buyMusharakahUnit(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, x.units * r.unitPrice)]; case null [] } };
+      case (#recordMudarabahResult(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, x.profit + x.loss)]; case null [] } };
+      case (#sellSalamCommodity(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, x.proceeds)]; case null [] } };
+      case (#recordIstisnaMilestone(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, r.principal * x.percentBps / 10_000)]; case null [] } };
+      case (#recordNonCompliance(x)) { switch (x.contract) { case (?id) { switch (IslamicCore.row(bs.islamic, id)) { case (?r) [(r.currency, x.amount)]; case null [] } }; case null [] } };
+      case (#distributePool(x)) { switch (IslamicCore.pool(bs.islamic, x.pool)) { case (?p) [(p.currency, 0)]; case null [] } };
       case (#cashDeposit(x)) tillTotals(bs, x.till, x.amount);
       case (#cashWithdrawal(x)) tillTotals(bs, x.till, x.amount);
       case (#vaultToTill(x)) tillTotals(bs, x.till, x.amount);
@@ -845,6 +864,11 @@ module {
       case (#issueGuarantee(x)) ?x.postingDate; case (#amendGuarantee(x)) ?x.postingDate; case (#payDemand(x)) ?x.postingDate; case (#reduceGuarantee(x)) ?x.postingDate;
       case (#releaseGuarantee(x)) ?x.postingDate; case (#registerCollection(x)) ?x.postingDate; case (#payCollection(x)) ?x.postingDate; case (#returnCollection(x)) ?x.postingDate;
       case (#discountBill(x)) ?x.postingDate; case (#rediscountBill(x)) ?x.postingDate; case (#settleBill(x)) ?x.postingDate; case (#dishonourBill(x)) ?x.postingDate;
+      case (#openShariaContract(x)) ?x.postingDate; case (#acquireMurabahaAsset(x)) ?x.postingDate; case (#sellMurabaha(x)) ?x.postingDate; case (#collectInstalment(x)) ?x.postingDate;
+      case (#grantRebate(x)) ?x.postingDate; case (#commenceIjarah(x)) ?x.postingDate; case (#collectRental(x)) ?x.postingDate; case (#transferIjarahOwnership(x)) ?x.postingDate;
+      case (#contributeCapital(x)) ?x.postingDate; case (#distributeMusharakahProfit(x)) ?x.postingDate; case (#allocateMusharakahLoss(x)) ?x.postingDate; case (#buyMusharakahUnit(x)) ?x.postingDate;
+      case (#recordMudarabahResult(x)) ?x.postingDate; case (#deliverSalam(x)) ?x.postingDate; case (#sellSalamCommodity(x)) ?x.postingDate; case (#recordSalamFailure(x)) ?x.postingDate;
+      case (#recordIstisnaMilestone(x)) ?x.postingDate; case (#collectIstisnaBilling(x)) ?x.postingDate; case (#settleShariaContract(x)) ?x.postingDate; case (#recordNonCompliance(x)) ?x.postingDate; case (#distributePool(x)) ?x.postingDate;
       case (#applyCharge(x)) ?x.postingDate;
       case (#waiveCharge(x)) ?x.postingDate;
       case (#postAccrual(x)) ?x.day;
@@ -1003,6 +1027,12 @@ module {
       case (#honourPresentation(x) or #settleAcceptance(x) or #payDemand(x)) tradeBook(bs, x.instrument);
       case (#recordDemand(x)) tradeBook(bs, x.instrument);
       case (#recordTradeMessage(x)) tradeBook(bs, x.instrument);
+      // Islamic commands name a contract (its book), open one on a customer's account (the account's book), or name a book
+      case (#openShariaContract(x)) { switch (x.kind) { case (#murabaha(m)) ProductCore.bookOf(bs.product, m.account); case (#ijarah(i)) ProductCore.bookOf(bs.product, i.account); case (#musharakah(m)) ProductCore.bookOf(bs.product, m.partners[0].account); case (#mudarabah(m)) ProductCore.bookOf(bs.product, m.account); case (#salam(s)) ProductCore.bookOf(bs.product, s.account); case (#istisna(s)) ProductCore.bookOf(bs.product, s.account) } };
+      case (#flagShariaBook(x)) ?x.book;
+      case (#acquireMurabahaAsset(x) or #sellMurabaha(x) or #collectInstalment(x) or #grantRebate(x) or #commenceIjarah(x) or #collectRental(x) or #transferIjarahOwnership(x) or #contributeCapital(x) or #distributeMusharakahProfit(x) or #allocateMusharakahLoss(x) or #buyMusharakahUnit(x) or #recordMudarabahResult(x) or #deliverSalam(x) or #sellSalamCommodity(x) or #recordSalamFailure(x) or #recordIstisnaMilestone(x) or #collectIstisnaBilling(x) or #settleShariaContract(x)) islamicBook(bs, x.contract);
+      case (#closeShariaContract(x)) islamicBook(bs, x.contract);
+      case (#recordNonCompliance(x)) { switch (x.contract) { case (?id) islamicBook(bs, id); case null null } };
       case (other) E.commandBook(other);
     }
   };
@@ -1418,6 +1448,8 @@ module {
       case (?#trade(#lcAdvised(_))) List.add(introduced, TradeCore.commissionSub(bs.height));
       case (?#trade(#presentationHonoured(h))) List.add(introduced, TradeCore.acceptanceSub(h.instrument, h.claim));
       case (?#trade(#billDiscounted(_))) List.add(introduced, TradeCore.billSub(bs.height));
+      case (?#islamic(#contractOpened(_))) List.add(introduced, IslamicCore.contractSub(bs.height));
+      case (?#islamic(#poolOpened(p))) List.add(introduced, IslamicCore.poolSub(p.pool.id));
       case (_) {};
     };
     let opened = List.toArray(introduced);
@@ -2239,7 +2271,7 @@ module {
         case (?sub) {
           // an account or a till of this shard, one of its books' vaults in the leg's currency, a facility's or a
           // participant's (corporate lending), or an account the same plan opens — the only sub-ledgers a shard's own postings name
-          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub);
+          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub) or IslamicCore.holdsSubledger(bs.islamic, sub);
           if (not held) { for (i in introduced.vals()) { if (i == sub) held := true } };
           if (not held) { for ((book, _) in Map.entries(bs.books)) { if (sub == Till.vaultSubledger(book, l.currency)) held := true } };
           if (not held) return ?#ShardError({ error = #NotRouted({ identifier = ""; reason = "the posting names a sub-ledger this shard does not hold" }) });
@@ -4688,6 +4720,10 @@ module {
             or #honourPresentation(_) or #settleAcceptance(_) or #closeLetterOfCredit(_) or #issueGuarantee(_) or #amendGuarantee(_) or #recordDemand(_) or #examineDemand(_) or #payDemand(_)
             or #reduceGuarantee(_) or #releaseGuarantee(_) or #registerCollection(_) or #presentCollection(_) or #acceptCollection(_) or #payCollection(_) or #protestCollection(_)
             or #returnCollection(_) or #discountBill(_) or #rediscountBill(_) or #settleBill(_) or #dishonourBill(_) or #recordTradeMessage(_)) planTradeInner(bs, bb, js, journalCaller, now, command, authorityIndex, authId);
+      case (#setIslamicPolicy(_) or #approveShariaProduct(_) or #flagShariaBook(_) or #openShariaContract(_) or #acquireMurabahaAsset(_) or #sellMurabaha(_) or #collectInstalment(_) or #grantRebate(_)
+            or #commenceIjarah(_) or #collectRental(_) or #transferIjarahOwnership(_) or #contributeCapital(_) or #distributeMusharakahProfit(_) or #allocateMusharakahLoss(_) or #buyMusharakahUnit(_)
+            or #recordMudarabahResult(_) or #deliverSalam(_) or #sellSalamCommodity(_) or #recordSalamFailure(_) or #recordIstisnaMilestone(_) or #collectIstisnaBilling(_) or #settleShariaContract(_)
+            or #closeShariaContract(_) or #recordNonCompliance(_) or #openInvestmentPool(_) or #updatePoolReserves(_) or #distributePool(_)) planIslamicInner(bs, bb, js, journalCaller, now, command, authorityIndex, authId);
     }
   };
 
@@ -6358,6 +6394,7 @@ module {
       offers = OriginationCore.offeredInBook(bs.origination, book);
       facilities = FacilityCore.openInBook(bs.facility, book).size();
       trade = TradeCore.openInBook(bs.trade, book).size();
+      sharia = IslamicCore.openInBook(bs.islamic, book).size();
       shardSize;
     }
   };
@@ -6676,6 +6713,7 @@ module {
       case (#offerExpiry) jobOfferExpiry(bs, acc, item, index, day, run.book, only);
       case (#facilities) jobFacilities(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
       case (#trade) jobTrade(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
+      case (#sharia) jobSharia(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
     };
   };
 
@@ -7662,6 +7700,493 @@ module {
 
       case (_) #err(#TradeError({ error = #InvalidTerms({ reason = "not a trade command"; article = "" }) }));
     }
+  };
+
+  // ─── Islamic banking (Islamic banking): the planners and their postings ─────────────────
+
+  func islamicPlan(r : Result.Result<IT.IslamicEvent, IT.IslamicError>) : Result.Result<Plan, T.BankError> {
+    switch (r) { case (#err(e)) #err(#IslamicError({ error = e })); case (#ok(ev)) #ok({ bankEvent = ?#islamic(ev); extra = []; journal = [] }) }
+  };
+  func islamicErr<X>(e : IT.IslamicError) : Result.Result<X, T.BankError> { #err(#IslamicError({ error = e })) };
+  func islamicPolicy(bs : State) : Result.Result<IT.Policy, T.BankError> {
+    switch (IslamicCore.policy(bs.islamic)) { case (?p) #ok(p); case null #err(#IslamicError({ error = #NoPolicy })) }
+  };
+  func contractRow(bs : State, id : IT.ContractId) : Result.Result<IslamicCore.ContractRow, T.BankError> {
+    switch (IslamicCore.row(bs.islamic, id)) { case (?r) #ok(r); case null islamicErr(#UnknownContract({ contract = id })) }
+  };
+  /// The contract's terms, read from the block that opened it.
+  public func islamicKind(bb : Blocks, id : IT.ContractId) : ?IT.Kind {
+    switch (bb.get(id)) { case (?b) { switch (b.event) { case (#islamic(#contractOpened(x))) ?x.kind; case (_) null } }; case null null }
+  };
+  func islamicBook(bs : State, id : IT.ContractId) : ?T.BookId { switch (IslamicCore.row(bs.islamic, id)) { case (?r) ?r.book; case null null } };
+  func islamicCounterpartyLeg(bs : State, bb : Blocks, js : JCore.State, pol : IT.Policy, cp : IT.Counterparty, side : JT.Side, ccy : Text, amount : Nat, day : Nat) : Result.Result<JT.Leg, T.BankError> {
+    switch (cp) {
+      case (#party(p)) { switch (customerLeg(bs, bb, js, p.account, side, ccy, amount, day)) { case (#err(e)) #err(e); case (#ok((l, _, _))) #ok(l) } };
+      case (#external(_)) #ok(Posting.leg(pol.nostro, null, side, ccy, amount));
+    }
+  };
+  func islamicPost(js : JCore.State, journalCaller : Principal, now : Nat64, purpose : Text, parts : [Text], legs : [JT.Leg], postingDate : Nat, valueDate : Nat, period : Text, narration : Text, ev : IT.IslamicEvent) : Result.Result<Plan, T.BankError> {
+    if (legs.size() == 0) return #ok({ bankEvent = ?#islamic(ev); extra = []; journal = [] });
+    switch (postLegs(js, journalCaller, now, purpose, parts, legs, postingDate, valueDate, period, narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#islamic(ev); extra = []; journal = plan.journal });
+    }
+  };
+  /// The balance a contract's sub-ledger holds on an account (debit-normal), zero when the other way.
+  func subBalance(js : JCore.State, account : Text, sub : JT.SubledgerKey, ccy : Text, day : Nat, normal : JT.Side) : Nat {
+    let b = Posting.accountBalanceOn(js, account, sub, ccy, normal, day);
+    if (b.overdrawn) 0 else b.net
+  };
+  func islamicAccounts(pol : IT.Policy) : [Text] {
+    [pol.murabahaInventory, pol.murabahaReceivable, pol.deferredProfit, pol.murabahaIncome, pol.securityDeposits, pol.ijarahAssets, pol.accumulatedDepreciation, pol.depreciationExpense, pol.rentalReceivable, pol.ijarahIncome,
+     pol.musharakahInvestment, pol.musharakahIncome, pol.mudarabahInvestment, pol.mudarabahIncome, pol.investmentLosses, pol.salamReceivable, pol.salamInventory, pol.salamIncome, pol.istisnaWip, pol.istisnaReceivable, pol.istisnaRevenue, pol.istisnaCosts,
+     pol.iahEquity, pol.profitEqualisationReserve, pol.investmentRiskReserve, pol.profitPayableToHolders, pol.mudaribShareIncome, pol.profitAttributableToHolders, pol.charityPayable, pol.nostro]
+  };
+  /// Whether a product's terms carry an interest component — what a Sharia product may not.
+  func productHasInterest(bs : State, product : ProdT.ProductId) : ?Bool {
+    switch (ProductCore.currentVersion(bs.product, product)) { case (?v) ?(v.terms.interest != null); case null null }
+  };
+  /// The accounts of a pool's product in its currency, with Σ daily balances over [from, to].
+  func poolWeights(bs : State, bb : Blocks, js : JCore.State, product : ProdT.ProductId, ccy : Text, from : Nat, to : Nat) : [(ProdT.AccountId, Nat)] {
+    let out = List.empty<(ProdT.AccountId, Nat)>();
+    for (a in ProductCore.accountsOfProduct(bs.product, productBlocks(bb), product).vals()) {
+      if (not Text.equal(a.currency, ccy) or a.status == #closed) continue;
+      let ?terms = ProductCore.termsOf(bs.product, a) else continue;
+      var sum = 0; var d = from;
+      while (d <= to) { sum += subBalance(js, terms.control, a.subledger, ccy, d, #credit); d += 1 };
+      if (sum > 0) List.add(out, (a.id, sum));
+    };
+    List.toArray(out)
+  };
+  /// A pool's income over a period: the credit movement of the named income accounts between the day before the
+  /// period and its last day, value-dated.
+  func poolIncome(js : JCore.State, accounts : [Text], ccy : Text, from : Nat, to : Nat) : Nat {
+    var sum = 0;
+    for (a in accounts.vals()) {
+      let after = JCore.valueDatedBalance(js, a, null, ccy, to);
+      let before = if (from == 0) { { debits = 0; credits = 0 } } else JCore.valueDatedBalance(js, a, null, ccy, from - 1);
+      let net : Int = (after.credits - after.debits) - (before.credits - before.debits);
+      if (net > 0) sum += Int.abs(net);
+    };
+    sum
+  };
+
+  /// The Islamic-banking commands (Islamic banking), planned apart from the main switch so that switch stays under the chain's
+  /// function-complexity bound.
+  func planIslamicInner(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, command : T.Command, authorityIndex : Nat, authId : Text) : Result.Result<Plan, T.BankError> {
+    let today = JCore.effectiveToday(js, now);
+    switch (command) {
+      case (#setIslamicPolicy(pol)) {
+        for (code in islamicAccounts(pol).vals()) {
+          switch (JCore.getAccount(js, code)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "sharia policy"; account = code }) })); case (?_) {} };
+        };
+        islamicPlan(IslamicCore.planPolicy(pol))
+      };
+      case (#approveShariaProduct(x)) {
+        switch (productHasInterest(bs, x.product)) {
+          case null return #err(#ProductError({ error = #UnknownProduct({ product = x.product }) }));
+          case (?true) return islamicErr(#InterestOnShariaProduct({ product = x.product }));
+          case (?false) {};
+        };
+        islamicPlan(IslamicCore.planApproveProduct(x.product, x.approval, today))
+      };
+      case (#flagShariaBook(x)) { switch (requireOpenBook(bs, x.book)) { case (?e) return #err(e); case null {} }; islamicPlan(IslamicCore.planFlagBook(x.book, x.sharia, today)) };
+      case (#openShariaContract(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let (party, account) = switch (x.kind) {
+          case (#murabaha(m)) (m.customer, m.account); case (#ijarah(i)) (i.lessee, i.account); case (#musharakah(m)) (m.partners[0].party, m.partners[0].account);
+          case (#mudarabah(m)) (m.mudarib, m.account); case (#salam(s)) (s.seller, s.account); case (#istisna(s)) (s.customer, s.account);
+        };
+        switch (requireParty(bs, party)) { case (?e) return #err(e); case null {} };
+        let (a, _) = switch (requireAccount(bs, bb, account)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (a.party != party) return islamicErr(#InvalidTerms({ reason = "account " # Nat.toText(account) # " is not the party's"; standard = "governance" }));
+        if (not Text.equal(a.currency, x.currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = a.currency; actual = x.currency }) }));
+        let hasInterest = switch (productHasInterest(bs, a.product)) { case (?b) b; case null true };
+        let ev = switch (IslamicCore.planOpen(bs.islamic, x.kind, x.currency, a.book, a.product, hasInterest, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, a.book, account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(bs.height);
+        let legs = List.empty<JT.Leg>();
+        switch (x.kind) {
+          case (#murabaha(m)) { if (m.securityDeposit > 0) { switch (customerLeg(bs, bb, js, account, #debit, x.currency, m.securityDeposit, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) }; List.add(legs, Posting.leg(pol.securityDeposits, ?sub, #credit, x.currency, m.securityDeposit)) } };
+          case (#salam(s)) {
+            // the price is paid in full at the contract (FAS 7 ¶6)
+            List.add(legs, Posting.leg(pol.salamReceivable, ?sub, #debit, x.currency, s.priceAdvanced));
+            switch (customerLeg(bs, bb, js, account, #credit, x.currency, s.priceAdvanced, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+          };
+          case (_) {};
+        };
+        islamicPost(js, journalCaller, now, "sharia-open", [authId, IT.kindText(x.kind)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#acquireMurabahaAsset(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#murabaha(m) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "murabaha" }));
+        let ev = switch (IslamicCore.planAcquire(bs.islamic, x.contract, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let supplier = switch (islamicCounterpartyLeg(bs, bb, js, pol, m.supplier, #credit, r.currency, m.costPrice, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        islamicPost(js, journalCaller, now, "murabaha-acquire", [authId, Nat.toText(x.contract)], [Posting.leg(pol.murabahaInventory, ?sub, #debit, r.currency, m.costPrice), supplier], x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#sellMurabaha(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#murabaha(m) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "murabaha" }));
+        let ev = switch (IslamicCore.planSell(bs.islamic, x.contract, m, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let legs = List.empty<JT.Leg>();
+        List.add(legs, Posting.leg(pol.murabahaReceivable, ?sub, #debit, r.currency, m.costPrice + m.markup));
+        List.add(legs, Posting.leg(pol.murabahaInventory, ?sub, #credit, r.currency, m.costPrice));
+        List.add(legs, Posting.leg(pol.deferredProfit, ?sub, #credit, r.currency, m.markup));
+        // hamish jiddiyah returned at the sale (FAS 28 ¶14): the promise was kept
+        if (r.securityDeposit > 0) {
+          List.add(legs, Posting.leg(pol.securityDeposits, ?sub, #debit, r.currency, r.securityDeposit));
+          switch (customerLeg(bs, bb, js, r.account, #credit, r.currency, r.securityDeposit, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+        };
+        islamicPost(js, journalCaller, now, "murabaha-sell", [authId, Nat.toText(x.contract)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#collectInstalment(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let (ev, inst) = switch (IslamicCore.planCollect(bs.islamic, x.contract, today)) { case (#err(e)) return islamicErr(e); case (#ok(p)) p };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let legs = List.empty<JT.Leg>();
+        switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, inst.amount, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+        List.add(legs, Posting.leg(pol.murabahaReceivable, ?sub, #credit, r.currency, inst.amount));
+        islamicPost(js, journalCaller, now, "murabaha-collect", [authId, Nat.toText(x.contract), Nat.toText(inst.number)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#grantRebate(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ev = switch (IslamicCore.planRebate(bs.islamic, x.contract, x.amount, x.reason, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        islamicPost(js, journalCaller, now, "murabaha-rebate", [authId, Nat.toText(x.contract)], [Posting.leg(pol.deferredProfit, ?sub, #debit, r.currency, x.amount), Posting.leg(pol.murabahaReceivable, ?sub, #credit, r.currency, x.amount)], x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#commenceIjarah(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ev = switch (IslamicCore.planCommence(bs.islamic, x.contract, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        // the asset bought for the lease (FAS 32 ¶10): the lessor's asset
+        islamicPost(js, journalCaller, now, "ijarah-commence", [authId, Nat.toText(x.contract)], [Posting.leg(pol.ijarahAssets, ?sub, #debit, r.currency, r.principal), Posting.leg(pol.nostro, null, #credit, r.currency, r.principal)], x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#collectRental(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let (ev, inst) = switch (IslamicCore.planCollectRental(bs.islamic, x.contract, today)) { case (#err(e)) return islamicErr(e); case (#ok(p)) p };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let legs = List.empty<JT.Leg>();
+        switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, inst.amount, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+        List.add(legs, Posting.leg(pol.rentalReceivable, ?sub, #credit, r.currency, inst.amount));
+        islamicPost(js, journalCaller, now, "ijarah-collect", [authId, Nat.toText(x.contract), Nat.toText(inst.number)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#transferIjarahOwnership(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#ijarah(i) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "ijarah" }));
+        let ev = switch (IslamicCore.planTransfer(bs.islamic, x.contract, i, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let #ownershipTransferred(tr) = ev else return islamicErr(#InvalidTerms({ reason = "not a transfer"; standard = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        // the asset leaves at cost against its accumulated depreciation and the consideration; the difference is the lessor's gain or loss
+        let legs = List.empty<JT.Leg>();
+        List.add(legs, Posting.leg(pol.ijarahAssets, ?sub, #credit, r.currency, r.principal));
+        if (r.depreciation > 0) List.add(legs, Posting.leg(pol.accumulatedDepreciation, ?sub, #debit, r.currency, r.depreciation));
+        if (tr.consideration > 0) { switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, tr.consideration, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) } };
+        let covered = r.depreciation + tr.consideration;
+        if (covered < r.principal) List.add(legs, Posting.leg(pol.investmentLosses, null, #debit, r.currency, r.principal - covered))
+        else if (covered > r.principal) List.add(legs, Posting.leg(pol.ijarahIncome, null, #credit, r.currency, covered - r.principal));
+        islamicPost(js, journalCaller, now, "ijarah-transfer", [authId, Nat.toText(x.contract)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#contributeCapital(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        if (r.stage != #opened) return islamicErr(#ContractNotIn({ contract = x.contract; stage = IT.stageText(r.stage); wanted = "opened" }));
+        switch (islamicKind(bb, x.contract)) {
+          case (?#musharakah(_)) islamicPost(js, journalCaller, now, "musharakah-capital", [authId, Nat.toText(x.contract)], [Posting.leg(pol.musharakahInvestment, ?sub, #debit, r.currency, r.principal), Posting.leg(pol.nostro, null, #credit, r.currency, r.principal)], x.postingDate, valueDate, x.period, x.narration, #capitalContributed({ contract = x.contract; party = null; amount = r.principal; day = today }));
+          case (?#mudarabah(_)) {
+            let legs = List.empty<JT.Leg>();
+            List.add(legs, Posting.leg(pol.mudarabahInvestment, ?sub, #debit, r.currency, r.principal));
+            switch (customerLeg(bs, bb, js, r.account, #credit, r.currency, r.principal, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+            islamicPost(js, journalCaller, now, "mudarabah-capital", [authId, Nat.toText(x.contract)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, #capitalContributed({ contract = x.contract; party = null; amount = r.principal; day = today }))
+          };
+          case (?k) islamicErr(#WrongKind({ contract = x.contract; kind = IT.kindText(k); wanted = "musharakah or mudarabah" }));
+          case null islamicErr(#UnknownContract({ contract = x.contract }));
+        }
+      };
+      case (#distributeMusharakahProfit(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#musharakah(m) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "musharakah" }));
+        let ev = switch (IslamicCore.planDistributeProfit(bs.islamic, x.contract, m, x.profit, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let #profitDistributed(pd) = ev else return islamicErr(#InvalidTerms({ reason = "not a distribution"; standard = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        islamicPost(js, journalCaller, now, "musharakah-profit", [authId, Nat.toText(x.contract), Nat.toText(today)], if (pd.bankShare == 0) [] else [Posting.leg(pol.nostro, null, #debit, r.currency, pd.bankShare), Posting.leg(pol.musharakahIncome, null, #credit, r.currency, pd.bankShare)], x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#allocateMusharakahLoss(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#musharakah(m) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "musharakah" }));
+        let ev = switch (IslamicCore.planAllocateLoss(bs.islamic, x.contract, m, x.loss, x.offered, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let #lossAllocated(la) = ev else return islamicErr(#InvalidTerms({ reason = "not a loss"; standard = "" }));
+        if (la.bankShare > r.principal) return islamicErr(#InvalidTerms({ reason = "the bank's loss exceeds its capital"; standard = "FAS 4 ¶16" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        islamicPost(js, journalCaller, now, "musharakah-loss", [authId, Nat.toText(x.contract), Nat.toText(today)], if (la.bankShare == 0) [] else [Posting.leg(pol.investmentLosses, null, #debit, r.currency, la.bankShare), Posting.leg(pol.musharakahInvestment, ?sub, #credit, r.currency, la.bankShare)], x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#buyMusharakahUnit(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#musharakah(m) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "musharakah" }));
+        let ev = switch (IslamicCore.planBuyUnit(bs.islamic, x.contract, m, x.units, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let #unitBought(ub) = ev else return islamicErr(#InvalidTerms({ reason = "not a purchase"; standard = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        // the units leave the investment at their carrying amount; a price above it is the bank's gain on the sale
+        let carrying = subBalance(js, pol.musharakahInvestment, sub, r.currency, valueDate, #debit);
+        let portion = Nat.min(ub.price, carrying);
+        let legs = List.empty<JT.Leg>();
+        switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, ub.price, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+        if (portion > 0) List.add(legs, Posting.leg(pol.musharakahInvestment, ?sub, #credit, r.currency, portion));
+        if (ub.price > portion) List.add(legs, Posting.leg(pol.musharakahIncome, null, #credit, r.currency, ub.price - portion));
+        islamicPost(js, journalCaller, now, "musharakah-unit", [authId, Nat.toText(x.contract), Nat.toText(ub.bankUnitsLeft)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#recordMudarabahResult(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#mudarabah(m) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "mudarabah" }));
+        let ev = switch (IslamicCore.planMudarabahResult(bs.islamic, x.contract, m, x.profit, x.loss, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let legs = List.empty<JT.Leg>();
+        switch (ev) {
+          case (#profitDistributed(pd)) { if (pd.bankShare > 0) { switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, pd.bankShare, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) }; List.add(legs, Posting.leg(pol.mudarabahIncome, null, #credit, r.currency, pd.bankShare)) } };
+          case (#lossAllocated(la)) { if (la.bankShare > 0) { List.add(legs, Posting.leg(pol.investmentLosses, null, #debit, r.currency, la.bankShare)); List.add(legs, Posting.leg(pol.mudarabahInvestment, ?sub, #credit, r.currency, la.bankShare)) } };
+          case (_) {};
+        };
+        islamicPost(js, journalCaller, now, "mudarabah-result", [authId, Nat.toText(x.contract), Nat.toText(today)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#deliverSalam(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#salam(sl) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "salam" }));
+        let ev = switch (IslamicCore.planDeliver(bs.islamic, x.contract, sl, x.quantity, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        islamicPost(js, journalCaller, now, "salam-deliver", [authId, Nat.toText(x.contract)], [Posting.leg(pol.salamInventory, ?sub, #debit, r.currency, r.principal), Posting.leg(pol.salamReceivable, ?sub, #credit, r.currency, r.principal)], x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#sellSalamCommodity(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ev = switch (IslamicCore.planSellCommodity(bs.islamic, x.contract, x.proceeds, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let legs = List.empty<JT.Leg>();
+        List.add(legs, Posting.leg(pol.nostro, null, #debit, r.currency, x.proceeds));
+        List.add(legs, Posting.leg(pol.salamInventory, ?sub, #credit, r.currency, r.principal));
+        if (x.proceeds > r.principal) List.add(legs, Posting.leg(pol.salamIncome, null, #credit, r.currency, x.proceeds - r.principal))
+        else if (x.proceeds < r.principal) List.add(legs, Posting.leg(pol.investmentLosses, null, #debit, r.currency, r.principal - x.proceeds));
+        islamicPost(js, journalCaller, now, "salam-sell", [authId, Nat.toText(x.contract)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#recordSalamFailure(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#salam(sl) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "salam" }));
+        let ev = switch (IslamicCore.planDeliveryFailed(bs.islamic, x.contract, sl, x.recourse, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        // the price advanced comes back from the seller (FAS 7 ¶10)
+        let legs = List.empty<JT.Leg>();
+        switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, r.principal, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+        List.add(legs, Posting.leg(pol.salamReceivable, ?sub, #credit, r.currency, r.principal));
+        islamicPost(js, journalCaller, now, "salam-failure", [authId, Nat.toText(x.contract)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#recordIstisnaMilestone(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let ?#istisna(ist) = islamicKind(bb, x.contract) else return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "istisna" }));
+        let ev = switch (IslamicCore.planMilestone(bs.islamic, x.contract, ist, x.certificate, x.percentBps, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let #milestoneRecorded(ms) = ev else return islamicErr(#InvalidTerms({ reason = "not a milestone"; standard = "" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        // the contractor paid for the work (into WIP), the work billed (the receivable against revenue), the cost of the work recognised out of WIP (FAS 10 ¶13-17)
+        let legs = List.empty<JT.Leg>();
+        if (ms.cost > 0) {
+          List.add(legs, Posting.leg(pol.istisnaWip, ?sub, #debit, r.currency, ms.cost));
+          switch (islamicCounterpartyLeg(bs, bb, js, pol, ist.contractor, #credit, r.currency, ms.cost, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
+          List.add(legs, Posting.leg(pol.istisnaCosts, null, #debit, r.currency, ms.cost));
+          List.add(legs, Posting.leg(pol.istisnaWip, ?sub, #credit, r.currency, ms.cost));
+        };
+        if (ms.revenue > 0) { List.add(legs, Posting.leg(pol.istisnaReceivable, ?sub, #debit, r.currency, ms.revenue)); List.add(legs, Posting.leg(pol.istisnaRevenue, null, #credit, r.currency, ms.revenue)) };
+        islamicPost(js, journalCaller, now, "istisna-milestone", [authId, Nat.toText(x.contract), Nat.toText(x.percentBps)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#collectIstisnaBilling(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let r = switch (contractRow(bs, x.contract)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        if (r.kind != 6) return islamicErr(#WrongKind({ contract = x.contract; kind = "?"; wanted = "istisna" }));
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let due = subBalance(js, pol.istisnaReceivable, sub, r.currency, valueDate, #debit);
+        if (due == 0) return islamicErr(#InvalidTerms({ reason = "nothing billed is outstanding"; standard = "FAS 10" }));
+        let legs = List.empty<JT.Leg>();
+        switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, due, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) };
+        List.add(legs, Posting.leg(pol.istisnaReceivable, ?sub, #credit, r.currency, due));
+        islamicPost(js, journalCaller, now, "istisna-collect", [authId, Nat.toText(x.contract), Nat.toText(valueDate)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, #instalmentCollected({ contract = x.contract; amount = due; principal = due; profit = 0; day = today }))
+      };
+      case (#settleShariaContract(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let (ev, r) = switch (IslamicCore.planSettle(bs.islamic, x.contract, today)) { case (#err(e)) return islamicErr(e); case (#ok(p)) p };
+        let valueDate = switch (tradeValueDate(bs, bb, js, r.book, r.account, x.period, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let sub = IslamicCore.contractSub(x.contract);
+        let legs = List.empty<JT.Leg>();
+        switch (r.kind) {
+          case 3 { let left = subBalance(js, pol.musharakahInvestment, sub, r.currency, valueDate, #debit); if (left > 0) { List.add(legs, Posting.leg(pol.nostro, null, #debit, r.currency, left)); List.add(legs, Posting.leg(pol.musharakahInvestment, ?sub, #credit, r.currency, left)) } };
+          case 4 { let left = subBalance(js, pol.mudarabahInvestment, sub, r.currency, valueDate, #debit); if (left > 0) { switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, left, valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) }; List.add(legs, Posting.leg(pol.mudarabahInvestment, ?sub, #credit, r.currency, left)) } };
+          case _ {};
+        };
+        islamicPost(js, journalCaller, now, "sharia-settle", [authId, Nat.toText(x.contract)], List.toArray(legs), x.postingDate, valueDate, x.period, x.narration, ev)
+      };
+      case (#closeShariaContract(x)) islamicPlan(IslamicCore.planClose(bs.islamic, x.contract, x.reason, today));
+      case (#recordNonCompliance(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        switch (JCore.getAccount(js, x.account)) { case null return #err(#JournalConfigError({ error = #UnknownAccount({ code = x.account }) })); case (?_) {} };
+        let ev = switch (IslamicCore.planNonCompliance(bs.islamic, x.contract, x.amount, x.account, x.reason, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let ccy = switch (x.contract) { case (?id) { switch (IslamicCore.row(bs.islamic, id)) { case (?r) r.currency; case null "EGP" } }; case null { switch (JCore.listCurrencies(js).size()) { case 0 "EGP"; case _ JCore.listCurrencies(js)[0].code } } };
+        islamicPost(js, journalCaller, now, "sharia-charity", [authId, Nat.toText(today), x.account], [Posting.leg(x.account, null, #debit, ccy, x.amount), Posting.leg(pol.charityPayable, null, #credit, ccy, x.amount)], x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (#openInvestmentPool(x)) {
+        switch (productHasInterest(bs, x.pool.product)) {
+          case null return #err(#ProductError({ error = #UnknownProduct({ product = x.pool.product }) }));
+          case (?true) return islamicErr(#InterestOnShariaProduct({ product = x.pool.product }));
+          case (?false) {};
+        };
+        if (IslamicCore.approval(bs.islamic, x.pool.product) == null) return islamicErr(#NoBoardApproval({ product = x.pool.product }));
+        for (a in x.pool.incomeAccounts.vals()) { switch (JCore.getAccount(js, a)) { case null return #err(#JournalConfigError({ error = #UnknownAccount({ code = a }) })); case (?_) {} } };
+        islamicPlan(IslamicCore.planOpenPool(bs.islamic, x.pool, today))
+      };
+      case (#updatePoolReserves(x)) islamicPlan(IslamicCore.planReserves(bs.islamic, x.pool, x.per, x.irr, today));
+      case (#distributePool(x)) {
+        let pol = switch (islamicPolicy(bs)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let ?p = IslamicCore.pool(bs.islamic, x.pool) else return islamicErr(#UnknownPool({ pool = x.pool }));
+        let incomeAccounts = switch (poolIncomeAccounts(bs, bb, x.pool)) { case (?a) a; case null return islamicErr(#UnknownPool({ pool = x.pool })) };
+        let income = poolIncome(js, incomeAccounts, p.currency, x.from, x.to);
+        let weights = poolWeights(bs, bb, js, p.product, p.currency, x.from, x.to);
+        let ev = switch (IslamicCore.planDistribute(bs.islamic, x.pool, x.month, x.from, x.to, income, weights, today)) { case (#err(e)) return islamicErr(e); case (#ok(ev)) ev };
+        let #poolDistributed(pd) = ev else return islamicErr(#InvalidTerms({ reason = "not a distribution"; standard = "" }));
+        let d = pd.distribution;
+        let psub = IslamicCore.poolSub(x.pool);
+        let legs = List.empty<JT.Leg>();
+        let charged = d.per + d.irr + d.paid;
+        if (charged > 0) List.add(legs, Posting.leg(pol.profitAttributableToHolders, null, #debit, p.currency, charged));
+        if (d.per > 0) List.add(legs, Posting.leg(pol.profitEqualisationReserve, ?psub, #credit, p.currency, d.per));
+        if (d.irr > 0) List.add(legs, Posting.leg(pol.investmentRiskReserve, ?psub, #credit, p.currency, d.irr));
+        for ((acct, amount) in d.allocations.vals()) {
+          if (amount > 0) { switch (customerLeg(bs, bb, js, acct, #credit, p.currency, amount, x.valueDate)) { case (#err(e)) return #err(e); case (#ok((l, _, _))) List.add(legs, l) } };
+        };
+        islamicPost(js, journalCaller, now, "psia-distribute", [authId, x.pool, x.month], List.toArray(legs), x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (_) #err(#IslamicError({ error = #InvalidTerms({ reason = "not an Islamic-banking command"; standard = "" }) }));
+    }
+  };
+  /// A pool's income accounts, from the block that opened it.
+  func poolIncomeAccounts(bs : State, bb : Blocks, poolId : IT.PoolId) : ?[Text] {
+    let ?p = IslamicCore.pool(bs.islamic, poolId) else return null;
+    switch (bb.get(p.openedBlock)) { case (?b) { switch (b.event) { case (#islamic(#poolOpened(x))) ?x.pool.incomeAccounts; case (_) null } }; case null null }
+  };
+
+  /// End of day, job 14 (`sharia`): per open contract of the book — a Murabaha's profit recognised to the day under
+  /// its method (the cumulative straight line of the proportionate method, or the instalments fallen due under the
+  /// effective rate), the late-payment undertaking on an overdue instalment carried to charity (never income), an
+  /// Ijarah's rental accrued when it falls due and its asset depreciated straight-line (cumulative) — each a posting
+  /// and a block only when the figure is not zero.
+  func jobSharia(
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
+  ) {
+    let ?pol = IslamicCore.policy(bs.islamic) else { fail(acc, index, item.job, book, "no sharia policy"); return };
+    func post(kind : Text, id : Nat, part : Text, legs : [JT.Leg], narration : Text) : Bool {
+      if (legs.size() == 0) return true;
+      if (not Posting.balances(legs)) { fail(acc, index, item.job, Nat.toText(id), kind # ": the legs do not balance"); return false };
+      let input : JT.PostingInput = { idempotencyKey = Posting.key(kind, [Nat.toText(id), part, Nat.toText(day)]); postingDate = day; valueDate = day; period; legs; sourceRef = { kind; id = Nat.toText(id) # "/" # part # "/" # Nat.toText(day) }; narration; correctionOf = null };
+      switch (batchPost(js, jb, journalCaller, now, acc, input)) { case (?why) { fail(acc, index, item.job, Nat.toText(id), why); false }; case null true }
+    };
+    for (r in IslamicCore.openInBook(bs.islamic, book).vals()) {
+      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r.id)) };
+      if (not mine) continue;
+      acc.examined += 1;
+      let sub = IslamicCore.contractSub(r.id);
+      switch (r.kind, r.stage) {
+        case (1, #sold) {
+          // profit to the day
+          let due = IslamicCore.profitDueBy(bs.islamic, r, day);
+          if (due > r.profitRecognised) {
+            let delta = due - r.profitRecognised;
+            if (post("murabaha-profit", r.id, "p", [Posting.leg(pol.deferredProfit, ?sub, #debit, r.currency, delta), Posting.leg(pol.murabahaIncome, null, #credit, r.currency, delta)], "profit recognised to day " # Nat.toText(day))) {
+              record(acc, #islamic(#profitRecognised({ contract = r.id; amount = delta; cumulative = due; day })));
+            };
+          };
+          // the late-payment undertaking on overdue instalments, to charity
+          switch (islamicKind(bb, r.id)) {
+            case (?#murabaha(m)) {
+              if (m.latePaymentCharityBps > 0) {
+                for (inst in IslamicCore.instalmentsOf(bs.islamic, r.id).vals()) {
+                  if (inst.paid or inst.dueDate >= day) continue;
+                  let cum = IslamicCore.lateCharity(inst, m.latePaymentCharityBps, day);
+                  if (cum > inst.charity) {
+                    let delta = cum - inst.charity;
+                    switch (customerLeg(bs, bb, js, r.account, #debit, r.currency, delta, day)) {
+                      case (#ok((l, _, _))) {
+                        if (post("murabaha-charity", r.id, Nat.toText(inst.number), [l, Posting.leg(pol.charityPayable, null, #credit, r.currency, delta)], "late-payment undertaking to charity")) {
+                          record(acc, #islamic(#latePaymentToCharity({ contract = r.id; instalment = inst.number; amount = delta; cumulative = cum; day })));
+                        };
+                      };
+                      case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e);
+                    };
+                  };
+                };
+              };
+            };
+            case (_) {};
+          };
+        };
+        case (2, #running) {
+          switch (islamicKind(bb, r.id)) {
+            case (?#ijarah(i)) {
+              // rentals fallen due and not yet accrued: the accrued count is the rows whose due day has passed
+              var accrued = 0;
+              for (inst in IslamicCore.instalmentsOf(bs.islamic, r.id).vals()) {
+                if (inst.dueDate <= day) {
+                  accrued += inst.amount;
+                };
+              };
+              if (accrued > r.profitRecognised) {
+                let delta = accrued - r.profitRecognised;
+                if (post("ijarah-rental", r.id, "r", [Posting.leg(pol.rentalReceivable, ?sub, #debit, r.currency, delta), Posting.leg(pol.ijarahIncome, null, #credit, r.currency, delta)], "rental due")) {
+                  record(acc, #islamic(#rentalAccrued({ contract = r.id; amount = delta; period = r.instalmentsDue; day })));
+                };
+              };
+              // depreciation to the day: straight-line over the shorter of the term and the useful life
+              let months = Nat.min(i.usefulLifeMonths, i.periods * (switch (i.every) { case (#monthly) 1; case (#quarterly) 3; case (#semiAnnual) 6; case (#annual) 12; case (_) 1 }));
+              let dep = IslamicCore.depreciationBy(i.cost, i.residual, r.openedDay, months, day);
+              if (dep > r.depreciation) {
+                let delta = dep - r.depreciation;
+                if (post("ijarah-depreciation", r.id, "d", [Posting.leg(pol.depreciationExpense, null, #debit, r.currency, delta), Posting.leg(pol.accumulatedDepreciation, ?sub, #credit, r.currency, delta)], "depreciation to day " # Nat.toText(day))) {
+                  record(acc, #islamic(#depreciationPosted({ contract = r.id; amount = delta; cumulative = dep; day })));
+                };
+              };
+            };
+            case (_) {};
+          };
+        };
+        case (_, _) {};
+      };
+    };
   };
 
   // ─── trade finance (trade finance): the planners' helpers ────────────────────────────
@@ -8739,6 +9264,7 @@ module {
       case (#facility(fe)) { FacilityCore.apply(s.facility, block.index, fe) };
       case (#teller(te)) { TellerCore.apply(s.teller, block.index, te) };
       case (#trade(tr)) { TradeCore.fold(s.trade, block.index, tr) };
+      case (#islamic(ie)) { IslamicCore.fold(s.islamic, block.index, ie) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -8872,6 +9398,7 @@ module {
       case (#facility(_)) "facility";
       case (#teller(_)) "teller";
       case (#trade(_)) "trade";
+      case (#islamic(_)) "islamic";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -9168,6 +9695,7 @@ module {
     FacilityCore.fingerprintInto(w, s.facility);
     TellerCore.fingerprintInto(w, s.teller);
     TradeCore.fingerprintInto(w, s.trade);
+    IslamicCore.fingerprintInto(w, s.islamic);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);

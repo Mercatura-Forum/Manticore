@@ -572,6 +572,39 @@ let commands : [T.Command] = [
   #settleBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
   #dishonourBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
   #recordTradeMessage({ instrument = 900; kind = #mt(707); direction = #outgoing; hash = segHash32 }),
+  // Islamic banking (Islamic banking)
+  #setIslamicPolicy({ murabahaInventory = "1500"; murabahaReceivable = "1510"; deferredProfit = "1515"; murabahaIncome = "4500"; securityDeposits = "2500"; ijarahAssets = "1520"; accumulatedDepreciation = "1525"; depreciationExpense = "5500"; rentalReceivable = "1530"; ijarahIncome = "4510"; musharakahInvestment = "1540"; musharakahIncome = "4520"; mudarabahInvestment = "1550"; mudarabahIncome = "4530"; investmentLosses = "5510"; salamReceivable = "1560"; salamInventory = "1565"; salamIncome = "4540"; istisnaWip = "1570"; istisnaReceivable = "1575"; istisnaRevenue = "4550"; istisnaCosts = "5520"; iahEquity = "2600"; profitEqualisationReserve = "2610"; investmentRiskReserve = "2620"; profitPayableToHolders = "2630"; mudaribShareIncome = "4560"; profitAttributableToHolders = "5530"; charityPayable = "2700"; nostro = "1005"; perCeilingBps = 1_000; irrCeilingBps = 1_000 }),
+  #approveShariaProduct({ product = "ISAV"; approval = { ref = "SSB-2026-07"; sha256 = segHash32 } }),
+  #flagShariaBook({ book = "BR01"; sharia = true }),
+  #openShariaContract({ kind = #murabaha({ customer = 7; account = 44; asset = "10 TONNES OF STEEL COILS"; supplier = #external({ name = "Ezz Steel"; reference = "PO-77" }); costPrice = 100_000_00; markup = 12_000_00; instalments = 12; every = #monthly; method = #proportionate; promise = #binding; securityDeposit = 5_000_00; latePaymentCharityBps = 500; reference = "MUR-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #ijarah({ lessee = 7; account = 44; asset = "CNC MACHINE"; cost = 240_000_00; usefulLifeMonths = 60; residual = 24_000_00; rental = 5_000_00; every = #monthly; periods = 48; transfer = ?#sale({ price = 24_000_00 }); reference = "IJA-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #musharakah({ partners = [{ party = 7; account = 44; capital = 300_000_00; profitBps = 6_000 }]; bankCapital = 200_000_00; bankProfitBps = 4_000; diminishing = ?{ units = 20; unitPrice = 10_000_00; every = #quarterly; rentalBps = 800 }; reference = "MUS-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #mudarabah({ mudarib = 7; account = 44; capital = 150_000_00; bankProfitBps = 7_000; term = 365; reference = "MUD-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #salam({ seller = 7; account = 44; commodity = "WHEAT"; quantity = 500; unit = "TONNE"; delivery = 20900; priceAdvanced = 90_000_00; reference = "SAL-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #istisna({ customer = 7; account = 44; specification = segHash32; price = 500_000_00; estimatedCost = 400_000_00; milestones = [(20800, 3_000), (20860, 7_000), (20920, 10_000)]; contractor = #external({ name = "Orascom"; reference = "CTR-9" }); reference = "IST-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #acquireMurabahaAsset({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #sellMurabaha({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectInstalment({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #grantRebate({ contract = 910; amount = 1_000_00; reason = "early settlement, at the bank's discretion"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #commenceIjarah({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectRental({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #transferIjarahOwnership({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #contributeCapital({ contract = 912; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #distributeMusharakahProfit({ contract = 912; profit = 50_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #allocateMusharakahLoss({ contract = 912; loss = 10_000_00; offered = ?[(7, 6_000_00)]; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #buyMusharakahUnit({ contract = 912; units = 2; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordMudarabahResult({ contract = 913; profit = 20_000_00; loss = 0; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #deliverSalam({ contract = 914; quantity = 500; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #sellSalamCommodity({ contract = 914; proceeds = 97_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordSalamFailure({ contract = 914; recourse = "price returned"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordIstisnaMilestone({ contract = 915; certificate = segHash32; percentBps = 3_000; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectIstisnaBilling({ contract = 915; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #settleShariaContract({ contract = 912; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #closeShariaContract({ contract = 912; reason = "settled" }),
+  #recordNonCompliance({ contract = ?910; amount = 250_00; account = "4500"; reason = "late-payment amount posted to income by mistake"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openInvestmentPool({ pool = { id = "PSIA-EGP"; currency = "EGP"; mudaribBps = 3_000; perBps = 500; irrBps = 300; product = "ISAV"; incomeAccounts = ["4500", "4510"] } }),
+  #updatePoolReserves({ pool = "PSIA-EGP"; per = ?400; irr = null }),
+  #distributePool({ pool = "PSIA-EGP"; month = "2026-09"; from = 20698; to = 20727; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -637,7 +670,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13 (the origination, facility, teller and trade families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination, facility, teller, trade and Islamic families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -720,6 +753,12 @@ let golden : [(Text, Text, Text)] = [
   ("acceptCollection", "40a6131efe35b5b6a73dfa28a8040fe5a5e1d9097399a59d0a36087aeadc445e", "13f543f756727256d561ff9b20b9329d8b18797f47c365d57e29c90e5b2bd824"),
   ("protestCollection", "b4a1108e723fce4c7234595da8f419c9fdb42f73d4bb3d9e50ed2c0a04df535b", "e9912515ef288eae443854ff0f6ba2f22bed9d35726a9727ee6c81ed2c155671"),
   ("recordTradeMessage", "8cdd9bfe344a0530b69249d7fdd3272d325e390856f69479f85583cea6e4414a", "2c45470fd959e5c9f40782cba1cc9ad3059bd2293a90cc3dc8456b8004ac2a15"),
+  ("setIslamicPolicy", "1fddab19a6490026dd8c3894329d3111d5a4a73b683e20f22e74b04aae4b680b", "18f7fb7de78461eb28cf9d1acd18a24bd28c58c89623767fb80202dc80167a10"),
+  ("approveShariaProduct", "e98c439767fbac353e055022a99ce125c39250ae2b55e6bd2dfd7df548ab7594", "564a8e73534998f1e14da596065111842163c7af511e81f6958f80c72ddeed90"),
+  ("flagShariaBook", "c9e87abd652e9ce52d7c51cb0830ae58ffd02fa12a2405e966baf6cfb80e2ede", "40873d44f64fa1579f2c3af1f30f80a102bdfb8491170759ae8a7672d497366f"),
+  ("closeShariaContract", "3e69801b068309c99cef82b1fd660ef2b69755d8c4bdbdf8fd0c4aa807cde8f6", "b200bbcca21fce90025bfad28f03586c0412f4f769e7b99946ec70ed3904cf97"),
+  ("openInvestmentPool", "11346ed0b69a678ec97840b2fcc18090e09a582bda8bc0370f1b6ac8a928d72d", "c755445c42feec0529e4ba50f731dde44673aaa978307ce2c2d9f8cfe886fe16"),
+  ("updatePoolReserves", "d5e9e5bfa4a40fad9c4f1c6bc84404c6c7cf69152b68ad352948d45eb739db10", "2fdb32b23379009bb6c4cbf1d7d1b5d2199e8da715675a7fe43cfd1a071f9986"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {

@@ -353,6 +353,34 @@ let commands : [T.Command] = [
   #settleBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
   #dishonourBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
   #recordTradeMessage({ instrument = 900; kind = #mt(707); direction = #outgoing; hash = segHash32 }),
+  // Islamic banking (Islamic banking)
+  #setIslamicPolicy({ murabahaInventory = "1500"; murabahaReceivable = "1510"; deferredProfit = "1515"; murabahaIncome = "4500"; securityDeposits = "2500"; ijarahAssets = "1520"; accumulatedDepreciation = "1525"; depreciationExpense = "5500"; rentalReceivable = "1530"; ijarahIncome = "4510"; musharakahInvestment = "1540"; musharakahIncome = "4520"; mudarabahInvestment = "1550"; mudarabahIncome = "4530"; investmentLosses = "5510"; salamReceivable = "1560"; salamInventory = "1565"; salamIncome = "4540"; istisnaWip = "1570"; istisnaReceivable = "1575"; istisnaRevenue = "4550"; istisnaCosts = "5520"; iahEquity = "2600"; profitEqualisationReserve = "2610"; investmentRiskReserve = "2620"; profitPayableToHolders = "2630"; mudaribShareIncome = "4560"; profitAttributableToHolders = "5530"; charityPayable = "2700"; nostro = "1005"; perCeilingBps = 1_000; irrCeilingBps = 1_000 }),
+  #approveShariaProduct({ product = "ISAV"; approval = { ref = "SSB-2026-07"; sha256 = segHash32 } }),
+  #flagShariaBook({ book = "BR01"; sharia = true }),
+  #openShariaContract({ kind = #murabaha({ customer = 7; account = 44; asset = "10 TONNES OF STEEL COILS"; supplier = #external({ name = "Ezz Steel"; reference = "PO-77" }); costPrice = 100_000_00; markup = 12_000_00; instalments = 12; every = #monthly; method = #proportionate; promise = #binding; securityDeposit = 5_000_00; latePaymentCharityBps = 500; reference = "MUR-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #acquireMurabahaAsset({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #sellMurabaha({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectInstalment({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #grantRebate({ contract = 910; amount = 1_000_00; reason = "early settlement, at the bank's discretion"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #commenceIjarah({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectRental({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #transferIjarahOwnership({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #contributeCapital({ contract = 912; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #distributeMusharakahProfit({ contract = 912; profit = 50_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #allocateMusharakahLoss({ contract = 912; loss = 10_000_00; offered = ?[(7, 6_000_00)]; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #buyMusharakahUnit({ contract = 912; units = 2; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordMudarabahResult({ contract = 913; profit = 20_000_00; loss = 0; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #deliverSalam({ contract = 914; quantity = 500; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #sellSalamCommodity({ contract = 914; proceeds = 97_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordSalamFailure({ contract = 914; recourse = "price returned"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordIstisnaMilestone({ contract = 915; certificate = segHash32; percentBps = 3_000; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectIstisnaBilling({ contract = 915; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #settleShariaContract({ contract = 912; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #closeShariaContract({ contract = 912; reason = "settled" }),
+  #recordNonCompliance({ contract = ?910; amount = 250_00; account = "4500"; reason = "late-payment amount posted to income by mistake"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openInvestmentPool({ pool = { id = "PSIA-EGP"; currency = "EGP"; mudaribBps = 3_000; perBps = 500; irrBps = 300; product = "ISAV"; incomeAccounts = ["4500", "4510"] } }),
+  #updatePoolReserves({ pool = "PSIA-EGP"; per = ?400; irr = null }),
+  #distributePool({ pool = "PSIA-EGP"; month = "2026-09"; from = 20698; to = 20727; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -420,7 +448,7 @@ Debug.print("count: catalogue entries guarding a command = " # Nat.toText(comman
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
 assert (methodEntries == 21);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending)
-assert (commandEntries == 233);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance)
+assert (commandEntries == 260);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();

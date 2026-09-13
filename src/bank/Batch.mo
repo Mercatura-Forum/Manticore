@@ -61,11 +61,12 @@ module {
     #offerExpiry;             // 11: credit offers whose validity ended lapse (origination and underwriting)
     #facilities;              // 12: commitment fees, lease income, discount unwind, clean-downs, resets, reviews (corporate lending)
     #trade;                   // 13: trade commissions and discounts earned, expiries, reductions, maturities (trade finance)
+    #sharia;                  // 14: Murabaha profit and late-payment charity, Ijarah rentals and depreciation (Islamic banking)
   };
 
   public func jobs() : [Job] {
     [#accrual, #charges, #instalmentsDue, #ageing, #provisioning, #maturity,
-     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities, #trade]
+     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities, #trade, #sharia]
   };
 
   public func jobText(j : Job) : Text {
@@ -75,7 +76,7 @@ module {
       case (#provisioning) "provisioning"; case (#maturity) "maturity";
       case (#standingInstructions) "standingInstructions";
       case (#statementCut) "statementCut"; case (#tillCheck) "tillCheck";
-      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities"; case (#trade) "trade";
+      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities"; case (#trade) "trade"; case (#sharia) "sharia";
     }
   };
 
@@ -83,7 +84,7 @@ module {
     switch (j) {
       case (#accrual) 1; case (#charges) 2; case (#instalmentsDue) 3; case (#ageing) 4;
       case (#provisioning) 5; case (#maturity) 6; case (#standingInstructions) 7;
-      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12; case (#trade) 13;
+      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12; case (#trade) 13; case (#sharia) 14;
     }
   };
 
@@ -124,6 +125,7 @@ module {
       case (#offerExpiry) null;                   // records lapses; posts nothing
       case (#facilities) ?"product.credit";       // fees, rentals and discounts on the credit book
       case (#trade) ?"product.credit";            // the trade book is part of the credit book: commissions, discounts, expiries, maturities
+      case (#sharia) ?"product.credit";           // the Sharia book likewise: profit recognised, rentals, depreciation, charity
     }
   };
 
@@ -167,6 +169,8 @@ module {
     facilities : Nat;
     /// How many trade instruments of the book are open. None, and the plan has no trade item.
     trade : Nat;
+    /// How many Sharia contracts of the book are open. None, and the plan has no sharia item.
+    sharia : Nat;
     shardSize : Nat;
   };
 
@@ -245,6 +249,10 @@ module {
     // 13. the trade book, one item for the book while any instrument is open
     if (input.trade > 0) {
       List.add(items, { job = #trade; product = ""; currency = ""; from = 0; to = 0 });
+    };
+    // 14. the Sharia book, one item for the book while any contract is open
+    if (input.sharia > 0) {
+      List.add(items, { job = #sharia; product = ""; currency = ""; from = 0; to = 0 });
     };
     if (List.size(items) > MAX_PLAN_ITEMS) return #err(#planTooLarge({ items = List.size(items) }));
     #ok(List.toArray(items))

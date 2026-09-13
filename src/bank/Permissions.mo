@@ -337,6 +337,35 @@ module {
     p("trade.bill.settle", "trade", #update, #command("settleBill"), true, true),
     p("trade.bill.dishonour", "trade", #reverse, #command("dishonourBill"), true, true),
     p("trade.message.record", "trade", #create, #command("recordTradeMessage"), false, false),
+    // Islamic banking Islamic banking: every act that moves money is dual; the board's approval and the policy are dual acts of governance;
+    // closing a contract's record is the officer's own act
+    p("sharia.policy", "sharia", #update, #command("setIslamicPolicy"), false, true),
+    p("sharia.product.approve", "sharia", #approve, #command("approveShariaProduct"), false, true),
+    p("sharia.book.flag", "sharia", #update, #command("flagShariaBook"), false, true),
+    p("sharia.contract.open", "sharia", #create, #command("openShariaContract"), true, true),
+    p("sharia.murabaha.acquire", "sharia", #update, #command("acquireMurabahaAsset"), true, true),
+    p("sharia.murabaha.sell", "sharia", #update, #command("sellMurabaha"), true, true),
+    p("sharia.murabaha.collect", "sharia", #update, #command("collectInstalment"), true, true),
+    p("sharia.rebate", "sharia", #waive, #command("grantRebate"), true, true),
+    p("sharia.ijarah.commence", "sharia", #update, #command("commenceIjarah"), true, true),
+    p("sharia.ijarah.collect", "sharia", #update, #command("collectRental"), true, true),
+    p("sharia.ijarah.transfer", "sharia", #close, #command("transferIjarahOwnership"), true, true),
+    p("sharia.partnership.capital", "sharia", #update, #command("contributeCapital"), true, true),
+    p("sharia.partnership.profit", "sharia", #update, #command("distributeMusharakahProfit"), true, true),
+    p("sharia.partnership.loss", "sharia", #update, #command("allocateMusharakahLoss"), true, true),
+    p("sharia.partnership.unit", "sharia", #update, #command("buyMusharakahUnit"), true, true),
+    p("sharia.mudarabah.result", "sharia", #update, #command("recordMudarabahResult"), true, true),
+    p("sharia.salam.deliver", "sharia", #update, #command("deliverSalam"), true, true),
+    p("sharia.salam.sell", "sharia", #update, #command("sellSalamCommodity"), true, true),
+    p("sharia.salam.failure", "sharia", #reverse, #command("recordSalamFailure"), true, true),
+    p("sharia.istisna.milestone", "sharia", #update, #command("recordIstisnaMilestone"), true, true),
+    p("sharia.istisna.collect", "sharia", #update, #command("collectIstisnaBilling"), true, true),
+    p("sharia.contract.settle", "sharia", #close, #command("settleShariaContract"), true, true),
+    p("sharia.contract.close", "sharia", #close, #command("closeShariaContract"), false, false),
+    p("sharia.noncompliance.record", "sharia", #update, #command("recordNonCompliance"), true, true),
+    p("psia.pool.open", "psia", #create, #command("openInvestmentPool"), false, true),
+    p("psia.reserve.update", "psia", #update, #command("updatePoolReserves"), false, true),
+    p("psia.distribute", "psia", #update, #command("distributePool"), true, true),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -692,6 +721,33 @@ module {
       case (#settleBill(_)) "settleBill";
       case (#dishonourBill(_)) "dishonourBill";
       case (#recordTradeMessage(_)) "recordTradeMessage";
+      case (#setIslamicPolicy(_)) "setIslamicPolicy";
+      case (#approveShariaProduct(_)) "approveShariaProduct";
+      case (#flagShariaBook(_)) "flagShariaBook";
+      case (#openShariaContract(_)) "openShariaContract";
+      case (#acquireMurabahaAsset(_)) "acquireMurabahaAsset";
+      case (#sellMurabaha(_)) "sellMurabaha";
+      case (#collectInstalment(_)) "collectInstalment";
+      case (#grantRebate(_)) "grantRebate";
+      case (#commenceIjarah(_)) "commenceIjarah";
+      case (#collectRental(_)) "collectRental";
+      case (#transferIjarahOwnership(_)) "transferIjarahOwnership";
+      case (#contributeCapital(_)) "contributeCapital";
+      case (#distributeMusharakahProfit(_)) "distributeMusharakahProfit";
+      case (#allocateMusharakahLoss(_)) "allocateMusharakahLoss";
+      case (#buyMusharakahUnit(_)) "buyMusharakahUnit";
+      case (#recordMudarabahResult(_)) "recordMudarabahResult";
+      case (#deliverSalam(_)) "deliverSalam";
+      case (#sellSalamCommodity(_)) "sellSalamCommodity";
+      case (#recordSalamFailure(_)) "recordSalamFailure";
+      case (#recordIstisnaMilestone(_)) "recordIstisnaMilestone";
+      case (#collectIstisnaBilling(_)) "collectIstisnaBilling";
+      case (#settleShariaContract(_)) "settleShariaContract";
+      case (#closeShariaContract(_)) "closeShariaContract";
+      case (#recordNonCompliance(_)) "recordNonCompliance";
+      case (#openInvestmentPool(_)) "openInvestmentPool";
+      case (#updatePoolReserves(_)) "updatePoolReserves";
+      case (#distributePool(_)) "distributePool";
     }
   };
 

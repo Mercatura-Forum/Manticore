@@ -169,6 +169,19 @@ module {
           case (_) [];
         }
       };
+      // ── Islamic banking (Islamic banking): the records whose block carries the instruction whole ──
+      case (#islamic(ie)) {
+        if (act.size() > 1) return [];
+        switch (ie) {
+          case (#policySet(p)) [#setIslamicPolicy(p)];
+          case (#productApproved(x)) [#approveShariaProduct({ product = x.product; approval = x.approval })];
+          case (#bookFlagged(x)) [#flagShariaBook({ book = x.book; sharia = x.sharia })];
+          case (#contractClosed(x)) [#closeShariaContract({ contract = x.contract; reason = x.reason })];
+          case (#poolOpened(x)) [#openInvestmentPool({ pool = x.pool })];
+          case (#reserveUpdated(x)) [#updatePoolReserves({ pool = x.pool; per = x.per; irr = x.irr })];
+          case (_) [];
+        }
+      };
       case (_) [];
     }
   };
@@ -249,6 +262,7 @@ module {
      "scoreApplication", "underwrite", "issueOffer", "declineOffer", "recordDocument", "recordConditionsMet", "fulfilApplication", "withdrawApplication",
      "openFacility", "transferParticipation", "recordCovenantTest", "blockDrawdowns", "unblockDrawdowns", "recordFacilityReview", "recordRateFixing", "closeFacility",
      "setTellerPolicy", "openTellerSession", "closeTellerSession", "issueChequebook", "stopCheque",
-     "setTradePolicy", "presentDocuments", "examinePresentation", "waiveDiscrepancies", "recordDemand", "presentCollection", "acceptCollection", "protestCollection", "recordTradeMessage"]
+     "setTradePolicy", "presentDocuments", "examinePresentation", "waiveDiscrepancies", "recordDemand", "presentCollection", "acceptCollection", "protestCollection", "recordTradeMessage",
+     "setIslamicPolicy", "approveShariaProduct", "flagShariaBook", "closeShariaContract", "openInvestmentPool", "updatePoolReserves"]
   };
 }

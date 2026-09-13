@@ -556,6 +556,39 @@ let commands : [T.Command] = [
   #settleBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
   #dishonourBill({ instrument = 903; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s37" }),
   #recordTradeMessage({ instrument = 900; kind = #mt(707); direction = #outgoing; hash = segHash32 }),
+  // Islamic banking (Islamic banking)
+  #setIslamicPolicy({ murabahaInventory = "1500"; murabahaReceivable = "1510"; deferredProfit = "1515"; murabahaIncome = "4500"; securityDeposits = "2500"; ijarahAssets = "1520"; accumulatedDepreciation = "1525"; depreciationExpense = "5500"; rentalReceivable = "1530"; ijarahIncome = "4510"; musharakahInvestment = "1540"; musharakahIncome = "4520"; mudarabahInvestment = "1550"; mudarabahIncome = "4530"; investmentLosses = "5510"; salamReceivable = "1560"; salamInventory = "1565"; salamIncome = "4540"; istisnaWip = "1570"; istisnaReceivable = "1575"; istisnaRevenue = "4550"; istisnaCosts = "5520"; iahEquity = "2600"; profitEqualisationReserve = "2610"; investmentRiskReserve = "2620"; profitPayableToHolders = "2630"; mudaribShareIncome = "4560"; profitAttributableToHolders = "5530"; charityPayable = "2700"; nostro = "1005"; perCeilingBps = 1_000; irrCeilingBps = 1_000 }),
+  #approveShariaProduct({ product = "ISAV"; approval = { ref = "SSB-2026-07"; sha256 = segHash32 } }),
+  #flagShariaBook({ book = "BR01"; sharia = true }),
+  #openShariaContract({ kind = #murabaha({ customer = 7; account = 44; asset = "10 TONNES OF STEEL COILS"; supplier = #external({ name = "Ezz Steel"; reference = "PO-77" }); costPrice = 100_000_00; markup = 12_000_00; instalments = 12; every = #monthly; method = #proportionate; promise = #binding; securityDeposit = 5_000_00; latePaymentCharityBps = 500; reference = "MUR-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #ijarah({ lessee = 7; account = 44; asset = "CNC MACHINE"; cost = 240_000_00; usefulLifeMonths = 60; residual = 24_000_00; rental = 5_000_00; every = #monthly; periods = 48; transfer = ?#sale({ price = 24_000_00 }); reference = "IJA-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #musharakah({ partners = [{ party = 7; account = 44; capital = 300_000_00; profitBps = 6_000 }]; bankCapital = 200_000_00; bankProfitBps = 4_000; diminishing = ?{ units = 20; unitPrice = 10_000_00; every = #quarterly; rentalBps = 800 }; reference = "MUS-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #mudarabah({ mudarib = 7; account = 44; capital = 150_000_00; bankProfitBps = 7_000; term = 365; reference = "MUD-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #salam({ seller = 7; account = 44; commodity = "WHEAT"; quantity = 500; unit = "TONNE"; delivery = 20900; priceAdvanced = 90_000_00; reference = "SAL-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openShariaContract({ kind = #istisna({ customer = 7; account = 44; specification = segHash32; price = 500_000_00; estimatedCost = 400_000_00; milestones = [(20800, 3_000), (20860, 7_000), (20920, 10_000)]; contractor = #external({ name = "Orascom"; reference = "CTR-9" }); reference = "IST-2026-0001" }); currency = "EGP"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #acquireMurabahaAsset({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #sellMurabaha({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectInstalment({ contract = 910; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #grantRebate({ contract = 910; amount = 1_000_00; reason = "early settlement, at the bank's discretion"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #commenceIjarah({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectRental({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #transferIjarahOwnership({ contract = 911; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #contributeCapital({ contract = 912; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #distributeMusharakahProfit({ contract = 912; profit = 50_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #allocateMusharakahLoss({ contract = 912; loss = 10_000_00; offered = ?[(7, 6_000_00)]; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #buyMusharakahUnit({ contract = 912; units = 2; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordMudarabahResult({ contract = 913; profit = 20_000_00; loss = 0; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #deliverSalam({ contract = 914; quantity = 500; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #sellSalamCommodity({ contract = 914; proceeds = 97_000_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordSalamFailure({ contract = 914; recourse = "price returned"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #recordIstisnaMilestone({ contract = 915; certificate = segHash32; percentBps = 3_000; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #collectIstisnaBilling({ contract = 915; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #settleShariaContract({ contract = 912; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #closeShariaContract({ contract = 912; reason = "settled" }),
+  #recordNonCompliance({ contract = ?910; amount = 250_00; account = "4500"; reason = "late-payment amount posted to income by mistake"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
+  #openInvestmentPool({ pool = { id = "PSIA-EGP"; currency = "EGP"; mudaribBps = 3_000; perBps = 500; irrBps = 300; product = "ISAV"; incomeAccounts = ["4500", "4510"] } }),
+  #updatePoolReserves({ pool = "PSIA-EGP"; per = ?400; irr = null }),
+  #distributePool({ pool = "PSIA-EGP"; month = "2026-09"; from = 20698; to = 20727; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s38" }),
 ];
 
 /// The command a proposal and an override in the event list below carry.
@@ -928,6 +961,41 @@ List.add(events, #trade(#billDishonoured({ instrument = 903; face = 40_000_00; c
 List.add(events, #trade(#tradeMessageRecorded({ instrument = 900; seq = 2; kind = #tsrv(1); direction = #incoming; hash = segHash32; day = 20727 })));
 List.add(events, #trade(#commissionEarned({ instrument = 900; amount = 4_11; cumulative = 4_11; day = 20727 })));
 List.add(events, #trade(#discountEarned({ instrument = 903; amount = 8_77; cumulative = 8_77; day = 20807 })));
+// every Islamic event variant (Islamic banking)
+List.add(events, #islamic(#policySet({ murabahaInventory = "1500"; murabahaReceivable = "1510"; deferredProfit = "1515"; murabahaIncome = "4500"; securityDeposits = "2500"; ijarahAssets = "1520"; accumulatedDepreciation = "1525"; depreciationExpense = "5500"; rentalReceivable = "1530"; ijarahIncome = "4510"; musharakahInvestment = "1540"; musharakahIncome = "4520"; mudarabahInvestment = "1550"; mudarabahIncome = "4530"; investmentLosses = "5510"; salamReceivable = "1560"; salamInventory = "1565"; salamIncome = "4540"; istisnaWip = "1570"; istisnaReceivable = "1575"; istisnaRevenue = "4550"; istisnaCosts = "5520"; iahEquity = "2600"; profitEqualisationReserve = "2610"; investmentRiskReserve = "2620"; profitPayableToHolders = "2630"; mudaribShareIncome = "4560"; profitAttributableToHolders = "5530"; charityPayable = "2700"; nostro = "1005"; perCeilingBps = 1_000; irrCeilingBps = 1_000 })));
+List.add(events, #islamic(#productApproved({ product = "ISAV"; approval = { ref = "SSB-2026-07"; sha256 = segHash32 }; day = 20726 })));
+List.add(events, #islamic(#bookFlagged({ book = "BR01"; sharia = true; day = 20726 })));
+List.add(events, #islamic(#contractOpened({ kind = #murabaha({ customer = 7; account = 44; asset = "10 TONNES OF STEEL COILS"; supplier = #external({ name = "Ezz Steel"; reference = "PO-77" }); costPrice = 100_000_00; markup = 12_000_00; instalments = 12; every = #monthly; method = #proportionate; promise = #binding; securityDeposit = 5_000_00; latePaymentCharityBps = 500; reference = "MUR-2026-0001" }); currency = "EGP"; book = "BR01"; day = 20726 })));
+List.add(events, #islamic(#contractOpened({ kind = #ijarah({ lessee = 7; account = 44; asset = "CNC MACHINE"; cost = 240_000_00; usefulLifeMonths = 60; residual = 24_000_00; rental = 5_000_00; every = #monthly; periods = 48; transfer = ?#sale({ price = 24_000_00 }); reference = "IJA-2026-0001" }); currency = "EGP"; book = "BR01"; day = 20726 })));
+List.add(events, #islamic(#contractOpened({ kind = #musharakah({ partners = [{ party = 7; account = 44; capital = 300_000_00; profitBps = 6_000 }]; bankCapital = 200_000_00; bankProfitBps = 4_000; diminishing = ?{ units = 20; unitPrice = 10_000_00; every = #quarterly; rentalBps = 800 }; reference = "MUS-2026-0001" }); currency = "EGP"; book = "BR01"; day = 20726 })));
+List.add(events, #islamic(#contractOpened({ kind = #mudarabah({ mudarib = 7; account = 44; capital = 150_000_00; bankProfitBps = 7_000; term = 365; reference = "MUD-2026-0001" }); currency = "EGP"; book = "BR01"; day = 20726 })));
+List.add(events, #islamic(#contractOpened({ kind = #salam({ seller = 7; account = 44; commodity = "WHEAT"; quantity = 500; unit = "TONNE"; delivery = 20900; priceAdvanced = 90_000_00; reference = "SAL-2026-0001" }); currency = "EGP"; book = "BR01"; day = 20726 })));
+List.add(events, #islamic(#contractOpened({ kind = #istisna({ customer = 7; account = 44; specification = segHash32; price = 500_000_00; estimatedCost = 400_000_00; milestones = [(20800, 3_000), (20860, 7_000), (20920, 10_000)]; contractor = #external({ name = "Orascom"; reference = "CTR-9" }); reference = "IST-2026-0001" }); currency = "EGP"; book = "BR01"; day = 20726 })));
+List.add(events, #islamic(#assetAcquired({ contract = 910; cost = 100_000_00; day = 20727 })));
+List.add(events, #islamic(#murabahaSold({ contract = 910; sellingPrice = 112_000_00; deferredProfit = 12_000_00; schedule = [(20757, 9_333_33), (20788, 9_333_33), (20818, 9_333_34)]; day = 20727 })));
+List.add(events, #islamic(#instalmentCollected({ contract = 910; amount = 9_333_33; principal = 8_333_33; profit = 1_000_00; day = 20757 })));
+List.add(events, #islamic(#profitRecognised({ contract = 910; amount = 32_87; cumulative = 32_87; day = 20728 })));
+List.add(events, #islamic(#rebateGranted({ contract = 910; amount = 1_000_00; reason = "early settlement"; day = 20800 })));
+List.add(events, #islamic(#latePaymentToCharity({ contract = 910; instalment = 2; amount = 12_79; cumulative = 12_79; day = 20789 })));
+List.add(events, #islamic(#leaseCommenced({ contract = 911; day = 20727 })));
+List.add(events, #islamic(#rentalAccrued({ contract = 911; amount = 5_000_00; period = 1; day = 20757 })));
+List.add(events, #islamic(#rentalCollected({ contract = 911; amount = 5_000_00; day = 20758 })));
+List.add(events, #islamic(#depreciationPosted({ contract = 911; amount = 118_35; cumulative = 118_35; day = 20728 })));
+List.add(events, #islamic(#ownershipTransferred({ contract = 911; how = #sale({ price = 24_000_00 }); consideration = 24_000_00; day = 22187 })));
+List.add(events, #islamic(#capitalContributed({ contract = 912; party = null; amount = 200_000_00; day = 20727 })));
+List.add(events, #islamic(#profitDistributed({ contract = 912; profit = 50_000_00; bankShare = 20_000_00; partnerShares = [(7, 30_000_00)]; day = 20800 })));
+List.add(events, #islamic(#lossAllocated({ contract = 912; loss = 10_000_00; bankShare = 4_000_00; partnerShares = [(7, 6_000_00)]; day = 20830 })));
+List.add(events, #islamic(#unitBought({ contract = 912; units = 2; price = 20_000_00; bankUnitsLeft = 18; day = 20818 })));
+List.add(events, #islamic(#commodityDelivered({ contract = 914; quantity = 500; day = 20900 })));
+List.add(events, #islamic(#commoditySold({ contract = 914; proceeds = 97_000_00; day = 20902 })));
+List.add(events, #islamic(#deliveryFailed({ contract = 914; recourse = "price returned"; day = 20901 })));
+List.add(events, #islamic(#milestoneRecorded({ contract = 915; certificate = segHash32; percentBps = 3_000; revenue = 150_000_00; cost = 120_000_00; day = 20800 })));
+List.add(events, #islamic(#contractSettled({ contract = 912; day = 20950 })));
+List.add(events, #islamic(#contractClosed({ contract = 912; reason = "settled"; day = 20951 })));
+List.add(events, #islamic(#nonComplianceRecorded({ contract = ?910; amount = 250_00; account = "4500"; reason = "posted to income by mistake"; day = 20790 })));
+List.add(events, #islamic(#poolOpened({ pool = { id = "PSIA-EGP"; currency = "EGP"; mudaribBps = 3_000; perBps = 500; irrBps = 300; product = "ISAV"; incomeAccounts = ["4500", "4510"] }; day = 20726 })));
+List.add(events, #islamic(#poolDistributed({ distribution = { pool = "PSIA-EGP"; period = "2026-09"; from = 20698; to = 20727; income = 1_000_00; per = 50_00; distributable = 950_00; mudaribShare = 285_00; holdersShare = 665_00; irr = 19_95; paid = 645_05; weightedBalances = [(44, 3_000_000_00), (45, 1_000_000_00)]; allocations = [(44, 483_79), (45, 161_26)] }; day = 20728 })));
+List.add(events, #islamic(#reserveUpdated({ pool = "PSIA-EGP"; per = ?400; irr = null; day = 20730 })));
 // every packing event variant
 let segHash : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 List.add(events, #packing(#packOpened({ pack = 1; period = "2026-09"; periodEnd = 20726; lo = 0; hi = 4_211; bankLo = 0; bankHi = 17_902 })));

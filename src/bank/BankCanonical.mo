@@ -51,6 +51,8 @@ import FCan "FacilityCanonical";
 import TCan "TellerCanonical";
 import TrT "TradeTypes";
 import TrCan "TradeCanonical";
+import ICan "IslamicCanonical";
+import IT "IslamicTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -629,6 +631,34 @@ module {
       case (#setTellerPolicy(p)) { w.byte(0xF6); TCan.writePolicy(w, p) };
       // trade finance trade finance: tags 0x67-0x6F, 0x8A-0x8F, 0xB8-0xBF, 0x1E-0x1F, 0x2D-0x2F
       case (#setTradePolicy(p)) { w.byte(0x67); TrCan.writePolicy(w, p) };
+      // Islamic banking Islamic banking: the extension tag 0xEF with a second byte (the single-byte space is spent)
+      case (#setIslamicPolicy(p)) { w.byte(0xEF); w.byte(0x01); ICan.writePolicy(w, p) };
+      case (#approveShariaProduct(x)) { w.byte(0xEF); w.byte(0x02); w.text(x.product); ICan.writeApproval(w, x.approval) };
+      case (#flagShariaBook(x)) { w.byte(0xEF); w.byte(0x03); w.text(x.book); w.bool(x.sharia) };
+      case (#openShariaContract(x)) { w.byte(0xEF); w.byte(0x04); ICan.writeKind(w, x.kind); w.text(x.currency); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#acquireMurabahaAsset(x)) { w.byte(0xEF); w.byte(0x05); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#sellMurabaha(x)) { w.byte(0xEF); w.byte(0x06); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#collectInstalment(x)) { w.byte(0xEF); w.byte(0x07); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#grantRebate(x)) { w.byte(0xEF); w.byte(0x08); w.nat(x.contract); w.nat(x.amount); w.text(x.reason); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#commenceIjarah(x)) { w.byte(0xEF); w.byte(0x09); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#collectRental(x)) { w.byte(0xEF); w.byte(0x0A); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#transferIjarahOwnership(x)) { w.byte(0xEF); w.byte(0x0B); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#contributeCapital(x)) { w.byte(0xEF); w.byte(0x0C); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#distributeMusharakahProfit(x)) { w.byte(0xEF); w.byte(0x0D); w.nat(x.contract); w.nat(x.profit); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#allocateMusharakahLoss(x)) { w.byte(0xEF); w.byte(0x0E); w.nat(x.contract); w.nat(x.loss); switch (x.offered) { case null w.byte(0); case (?o) { w.byte(1); w.len16(o.size()); for ((p, a) in o.vals()) { w.nat(p); w.nat(a) } } }; w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#buyMusharakahUnit(x)) { w.byte(0xEF); w.byte(0x0F); w.nat(x.contract); w.nat(x.units); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordMudarabahResult(x)) { w.byte(0xEF); w.byte(0x10); w.nat(x.contract); w.nat(x.profit); w.nat(x.loss); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#deliverSalam(x)) { w.byte(0xEF); w.byte(0x11); w.nat(x.contract); w.nat(x.quantity); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#sellSalamCommodity(x)) { w.byte(0xEF); w.byte(0x12); w.nat(x.contract); w.nat(x.proceeds); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordSalamFailure(x)) { w.byte(0xEF); w.byte(0x13); w.nat(x.contract); w.text(x.recourse); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordIstisnaMilestone(x)) { w.byte(0xEF); w.byte(0x14); w.nat(x.contract); w.blob(x.certificate); w.nat(x.percentBps); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#collectIstisnaBilling(x)) { w.byte(0xEF); w.byte(0x15); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#settleShariaContract(x)) { w.byte(0xEF); w.byte(0x16); w.nat(x.contract); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#closeShariaContract(x)) { w.byte(0xEF); w.byte(0x17); w.nat(x.contract); w.text(x.reason) };
+      case (#recordNonCompliance(x)) { w.byte(0xEF); w.byte(0x18); w.optNat(x.contract); w.nat(x.amount); w.text(x.account); w.text(x.reason); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#openInvestmentPool(x)) { w.byte(0xEF); w.byte(0x19); ICan.writePool(w, x.pool) };
+      case (#updatePoolReserves(x)) { w.byte(0xEF); w.byte(0x1A); w.text(x.pool); w.optNat(x.per); w.optNat(x.irr) };
+      case (#distributePool(x)) { w.byte(0xEF); w.byte(0x1B); w.text(x.pool); w.text(x.month); w.nat(x.from); w.nat(x.to); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#issueLetterOfCredit(x)) { w.byte(0x68); TrCan.writeLc(w, x.lc); w.nat(x.amount); w.text(x.currency); w.nat(x.expiry); w.text(x.placeOfExpiry); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#adviseLetterOfCredit(x)) { w.byte(0x69); w.text(x.message); w.nat(x.beneficiary); w.nat(x.beneficiaryAccount); w.bool(x.confirm); w.len16(x.checklist.size()); for ((k, cs) in x.checklist.vals()) { TrCan.writeDocumentKind(w, k); w.len16(cs.size()); for (c in cs.vals()) w.text(c) }; w.nat(x.commissionBps); w.optNat(x.facility); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#amendLetterOfCredit(x)) { w.byte(0x6A); w.nat(x.instrument); TrCan.writeAmendment(w, x.amendment); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
@@ -1397,6 +1427,7 @@ module {
       case (#facility(fe)) { w.byte(0x51); FCan.writeEvent(w, fe) };
       case (#teller(te)) { w.byte(0x52); TCan.writeEvent(w, te) };
       case (#trade(tr)) { w.byte(0x53); TrCan.writeEvent(w, tr) };
+      case (#islamic(ie)) { w.byte(0x54); ICan.writeEvent(w, ie) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -1821,6 +1852,44 @@ module {
     switch (version) { case 1 readCommandBody(r, false); case 2 readCommandBody(r, true); case (_) null }
   };
 
+  /// The Islamic-banking commands (Islamic banking): the extension tag 0xEF with a second byte; `null` when the second byte is
+  /// not one of theirs, `?null` when the body is malformed.
+  func readIslamicCommand(r : C.Reader) : ??T.Command {
+    let ?sub = r.byte() else return ?null;
+    switch (sub) {
+      case 0x01 { let ?p = ICan.readPolicy(r) else return ?null; ??#setIslamicPolicy(p) };
+      case 0x02 { let ?product = r.text() else return ?null; let ?approval = ICan.readApproval(r) else return ?null; ??#approveShariaProduct({ product; approval }) };
+      case 0x03 { let ?book = r.text() else return ?null; let ?sharia = r.bool() else return ?null; ??#flagShariaBook({ book; sharia }) };
+      case 0x04 { let ?kind = ICan.readKind(r) else return ?null; let ?currency = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#openShariaContract({ kind; currency; postingDate; valueDate; period; narration }) };
+      case 0x05 { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#acquireMurabahaAsset({ contract; postingDate; valueDate; period; narration }) };
+      case 0x06 { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#sellMurabaha({ contract; postingDate; valueDate; period; narration }) };
+      case 0x07 { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#collectInstalment({ contract; postingDate; valueDate; period; narration }) };
+      case 0x08 { let ?contract = r.nat() else return ?null; let ?amount = r.nat() else return ?null; let ?reason = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#grantRebate({ contract; amount; reason; postingDate; valueDate; period; narration }) };
+      case 0x09 { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#commenceIjarah({ contract; postingDate; valueDate; period; narration }) };
+      case 0x0A { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#collectRental({ contract; postingDate; valueDate; period; narration }) };
+      case 0x0B { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#transferIjarahOwnership({ contract; postingDate; valueDate; period; narration }) };
+      case 0x0C { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#contributeCapital({ contract; postingDate; valueDate; period; narration }) };
+      case 0x0D { let ?contract = r.nat() else return ?null; let ?profit = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#distributeMusharakahProfit({ contract; profit; postingDate; valueDate; period; narration }) };
+      case 0x0E { let ?contract = r.nat() else return ?null; let ?loss = r.nat() else return ?null;
+        let offered : ?[(Nat, Nat)] = switch (r.byte()) { case (?0) null; case (?1) { let ?n = r.len16() else return ?null; let o = List.empty<(Nat, Nat)>(); var i = 0; while (i < n) { let ?p = r.nat() else return ?null; let ?a = r.nat() else return ?null; List.add(o, (p, a)); i += 1 }; ?List.toArray(o) }; case (_) return ?null };
+        let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#allocateMusharakahLoss({ contract; loss; offered; postingDate; valueDate; period; narration }) };
+      case 0x0F { let ?contract = r.nat() else return ?null; let ?units = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#buyMusharakahUnit({ contract; units; postingDate; valueDate; period; narration }) };
+      case 0x10 { let ?contract = r.nat() else return ?null; let ?profit = r.nat() else return ?null; let ?loss = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#recordMudarabahResult({ contract; profit; loss; postingDate; valueDate; period; narration }) };
+      case 0x11 { let ?contract = r.nat() else return ?null; let ?quantity = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#deliverSalam({ contract; quantity; postingDate; valueDate; period; narration }) };
+      case 0x12 { let ?contract = r.nat() else return ?null; let ?proceeds = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#sellSalamCommodity({ contract; proceeds; postingDate; valueDate; period; narration }) };
+      case 0x13 { let ?contract = r.nat() else return ?null; let ?recourse = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#recordSalamFailure({ contract; recourse; postingDate; valueDate; period; narration }) };
+      case 0x14 { let ?contract = r.nat() else return ?null; let ?certificate = r.blob() else return ?null; let ?percentBps = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#recordIstisnaMilestone({ contract; certificate; percentBps; postingDate; valueDate; period; narration }) };
+      case 0x15 { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#collectIstisnaBilling({ contract; postingDate; valueDate; period; narration }) };
+      case 0x16 { let ?contract = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#settleShariaContract({ contract; postingDate; valueDate; period; narration }) };
+      case 0x17 { let ?contract = r.nat() else return ?null; let ?reason = r.text() else return ?null; ??#closeShariaContract({ contract; reason }) };
+      case 0x18 { let ?contract = r.optNat() else return ?null; let ?amount = r.nat() else return ?null; let ?account = r.text() else return ?null; let ?reason = r.text() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#recordNonCompliance({ contract; amount; account; reason; postingDate; valueDate; period; narration }) };
+      case 0x19 { let ?pool = ICan.readPool(r) else return ?null; ??#openInvestmentPool({ pool }) };
+      case 0x1A { let ?pool = r.text() else return ?null; let ?per = r.optNat() else return ?null; let ?irr = r.optNat() else return ?null; ??#updatePoolReserves({ pool; per; irr }) };
+      case 0x1B { let ?pool = r.text() else return ?null; let ?month = r.text() else return ?null; let ?from = r.nat() else return ?null; let ?to = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#distributePool({ pool; month; from; to; postingDate; valueDate; period; narration }) };
+      case (_) null;
+    }
+  };
+
   /// The trade book's commands (trade finance), read apart from the main switch so that switch stays under the chain's
   /// function-complexity bound: `null` when the tag is not a trade command's, `?null` when the body is malformed.
   func readTradeCommand(tag : Nat8, r : C.Reader) : ??T.Command {
@@ -1877,6 +1946,7 @@ module {
   func readCommandBody(r : C.Reader, withApplication : Bool) : ?T.Command {
     let ?tag = r.byte() else return null;
     switch (readTradeCommand(tag, r)) { case (?c) return c; case null {} };
+    if (tag == 0xEF) { switch (readIslamicCommand(r)) { case (?c) return c; case null return null } };
     switch (tag) {
       case 0x01 { let ?id = r.text() else return null; let ?name = r.text() else return null; let ?permissions = rTexts(r) else return null; ?#defineRole({ id; name; permissions }) };
       case 0x02 { let ?subject = r.principal() else return null; let ?role = r.text() else return null; let ?scope = rScope(r) else return null; ?#grantRole({ subject; role; scope }) };
@@ -2656,6 +2726,7 @@ module {
       case 0x51 { let ?fe = FCan.readEvent(r) else return null; ?#facility(fe) };
       case 0x52 { let ?te = TCan.readEvent(r) else return null; ?#teller(te) };
       case 0x53 { let ?tr = TrCan.readEvent(r) else return null; ?#trade(tr) };
+      case 0x54 { let ?ie = ICan.readEvent(r) else return null; ?#islamic(ie) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

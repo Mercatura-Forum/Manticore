@@ -31,6 +31,7 @@ import OT "OriginationTypes";
 import FaT "FacilityTypes";
 import TeT "TellerTypes";
 import TrT "TradeTypes";
+import IT "IslamicTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -491,6 +492,34 @@ module {
     #settleBill : { instrument : TrT.InstrumentId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     #dishonourBill : { instrument : TrT.InstrumentId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     #recordTradeMessage : { instrument : TrT.InstrumentId; kind : TrT.MessageKind; direction : TrT.Direction; hash : Blob };
+    // ── Islamic banking Islamic banking: the Sharia contracts, their acts, the investment pools, the governance record ──
+    #setIslamicPolicy : IT.Policy;
+    #approveShariaProduct : { product : ProdT.ProductId; approval : IT.BoardApproval };
+    #flagShariaBook : { book : BookId; sharia : Bool };
+    #openShariaContract : { kind : IT.Kind; currency : JT.Currency; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #acquireMurabahaAsset : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #sellMurabaha : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #collectInstalment : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #grantRebate : { contract : IT.ContractId; amount : Nat; reason : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #commenceIjarah : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #collectRental : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #transferIjarahOwnership : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #contributeCapital : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #distributeMusharakahProfit : { contract : IT.ContractId; profit : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #allocateMusharakahLoss : { contract : IT.ContractId; loss : Nat; offered : ?[(PT.PartyId, Nat)]; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #buyMusharakahUnit : { contract : IT.ContractId; units : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordMudarabahResult : { contract : IT.ContractId; profit : Nat; loss : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #deliverSalam : { contract : IT.ContractId; quantity : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #sellSalamCommodity : { contract : IT.ContractId; proceeds : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordSalamFailure : { contract : IT.ContractId; recourse : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordIstisnaMilestone : { contract : IT.ContractId; certificate : Blob; percentBps : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #collectIstisnaBilling : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #settleShariaContract : { contract : IT.ContractId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #closeShariaContract : { contract : IT.ContractId; reason : Text };
+    #recordNonCompliance : { contract : ?IT.ContractId; amount : Nat; account : Text; reason : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #openInvestmentPool : { pool : IT.Pool };
+    #updatePoolReserves : { pool : IT.PoolId; per : ?Nat; irr : ?Nat };
+    #distributePool : { pool : IT.PoolId; month : Text; from : Day; to : Day; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -603,6 +632,7 @@ module {
     /// Branch and teller: counted cash, sessions, the cash network, cheques and drafts (branch and teller).
     #teller : TeT.TellerEvent;
     #trade : TrT.TradeEvent;
+    #islamic : IT.IslamicEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -733,6 +763,7 @@ module {
     #FacilityError : { error : FaT.FacilityError };
     #TellerError : { error : TeT.TellerError };
     #TradeError : { error : TrT.TradeError };
+    #IslamicError : { error : IT.IslamicError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };

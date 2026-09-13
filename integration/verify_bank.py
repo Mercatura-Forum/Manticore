@@ -704,7 +704,7 @@ class Reader(V.Reader):
     # ─── the end-of-day batch ──────────────────────────────────────────
 
     JOBS = {1: "accrual", 2: "charges", 3: "instalmentsDue", 4: "ageing", 5: "provisioning",
-            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade"}
+            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade", 14: "sharia"}
 
     def b_job(self):
         rank = self.nat()
@@ -1453,6 +1453,9 @@ class Reader(V.Reader):
             return {"dishonourBill": {"instrument": self.nat(), **self.dates()}}
         if tag == 0x2F:
             return {"recordTradeMessage": {"instrument": self.nat(), "kind": self.trade_message_kind(), "direction": ["outgoing", "incoming"][self.byte()], "hash": self.blob()}}
+        # Islamic banking (Islamic banking): the extension tag 0xEF with a second byte
+        if tag == 0xEF:
+            return self.islamic_command()
         if tag == 0xD4:
             return {"openPacking": {"period": self.text()}}
         if tag == 0xD5:
@@ -1921,6 +1924,180 @@ class Reader(V.Reader):
         if t == 0x1A:
             return {"facilityClosed": {"facility": self.nat(), "day": self.nat()}}
         raise ValueError(f"unknown facility event tag {t:#x}")
+
+    # ── Islamic banking (Islamic banking) ──
+    ISLAMIC_POLICY = ["murabahaInventory", "murabahaReceivable", "deferredProfit", "murabahaIncome", "securityDeposits", "ijarahAssets", "accumulatedDepreciation", "depreciationExpense",
+                      "rentalReceivable", "ijarahIncome", "musharakahInvestment", "musharakahIncome", "mudarabahInvestment", "mudarabahIncome", "investmentLosses", "salamReceivable",
+                      "salamInventory", "salamIncome", "istisnaWip", "istisnaReceivable", "istisnaRevenue", "istisnaCosts", "iahEquity", "profitEqualisationReserve", "investmentRiskReserve",
+                      "profitPayableToHolders", "mudaribShareIncome", "profitAttributableToHolders", "charityPayable", "nostro"]
+
+    def islamic_policy(self):
+        out = {n: self.text() for n in self.ISLAMIC_POLICY}
+        out["perCeilingBps"] = self.nat(); out["irrCeilingBps"] = self.nat()
+        return out
+
+    def islamic_approval(self):
+        return {"ref": self.text(), "sha256": self.blob()}
+
+    def islamic_counterparty(self):
+        t = self.byte()
+        if t == 0:
+            return {"party": {"party": self.nat(), "account": self.nat()}}
+        return {"external": {"name": self.text(), "reference": self.text()}}
+
+    def period_(self):
+        return ["daily", "monthly", "quarterly", "semiAnnual", "annual", "atMaturity"][self.byte()]
+
+    def islamic_transfer_opt(self):
+        t = self.byte()
+        if t == 0:
+            return None
+        if t == 1:
+            return "gift"
+        if t == 2:
+            return {"sale": {"price": self.nat()}}
+        return {"gradual": {"units": self.nat()}}
+
+    def islamic_kind(self):
+        t = self.byte()
+        if t == 1:
+            out = {"customer": self.nat(), "account": self.nat(), "asset": self.text(), "supplier": self.islamic_counterparty(), "costPrice": self.nat(), "markup": self.nat(), "instalments": self.nat(), "every": self.period_()}
+            out["method"] = ["proportionate", "effectiveRate"][self.byte()]; out["promise"] = ["nonBinding", "binding"][self.byte()]
+            out.update({"securityDeposit": self.nat(), "latePaymentCharityBps": self.nat(), "reference": self.text()})
+            return {"murabaha": out}
+        if t == 2:
+            return {"ijarah": {"lessee": self.nat(), "account": self.nat(), "asset": self.text(), "cost": self.nat(), "usefulLifeMonths": self.nat(), "residual": self.nat(), "rental": self.nat(), "every": self.period_(),
+                               "periods": self.nat(), "transfer": self.islamic_transfer_opt(), "reference": self.text()}}
+        if t == 3:
+            partners = [{"party": self.nat(), "account": self.nat(), "capital": self.nat(), "profitBps": self.nat()} for _ in range(self.len16())]
+            out = {"partners": partners, "bankCapital": self.nat(), "bankProfitBps": self.nat()}
+            d = self.byte()
+            out["diminishing"] = None if d == 0 else {"units": self.nat(), "unitPrice": self.nat(), "every": self.period_(), "rentalBps": self.nat()}
+            out["reference"] = self.text()
+            return {"musharakah": out}
+        if t == 4:
+            return {"mudarabah": {"mudarib": self.nat(), "account": self.nat(), "capital": self.nat(), "bankProfitBps": self.nat(), "term": self.nat(), "reference": self.text()}}
+        if t == 5:
+            return {"salam": {"seller": self.nat(), "account": self.nat(), "commodity": self.text(), "quantity": self.nat(), "unit": self.text(), "delivery": self.nat(), "priceAdvanced": self.nat(), "reference": self.text()}}
+        if t == 6:
+            return {"istisna": {"customer": self.nat(), "account": self.nat(), "specification": self.blob(), "price": self.nat(), "estimatedCost": self.nat(), "milestones": self.pairs(), "contractor": self.islamic_counterparty(), "reference": self.text()}}
+        raise ValueError(f"unknown contract kind {t}")
+
+    def islamic_pool(self):
+        return {"id": self.text(), "currency": self.text(), "mudaribBps": self.nat(), "perBps": self.nat(), "irrBps": self.nat(), "product": self.text(), "incomeAccounts": self.texts()}
+
+    def islamic_distribution(self):
+        return {"pool": self.text(), "period": self.text(), "from": self.nat(), "to": self.nat(), "income": self.nat(), "per": self.nat(), "distributable": self.nat(), "mudaribShare": self.nat(),
+                "holdersShare": self.nat(), "irr": self.nat(), "paid": self.nat(), "weightedBalances": self.pairs(), "allocations": self.pairs()}
+
+    def islamic_command(self):
+        sub = self.byte()
+        D = self.dates
+        if sub == 0x01:
+            return {"setIslamicPolicy": self.islamic_policy()}
+        if sub == 0x02:
+            return {"approveShariaProduct": {"product": self.text(), "approval": self.islamic_approval()}}
+        if sub == 0x03:
+            return {"flagShariaBook": {"book": self.text(), "sharia": self.bool()}}
+        if sub == 0x04:
+            return {"openShariaContract": {"kind": self.islamic_kind(), "currency": self.text(), **D()}}
+        simple = {0x05: "acquireMurabahaAsset", 0x06: "sellMurabaha", 0x07: "collectInstalment", 0x09: "commenceIjarah", 0x0A: "collectRental", 0x0B: "transferIjarahOwnership",
+                  0x0C: "contributeCapital", 0x15: "collectIstisnaBilling", 0x16: "settleShariaContract"}
+        if sub in simple:
+            return {simple[sub]: {"contract": self.nat(), **D()}}
+        if sub == 0x08:
+            return {"grantRebate": {"contract": self.nat(), "amount": self.nat(), "reason": self.text(), **D()}}
+        if sub == 0x0D:
+            return {"distributeMusharakahProfit": {"contract": self.nat(), "profit": self.nat(), **D()}}
+        if sub == 0x0E:
+            c = self.nat(); loss = self.nat(); f = self.byte()
+            offered = None if f == 0 else self.pairs()
+            return {"allocateMusharakahLoss": {"contract": c, "loss": loss, "offered": offered, **D()}}
+        if sub == 0x0F:
+            return {"buyMusharakahUnit": {"contract": self.nat(), "units": self.nat(), **D()}}
+        if sub == 0x10:
+            return {"recordMudarabahResult": {"contract": self.nat(), "profit": self.nat(), "loss": self.nat(), **D()}}
+        if sub == 0x11:
+            return {"deliverSalam": {"contract": self.nat(), "quantity": self.nat(), **D()}}
+        if sub == 0x12:
+            return {"sellSalamCommodity": {"contract": self.nat(), "proceeds": self.nat(), **D()}}
+        if sub == 0x13:
+            return {"recordSalamFailure": {"contract": self.nat(), "recourse": self.text(), **D()}}
+        if sub == 0x14:
+            return {"recordIstisnaMilestone": {"contract": self.nat(), "certificate": self.blob(), "percentBps": self.nat(), **D()}}
+        if sub == 0x17:
+            return {"closeShariaContract": {"contract": self.nat(), "reason": self.text()}}
+        if sub == 0x18:
+            return {"recordNonCompliance": {"contract": self.opt_nat(), "amount": self.nat(), "account": self.text(), "reason": self.text(), **D()}}
+        if sub == 0x19:
+            return {"openInvestmentPool": {"pool": self.islamic_pool()}}
+        if sub == 0x1A:
+            return {"updatePoolReserves": {"pool": self.text(), "per": self.opt_nat(), "irr": self.opt_nat()}}
+        if sub == 0x1B:
+            return {"distributePool": {"pool": self.text(), "month": self.text(), "from": self.nat(), "to": self.nat(), **D()}}
+        raise ValueError(f"unknown Islamic command sub-tag {sub:#x}")
+
+    def islamic_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"policySet": self.islamic_policy()}
+        if t == 0x02:
+            return {"productApproved": {"product": self.text(), "approval": self.islamic_approval(), "day": self.nat()}}
+        if t == 0x03:
+            return {"bookFlagged": {"book": self.text(), "sharia": self.bool(), "day": self.nat()}}
+        if t == 0x04:
+            return {"contractOpened": {"kind": self.islamic_kind(), "currency": self.text(), "book": self.text(), "day": self.nat()}}
+        if t == 0x05:
+            return {"assetAcquired": {"contract": self.nat(), "cost": self.nat(), "day": self.nat()}}
+        if t == 0x06:
+            return {"murabahaSold": {"contract": self.nat(), "sellingPrice": self.nat(), "deferredProfit": self.nat(), "schedule": self.pairs(), "day": self.nat()}}
+        if t == 0x07:
+            return {"instalmentCollected": {"contract": self.nat(), "amount": self.nat(), "principal": self.nat(), "profit": self.nat(), "day": self.nat()}}
+        if t == 0x08:
+            return {"profitRecognised": {"contract": self.nat(), "amount": self.nat(), "cumulative": self.nat(), "day": self.nat()}}
+        if t == 0x09:
+            return {"rebateGranted": {"contract": self.nat(), "amount": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x0A:
+            return {"latePaymentToCharity": {"contract": self.nat(), "instalment": self.nat(), "amount": self.nat(), "cumulative": self.nat(), "day": self.nat()}}
+        if t == 0x0B:
+            return {"leaseCommenced": {"contract": self.nat(), "day": self.nat()}}
+        if t == 0x0C:
+            return {"rentalAccrued": {"contract": self.nat(), "amount": self.nat(), "period": self.nat(), "day": self.nat()}}
+        if t == 0x0D:
+            return {"rentalCollected": {"contract": self.nat(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x0E:
+            return {"depreciationPosted": {"contract": self.nat(), "amount": self.nat(), "cumulative": self.nat(), "day": self.nat()}}
+        if t == 0x0F:
+            c = self.nat(); how = self.islamic_transfer_opt()
+            return {"ownershipTransferred": {"contract": c, "how": how, "consideration": self.nat(), "day": self.nat()}}
+        if t == 0x10:
+            return {"capitalContributed": {"contract": self.nat(), "party": self.opt_nat(), "amount": self.nat(), "day": self.nat()}}
+        if t in (0x11, 0x12):
+            name = "profitDistributed" if t == 0x11 else "lossAllocated"; k = "profit" if t == 0x11 else "loss"
+            return {name: {"contract": self.nat(), k: self.nat(), "bankShare": self.nat(), "partnerShares": self.pairs(), "day": self.nat()}}
+        if t == 0x13:
+            return {"unitBought": {"contract": self.nat(), "units": self.nat(), "price": self.nat(), "bankUnitsLeft": self.nat(), "day": self.nat()}}
+        if t == 0x14:
+            return {"commodityDelivered": {"contract": self.nat(), "quantity": self.nat(), "day": self.nat()}}
+        if t == 0x15:
+            return {"commoditySold": {"contract": self.nat(), "proceeds": self.nat(), "day": self.nat()}}
+        if t == 0x16:
+            return {"deliveryFailed": {"contract": self.nat(), "recourse": self.text(), "day": self.nat()}}
+        if t == 0x17:
+            return {"milestoneRecorded": {"contract": self.nat(), "certificate": self.blob(), "percentBps": self.nat(), "revenue": self.nat(), "cost": self.nat(), "day": self.nat()}}
+        if t == 0x18:
+            return {"contractSettled": {"contract": self.nat(), "day": self.nat()}}
+        if t == 0x19:
+            return {"contractClosed": {"contract": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x1A:
+            return {"nonComplianceRecorded": {"contract": self.opt_nat(), "amount": self.nat(), "account": self.text(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x1B:
+            return {"poolOpened": {"pool": self.islamic_pool(), "day": self.nat()}}
+        if t == 0x1C:
+            return {"poolDistributed": {"distribution": self.islamic_distribution(), "day": self.nat()}}
+        if t == 0x1D:
+            return {"reserveUpdated": {"pool": self.text(), "per": self.opt_nat(), "irr": self.opt_nat(), "day": self.nat()}}
+        raise ValueError(f"unknown Islamic event tag {t:#x}")
 
     # ── trade finance (trade finance) ──
     def trade_policy(self):
@@ -2477,6 +2654,8 @@ class Reader(V.Reader):
             return {"teller": self.teller_event()}
         if tag == 0x53:
             return {"trade": self.trade_event()}
+        if tag == 0x54:
+            return {"islamic": self.islamic_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:
