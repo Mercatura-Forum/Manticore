@@ -519,6 +519,30 @@ let commands : [T.Command] = [
   #dishonourReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
   #writeOffReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
   #closeFacility({ facility = 507 }),
+  // branch and teller (branch and teller)
+  #setTellerPolicy({ overShort = "5300"; cashInTransit = "1002"; centralBank = "1010"; draftsPayable = "2300"; clearing = "2310"; staleDays = 180; clearingWindowDays = 3 }),
+  #openTellerSession({ till = "T1"; teller = carol; opening = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] } }),
+  #closeTellerSession({ till = "T1"; closing = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] } }),
+  #resolveTillDifference({ session = 700; note = "counted short"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #cashDeposit({ till = "T1"; account = 44; amount = 2_200_00; tendered = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; change = { notes = [(5_00, 1)]; coins = [] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #cashWithdrawal({ till = "T1"; account = 44; amount = 250_00; paid = { notes = [(200_00, 1), (50_00, 1)]; coins = [] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #vaultToTill({ till = "T1"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #tillToVault({ till = "T1"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #dispatchCash({ product = "TILL"; fromBook = "BR01"; toBook = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; carrier = "ArmourCo"; sealBag = "SB-0001"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #receiveCash({ movement = 701; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #vaultToCentralBank({ product = "TILL"; book = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #centralBankToVault({ product = "TILL"; book = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #issueChequebook({ account = 44; from = 1; to = 50 }),
+  #stopCheque({ account = 44; serial = 7; reason = "lost" }),
+  #presentCheque({ account = 44; serial = 1; amount = 1_500_00; payee = #clearing({ house = "EGCH"; batch = "B-001" }); chequeDate = 20720; imageHash = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #presentCheque({ account = 44; serial = 2; amount = 900_00; payee = #inBranch({ till = "T1" }); chequeDate = 20720; imageHash = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #clearCheque({ account = 44; serial = 1; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #returnCheque({ account = 44; serial = 2; reason = #insufficientFunds; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #returnCheque({ account = 44; serial = 3; reason = #other("mutilated"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #issueDraft({ serial = "D-0001"; payeeCommit = segHash32; amount = 3_000_00; currency = "EGP"; source = #account(44); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #issueDraft({ serial = "D-0002"; payeeCommit = segHash32; amount = 1_250_00; currency = "EGP"; source = #till("T1"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #payDraft({ serial = "D-0001"; to = #till("T1"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #cancelDraft({ serial = "D-0002"; refundTo = 44; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -584,7 +608,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13 (the origination and facility families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination, facility and teller families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -653,6 +677,11 @@ let golden : [(Text, Text, Text)] = [
   ("recordFacilityReview", "66d0f3c544f055ba5c4d6297a564efb3bb5a59be9d197a4ca78bf8ed90a18cba", "20d3c47d9961a5afc8e9588584cbebf28a273bc362e4384de479a4c804828418"),
   ("recordRateFixing", "a90b21d72e38ac14b8853fc104307cee76087e94def2905a92e05396f574fb17", "ed757e4b8b04a254027b6486b553e21379a5cfaed4f38e5b70b9f7ae04a777d5"),
   ("closeFacility", "04644fdf81035192244ed76f3bc2ae4802afe1be0f983ea450072133cbbb715a", "e98d73e8a6b5c04b4f9e5c15801a5340581de47ad0fe0cd914ded063d1a92f1a"),
+  ("setTellerPolicy", "8bc05d4317158352f4c0e8a666d09e9cd31ed9ac341e6a78ca924b5a78901d30", "8758ddff632ed1782336eda561300560ac0158b3605ca260151547d3575063ff"),
+  ("openTellerSession", "755cbb3dc1cb303afc4d5ed30d1f9aaf83d23a6f3b55619742c9b9daf5533f8a", "7ab26bafc271ad8afbbed31359b7968647fe154ad39f54a4739ca6cb642c30d8"),
+  ("closeTellerSession", "e25eb207c706813ca46380d50c0b86cb37c833c5831f9fd9a24b282f8210ee76", "4f133efa283e8a3c25abff5fe74dccd5ab34ed0c2392bde14ba31673d25c5743"),
+  ("issueChequebook", "e0fd858b31026af5576158c7abf0de648fd1c1f723514073b7ad8a419d9b63e0", "642a2c1637270f7f49da23950d0691882f30d69336c3d9148cf08df4b7db0c87"),
+  ("stopCheque", "dc737a2c61f6f69a667ba2e6e704e4300f337477be7051f791bb5a778930cfc2", "6cde2154b624063f9372e14440c37e1be7bca5ef632b0c1a4856c488f5a430dc"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {

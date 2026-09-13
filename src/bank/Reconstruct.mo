@@ -141,6 +141,18 @@ module {
           case (_) [];
         }
       };
+      // ── branch and teller (branch and teller): the decisions and records whose block is the instruction less what was read ──
+      case (#teller(te)) {
+        if (act.size() > 1) return [];
+        switch (te) {
+          case (#policySet(p)) [#setTellerPolicy(p)];
+          case (#sessionOpened(x)) [#openTellerSession({ till = x.till; teller = x.teller; opening = x.opening })];
+          case (#sessionClosed(x)) [#closeTellerSession({ till = x.till; closing = x.closing })];
+          case (#chequebookIssued(x)) [#issueChequebook({ account = x.account; from = x.from; to = x.to })];
+          case (#chequeStopped(x)) [#stopCheque({ account = x.account; serial = x.serial; reason = x.reason })];
+          case (_) [];
+        }
+      };
       case (_) [];
     }
   };
@@ -219,6 +231,7 @@ module {
      "setAccountFormat", "setReviewGrace", "registerProduct", "amendProduct", "closeProductToNewAccounts", "openAccount", "setAccountStatus", "migrateAccount", "openTill", "createCustomer",
      "setOriginationPolicy", "setAffordabilityModel", "setScorecard", "registerPasskey", "openApplication", "recordApplicationData", "assessAffordability", "requestBureauReport",
      "scoreApplication", "underwrite", "issueOffer", "declineOffer", "recordDocument", "recordConditionsMet", "fulfilApplication", "withdrawApplication",
-     "openFacility", "transferParticipation", "recordCovenantTest", "blockDrawdowns", "unblockDrawdowns", "recordFacilityReview", "recordRateFixing", "closeFacility"]
+     "openFacility", "transferParticipation", "recordCovenantTest", "blockDrawdowns", "unblockDrawdowns", "recordFacilityReview", "recordRateFixing", "closeFacility",
+     "setTellerPolicy", "openTellerSession", "closeTellerSession", "issueChequebook", "stopCheque"]
   };
 }

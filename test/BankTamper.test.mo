@@ -503,6 +503,30 @@ let commands : [T.Command] = [
   #dishonourReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
   #writeOffReceivable({ facility = 505; ref = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s31" }),
   #closeFacility({ facility = 507 }),
+  // branch and teller (branch and teller)
+  #setTellerPolicy({ overShort = "5300"; cashInTransit = "1002"; centralBank = "1010"; draftsPayable = "2300"; clearing = "2310"; staleDays = 180; clearingWindowDays = 3 }),
+  #openTellerSession({ till = "T1"; teller = carol; opening = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] } }),
+  #closeTellerSession({ till = "T1"; closing = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] } }),
+  #resolveTillDifference({ session = 700; note = "counted short"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #cashDeposit({ till = "T1"; account = 44; amount = 2_200_00; tendered = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; change = { notes = [(5_00, 1)]; coins = [] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #cashWithdrawal({ till = "T1"; account = 44; amount = 250_00; paid = { notes = [(200_00, 1), (50_00, 1)]; coins = [] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #vaultToTill({ till = "T1"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #tillToVault({ till = "T1"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #dispatchCash({ product = "TILL"; fromBook = "BR01"; toBook = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; carrier = "ArmourCo"; sealBag = "SB-0001"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #receiveCash({ movement = 701; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #vaultToCentralBank({ product = "TILL"; book = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #centralBankToVault({ product = "TILL"; book = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #issueChequebook({ account = 44; from = 1; to = 50 }),
+  #stopCheque({ account = 44; serial = 7; reason = "lost" }),
+  #presentCheque({ account = 44; serial = 1; amount = 1_500_00; payee = #clearing({ house = "EGCH"; batch = "B-001" }); chequeDate = 20720; imageHash = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #presentCheque({ account = 44; serial = 2; amount = 900_00; payee = #inBranch({ till = "T1" }); chequeDate = 20720; imageHash = segHash32; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #clearCheque({ account = 44; serial = 1; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #returnCheque({ account = 44; serial = 2; reason = #insufficientFunds; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #returnCheque({ account = 44; serial = 3; reason = #other("mutilated"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #issueDraft({ serial = "D-0001"; payeeCommit = segHash32; amount = 3_000_00; currency = "EGP"; source = #account(44); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #issueDraft({ serial = "D-0002"; payeeCommit = segHash32; amount = 1_250_00; currency = "EGP"; source = #till("T1"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #payDraft({ serial = "D-0001"; to = #till("T1"); postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
+  #cancelDraft({ serial = "D-0002"; refundTo = 44; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s36" }),
 ];
 
 /// The command a proposal and an override in the event list below carry.
@@ -818,6 +842,30 @@ List.add(events, #facility(#drawingClosed({ facility = 500; account = 600; day =
 List.add(events, #facility(#rateFixingRecorded({ index = "CBE-ON"; day = 20726; rateBps = 900 })));
 List.add(events, #facility(#facilityClosed({ facility = 507; day = 20900 })));
 List.add(events, #product(#accountRateSet({ account = 600; rate = { numerator = 1350; denominator = 10_000; negative = false }; effective = 20756 })));
+// every teller event variant (branch and teller)
+List.add(events, #teller(#policySet({ overShort = "5300"; cashInTransit = "1002"; centralBank = "1010"; draftsPayable = "2300"; clearing = "2310"; staleDays = 180; clearingWindowDays = 3 })));
+List.add(events, #teller(#sessionOpened({ till = "T1"; teller = carol; opening = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; counted = 2_225_00; book = 2_225_00; day = 20726 })));
+List.add(events, #teller(#sessionClosed({ session = 700; till = "T1"; closing = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; counted = 2_225_00; book = 2_275_00; difference = #short(50_00); day = 20726 })));
+List.add(events, #teller(#sessionClosed({ session = 701; till = "T2"; closing = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; counted = 2_225_00; book = 2_225_00; difference = #balanced; day = 20726 })));
+List.add(events, #teller(#differenceResolved({ session = 700; till = "T1"; difference = #over(100_00); account = "5300"; note = "counted over"; day = 20727 })));
+List.add(events, #teller(#cashTaken({ till = "T1"; account = 44; amount = 2_200_00; tendered = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; change = { notes = [(5_00, 1)]; coins = [] }; day = 20726 })));
+List.add(events, #teller(#cashPaid({ till = "T1"; account = 44; amount = 250_00; paid = { notes = [(200_00, 1), (50_00, 1)]; coins = [] }; day = 20726 })));
+List.add(events, #teller(#vaultToTill({ till = "T1"; book = "BR01"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; day = 20726 })));
+List.add(events, #teller(#tillToVault({ till = "T1"; book = "BR01"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; day = 20726 })));
+List.add(events, #teller(#cashDispatched({ product = "TILL"; fromBook = "BR01"; toBook = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; carrier = "ArmourCo"; sealBag = "SB-0001"; day = 20726 })));
+List.add(events, #teller(#cashReceived({ movement = 701; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; day = 20727 })));
+List.add(events, #teller(#vaultToCentralBank({ product = "TILL"; book = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; day = 20727 })));
+List.add(events, #teller(#centralBankToVault({ product = "TILL"; book = "HQ"; currency = "EGP"; amount = 2_225_00; denominations = { notes = [(200_00, 10), (50_00, 4)]; coins = [(1_00, 25), (50, 10)] }; day = 20727 })));
+List.add(events, #teller(#chequebookIssued({ account = 44; from = 1; to = 50; day = 20726 })));
+List.add(events, #teller(#chequeStopped({ account = 44; serial = 7; reason = "lost"; day = 20726 })));
+List.add(events, #teller(#chequePresented({ account = 44; serial = 1; amount = 1_500_00; payee = #clearing({ house = "EGCH"; batch = "B-001" }); chequeDate = 20720; imageHash = segHash32; hold = 4_000; expiresAt = 20729; day = 20726 })));
+List.add(events, #teller(#chequePresented({ account = 44; serial = 2; amount = 900_00; payee = #inBranch({ till = "T1" }); chequeDate = 20720; imageHash = segHash32; hold = 4_001; expiresAt = 20729; day = 20726 })));
+List.add(events, #teller(#chequeCleared({ account = 44; serial = 1; amount = 1_500_00; day = 20727 })));
+List.add(events, #teller(#chequeReturned({ account = 44; serial = 2; amount = 900_00; reason = #insufficientFunds; day = 20727 })));
+List.add(events, #teller(#chequeReturned({ account = 44; serial = 9; amount = 500_00; reason = #other("mutilated"); day = 20727 })));
+List.add(events, #teller(#draftIssued({ serial = "D-0001"; payeeCommit = segHash32; amount = 3_000_00; currency = "EGP"; source = #account(44); day = 20726 })));
+List.add(events, #teller(#draftPaid({ serial = "D-0001"; amount = 3_000_00; to = #till("T1"); day = 20727 })));
+List.add(events, #teller(#draftCancelled({ serial = "D-0002"; amount = 1_250_00; refundTo = 44; day = 20727 })));
 // every packing event variant
 let segHash : Blob = "\e3\b0\c4\42\98\fc\1c\14\9a\fb\f4\c8\99\6f\b9\24\27\ae\41\e4\64\9b\93\4c\a4\95\99\1b\78\52\b8\56";
 List.add(events, #packing(#packOpened({ pack = 1; period = "2026-09"; periodEnd = 20726; lo = 0; hi = 4_211; bankLo = 0; bankHi = 17_902 })));

@@ -85,6 +85,8 @@ import OT "OriginationTypes";
 import OriginationCore "OriginationCore";
 import FaT "FacilityTypes";
 import FacilityCore "FacilityCore";
+import TeT "TellerTypes";
+import TellerCore "TellerCore";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -2645,6 +2647,55 @@ shared (initMsg) persistent actor class Bank(init : {
   /// The facilities at a glance: the counts and the facilities per kind.
   public query func facilityStatus() : async { counts : { facilities : Nat; closed : Nat; drawn : Nat; accruals : Nat; fixings : Nat }; kinds : [(Text, Nat)] } {
     { counts = FacilityCore.counts(bank.facility); kinds = FacilityCore.kindDistribution(bank.facility) }
+  };
+
+  // ─── branch and teller (branch and teller) ───
+
+  func scopedTill(caller : Principal, till : Text) : Result.Result<(), T.BankError> {
+    switch (ProductCore.tillBookOf(bank.product, till)) {
+      case null #err(#ProductError({ error = #UnknownTill({ till }) }));
+      case (?book) { if (BankCore.mayReadBook(readScope(caller), book)) #ok(()) else #err(#OutsideBookScope({ book })) };
+    }
+  };
+
+  /// The till's open session, or its last one.
+  public shared query ({ caller }) func tellerSession(till : Text) : async Result.Result<?TeT.SessionView, T.BankError> {
+    switch (scopedTill(caller, till)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    switch (TellerCore.openSessionOf(bank.teller, till)) { case (?id) #ok(TellerCore.sessionView(bank.teller, id)); case null #ok(TellerCore.lastSessionOf(bank.teller, till)) }
+  };
+
+  public shared query ({ caller }) func tellerSessionById(id : Nat) : async Result.Result<?TeT.SessionView, T.BankError> {
+    switch (TellerCore.sessionView(bank.teller, id)) {
+      case null #ok(null);
+      case (?v) { switch (scopedTill(caller, v.till)) { case (#err(e)) #err(e); case (#ok(_)) #ok(?v) } };
+    }
+  };
+
+  /// A till's denomination position, as (face, count).
+  public shared query ({ caller }) func tillDenominations(till : Text) : async Result.Result<[(Nat, Nat)], T.BankError> {
+    switch (scopedTill(caller, till)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    #ok(TellerCore.tillDenominations(bank.teller, till))
+  };
+
+  /// A vault's denomination position in a currency, within the caller's books.
+  public shared query ({ caller }) func vaultDenominations(book : Text, currency : Text) : async Result.Result<[(Nat, Nat)], T.BankError> {
+    if (not BankCore.mayReadBook(readScope(caller), book)) return #err(#OutsideBookScope({ book }));
+    #ok(TellerCore.vaultDenominations(bank.teller, book, currency))
+  };
+
+  /// Every cash movement dispatched and not yet received.
+  public query func cashInTransit() : async [TeT.MovementView] { TellerCore.inTransit(bank.teller) };
+
+  public shared query ({ caller }) func chequeStatus(account : Nat, serial : Nat) : async Result.Result<?TeT.ChequeView, T.BankError> {
+    switch (scopedAccount(caller, account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    #ok(TellerCore.chequeView(bank.teller, account, serial))
+  };
+
+  public query func draftStatus(serial : Text) : async ?TeT.DraftView { TellerCore.draftView(bank.teller, serial) };
+
+  /// The branch layer at a glance: the policy and the counts.
+  public query func tellerStatus() : async { policy : ?TeT.Policy; counts : { sessions : Nat; differences : Nat; movements : Nat; chequesPresented : Nat; chequesReturned : Nat; drafts : Nat } } {
+    { policy = TellerCore.policy(bank.teller); counts = TellerCore.counts(bank.teller) }
   };
 
   /// The collections book at a glance: the policy, the counts, the exposures per stage.

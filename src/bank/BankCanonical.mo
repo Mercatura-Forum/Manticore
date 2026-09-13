@@ -48,6 +48,7 @@ import AlT "AlertTypes";
 import ColT "CollectionsTypes";
 import OCan "OriginationCanonical";
 import FCan "FacilityCanonical";
+import TCan "TellerCanonical";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -622,6 +623,27 @@ module {
       case (#dishonourReceivable(x)) { w.byte(0x3E); w.nat(x.facility); w.blob(x.ref); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#writeOffReceivable(x)) { w.byte(0x3F); w.nat(x.facility); w.blob(x.ref); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#closeFacility(x)) { w.byte(0x43); w.nat(x.facility) };
+      // ── branch and teller (branch and teller) ──
+      case (#setTellerPolicy(p)) { w.byte(0xF6); TCan.writePolicy(w, p) };
+      case (#openTellerSession(x)) { w.byte(0xF7); w.text(x.till); w.principal(x.teller); TCan.writeDenominations(w, x.opening) };
+      case (#closeTellerSession(x)) { w.byte(0xF8); w.text(x.till); TCan.writeDenominations(w, x.closing) };
+      case (#resolveTillDifference(x)) { w.byte(0xF9); w.nat(x.session); w.text(x.note); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#cashDeposit(x)) { w.byte(0xFA); w.text(x.till); w.nat(x.account); w.nat(x.amount); TCan.writeDenominations(w, x.tendered); TCan.writeDenominations(w, x.change); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#cashWithdrawal(x)) { w.byte(0xFB); w.text(x.till); w.nat(x.account); w.nat(x.amount); TCan.writeDenominations(w, x.paid); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#vaultToTill(x)) { w.byte(0xFC); w.text(x.till); w.nat(x.amount); TCan.writeDenominations(w, x.denominations); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#tillToVault(x)) { w.byte(0xFD); w.text(x.till); w.nat(x.amount); TCan.writeDenominations(w, x.denominations); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#dispatchCash(x)) { w.byte(0xFE); w.text(x.product); w.text(x.fromBook); w.text(x.toBook); w.text(x.currency); w.nat(x.amount); TCan.writeDenominations(w, x.denominations); w.text(x.carrier); w.text(x.sealBag); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#receiveCash(x)) { w.byte(0xFF); w.nat(x.movement); TCan.writeDenominations(w, x.denominations); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#vaultToCentralBank(x)) { w.byte(0x13); w.text(x.product); w.text(x.book); w.text(x.currency); w.nat(x.amount); TCan.writeDenominations(w, x.denominations); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#centralBankToVault(x)) { w.byte(0x14); w.text(x.product); w.text(x.book); w.text(x.currency); w.nat(x.amount); TCan.writeDenominations(w, x.denominations); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#issueChequebook(x)) { w.byte(0x15); w.nat(x.account); w.nat(x.from); w.nat(x.to) };
+      case (#stopCheque(x)) { w.byte(0x16); w.nat(x.account); w.nat(x.serial); w.text(x.reason) };
+      case (#presentCheque(x)) { w.byte(0x17); w.nat(x.account); w.nat(x.serial); w.nat(x.amount); TCan.writePayee(w, x.payee); w.nat(x.chequeDate); w.blob(x.imageHash); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#clearCheque(x)) { w.byte(0x18); w.nat(x.account); w.nat(x.serial); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#returnCheque(x)) { w.byte(0x1A); w.nat(x.account); w.nat(x.serial); TCan.writeReason(w, x.reason); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#issueDraft(x)) { w.byte(0x1B); w.text(x.serial); w.blob(x.payeeCommit); w.nat(x.amount); w.text(x.currency); TCan.writeSource(w, x.source); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#payDraft(x)) { w.byte(0x1C); w.text(x.serial); TCan.writeSource(w, x.to); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#cancelDraft(x)) { w.byte(0x1D); w.text(x.serial); w.nat(x.refundTo); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#openPacking(x)) { w.byte(0xD4); w.text(x.period) };
       case (#rollPackToArchive(x)) { w.byte(0xD5); w.nat(x.pack); w.nat64(x.cid); w.principal(x.archive) };
       case (#declareShardRule(x)) { w.byte(0xD6); w.nat(x.self); writeShards(w, x.shards) };
@@ -1342,6 +1364,7 @@ module {
       case (#collections(ce)) { w.byte(0x4E); writeCollectionsEvent(w, ce) };
       case (#origination(oe)) { w.byte(0x4F); OCan.writeEvent(w, oe) };
       case (#facility(fe)) { w.byte(0x51); FCan.writeEvent(w, fe) };
+      case (#teller(te)) { w.byte(0x52); TCan.writeEvent(w, te) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -2340,6 +2363,50 @@ module {
         ?#writeOffReceivable({ facility; ref; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
       };
       case 0x43 { let ?facility = r.nat() else return null; ?#closeFacility({ facility }) };
+      case 0xF6 { let ?p = TCan.readPolicy(r) else return null; ?#setTellerPolicy(p) };
+      case 0xF7 { let ?till = r.text() else return null; let ?teller = r.principal() else return null; let ?opening = TCan.readDenominations(r) else return null; ?#openTellerSession({ till; teller; opening }) };
+      case 0xF8 { let ?till = r.text() else return null; let ?closing = TCan.readDenominations(r) else return null; ?#closeTellerSession({ till; closing }) };
+      case 0xF9 { let ?session = r.nat() else return null; let ?note = r.text() else return null; let ?d = rDates(r) else return null; ?#resolveTillDifference({ session; note; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
+      case 0xFA {
+        let ?till = r.text() else return null; let ?account = r.nat() else return null; let ?amount = r.nat() else return null;
+        let ?tendered = TCan.readDenominations(r) else return null; let ?change = TCan.readDenominations(r) else return null; let ?d = rDates(r) else return null;
+        ?#cashDeposit({ till; account; amount; tendered; change; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0xFB {
+        let ?till = r.text() else return null; let ?account = r.nat() else return null; let ?amount = r.nat() else return null; let ?paid = TCan.readDenominations(r) else return null; let ?d = rDates(r) else return null;
+        ?#cashWithdrawal({ till; account; amount; paid; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0xFC { let ?till = r.text() else return null; let ?amount = r.nat() else return null; let ?denominations = TCan.readDenominations(r) else return null; let ?d = rDates(r) else return null; ?#vaultToTill({ till; amount; denominations; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
+      case 0xFD { let ?till = r.text() else return null; let ?amount = r.nat() else return null; let ?denominations = TCan.readDenominations(r) else return null; let ?d = rDates(r) else return null; ?#tillToVault({ till; amount; denominations; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
+      case 0xFE {
+        let ?product = r.text() else return null; let ?fromBook = r.text() else return null; let ?toBook = r.text() else return null; let ?currency = r.text() else return null; let ?amount = r.nat() else return null;
+        let ?denominations = TCan.readDenominations(r) else return null; let ?carrier = r.text() else return null; let ?sealBag = r.text() else return null; let ?d = rDates(r) else return null;
+        ?#dispatchCash({ product; fromBook; toBook; currency; amount; denominations; carrier; sealBag; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0xFF { let ?movement = r.nat() else return null; let ?denominations = TCan.readDenominations(r) else return null; let ?d = rDates(r) else return null; ?#receiveCash({ movement; denominations; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
+      case 0x13 {
+        let ?product = r.text() else return null; let ?book = r.text() else return null; let ?currency = r.text() else return null; let ?amount = r.nat() else return null; let ?denominations = TCan.readDenominations(r) else return null; let ?d = rDates(r) else return null;
+        ?#vaultToCentralBank({ product; book; currency; amount; denominations; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x14 {
+        let ?product = r.text() else return null; let ?book = r.text() else return null; let ?currency = r.text() else return null; let ?amount = r.nat() else return null; let ?denominations = TCan.readDenominations(r) else return null; let ?d = rDates(r) else return null;
+        ?#centralBankToVault({ product; book; currency; amount; denominations; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x15 { let ?account = r.nat() else return null; let ?from = r.nat() else return null; let ?to = r.nat() else return null; ?#issueChequebook({ account; from; to }) };
+      case 0x16 { let ?account = r.nat() else return null; let ?serial = r.nat() else return null; let ?reason = r.text() else return null; ?#stopCheque({ account; serial; reason }) };
+      case 0x17 {
+        let ?account = r.nat() else return null; let ?serial = r.nat() else return null; let ?amount = r.nat() else return null; let ?payee = TCan.readPayee(r) else return null;
+        let ?chequeDate = r.nat() else return null; let ?imageHash = r.blob() else return null; let ?d = rDates(r) else return null;
+        ?#presentCheque({ account; serial; amount; payee; chequeDate; imageHash; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x18 { let ?account = r.nat() else return null; let ?serial = r.nat() else return null; let ?d = rDates(r) else return null; ?#clearCheque({ account; serial; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
+      case 0x1A { let ?account = r.nat() else return null; let ?serial = r.nat() else return null; let ?reason = TCan.readReason(r) else return null; let ?d = rDates(r) else return null; ?#returnCheque({ account; serial; reason; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
+      case 0x1B {
+        let ?serial = r.text() else return null; let ?payeeCommit = r.blob() else return null; let ?amount = r.nat() else return null; let ?currency = r.text() else return null; let ?source = TCan.readSource(r) else return null; let ?d = rDates(r) else return null;
+        ?#issueDraft({ serial; payeeCommit; amount; currency; source; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration })
+      };
+      case 0x1C { let ?serial = r.text() else return null; let ?to = TCan.readSource(r) else return null; let ?d = rDates(r) else return null; ?#payDraft({ serial; to; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
+      case 0x1D { let ?serial = r.text() else return null; let ?refundTo = r.nat() else return null; let ?d = rDates(r) else return null; ?#cancelDraft({ serial; refundTo; postingDate = d.postingDate; valueDate = d.valueDate; period = d.period; narration = d.narration }) };
       case 0xF0 { let ?p = rCollectionsPolicy(r) else return null; ?#setCollectionsPolicy(p) };
       case 0xF1 { let ?account = r.nat() else return null; let ?reason = r.text() else return null; ?#markUnlikelyToPay({ account; reason }) };
       case 0xF2 {
@@ -2501,6 +2568,7 @@ module {
       case 0x4E { let ?ce = readCollectionsEvent(r) else return null; ?#collections(ce) };
       case 0x4F { let ?oe = OCan.readEvent(r) else return null; ?#origination(oe) };
       case 0x51 { let ?fe = FCan.readEvent(r) else return null; ?#facility(fe) };
+      case 0x52 { let ?te = TCan.readEvent(r) else return null; ?#teller(te) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

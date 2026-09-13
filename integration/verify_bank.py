@@ -1353,6 +1353,48 @@ class Reader(V.Reader):
             return {"writeOffReceivable": {"facility": self.nat(), "ref": self.blob(), **self.dates()}}
         if tag == 0x43:
             return {"closeFacility": {"facility": self.nat()}}
+        # branch and teller (branch and teller)
+        if tag == 0xF6:
+            return {"setTellerPolicy": self.teller_policy()}
+        if tag == 0xF7:
+            return {"openTellerSession": {"till": self.text(), "teller": self.principal(), "opening": self.denominations()}}
+        if tag == 0xF8:
+            return {"closeTellerSession": {"till": self.text(), "closing": self.denominations()}}
+        if tag == 0xF9:
+            return {"resolveTillDifference": {"session": self.nat(), "note": self.text(), **self.dates()}}
+        if tag == 0xFA:
+            return {"cashDeposit": {"till": self.text(), "account": self.nat(), "amount": self.nat(), "tendered": self.denominations(), "change": self.denominations(), **self.dates()}}
+        if tag == 0xFB:
+            return {"cashWithdrawal": {"till": self.text(), "account": self.nat(), "amount": self.nat(), "paid": self.denominations(), **self.dates()}}
+        if tag == 0xFC:
+            return {"vaultToTill": {"till": self.text(), "amount": self.nat(), "denominations": self.denominations(), **self.dates()}}
+        if tag == 0xFD:
+            return {"tillToVault": {"till": self.text(), "amount": self.nat(), "denominations": self.denominations(), **self.dates()}}
+        if tag == 0xFE:
+            return {"dispatchCash": {"product": self.text(), "fromBook": self.text(), "toBook": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(),
+                                     "carrier": self.text(), "sealBag": self.text(), **self.dates()}}
+        if tag == 0xFF:
+            return {"receiveCash": {"movement": self.nat(), "denominations": self.denominations(), **self.dates()}}
+        if tag == 0x13:
+            return {"vaultToCentralBank": {"product": self.text(), "book": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(), **self.dates()}}
+        if tag == 0x14:
+            return {"centralBankToVault": {"product": self.text(), "book": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(), **self.dates()}}
+        if tag == 0x15:
+            return {"issueChequebook": {"account": self.nat(), "from": self.nat(), "to": self.nat()}}
+        if tag == 0x16:
+            return {"stopCheque": {"account": self.nat(), "serial": self.nat(), "reason": self.text()}}
+        if tag == 0x17:
+            return {"presentCheque": {"account": self.nat(), "serial": self.nat(), "amount": self.nat(), "payee": self.payee(), "chequeDate": self.nat(), "imageHash": self.blob(), **self.dates()}}
+        if tag == 0x18:
+            return {"clearCheque": {"account": self.nat(), "serial": self.nat(), **self.dates()}}
+        if tag == 0x1A:
+            return {"returnCheque": {"account": self.nat(), "serial": self.nat(), "reason": self.return_reason(), **self.dates()}}
+        if tag == 0x1B:
+            return {"issueDraft": {"serial": self.text(), "payeeCommit": self.blob(), "amount": self.nat(), "currency": self.text(), "source": self.cash_source(), **self.dates()}}
+        if tag == 0x1C:
+            return {"payDraft": {"serial": self.text(), "to": self.cash_source(), **self.dates()}}
+        if tag == 0x1D:
+            return {"cancelDraft": {"serial": self.text(), "refundTo": self.nat(), **self.dates()}}
         if tag == 0xD4:
             return {"openPacking": {"period": self.text()}}
         if tag == 0xD5:
@@ -1822,6 +1864,80 @@ class Reader(V.Reader):
             return {"facilityClosed": {"facility": self.nat(), "day": self.nat()}}
         raise ValueError(f"unknown facility event tag {t:#x}")
 
+    # ── branch and teller (branch and teller) ──
+    def denominations(self):
+        return {"notes": self.pairs(), "coins": self.pairs()}
+
+    def teller_policy(self):
+        return {"overShort": self.text(), "cashInTransit": self.text(), "centralBank": self.text(), "draftsPayable": self.text(), "clearing": self.text(), "staleDays": self.nat(), "clearingWindowDays": self.nat()}
+
+    def difference(self):
+        t = self.byte()
+        if t == 0:
+            return "balanced"
+        return {["over", "short"][t - 1]: self.nat()}
+
+    def payee(self):
+        t = self.byte()
+        if t == 0:
+            return {"inBranch": {"till": self.text()}}
+        return {"clearing": {"house": self.text(), "batch": self.text()}}
+
+    def return_reason(self):
+        t = self.byte()
+        if t == 5:
+            return {"other": self.text()}
+        return ["insufficientFunds", "stopped", "signature", "stale", "postDated"][t]
+
+    def cash_source(self):
+        t = self.byte()
+        return {"till": self.text()} if t == 0 else {"account": self.nat()}
+
+    def teller_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"policySet": self.teller_policy()}
+        if t == 0x02:
+            return {"sessionOpened": {"till": self.text(), "teller": self.principal(), "opening": self.denominations(), "counted": self.nat(), "book": self.nat(), "day": self.nat()}}
+        if t == 0x03:
+            return {"sessionClosed": {"session": self.nat(), "till": self.text(), "closing": self.denominations(), "counted": self.nat(), "book": self.nat(), "difference": self.difference(), "day": self.nat()}}
+        if t == 0x04:
+            return {"differenceResolved": {"session": self.nat(), "till": self.text(), "difference": self.difference(), "account": self.text(), "note": self.text(), "day": self.nat()}}
+        if t == 0x05:
+            return {"cashTaken": {"till": self.text(), "account": self.nat(), "amount": self.nat(), "tendered": self.denominations(), "change": self.denominations(), "day": self.nat()}}
+        if t == 0x06:
+            return {"cashPaid": {"till": self.text(), "account": self.nat(), "amount": self.nat(), "paid": self.denominations(), "day": self.nat()}}
+        if t == 0x07:
+            return {"vaultToTill": {"till": self.text(), "book": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(), "day": self.nat()}}
+        if t == 0x08:
+            return {"tillToVault": {"till": self.text(), "book": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(), "day": self.nat()}}
+        if t == 0x09:
+            return {"cashDispatched": {"product": self.text(), "fromBook": self.text(), "toBook": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(),
+                                       "carrier": self.text(), "sealBag": self.text(), "day": self.nat()}}
+        if t == 0x0A:
+            return {"cashReceived": {"movement": self.nat(), "denominations": self.denominations(), "day": self.nat()}}
+        if t == 0x0B:
+            return {"vaultToCentralBank": {"product": self.text(), "book": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(), "day": self.nat()}}
+        if t == 0x0C:
+            return {"centralBankToVault": {"product": self.text(), "book": self.text(), "currency": self.text(), "amount": self.nat(), "denominations": self.denominations(), "day": self.nat()}}
+        if t == 0x0D:
+            return {"chequebookIssued": {"account": self.nat(), "from": self.nat(), "to": self.nat(), "day": self.nat()}}
+        if t == 0x0E:
+            return {"chequeStopped": {"account": self.nat(), "serial": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x0F:
+            return {"chequePresented": {"account": self.nat(), "serial": self.nat(), "amount": self.nat(), "payee": self.payee(), "chequeDate": self.nat(), "imageHash": self.blob(), "hold": self.nat(), "expiresAt": self.nat(), "day": self.nat()}}
+        if t == 0x10:
+            return {"chequeCleared": {"account": self.nat(), "serial": self.nat(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x11:
+            return {"chequeReturned": {"account": self.nat(), "serial": self.nat(), "amount": self.nat(), "reason": self.return_reason(), "day": self.nat()}}
+        if t == 0x12:
+            return {"draftIssued": {"serial": self.text(), "payeeCommit": self.blob(), "amount": self.nat(), "currency": self.text(), "source": self.cash_source(), "day": self.nat()}}
+        if t == 0x13:
+            return {"draftPaid": {"serial": self.text(), "amount": self.nat(), "to": self.cash_source(), "day": self.nat()}}
+        if t == 0x14:
+            return {"draftCancelled": {"serial": self.text(), "amount": self.nat(), "refundTo": self.nat(), "day": self.nat()}}
+        raise ValueError(f"unknown teller event tag {t:#x}")
+
     def alert_event(self):
         sub = self.byte()
         if sub == 0x01:
@@ -2147,6 +2263,8 @@ class Reader(V.Reader):
             return {"origination": self.origination_event()}
         if tag == 0x51:
             return {"facility": self.facility_event()}
+        if tag == 0x52:
+            return {"teller": self.teller_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:

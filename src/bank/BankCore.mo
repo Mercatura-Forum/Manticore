@@ -103,6 +103,8 @@ import OriginationCore "OriginationCore";
 import FaT "FacilityTypes";
 import FacilityCore "FacilityCore";
 import FCan "FacilityCanonical";
+import TeT "TellerTypes";
+import TellerCore "TellerCore";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -203,6 +205,9 @@ module {
     /// Corporate lending (corporate lending): the facilities, their drawings, syndicate shares, receivables, covenants and
     /// rate fixings. Rows in stable memory; every act is a block; every amount is the journal's.
     facility : FacilityCore.State;
+    /// Branch and teller (branch and teller): sessions, the denomination positions of tills and vaults, cash in transit, cheques
+    /// and drafts. Rows in stable memory; every act is a block; every amount is the journal's.
+    teller : TellerCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -272,6 +277,7 @@ module {
       collections = CollectionsCore.newState(arena);
       origination = OriginationCore.newState(arena);
       facility = FacilityCore.newState(arena);
+      teller = TellerCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -759,6 +765,21 @@ module {
       case (#collectReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
       case (#dishonourReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
       case (#writeOffReceivable(x)) { switch (FacilityCore.receivable(bs.facility, x.facility, x.ref)) { case (?r) facilityTotals(bs, x.facility, r.face); case null [] } };
+      // the teller's money acts, in the till's, the account's or the movement's currency
+      case (#cashDeposit(x)) tillTotals(bs, x.till, x.amount);
+      case (#cashWithdrawal(x)) tillTotals(bs, x.till, x.amount);
+      case (#vaultToTill(x)) tillTotals(bs, x.till, x.amount);
+      case (#tillToVault(x)) tillTotals(bs, x.till, x.amount);
+      case (#dispatchCash(x)) [(x.currency, x.amount)];
+      case (#receiveCash(x)) { switch (TellerCore.movement(bs.teller, x.movement)) { case (?m) [(m.currency, m.amount)]; case null [] } };
+      case (#vaultToCentralBank(x)) [(x.currency, x.amount)];
+      case (#centralBankToVault(x)) [(x.currency, x.amount)];
+      case (#presentCheque(x)) accountTotals(bs, x.account, x.amount);
+      case (#clearCheque(x)) { switch (TellerCore.cheque(bs.teller, x.account, x.serial)) { case (?c) accountTotals(bs, x.account, c.amount); case null [] } };
+      case (#issueDraft(x)) [(x.currency, x.amount)];
+      case (#payDraft(x)) { switch (TellerCore.draft(bs.teller, x.serial)) { case (?d) [(d.currency, d.amount)]; case null [] } };
+      case (#cancelDraft(x)) { switch (TellerCore.draft(bs.teller, x.serial)) { case (?d) [(d.currency, d.amount)]; case null [] } };
+      case (#resolveTillDifference(x)) { switch (TellerCore.session(bs.teller, x.session)) { case (?r) tillTotals(bs, r.till, TellerCore.diffAmount(r.difference)); case null [] } };
       case (_) [];
     }
   };
@@ -794,6 +815,15 @@ module {
       case (#receiveRental(x)) ?x.postingDate;
       case (#purchaseReceivables(x)) ?x.postingDate;
       case (#collectReceivable(x)) ?x.postingDate;
+      case (#cashDeposit(x)) ?x.postingDate;
+      case (#cashWithdrawal(x)) ?x.postingDate;
+      case (#vaultToTill(x)) ?x.postingDate;
+      case (#tillToVault(x)) ?x.postingDate;
+      case (#dispatchCash(x)) ?x.postingDate;
+      case (#receiveCash(x)) ?x.postingDate;
+      case (#presentCheque(x)) ?x.postingDate;
+      case (#issueDraft(x)) ?x.postingDate;
+      case (#payDraft(x)) ?x.postingDate;
       case (#applyCharge(x)) ?x.postingDate;
       case (#waiveCharge(x)) ?x.postingDate;
       case (#postAccrual(x)) ?x.day;
@@ -918,6 +948,26 @@ module {
       case (#dishonourReceivable(x)) facilityBook(bs, x.facility);
       case (#writeOffReceivable(x)) facilityBook(bs, x.facility);
       case (#closeFacility(x)) facilityBook(bs, x.facility);
+      // Teller commands name a till (the till's book), an account (the account's), a session (its till's) or a book.
+      case (#openTellerSession(x)) ProductCore.tillBookOf(bs.product, x.till);
+      case (#closeTellerSession(x)) ProductCore.tillBookOf(bs.product, x.till);
+      case (#resolveTillDifference(x)) { switch (TellerCore.session(bs.teller, x.session)) { case (?r) ProductCore.tillBookOf(bs.product, r.till); case null null } };
+      case (#cashDeposit(x)) ProductCore.tillBookOf(bs.product, x.till);
+      case (#cashWithdrawal(x)) ProductCore.tillBookOf(bs.product, x.till);
+      case (#vaultToTill(x)) ProductCore.tillBookOf(bs.product, x.till);
+      case (#tillToVault(x)) ProductCore.tillBookOf(bs.product, x.till);
+      case (#dispatchCash(x)) ?x.fromBook;
+      case (#receiveCash(x)) { switch (TellerCore.movement(bs.teller, x.movement)) { case (?m) ?m.toBook; case null null } };
+      case (#vaultToCentralBank(x)) ?x.book;
+      case (#centralBankToVault(x)) ?x.book;
+      case (#issueChequebook(x)) ProductCore.bookOf(bs.product, x.account);
+      case (#stopCheque(x)) ProductCore.bookOf(bs.product, x.account);
+      case (#presentCheque(x)) ProductCore.bookOf(bs.product, x.account);
+      case (#clearCheque(x)) ProductCore.bookOf(bs.product, x.account);
+      case (#returnCheque(x)) ProductCore.bookOf(bs.product, x.account);
+      case (#issueDraft(x)) { switch (x.source) { case (#till(id)) ProductCore.tillBookOf(bs.product, id); case (#account(id)) ProductCore.bookOf(bs.product, id) } };
+      case (#payDraft(x)) { switch (x.to) { case (#till(id)) ProductCore.tillBookOf(bs.product, id); case (#account(id)) ProductCore.bookOf(bs.product, id) } };
+      case (#cancelDraft(x)) ProductCore.bookOf(bs.product, x.refundTo);
       case (other) E.commandBook(other);
     }
   };
@@ -1323,6 +1373,11 @@ module {
     let introduced = List.empty<JT.SubledgerKey>();
     switch (plan.bankEvent) { case (?#product(#accountOpened(o))) List.add(introduced, Posting.subledgerOf(o.identifier)); case (_) {} };
     for (ev in plan.extra.vals()) { switch (ev) { case (#product(#accountOpened(o))) List.add(introduced, Posting.subledgerOf(o.identifier)); case (_) {} } };
+    switch (plan.bankEvent) {
+      case (?#teller(#cashDispatched(_))) List.add(introduced, TellerCore.transitSub(bs.height));
+      case (?#teller(#draftIssued(d))) List.add(introduced, TellerCore.draftSub(d.serial));
+      case (_) {};
+    };
     let opened = List.toArray(introduced);
     for (step in plan.journal.vals()) {
       switch (step) {
@@ -2142,7 +2197,7 @@ module {
         case (?sub) {
           // an account or a till of this shard, one of its books' vaults in the leg's currency, a facility's or a
           // participant's (corporate lending), or an account the same plan opens — the only sub-ledgers a shard's own postings name
-          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub);
+          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub);
           if (not held) { for (i in introduced.vals()) { if (i == sub) held := true } };
           if (not held) { for ((book, _) in Map.entries(bs.books)) { if (sub == Till.vaultSubledger(book, l.currency)) held := true } };
           if (not held) return ?#ShardError({ error = #NotRouted({ identifier = ""; reason = "the posting names a sub-ledger this shard does not hold" }) });
@@ -4098,6 +4153,173 @@ module {
       case (#dishonourReceivable(x)) planDishonour(bs, bb, js, journalCaller, now, authId, x);
       case (#writeOffReceivable(x)) planWriteOffReceivable(bs, bb, js, journalCaller, now, authId, x);
       case (#closeFacility(x)) facilityPlan(FacilityCore.planClose(bs.facility, x.facility, JCore.effectiveToday(js, now)));
+
+      // ── branch and teller (branch and teller) ──
+      case (#setTellerPolicy(pol)) {
+        for (code in [pol.overShort, pol.cashInTransit, pol.centralBank, pol.draftsPayable, pol.clearing].vals()) {
+          switch (JCore.getAccount(js, code)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "teller policy"; account = code }) })); case (?_) {} };
+        };
+        tellerPlan(TellerCore.planPolicy(pol))
+      };
+      case (#openTellerSession(x)) {
+        let (till, terms) = switch (openTill(bs, bb, x.till)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (till.status != #open) return #err(#ProductError({ error = #TillNotOpen({ till = x.till; status = till.status }) }));
+        if (till.holder != x.teller) return #err(#TellerError({ error = #NotTheHolder({ till = x.till }) }));
+        let today = JCore.effectiveToday(js, now);
+        tellerPlan(TellerCore.planOpenSession(bs.teller, x.till, x.teller, x.opening, Till.bookBalance(js, terms.control, till.subledger, till.currency, today), today))
+      };
+      case (#closeTellerSession(x)) {
+        let (till, terms) = switch (openTill(bs, bb, x.till)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let today = JCore.effectiveToday(js, now);
+        tellerPlan(TellerCore.planCloseSession(bs.teller, x.till, x.closing, Till.bookBalance(js, terms.control, till.subledger, till.currency, today), today))
+      };
+      case (#resolveTillDifference(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let ev = switch (TellerCore.planResolve(bs.teller, x.session, pol.overShort, x.note, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let #differenceResolved(d) = ev else return #err(#TellerError({ error = #InvalidRequest({ reason = "not a resolution" }) }));
+        let (till, terms) = switch (openTill(bs, bb, d.till)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let tillDiff : Till.Difference = switch (d.difference) { case (#balanced) #balanced; case (#over(n)) #over(n); case (#short(n)) #short(n) };
+        let ?legs = Till.settlementLegs(terms.control, till.subledger, pol.overShort, till.currency, tillDiff) else return #err(#TellerError({ error = #DifferenceNotOpen({ session = x.session }) }));
+        switch (postLegs(js, journalCaller, now, "till-difference", [authId, Nat.toText(x.session)], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = []; journal = plan.journal });
+        }
+      };
+      case (#cashDeposit(x)) {
+        let ev = switch (TellerCore.planCashTaken(bs.teller, x.till, x.account, x.amount, x.tendered, x.change, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let m : T.MoneyMove = { account = x.account; amount = x.amount; postingDate = x.postingDate; valueDate = x.valueDate; period = x.period; narration = x.narration; funding = #till(x.till) };
+        switch (planCommandInner(bs, bb, js, jb, journalCaller, now, #depositToAccount(m), authorityIndex)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = plan.extra; journal = plan.journal });
+        }
+      };
+      case (#cashWithdrawal(x)) {
+        let ev = switch (TellerCore.planCashPaid(bs.teller, x.till, x.account, x.amount, x.paid, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let m : T.MoneyMove = { account = x.account; amount = x.amount; postingDate = x.postingDate; valueDate = x.valueDate; period = x.period; narration = x.narration; funding = #till(x.till) };
+        switch (planCommandInner(bs, bb, js, jb, journalCaller, now, #withdrawFromAccount(m), authorityIndex)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = plan.extra; journal = plan.journal });
+        }
+      };
+      case (#vaultToTill(x)) {
+        let (till, terms) = switch (openTill(bs, bb, x.till)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (till.status != #open) return #err(#ProductError({ error = #TillNotOpen({ till = x.till; status = till.status }) }));
+        let ev = switch (TellerCore.planVaultToTill(bs.teller, x.till, till.book, till.currency, x.amount, x.denominations, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let legs = Till.allocationLegs(terms.control, Till.vaultSubledger(till.book, till.currency), till.subledger, till.currency, x.amount);
+        switch (postLegs(js, journalCaller, now, "vault-to-till", [authId, x.till], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = [#product(#tillAllocated({ till = x.till; amount = x.amount; day = x.valueDate }))]; journal = plan.journal });
+        }
+      };
+      case (#tillToVault(x)) {
+        let (till, terms) = switch (openTill(bs, bb, x.till)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let ev = switch (TellerCore.planTillToVault(bs.teller, x.till, till.book, till.currency, x.amount, x.denominations, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let legs = Till.returnLegs(terms.control, Till.vaultSubledger(till.book, till.currency), till.subledger, till.currency, x.amount);
+        switch (postLegs(js, journalCaller, now, "till-to-vault", [authId, x.till], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = [#product(#tillReturned({ till = x.till; amount = x.amount; day = x.valueDate }))]; journal = plan.journal });
+        }
+      };
+      case (#dispatchCash(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let control = switch (tillProductControl(bs, x.product, x.currency)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        switch (requireOpenBook(bs, x.fromBook)) { case (?e) return #err(e); case null {} };
+        switch (requireOpenBook(bs, x.toBook)) { case (?e) return #err(e); case null {} };
+        let ev = switch (TellerCore.planDispatch(bs.teller, x.product, x.fromBook, x.toBook, x.currency, x.amount, x.denominations, x.carrier, x.sealBag, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let legs = [Posting.leg(pol.cashInTransit, ?TellerCore.transitSub(bs.height), #debit, x.currency, x.amount), Posting.leg(control, ?Till.vaultSubledger(x.fromBook, x.currency), #credit, x.currency, x.amount)];
+        switch (postLegs(js, journalCaller, now, "cash-dispatch", [authId, x.fromBook, x.toBook], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = []; journal = plan.journal });
+        }
+      };
+      case (#receiveCash(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let (ev, m) = switch (TellerCore.planReceive(bs.teller, x.movement, x.denominations, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(p)) p };
+        let control = switch (tillProductControl(bs, m.product, m.currency)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        let legs = [Posting.leg(control, ?Till.vaultSubledger(m.toBook, m.currency), #debit, m.currency, m.amount), Posting.leg(pol.cashInTransit, ?TellerCore.transitSub(x.movement), #credit, m.currency, m.amount)];
+        switch (postLegs(js, journalCaller, now, "cash-receipt", [authId, Nat.toText(x.movement)], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = []; journal = plan.journal });
+        }
+      };
+      case (#vaultToCentralBank(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let control = switch (tillProductControl(bs, x.product, x.currency)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        switch (requireOpenBook(bs, x.book)) { case (?e) return #err(e); case null {} };
+        let ev = switch (TellerCore.planVaultToCentralBank(bs.teller, x.product, x.book, x.currency, x.amount, x.denominations, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let legs = [Posting.leg(pol.centralBank, null, #debit, x.currency, x.amount), Posting.leg(control, ?Till.vaultSubledger(x.book, x.currency), #credit, x.currency, x.amount)];
+        switch (postLegs(js, journalCaller, now, "vault-to-central-bank", [authId, x.book], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = []; journal = plan.journal });
+        }
+      };
+      case (#centralBankToVault(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let control = switch (tillProductControl(bs, x.product, x.currency)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        switch (requireOpenBook(bs, x.book)) { case (?e) return #err(e); case null {} };
+        let ev = switch (TellerCore.planCentralBankToVault(x.product, x.book, x.currency, x.amount, x.denominations, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let legs = [Posting.leg(control, ?Till.vaultSubledger(x.book, x.currency), #debit, x.currency, x.amount), Posting.leg(pol.centralBank, null, #credit, x.currency, x.amount)];
+        switch (postLegs(js, journalCaller, now, "central-bank-to-vault", [authId, x.book], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = []; journal = plan.journal });
+        }
+      };
+      case (#issueChequebook(x)) {
+        switch (depositAccount(bs, bb, x.account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+        tellerPlan(TellerCore.planIssueChequebook(bs.teller, x.account, x.from, x.to, JCore.effectiveToday(js, now)))
+      };
+      case (#stopCheque(x)) {
+        switch (depositAccount(bs, bb, x.account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+        tellerPlan(TellerCore.planStop(bs.teller, x.account, x.serial, x.reason, JCore.effectiveToday(js, now)))
+      };
+      case (#presentCheque(x)) planPresentCheque(bs, bb, js, journalCaller, now, authId, x);
+      case (#clearCheque(x)) {
+        let held = switch (TellerCore.requireHeld(bs.teller, x.account, x.serial)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(r)) r };
+        let ?period = periodForDay(js, x.valueDate) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(x.valueDate) }) }));
+        switch (JCore.preparePostPending(js, jb, journalCaller, now, held.hold, ?{ postingDate = x.postingDate; valueDate = x.valueDate; valueDateRequested = null; period })) {
+          case (#err(e)) #err(#JournalError({ error = e }));
+          case (#ok(#expired(e))) #err(#JournalError({ error = #PendingExpired({ index = held.hold; expiresAt = e.expiresAt; voidedBy = 0 }) }));
+          case (#ok(#event(ev))) #ok({ bankEvent = ?#teller(#chequeCleared({ account = x.account; serial = x.serial; amount = held.amount; day = x.valueDate })); extra = []; journal = [#event(ev)] });
+          case (#ok(#duplicate(idx))) #ok({ bankEvent = ?#teller(#chequeCleared({ account = x.account; serial = x.serial; amount = held.amount; day = x.valueDate })); extra = []; journal = [#existing(idx)] });
+        }
+      };
+      case (#returnCheque(x)) {
+        let held = switch (TellerCore.requireHeld(bs.teller, x.account, x.serial)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(r)) r };
+        switch (JCore.prepareVoidPending(js, jb, journalCaller, held.hold)) {
+          case (#err(e)) #err(#JournalError({ error = e }));
+          case (#ok(ev)) #ok({ bankEvent = ?#teller(#chequeReturned({ account = x.account; serial = x.serial; amount = held.amount; reason = x.reason; day = x.valueDate })); extra = []; journal = [#event(ev)] });
+        }
+      };
+      case (#issueDraft(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let ev = switch (TellerCore.planIssueDraft(bs.teller, x.serial, x.payeeCommit, x.amount, x.currency, x.source, x.valueDate)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(ev)) ev };
+        let source = switch (cashSourceLeg(bs, bb, js, x.source, x.currency, #debit, x.amount, x.postingDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        let legs = [source, Posting.leg(pol.draftsPayable, ?TellerCore.draftSub(x.serial), #credit, x.currency, x.amount)];
+        switch (postLegs(js, journalCaller, now, "draft-issue", [authId, x.serial], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(ev); extra = []; journal = plan.journal });
+        }
+      };
+      case (#payDraft(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let d = switch (TellerCore.requireOutstanding(bs.teller, x.serial)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(r)) r };
+        let sink = switch (cashSourceLeg(bs, bb, js, x.to, d.currency, #credit, d.amount, x.postingDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        let legs = [Posting.leg(pol.draftsPayable, ?TellerCore.draftSub(x.serial), #debit, d.currency, d.amount), sink];
+        switch (postLegs(js, journalCaller, now, "draft-pay", [authId, x.serial], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(#draftPaid({ serial = x.serial; amount = d.amount; to = x.to; day = x.valueDate })); extra = []; journal = plan.journal });
+        }
+      };
+      case (#cancelDraft(x)) {
+        let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+        let d = switch (TellerCore.requireOutstanding(bs.teller, x.serial)) { case (#err(e)) return #err(#TellerError({ error = e })); case (#ok(r)) r };
+        let sink = switch (cashSourceLeg(bs, bb, js, #account(x.refundTo), d.currency, #credit, d.amount, x.postingDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        let legs = [Posting.leg(pol.draftsPayable, ?TellerCore.draftSub(x.serial), #debit, d.currency, d.amount), sink];
+        switch (postLegs(js, journalCaller, now, "draft-cancel", [authId, x.serial], legs, x.postingDate, x.valueDate, x.period, x.narration)) {
+          case (#err(e)) #err(e);
+          case (#ok(plan)) #ok({ bankEvent = ?#teller(#draftCancelled({ serial = x.serial; amount = d.amount; refundTo = x.refundTo; day = x.valueDate })); extra = []; journal = plan.journal });
+        }
+      };
 
       // ── closed-month packing ──
 
@@ -7116,6 +7338,76 @@ module {
   };
 
 
+  // ─── branch and teller (branch and teller): the planners' helpers ───────────────────────
+
+  func tellerPlan(r : Result.Result<TeT.TellerEvent, TeT.TellerError>) : Result.Result<Plan, T.BankError> {
+    switch (r) { case (#err(e)) #err(#TellerError({ error = e })); case (#ok(ev)) #ok({ bankEvent = ?#teller(ev); extra = []; journal = [] }) }
+  };
+  /// The control account of a till product in the currency: the vault's account for the book's cash.
+  func tillProductControl(bs : State, product : ProdT.ProductId, currency : JT.Currency) : Result.Result<JT.AccountCode, T.BankError> {
+    let ?v = ProductCore.currentVersion(bs.product, product) else return #err(#ProductError({ error = #UnknownProduct({ product }) }));
+    if (v.terms.kind != #till) return #err(#ProductError({ error = #AccountNotOfKind({ account = 0; expected = "till"; actual = debug_show (v.terms.kind) }) }));
+    if (not Text.equal(v.terms.currency, currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = v.terms.currency; actual = currency }) }));
+    #ok(v.terms.control)
+  };
+  /// A customer's deposit account, for a chequebook or a draft.
+  func depositAccount(bs : State, bb : Blocks, id : ProdT.AccountId) : Result.Result<(ProductCore.AccountEntry, ProdT.ProductTerms), T.BankError> {
+    switch (requireAccount(bs, bb, id)) {
+      case (#err(e)) #err(e);
+      case (#ok((a, terms))) {
+        if (terms.kind == #loan or terms.kind == #till) return #err(#ProductError({ error = #AccountNotOfKind({ account = id; expected = "a deposit account"; actual = debug_show (terms.kind) }) }));
+        #ok((a, terms))
+      };
+    }
+  };
+  /// The cash leg of a draft: a till's drawer (open, the currency's) or a customer's account that may move.
+  func cashSourceLeg(bs : State, bb : Blocks, js : JCore.State, source : TeT.CashSource, currency : JT.Currency, side : JT.Side, amount : Nat, day : Nat) : Result.Result<JT.Leg, T.BankError> {
+    switch (source) {
+      case (#till(id)) {
+        let (till, terms) = switch (openTill(bs, bb, id)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (till.status != #open) return #err(#ProductError({ error = #TillNotOpen({ till = id; status = till.status }) }));
+        if (not Text.equal(till.currency, currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = currency; actual = till.currency }) }));
+        #ok(Posting.leg(terms.control, ?till.subledger, side, currency, amount))
+      };
+      case (#account(id)) {
+        let (a, terms) = switch (movableAccount(bs, bb, js, id, day)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        if (terms.kind == #loan) return #err(#ProductError({ error = #AccountNotOfKind({ account = id; expected = "a deposit account"; actual = "loan" }) }));
+        if (not Text.equal(a.currency, currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = currency; actual = a.currency }) }));
+        #ok(Posting.leg(terms.control, ?a.subledger, side, currency, amount))
+      };
+    }
+  };
+  /// A cheque presented: returned at once when stopped, stale or post-dated; otherwise held — the journal's own
+  /// pending posting from the drawer to the till or the clearing house, expiring with the clearing window.
+  func planPresentCheque(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { account : ProdT.AccountId; serial : Nat; amount : Nat; payee : TeT.Payee; chequeDate : Nat; imageHash : Blob; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
+    let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
+    if (x.amount == 0) return #err(#TellerError({ error = #InvalidRequest({ reason = "a cheque for nothing" }) }));
+    if (x.imageHash.size() != 32) return #err(#TellerError({ error = #InvalidRequest({ reason = "the image hash is 32 bytes" }) }));
+    let (a, terms) = switch (depositAccount(bs, bb, x.account)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    let today = JCore.effectiveToday(js, now);
+    switch (TellerCore.presentationFate(bs.teller, x.account, x.serial, x.chequeDate, today)) {
+      case (#err(e)) #err(#TellerError({ error = e }));
+      case (#ok(?reason)) #ok({ bankEvent = ?#teller(#chequeReturned({ account = x.account; serial = x.serial; amount = x.amount; reason; day = today })); extra = []; journal = [] });
+      case (#ok(null)) {
+        let sink = switch (x.payee) {
+          case (#inBranch(p)) { switch (cashSourceLeg(bs, bb, js, #till(p.till), a.currency, #credit, x.amount, x.postingDate)) { case (#err(e)) return #err(e); case (#ok(l)) l } };
+          case (#clearing(_)) Posting.leg(pol.clearing, null, #credit, a.currency, x.amount);
+        };
+        let valueDate = switch (valueDateGate(bs, js, a.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let input = Posting.simple("cheque", [authId, Nat.toText(x.account), Nat.toText(x.serial)], Posting.leg(terms.control, ?a.subledger, #debit, a.currency, x.amount), sink, x.postingDate, valueDate, x.period, x.narration);
+        let expiresAt = now + Nat64.fromNat(pol.clearingWindowDays) * 86_400_000_000_000;
+        switch (JCore.prepareReserve(js, journalCaller, now, input, ?expiresAt)) {
+          case (#err(e)) #err(#JournalError({ error = e }));
+          case (#ok(#duplicate(_))) #err(#TellerError({ error = #ChequeNotIn({ account = x.account; serial = x.serial; state = "held"; wanted = "unused" }) }));
+          case (#ok(#event(ev))) #ok({
+            bankEvent = ?#teller(#chequePresented({ account = x.account; serial = x.serial; amount = x.amount; payee = x.payee; chequeDate = x.chequeDate; imageHash = x.imageHash; hold = JCore.height(js); expiresAt = today + pol.clearingWindowDays; day = today }));
+            extra = []; journal = [#event(ev)];
+          });
+        }
+      };
+    }
+  };
+
   // ─── corporate lending (corporate lending): the facility's planners ──────────────────────
 
   func facilityPlan(r : Result.Result<FaT.FacilityEvent, FaT.FacilityError>) : Result.Result<Plan, T.BankError> {
@@ -7770,6 +8062,7 @@ module {
       case (#collections(ce)) { CollectionsCore.apply(s.collections, block.index, ce) };
       case (#origination(oe)) { OriginationCore.apply(s.origination, block.index, oe) };
       case (#facility(fe)) { FacilityCore.apply(s.facility, block.index, fe) };
+      case (#teller(te)) { TellerCore.apply(s.teller, block.index, te) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -7901,6 +8194,7 @@ module {
       case (#collections(_)) "collections";
       case (#origination(_)) "origination";
       case (#facility(_)) "facility";
+      case (#teller(_)) "teller";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -8195,6 +8489,7 @@ module {
     CollectionsCore.fingerprintInto(w, s.collections);
     OriginationCore.fingerprintInto(w, s.origination);
     FacilityCore.fingerprintInto(w, s.facility);
+    TellerCore.fingerprintInto(w, s.teller);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);

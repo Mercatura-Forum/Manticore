@@ -281,6 +281,32 @@ module {
     p("factoring.dishonour", "facility", #update, #command("dishonourReceivable"), true, true),
     p("factoring.writeoff", "facility", #update, #command("writeOffReceivable"), true, true),
     p("facility.close", "facility", #close, #command("closeFacility"), false, true),
+    // ── branch and teller (branch and teller) ──
+    // The policy is a decision: dual. Opening and closing a session, issuing a chequebook and stopping a cheque are
+    // the officer's record: single. Every act that posts — counted cash in or out, a till loaded or returned, cash
+    // dispatched, received, lodged or drawn, a difference resolved, a cheque held, cleared or returned, a draft
+    // issued, paid or cancelled — moves money: dual by the rule of entitlements and maker-checker §1.3, so no teller resolves their own
+    // difference and no one person moves cash alone.
+    p("teller.policy", "teller", #update, #command("setTellerPolicy"), false, true),
+    p("teller.session.open", "teller", #create, #command("openTellerSession"), false, false),
+    p("teller.session.close", "teller", #close, #command("closeTellerSession"), false, false),
+    p("teller.difference.resolve", "teller", #approve, #command("resolveTillDifference"), true, true),
+    p("teller.cash.deposit", "teller", #create, #command("cashDeposit"), true, true),
+    p("teller.cash.withdraw", "teller", #create, #command("cashWithdrawal"), true, true),
+    p("vault.till.load", "vault", #create, #command("vaultToTill"), true, true),
+    p("vault.till.return", "vault", #create, #command("tillToVault"), true, true),
+    p("vault.dispatch", "vault", #create, #command("dispatchCash"), true, true),
+    p("vault.receive", "vault", #create, #command("receiveCash"), true, true),
+    p("vault.centralbank.lodge", "vault", #create, #command("vaultToCentralBank"), true, true),
+    p("vault.centralbank.draw", "vault", #create, #command("centralBankToVault"), true, true),
+    p("cheque.book.issue", "cheque", #create, #command("issueChequebook"), false, false),
+    p("cheque.stop", "cheque", #update, #command("stopCheque"), false, false),
+    p("cheque.present", "cheque", #create, #command("presentCheque"), true, true),
+    p("cheque.clear", "cheque", #approve, #command("clearCheque"), true, true),
+    p("cheque.return", "cheque", #reject, #command("returnCheque"), true, true),
+    p("draft.issue", "draft", #create, #command("issueDraft"), true, true),
+    p("draft.pay", "draft", #update, #command("payDraft"), true, true),
+    p("draft.cancel", "draft", #reverse, #command("cancelDraft"), true, true),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -561,6 +587,26 @@ module {
       case (#dishonourReceivable(_)) "dishonourReceivable";
       case (#writeOffReceivable(_)) "writeOffReceivable";
       case (#closeFacility(_)) "closeFacility";
+      case (#setTellerPolicy(_)) "setTellerPolicy";
+      case (#openTellerSession(_)) "openTellerSession";
+      case (#closeTellerSession(_)) "closeTellerSession";
+      case (#resolveTillDifference(_)) "resolveTillDifference";
+      case (#cashDeposit(_)) "cashDeposit";
+      case (#cashWithdrawal(_)) "cashWithdrawal";
+      case (#vaultToTill(_)) "vaultToTill";
+      case (#tillToVault(_)) "tillToVault";
+      case (#dispatchCash(_)) "dispatchCash";
+      case (#receiveCash(_)) "receiveCash";
+      case (#vaultToCentralBank(_)) "vaultToCentralBank";
+      case (#centralBankToVault(_)) "centralBankToVault";
+      case (#issueChequebook(_)) "issueChequebook";
+      case (#stopCheque(_)) "stopCheque";
+      case (#presentCheque(_)) "presentCheque";
+      case (#clearCheque(_)) "clearCheque";
+      case (#returnCheque(_)) "returnCheque";
+      case (#issueDraft(_)) "issueDraft";
+      case (#payDraft(_)) "payDraft";
+      case (#cancelDraft(_)) "cancelDraft";
       case (#openPacking(_)) "openPacking";
       case (#rollPackToArchive(_)) "rollPackToArchive";
       case (#declareShardRule(_)) "declareShardRule";

@@ -29,6 +29,7 @@ import AlT "AlertTypes";
 import ColT "CollectionsTypes";
 import OT "OriginationTypes";
 import FaT "FacilityTypes";
+import TeT "TellerTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -439,6 +440,27 @@ module {
     #dishonourReceivable : { facility : FaT.FacilityId; ref : Blob; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     #writeOffReceivable : { facility : FaT.FacilityId; ref : Blob; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     #closeFacility : { facility : FaT.FacilityId };
+    // ── branch and teller (branch and teller): counted cash, sessions, the cash network, cheques and drafts ──
+    #setTellerPolicy : TeT.Policy;
+    #openTellerSession : { till : ProdT.TillId; teller : Principal; opening : TeT.DenominationSet };
+    #closeTellerSession : { till : ProdT.TillId; closing : TeT.DenominationSet };
+    #resolveTillDifference : { session : TeT.SessionId; note : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #cashDeposit : { till : ProdT.TillId; account : ProdT.AccountId; amount : Nat; tendered : TeT.DenominationSet; change : TeT.DenominationSet; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #cashWithdrawal : { till : ProdT.TillId; account : ProdT.AccountId; amount : Nat; paid : TeT.DenominationSet; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #vaultToTill : { till : ProdT.TillId; amount : Nat; denominations : TeT.DenominationSet; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #tillToVault : { till : ProdT.TillId; amount : Nat; denominations : TeT.DenominationSet; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #dispatchCash : { product : ProdT.ProductId; fromBook : BookId; toBook : BookId; currency : JT.Currency; amount : Nat; denominations : TeT.DenominationSet; carrier : Text; sealBag : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #receiveCash : { movement : TeT.MovementId; denominations : TeT.DenominationSet; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #vaultToCentralBank : { product : ProdT.ProductId; book : BookId; currency : JT.Currency; amount : Nat; denominations : TeT.DenominationSet; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #centralBankToVault : { product : ProdT.ProductId; book : BookId; currency : JT.Currency; amount : Nat; denominations : TeT.DenominationSet; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #issueChequebook : { account : ProdT.AccountId; from : Nat; to : Nat };
+    #stopCheque : { account : ProdT.AccountId; serial : Nat; reason : Text };
+    #presentCheque : { account : ProdT.AccountId; serial : Nat; amount : Nat; payee : TeT.Payee; chequeDate : Day; imageHash : Blob; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #clearCheque : { account : ProdT.AccountId; serial : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #returnCheque : { account : ProdT.AccountId; serial : Nat; reason : TeT.ReturnReason; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #issueDraft : { serial : Text; payeeCommit : PT.Commitment; amount : Nat; currency : JT.Currency; source : TeT.CashSource; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #payDraft : { serial : Text; to : TeT.CashSource; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #cancelDraft : { serial : Text; refundTo : ProdT.AccountId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -548,6 +570,8 @@ module {
     #origination : OT.OriginationEvent;
     /// Corporate lending: the facilities and what happens on them (corporate lending).
     #facility : FaT.FacilityEvent;
+    /// Branch and teller: counted cash, sessions, the cash network, cheques and drafts (branch and teller).
+    #teller : TeT.TellerEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -676,6 +700,7 @@ module {
     #CollectionsError : { error : ColT.CollectionsError };
     #OriginationError : { error : OT.OriginationError };
     #FacilityError : { error : FaT.FacilityError };
+    #TellerError : { error : TeT.TellerError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };
