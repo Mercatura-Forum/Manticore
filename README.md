@@ -16,7 +16,9 @@ payments over ISO 20022 and Mojaloop. Written in Motoko. Apache 2.0.
   catalogue that fails the build when a method is missing from it.
 - **Products as data.** Deposit and lending products as versions; interest as a
   fold with declared day-count and compounding conventions; fees, limits and
-  overdraft as recorded terms.
+  overdraft as recorded terms; origination, collections, corporate lending,
+  trade finance, branch and teller, and Islamic banking as domains on the same
+  log.
 - **Payments in the official shapes.** An ISO 20022 hub built from the official
   schemas (43 message families), CBPR+ and HVPS+ rule sets as data, thirteen
   SWIFT FIN message types bridged, Mojaloop FSPIOP settlement.
@@ -99,6 +101,13 @@ contract on the Thebes substrate changes what that record is:
 | **End-of-day batch** | A plan of work in bounded steps, resumable after any interruption, with inputs frozen under a run and the statement cut recorded rather than re-derived. |
 | **Regulatory reporting and GL export** | Reports as certified objects; a closed reporting engine with no expression surface; returns that report what they cannot map; the general-ledger export that joins the two products. |
 | **Payments** | Settlement schemes, participants, windows and netting on the journal; ISO 20022 messaging (29 message families against their official schemas, CBPR+ and HVPS+ rule sets); FSPIOP v1.1 interoperability. |
+| **Origination and underwriting** | The application on the log, models as data, the bureau's signed report, passkey acceptance, four-eyes decision. |
+| **Collections and recovery** | The exposure's stage on the log, suspense from default, promises to pay, modification gain and loss at restructuring. |
+| **Corporate lending** | Facilities as the contract: revolvers, syndication as agent and participant, restructuring, leases, receivables, covenants, rate fixings. |
+| **Branch and teller** | Tills and vaults counted by denomination, teller sessions, the cash network, cheques and drafts as pending postings. |
+| **Trade finance** | Documentary credits, undertakings, collections and bills as recorded lifecycles under the ICC rules; the MT 700 series in the bridge. |
+| **Islamic banking** | Murabaha, Ijarah, Musharakah, Mudarabah, Salam, Istisna'a and profit-sharing investment accounts as Sharia components of the product engine. |
+| **The command encoding** | A versioned encoder recorded in the proposal block, frozen with golden vectors per family; reconstruction under the recorded version. |
 | **Posting indexes and bounded queries** | Four posting indexes in stable memory over a B-tree with cursor-paged, bounded reads. |
 | **Closed-month packing, the archive roll and archive contracts** | Closed periods re-encoded and moved out of the live contract; the Merkle mountain range pruned below the archive boundary with proofs assembled across it; archive contracts created and adopted in resumable steps. |
 | **Monitoring** | Aggregates the contract computes and a closed, declared rule set; alerts as recorded findings with a review. |
