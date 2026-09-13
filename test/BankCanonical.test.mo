@@ -619,6 +619,24 @@ let commands : [T.Command] = [
   #markDeal({ deal = 950; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
   #recordNostroStatement({ nostro = "NOSTRO-USD-CITI"; statement = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f"; from = 20720; to = 20726; entries = [{ reference = "A1"; amount = 100_00; credit = true; valueDay = 20721; bookingDay = 20721; counterparty = "" }]; document = null }),
   #resolveNostroBreak({ breakId = 960; resolution = "correspondent's fee"; correction = ?{ account = "5900"; sub = null; debit = true; amount = 100_00; currency = "USD" }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
+  // ── cards (cards) ──
+  #setCardPolicy({ disputeSuspense = "1950"; interchangeIncome = "4600"; schemeFees = "5600"; fraudLosses = "5610"; cardFeeIncome = "4610"; provisionalCreditCeiling = 5_000_00; clearingTolerance = 20_00; stanReplayDays = 3 }),
+  #declareCardScheme({ scheme = { id = "VISA"; name = "Visa"; settlementAccount = "2900"; settlementCurrency = "EGP"; rules = { source = "Visa Core Rules 2026 (public)"; interchange = [{ mccFrom = 0; mccTo = 5411; bps = 30; fixed = 5 }]; floorLimit = 50_00; holdDays = 7; reasons = [{ code = "13.1"; description = "Merchandise not received"; chargebackDays = 120; representmentDays = 30; preArbitrationDays = 30 }]; feeBps = 5 }; connectorScheme = #none; connectorKey = "" : Blob } }),
+  #defineCardProduct({ product = { id = "DEBIT-STD"; name = "Standard debit"; kind = #debit; scheme = "VISA"; bounds = { dailyLimit = 20_000_00; perTransactionLimit = 10_000_00; mccAllow = []; mccDeny = [7995]; channels = { pos = true; atm = true; ecom = true; contactless = true; international = true }; velocityCount = 10; velocityWindowMinutes = 60 }; issueFee = 50_00; replacementFee = 25_00; expiryMonths = 36 } }),
+  #issueCard({ token = "4000123456789010" : Blob; account = 44; product = "DEBIT-STD"; form = #physical; controls = { dailyLimit = 5_000_00; perTransactionLimit = 2_000_00; mccAllow = []; mccDeny = [5813]; channels = { pos = true; atm = true; ecom = true; contactless = true; international = false }; velocityCount = 3; velocityWindowMinutes = 10 }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #activateCard({ card = 1401 }),
+  #blockCard({ card = 1401; reason = #lost }),
+  #unblockCard({ card = 1401 }),
+  #replaceCard({ card = 1401; newToken = "4000123456789028" : Blob; reason = #damaged; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #closeCard({ card = 1401; reason = "customer request" }),
+  #setCardControls({ card = 1401; controls = { dailyLimit = 3_000_00; perTransactionLimit = 1_000_00; mccAllow = [5411, 5812]; mccDeny = []; channels = { pos = true; atm = false; ecom = true; contactless = true; international = false }; velocityCount = 5; velocityWindowMinutes = 30 }; byCustomer = true }),
+  #openDispute({ transaction = 1450; reason = "13.1"; amount = 250_00 }),
+  #grantProvisionalCredit({ dispute = 1460; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #raiseChargeback({ dispute = 1460; schemeRef = "VISA-CASE-77"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #recordRepresentment({ dispute = 1460; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #recordPreArbitration({ dispute = 1460 }),
+  #resolveDispute({ dispute = 1460; outcome = #cardholder; finalAmount = 250_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #markFraud({ transaction = 1450; blockCard = true }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -684,7 +702,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13 (the origination, facility, teller, trade, Islamic and treasury families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination, facility, teller, trade, Islamic, treasury and card families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -779,6 +797,17 @@ let golden : [(Text, Text, Text)] = [
   ("setTreasuryLimit", "6ca513949c3a05bd319ce565cbd631c4456bf86fa84c649289ab4213a853b58c", "f669d53757fb3906ad391cad175a02f4e1b6fc99003b2d68b5208321f24c7d1c"),
   ("registerNostro", "bd7fe7b9645702809e3eb051081f1f6ff8b45e55b4b86ba04353193d5433cce8", "c7598ddd702e7f6f6e0c6834ee23c6a5f6f9e6e492fe97b29d2dbea585ac2248"),
   ("cancelDeal", "31c1dda4730af81035ab9328959f24983f2fcabff51b5ec25e3fa2bc104a1964", "ada8c71d7f51bb8d9389ad83ef0d5efd019aa182c892f64859de318193474824"),
+  ("setCardPolicy", "d918ec28a5ea6d9fef9547770f3a3ebcd2f2a426c641408283b0783dfef93105", "2d07ab0b7a5def438b00ec7224b375b1273648e444e73c349550f5d04601eff2"),
+  ("declareCardScheme", "6b5c78744267a0da60ef47905c7da9f95f1f858e3f0b2f62bb32390f805d8bb7", "e5a6c78dc5d9a2c332f21eae70671f58a11c8b9da14d393ba47013cf75565960"),
+  ("defineCardProduct", "7a8029b6bdad1c0dd93f368077988de7480d819faae6c02a058b288e7d5b0dd6", "bde723f87d80c2c8fc96fbf1ac2d3556fb7f221f60879b12d3d43ef02c73c04e"),
+  ("activateCard", "750bc24e62120c36e047c6470e36eff0eaa15c350a92555a9a42f03f33315d3c", "4fbd0be3a264479428a98ebc08e4cfc0975646815cff710a6b2a24f785f01922"),
+  ("blockCard", "0af4755e22cad22d9ba1f1668b9d2279d52a2584b616ec233aeccc38a2478ef0", "e1be62bda66f113fc31d617c098e9fa60cba37b9e2ca4a2f7fa01746fbe06de5"),
+  ("unblockCard", "fc6219cb4cc24863e8b44b71c290cd2604b67a4510c09bebbaa87ac639e9f364", "40697bfe307af34dde0f125501b135c764f81da8b722b617e86e8aabab66d582"),
+  ("closeCard", "25ad0975d47104f49e43d93dae37c3badfd944323c0c491640f32753c73ff515", "7789ef313c8ba5678bd905a6a68c0e83a899aace90771175383dc5e9a9ef3a6a"),
+  ("setCardControls", "14782adf199b447281e8985f055ee85975643e128826d586b1cf1d77af6340e2", "e39cee2e6af4103f75102ee6e3de171af96335c0d040a4b91d893df0012af1b6"),
+  ("openDispute", "d08d4df4d977b93970af2f089cca02fcd8c490c1437808986ce87e88ae39c50a", "c5315ec04d9e8946c58a8bec14c77da9d74f4bb78b0f9e0dd984a548d52c228a"),
+  ("recordPreArbitration", "2f9cb6ec8e405373080d5082f2f4ebcecf83ea32816cef62ef0f633d75d0f40e", "a4deafc2082b9cc137db0ff4e38e1a6cf60ddac84909bea406b950e609fc068c"),
+  ("markFraud", "3f66eff72f4e70134bfd60a33e2b6d935d04dc7a5c4b321659d1184ad190afb1", "bacfb01a8c9569b02354ae62b1b9ebc1b370fd50640925df8fb31b65854f5335"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {

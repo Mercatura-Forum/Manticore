@@ -395,6 +395,24 @@ let commands : [T.Command] = [
   #markDeal({ deal = 950; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
   #recordNostroStatement({ nostro = "NOSTRO-USD-CITI"; statement = "\00\01\02\03\04\05\06\07\08\09\0a\0b\0c\0d\0e\0f\10\11\12\13\14\15\16\17\18\19\1a\1b\1c\1d\1e\1f"; from = 20720; to = 20726; entries = [{ reference = "A1"; amount = 100_00; credit = true; valueDay = 20721; bookingDay = 20721; counterparty = "" }]; document = null }),
   #resolveNostroBreak({ breakId = 960; resolution = "correspondent's fee"; correction = ?{ account = "5900"; sub = null; debit = true; amount = 100_00; currency = "USD" }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s39" }),
+  // ── cards (cards) ──
+  #setCardPolicy({ disputeSuspense = "1950"; interchangeIncome = "4600"; schemeFees = "5600"; fraudLosses = "5610"; cardFeeIncome = "4610"; provisionalCreditCeiling = 5_000_00; clearingTolerance = 20_00; stanReplayDays = 3 }),
+  #declareCardScheme({ scheme = { id = "VISA"; name = "Visa"; settlementAccount = "2900"; settlementCurrency = "EGP"; rules = { source = "Visa Core Rules 2026 (public)"; interchange = [{ mccFrom = 0; mccTo = 5411; bps = 30; fixed = 5 }]; floorLimit = 50_00; holdDays = 7; reasons = [{ code = "13.1"; description = "Merchandise not received"; chargebackDays = 120; representmentDays = 30; preArbitrationDays = 30 }]; feeBps = 5 }; connectorScheme = #none; connectorKey = "" : Blob } }),
+  #defineCardProduct({ product = { id = "DEBIT-STD"; name = "Standard debit"; kind = #debit; scheme = "VISA"; bounds = { dailyLimit = 20_000_00; perTransactionLimit = 10_000_00; mccAllow = []; mccDeny = [7995]; channels = { pos = true; atm = true; ecom = true; contactless = true; international = true }; velocityCount = 10; velocityWindowMinutes = 60 }; issueFee = 50_00; replacementFee = 25_00; expiryMonths = 36 } }),
+  #issueCard({ token = "4000123456789010" : Blob; account = 44; product = "DEBIT-STD"; form = #physical; controls = { dailyLimit = 5_000_00; perTransactionLimit = 2_000_00; mccAllow = []; mccDeny = [5813]; channels = { pos = true; atm = true; ecom = true; contactless = true; international = false }; velocityCount = 3; velocityWindowMinutes = 10 }; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #activateCard({ card = 1401 }),
+  #blockCard({ card = 1401; reason = #lost }),
+  #unblockCard({ card = 1401 }),
+  #replaceCard({ card = 1401; newToken = "4000123456789028" : Blob; reason = #damaged; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #closeCard({ card = 1401; reason = "customer request" }),
+  #setCardControls({ card = 1401; controls = { dailyLimit = 3_000_00; perTransactionLimit = 1_000_00; mccAllow = [5411, 5812]; mccDeny = []; channels = { pos = true; atm = false; ecom = true; contactless = true; international = false }; velocityCount = 5; velocityWindowMinutes = 30 }; byCustomer = true }),
+  #openDispute({ transaction = 1450; reason = "13.1"; amount = 250_00 }),
+  #grantProvisionalCredit({ dispute = 1460; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #raiseChargeback({ dispute = 1460; schemeRef = "VISA-CASE-77"; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #recordRepresentment({ dispute = 1460; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #recordPreArbitration({ dispute = 1460 }),
+  #resolveDispute({ dispute = 1460; outcome = #cardholder; finalAmount = 250_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
+  #markFraud({ transaction = 1450; blockCard = true }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -461,8 +479,8 @@ for (x in P.catalogue().vals()) {
 Debug.print("count: catalogue entries guarding a command = " # Nat.toText(commandEntries));
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
-assert (methodEntries == 21);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending)
-assert (commandEntries == 273);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking) + the thirteen treasury acts (treasury)
+assert (methodEntries == 24);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending), the card authorization (fields and cain.001) and clearing batch (cards)
+assert (commandEntries == 290);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking) + the thirteen treasury acts (treasury) + the seventeen card acts (cards)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();
