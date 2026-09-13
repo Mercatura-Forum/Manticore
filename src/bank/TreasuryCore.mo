@@ -1357,6 +1357,22 @@ module {
   };
   /// The open breaks from a cursor over the status index, one page: what the end-of-day job walks chunk by chunk
   /// (S4.1, the treasury review — the whole-index walk this replaced ran inside one message).
+  /// One page of the breaks — open ones, or every one — of one nostro or of all, off the status index from a cursor;
+  /// `limit` bounds the index entries examined, so a page filtered to one nostro may be short.
+  public func breaksFrom(s : State, nostroId : ?Text, includeResolved : Bool, cursor : ?Blob, limit : Nat) : { rows : [BreakRow]; cursor : ?Blob } {
+    let h : ?Nat = switch (nostroId) { case (?n) { switch (nostro(s, n)) { case (?nr) ?nr.accountHash; case null return { rows = []; cursor = null } } }; case null null };
+    let (lo, hi) = if (includeResolved) R.fullRange(9) else R.prefixRange(0, 1, 8);
+    let page = RI.range(s.breaksByStatus, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let rows = List.empty<BreakRow>();
+    for ((k, _) in page.entries.vals()) {
+      switch (breakRow(s, R.getNat(Blob.toArray(k), 1, 8))) {
+        case (?b) { if ((includeResolved or not b.resolved) and (switch (h) { case (?x) b.nostroHash == x; case null true })) List.add(rows, b) };
+        case null {};
+      };
+    };
+    { rows = List.toArray(rows); cursor = page.cursor }
+  };
+  public func breakCount(s : State) : Nat { s.breaksTotal };
   public func openBreaksFrom(s : State, cursor : ?Blob, limit : Nat) : { rows : [BreakRow]; cursor : ?Blob } {
     let (lo, hi) = R.prefixRange(0, 1, 8);
     let page = RI.range(s.breaksByStatus, lo, hi, cursor, Nat.min(limit, MAX_PAGE));

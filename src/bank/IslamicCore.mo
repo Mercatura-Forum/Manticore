@@ -847,6 +847,15 @@ module {
     };
     List.toArray(out)
   };
+  /// One page of a pool's distributions off the distribution store from a cursor.
+  public func distributionsOfFrom(s : State, poolId : IT.PoolId, cursor : ?Blob, limit : Nat) : { rows : [DistributionRow]; cursor : ?Blob } {
+    let lo = distKey(poolId, ""); let hi = Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(poolId, 32)), Array.repeat<Nat8>(255, 8)));
+    let page = RI.range(s.distributions, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    let rows = List.empty<DistributionRow>();
+    for ((k, v) in page.entries.vals()) List.add(rows, decodeDistribution(poolId, R.getText(Blob.toArray(k), 32, 8), v));
+    { rows = List.toArray(rows); cursor = page.cursor }
+  };
+  public func distributionCount(s : State, poolId : IT.PoolId) : Nat { switch (pool(s, poolId)) { case (?p) p.distributions; case null 0 } };
   public func distributionsOf(s : State, poolId : IT.PoolId) : [DistributionRow] {
     let out = List.empty<DistributionRow>();
     let lo = distKey(poolId, ""); let hi = Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(poolId, 32)), Array.repeat<Nat8>(255, 8)));

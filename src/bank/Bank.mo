@@ -1152,14 +1152,23 @@ shared (initMsg) persistent actor class Bank(init : {
   // ─── settlement reads ───
   public query func listSchemes() : async [SeT.Scheme] { SettlementCore.schemes(bank.settlement) };
   public query func getScheme(id : Text) : async ?SeT.Scheme { SettlementCore.scheme(bank.settlement, id) };
-  public query func listParticipants() : async [SeT.Participant] { SettlementCore.participants(bank.settlement) };
+  public query func listParticipants() : async Result.Result<[SeT.Participant], T.BankError> { bounded(SettlementCore.participantCount(bank.settlement), "participantsPage", func() : [SeT.Participant] { SettlementCore.participants(bank.settlement) }) };
+  public query func participantsPage(cursor : ?Nat, limit : Nat) : async Result.Result<{ rows : [SeT.Participant]; next : ?Nat }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(SettlementCore.participantsFrom(bank.settlement, cursor, n)) }
+  };
   public query func getParticipant(id : Nat) : async ?SeT.Participant { SettlementCore.participant(bank.settlement, id) };
   public query func getTransfer(id : Nat) : async ?SeT.Transfer { SettlementCore.transfer(bank.settlement, settlementBlocks(), id) };
   public query func transferByReference(scheme : Text, reference : Text) : async ?Nat { SettlementCore.transferByReference(bank.settlement, scheme, reference) };
-  public query func listSettlementWindows() : async [SeT.Window] { SettlementCore.windows(bank.settlement) };
+  public query func listSettlementWindows() : async Result.Result<[SeT.Window], T.BankError> { bounded(SettlementCore.windowCount(bank.settlement), "settlementWindowsPage", func() : [SeT.Window] { SettlementCore.windows(bank.settlement) }) };
+  public query func settlementWindowsPage(cursor : ?Nat, limit : Nat) : async Result.Result<{ rows : [SeT.Window]; next : ?Nat }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(SettlementCore.windowsFrom(bank.settlement, cursor, n)) }
+  };
   public query func getSettlementWindow(id : Nat) : async ?SeT.Window { SettlementCore.window(bank.settlement, id) };
   public query func windowTransfers(window : Nat, cursor : ?Nat, limit : Nat) : async { ids : [Nat]; next : ?Nat } { SettlementCore.windowTransferIds(bank.settlement, window, cursor, Nat.min(Nat.max(limit, 1), 500)) };
-  public query func listSettlements() : async [SeT.Settlement] { SettlementCore.settlements(bank.settlement) };
+  public query func listSettlements() : async Result.Result<[SeT.Settlement], T.BankError> { bounded(SettlementCore.settlementCount(bank.settlement), "settlementsPage", func() : [SeT.Settlement] { SettlementCore.settlements(bank.settlement) }) };
+  public query func settlementsPage(cursor : ?Nat, limit : Nat) : async Result.Result<{ rows : [SeT.Settlement]; next : ?Nat }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(SettlementCore.settlementsFrom(bank.settlement, cursor, n)) }
+  };
   public query func getSettlement(id : Nat) : async ?SeT.Settlement { SettlementCore.settlement(bank.settlement, id) };
   public query func getBulk(id : Nat) : async ?SeT.Bulk { SettlementCore.bulk(bank.settlement, settlementBlocks(), id) };
   public query func bulkTransfers(bulk : Nat, cursor : ?Nat, limit : Nat) : async { ids : [Nat]; next : ?Nat } { SettlementCore.bulkTransferIds(bank.settlement, bulk, cursor, Nat.min(Nat.max(limit, 1), 500)) };
@@ -1219,6 +1228,19 @@ shared (initMsg) persistent actor class Bank(init : {
   /// books is a typed refusal; a list read returns the rows in scope **and the
   /// number withheld**, because a page that silently omits rows is how a scoping
   /// bug becomes a data-leak finding. A caller with no grant reads nothing.
+  /// A read over a collection that grows with the calendar or the book answers whole only while the collection is
+  /// within `MAX_LIST`; past it the read is refused with the size and the paged read to use (the adversarial audit of
+  /// 13 September, finding A3: fourteen such reads answered everything, bounded by nothing but the response limit).
+  transient let MAX_LIST : Nat = 512;
+  func bounded<X>(size : Nat, paged : Text, all : () -> [X]) : Result.Result<[X], T.BankError> {
+    if (size > MAX_LIST) return #err(#QueryError({ error = #TooWide({ size; bound = MAX_LIST; narrow = "read " # paged # " a page at a time" }) }));
+    #ok(all())
+  };
+  func pageLimitOf(limit : Nat) : Result.Result<Nat, T.BankError> {
+    if (limit == 0 or limit > MAX_LIST) return #err(#QueryError({ error = #TooWide({ size = limit; bound = MAX_LIST; narrow = "ask for 1.." # Nat.toText(MAX_LIST) # " rows" }) }));
+    #ok(limit)
+  };
+
   public type Page<X> = { rows : [X]; withheld : Nat; scope : ?[T.BookId] };
 
   /// A cursor page: the rows, the scope filter's withheld count, and the cursor to resume at.
@@ -1686,7 +1708,10 @@ shared (initMsg) persistent actor class Bank(init : {
     for (c in JCore.listCurrencies(journal).vals()) { switch (CloseCore.closedTo(bank.close, c.code)) { case (?to) List.add(closed, (c.code, to)); case null {} } };
     { pending = CloseCore.pendingRedenominations(bank.close); closed = List.toArray(closed) }
   };
-  public query func listFxRates() : async [CT.Rate] { CloseCore.listRates(bank.close) };
+  public query func listFxRates() : async Result.Result<[CT.Rate], T.BankError> { bounded(CloseCore.rateCount(bank.close), "fxRatesPage", func() : [CT.Rate] { CloseCore.listRates(bank.close) }) };
+  public query func fxRatesPage(cursor : ?(Text, ProdT.Day), limit : Nat) : async Result.Result<{ rows : [CT.Rate]; next : ?(Text, ProdT.Day) }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(CloseCore.ratesFrom(bank.close, cursor, n)) }
+  };
 
   /// The rate recorded for exactly this day, and nothing else: an earlier day's rate
   /// is never substituted, which is why this takes the day rather than searching.
@@ -1701,7 +1726,10 @@ shared (initMsg) persistent actor class Bank(init : {
     BankCore.positionView(bank, journal, currency, asOf)
   };
 
-  public query func listPeriodEndRuns() : async [CT.RunView] { CloseCore.listRunViews(bank.close) };
+  public query func listPeriodEndRuns() : async Result.Result<[CT.RunView], T.BankError> { bounded(CloseCore.runCount(bank.close), "periodEndRunsPage", func() : [CT.RunView] { CloseCore.listRunViews(bank.close) }) };
+  public query func periodEndRunsPage(cursor : ?(T.BookId, JT.PeriodId), limit : Nat) : async Result.Result<{ rows : [CT.RunView]; next : ?(T.BookId, JT.PeriodId) }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(CloseCore.runViewsFrom(bank.close, cursor, n)) }
+  };
 
   public query func periodEndRun(book : T.BookId, period : JT.PeriodId) : async ?CT.RunView {
     switch (CloseCore.getRun(bank.close, book, period)) { case (?r) ?CloseCore.runView(r); case null null }
@@ -1749,7 +1777,10 @@ shared (initMsg) persistent actor class Bank(init : {
 
   // ─── the end-of-day batch ───
 
-  public query func listEndOfDayRuns() : async [BT.RunView] { BatchCore.listRunViews(bank.batch) };
+  public query func listEndOfDayRuns() : async Result.Result<[BT.RunView], T.BankError> { bounded(BatchCore.runCount(bank.batch), "endOfDayRunsPage", func() : [BT.RunView] { BatchCore.listRunViews(bank.batch) }) };
+  public query func endOfDayRunsPage(cursor : ?(T.BookId, ProdT.Day), limit : Nat) : async Result.Result<{ rows : [BT.RunView]; next : ?(T.BookId, ProdT.Day) }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(BatchCore.runViewsFrom(bank.batch, cursor, n)) }
+  };
 
   public query func endOfDayRun(book : T.BookId, businessDate : ProdT.Day) : async ?BT.RunView {
     switch (BatchCore.getRun(bank.batch, book, businessDate)) { case (?r) ?BatchCore.runView(r); case null null }
@@ -1939,7 +1970,10 @@ shared (initMsg) persistent actor class Bank(init : {
 
   // ─── statements ───
 
-  public query func listIssuedStatements() : async [RepT.StatementRef] { ReportCore.listStatements(bank.report) };
+  public query func listIssuedStatements() : async Result.Result<[RepT.StatementRef], T.BankError> { bounded(ReportCore.statementCount(bank.report), "issuedStatementsPage", func() : [RepT.StatementRef] { ReportCore.listStatements(bank.report) }) };
+  public query func issuedStatementsPage(cursor : ?Text, limit : Nat) : async Result.Result<{ rows : [RepT.StatementRef]; next : ?Text }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(ReportCore.statementsFrom(bank.report, cursor, n)) }
+  };
 
   public shared query ({ caller }) func issuedStatement(account : ProdT.AccountId, kind : RepT.StatementKind) : async Result.Result<RepT.StatementRef, T.BankError> {
     switch (scopedAccount(caller, account)) {
@@ -2291,7 +2325,10 @@ shared (initMsg) persistent actor class Bank(init : {
       requiredAgeDays = Nat.max(MonitoringCore.longestWindow(bank.monitoring), Packing.DEDUP_WINDOW_DAYS) + 1;
     }
   };
-  public query func listPacks() : async [Packing.PackView] { Packing.listPacks(packing) };
+  public query func listPacks() : async Result.Result<[Packing.PackView], T.BankError> { bounded(Packing.packCount(packing), "packsPage", func() : [Packing.PackView] { Packing.listPacks(packing) }) };
+  public query func packsPage(cursor : ?Nat, limit : Nat) : async Result.Result<{ rows : [Packing.PackView]; next : ?Nat }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(Packing.packsFrom(packing, cursor, n)) }
+  };
   public query func getPack(pack : Nat) : async ?Packing.PackView { Packing.getPack(packing, pack) };
   public query func packSegments(pack : Nat) : async [Packing.Segment] { Packing.segmentsOf(packing, pack) };
   /// A segment's bytes — what an archive is given, and what `Pack.unpack` turns back into the
@@ -2720,7 +2757,10 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   /// Every cash movement dispatched and not yet received.
-  public query func cashInTransit() : async [TeT.MovementView] { TellerCore.inTransit(bank.teller) };
+  public query func cashInTransit() : async Result.Result<[TeT.MovementView], T.BankError> { bounded(TellerCore.inTransitCount(bank.teller), "cashInTransitPage", func() : [TeT.MovementView] { TellerCore.inTransit(bank.teller) }) };
+  public query func cashInTransitPage(cursor : ?Blob, limit : Nat) : async Result.Result<{ rows : [TeT.MovementView]; cursor : ?Blob }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(TellerCore.inTransitFrom(bank.teller, cursor, n)) }
+  };
 
   public shared query ({ caller }) func chequeStatus(account : Nat, serial : Nat) : async Result.Result<?TeT.ChequeView, T.BankError> {
     switch (scopedAccount(caller, account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
@@ -2920,7 +2960,10 @@ shared (initMsg) persistent actor class Bank(init : {
     }
   };
   /// A pool's distributions, one row per period.
-  public query func shariaDistributions(pool : Text) : async [IslamicCore.DistributionRow] { IslamicCore.distributionsOf(bank.islamic, pool) };
+  public query func shariaDistributions(pool : Text) : async Result.Result<[IslamicCore.DistributionRow], T.BankError> { bounded(IslamicCore.distributionCount(bank.islamic, pool), "shariaDistributionsPage", func() : [IslamicCore.DistributionRow] { IslamicCore.distributionsOf(bank.islamic, pool) }) };
+  public query func shariaDistributionsPage(pool : Text, cursor : ?Blob, limit : Nat) : async Result.Result<{ rows : [IslamicCore.DistributionRow]; cursor : ?Blob }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(IslamicCore.distributionsOfFrom(bank.islamic, pool, cursor, n)) }
+  };
   /// The board approval a product carries, if any.
   public query func shariaApproval(product : Text) : async ?IT.BoardApproval { IslamicCore.approval(bank.islamic, product) };
   public query func isShariaBook(book : Text) : async Bool { IslamicCore.isShariaBook(bank.islamic, book) };
@@ -3004,9 +3047,19 @@ shared (initMsg) persistent actor class Bank(init : {
     TreasuryCore.breakView(b, TreasuryCore.nostroIdOfHash(bank.treasury, b.nostroHash), reference, JCore.effectiveToday(journal, now()))
   };
   /// The open breaks of every nostro, or of one.
-  public query func nostroBreaks(nostro : ?Text, includeResolved : Bool) : async [TT.BreakView] {
-    let rows = switch (nostro) { case (?n) TreasuryCore.breaksOfNostro(bank.treasury, n, includeResolved); case null TreasuryCore.openBreaks(bank.treasury) };
-    Array.map<TreasuryCore.BreakRow, TT.BreakView>(rows, breakViewOf)
+  public query func nostroBreaks(nostro : ?Text, includeResolved : Bool) : async Result.Result<[TT.BreakView], T.BankError> {
+    // bounded by the breaks the walk would touch: every break when resolved ones are asked for, the open ones otherwise
+    let size = if (includeResolved) TreasuryCore.breakCount(bank.treasury) else TreasuryCore.openBreakCount(bank.treasury);
+    bounded(size, "nostroBreaksPage", func() : [TT.BreakView] {
+      let rows = switch (nostro) { case (?n) TreasuryCore.breaksOfNostro(bank.treasury, n, includeResolved); case null TreasuryCore.openBreaks(bank.treasury) };
+      Array.map<TreasuryCore.BreakRow, TT.BreakView>(rows, breakViewOf)
+    })
+  };
+  public query func nostroBreaksPage(nostro : ?Text, includeResolved : Bool, cursor : ?Blob, limit : Nat) : async Result.Result<{ rows : [TT.BreakView]; cursor : ?Blob }, T.BankError> {
+    switch (pageLimitOf(limit)) {
+      case (#err(e)) #err(e);
+      case (#ok(n)) { let page = TreasuryCore.breaksFrom(bank.treasury, nostro, includeResolved, cursor, n); #ok({ rows = Array.map<TreasuryCore.BreakRow, TT.BreakView>(page.rows, breakViewOf); cursor = page.cursor }) };
+    }
   };
   public query func nostroBreak(id : Nat) : async ?TT.BreakView { switch (TreasuryCore.breakRow(bank.treasury, id)) { case (?b) ?breakViewOf(b); case null null } };
   /// The treasury at a glance: the policy and the counts.
@@ -3123,7 +3176,10 @@ shared (initMsg) persistent actor class Bank(init : {
     CardCore.disputeView(d, reason)
   };
   public query func cardDispute(id : Nat) : async ?CdT.DisputeView { switch (CardCore.dispute(bank.cards, id)) { case (?d) ?disputeViewOf(d); case null null } };
-  public query func cardDisputesOpen() : async [CdT.DisputeView] { Array.map<CardCore.DisputeRow, CdT.DisputeView>(CardCore.openDisputes(bank.cards), disputeViewOf) };
+  public query func cardDisputesOpen() : async Result.Result<[CdT.DisputeView], T.BankError> { bounded(CardCore.openDisputeCount(bank.cards), "cardDisputesOpenPage", func() : [CdT.DisputeView] { Array.map<CardCore.DisputeRow, CdT.DisputeView>(CardCore.openDisputes(bank.cards), disputeViewOf) }) };
+  public query func cardDisputesOpenPage(cursor : ?Blob, limit : Nat) : async Result.Result<{ rows : [CdT.DisputeView]; cursor : ?Blob }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) { let page = CardCore.openDisputesFrom(bank.cards, cursor, n); #ok({ rows = Array.map<CardCore.DisputeRow, CdT.DisputeView>(page.rows, disputeViewOf); cursor = page.cursor }) } }
+  };
   public query func cardStatement(card : Nat, cycleEnd : Nat) : async ?CardCore.StatementRow { CardCore.statement(bank.cards, card, cycleEnd) };
   public query func cardScheme(id : Text) : async ?CdT.Scheme { switch (CardCore.scheme(bank.cards, id)) { case (?r) BankCore.cardSchemeOf(bankBlocks(), r); case null null } };
   public query func cardProduct(id : Text) : async ?CdT.CardProduct { switch (CardCore.product(bank.cards, id)) { case (?r) BankCore.cardProductOf(bankBlocks(), r); case null null } };
@@ -3461,9 +3517,15 @@ shared (initMsg) persistent actor class Bank(init : {
     List.toArray(out)
   };
 
-  public query func listDeadLetters() : async [RepT.DeadLetter] { ReportCore.deadLetters(bank.report) };
+  public query func listDeadLetters() : async Result.Result<[RepT.DeadLetter], T.BankError> { bounded(ReportCore.deadLetterCount(bank.report), "deadLettersPage", func() : [RepT.DeadLetter] { ReportCore.deadLetters(bank.report) }) };
+  public query func deadLettersPage(cursor : ?Nat, limit : Nat) : async Result.Result<{ rows : [RepT.DeadLetter]; next : ?Nat }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(ReportCore.deadLettersFrom(bank.report, cursor, n)) }
+  };
 
-  public query func listCertifiedArtefacts() : async [ReportCore.CertifiedEntry] { ReportCore.listCertified(bank.report) };
+  public query func listCertifiedArtefacts() : async Result.Result<[ReportCore.CertifiedEntry], T.BankError> { bounded(ReportCore.certifiedCount(bank.report), "certifiedArtefactsPage", func() : [ReportCore.CertifiedEntry] { ReportCore.listCertified(bank.report) }) };
+  public query func certifiedArtefactsPage(cursor : ?Text, limit : Nat) : async Result.Result<{ rows : [ReportCore.CertifiedEntry]; next : ?Text }, T.BankError> {
+    switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(ReportCore.certifiedFrom(bank.report, cursor, n)) }
+  };
 
   public query func reportStatus() : async {
     definitions : Nat; templates : Nat; statements : Nat; certified : Nat;
@@ -3493,7 +3555,13 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func bankLogBase() : async Nat { BLog.base(bankLog) };
   public query func bankMmrRoot() : async ?Blob { BLog.mmrRoot(bankLog) };
   public query func bankProof(index : Nat) : async ?BLog.Proof { BLog.proof(bankLog, index) };
-  public query func verifyBankChain() : async { checked : Nat; fault : ?Text } { BLog.verifyChainWith(bankLog, packedBankBlock) };
+  /// The whole chain in one query — bounded: past `MAX_CHAIN_WALK` blocks the read answers nothing checked and names
+  /// `verifyBankBlocks(start, length)`, the windowed read, as the way (the audit of 13 September, finding A3).
+  transient let MAX_CHAIN_WALK : Nat = 50_000;
+  public query func verifyBankChain() : async { checked : Nat; fault : ?Text } {
+    if (BLog.length(bankLog) > MAX_CHAIN_WALK) return { checked = 0; fault = ?("the log holds " # Nat.toText(BLog.length(bankLog)) # " blocks, past the " # Nat.toText(MAX_CHAIN_WALK) # " one query walks: verify windows with verifyBankBlocks(start, length)") };
+    BLog.verifyChainWith(bankLog, packedBankBlock)
+  };
   public query func verifyBankProofLocally(index : Nat) : async Bool {
     switch (bankBlock(index), BLog.proof(bankLog, index), BLog.mmrRoot(bankLog)) {
       case (?b, ?p, ?root) BLog.verify(b.hash, index, p, root);
@@ -3567,7 +3635,10 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func journalPostingByKey(key : Blob) : async ?Nat {
     JCore.postingIndexByKey(journal, me(), key)
   };
-  public query func verifyJournalChain() : async { checked : Nat; fault : ?Text } { JLog.verifyChain(journalLog) };
+  public query func verifyJournalChain() : async { checked : Nat; fault : ?Text } {
+    if (JLog.length(journalLog) > MAX_CHAIN_WALK) return { checked = 0; fault = ?("the log holds " # Nat.toText(JLog.length(journalLog)) # " blocks, past the " # Nat.toText(MAX_CHAIN_WALK) # " one query walks: verify windows with getJournalBlocks(start, length)") };
+    JLog.verifyChain(journalLog)
+  };
   public query func journalAdmin() : async Principal { journal.admin };
   public query func journalActive() : async Bool { JCore.isActive(journal) };
   public query func journalActivationHeight() : async Nat64 { journal.activationHeight };

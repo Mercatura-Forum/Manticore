@@ -202,6 +202,13 @@ module {
     }
   };
 
+  /// One page of the runs, by (book, business date) from a cursor (inclusive); `next` is the key to resume at.
+  public func runViewsFrom(s : State, cursor : ?(Text, Nat), limit : Nat) : { rows : [T.RunView]; next : ?(Text, Nat) } {
+    let rows = List.empty<T.RunView>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.runs, cmpTN, c); case null Map.entries(s.runs) };
+    for ((k, r) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, runView(r)) };
+    { rows = List.toArray(rows); next = null }
+  };
   public func listRunViews(s : State) : [T.RunView] {
     Array.map<RunEntry, T.RunView>(listRuns(s), runView)
   };

@@ -168,6 +168,13 @@ module {
 
   public func rateCount(s : State) : Nat { Map.size(s.rates) };
 
+  /// One page of the recorded rates, by (currency, day) from a cursor (inclusive).
+  public func ratesFrom(s : State, cursor : ?(Text, Nat), limit : Nat) : { rows : [Fx.Rate]; next : ?(Text, Nat) } {
+    let rows = List.empty<Fx.Rate>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.rates, cmpTN, c); case null Map.entries(s.rates) };
+    for ((k, r) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, r) };
+    { rows = List.toArray(rows); next = null }
+  };
   public func listRates(s : State) : [Fx.Rate] {
     Array.map<((Text, Nat), Fx.Rate), Fx.Rate>(Map.toArray(s.rates), func((_, r)) { r })
   };
@@ -247,6 +254,13 @@ module {
 
   public func listRunViews(s : State) : [T.RunView] {
     Array.map<((Text, Text), RunEntry), T.RunView>(Map.toArray(s.runs), func((_, r)) { runView(r) })
+  };
+  /// One page of the period-end runs, by (book, period) from a cursor (inclusive).
+  public func runViewsFrom(s : State, cursor : ?(Text, Text), limit : Nat) : { rows : [T.RunView]; next : ?(Text, Text) } {
+    let rows = List.empty<T.RunView>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.runs, cmpTT, c); case null Map.entries(s.runs) };
+    for ((k, r) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, runView(r)) };
+    { rows = List.toArray(rows); next = null }
   };
 
   public func scheduleView(e : ScheduleEntry) : T.ScheduleView {
