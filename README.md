@@ -1,10 +1,35 @@
 # Manticore: Thebes Core Banking and Payments
 
-A core banking and payments layer that runs as a smart contract, built on a
-provable double-entry journal. Every state the bank holds is a fold over an
+**Manticore is a core banking and payments system that runs as a smart contract
+on the Thebes substrate.** Every state the bank holds is a fold over an
 append-only, hash-chained block log; every money-moving operation is a
 maker-checker act over canonical bytes; every report is a certified object a
-third party can verify against the chain's own commitment.
+third party can verify against the chain's own commitment. Deposits, lending,
+value dating, foreign currency, end-of-day batch, regulatory reporting, and
+payments over ISO 20022 and Mojaloop. Written in Motoko. Apache 2.0.
+
+- **A provable double-entry journal.** Postings are blocks; balances, interest
+  and reports are folds over them; a journal entry re-verifies from its bytes
+  outside the contract.
+- **Four eyes on every money-moving act.** Roles and permissions derived from
+  the command catalogue, a checker on every proposal, and an audit of the
+  catalogue that fails the build when a method is missing from it.
+- **Products as data.** Deposit and lending products as versions; interest as a
+  fold with declared day-count and compounding conventions; fees, limits and
+  overdraft as recorded terms.
+- **Payments in the official shapes.** An ISO 20022 hub built from the official
+  schemas (43 message families), CBPR+ and HVPS+ rule sets as data, thirteen
+  SWIFT FIN message types bridged, Mojaloop FSPIOP settlement.
+- **Bounded, paged, upgrade-safe.** Posting indexes in stable memory over a
+  B-tree, cursor-paged reads, closed months packed and archived, in-place
+  upgrades that keep state.
+
+| | |
+|---|---|
+| Journal | append-only, hash-chained block log; Merkle mountain range with a certified root |
+| Controls | maker-checker, entitlements, permission audit with a negative control |
+| Payments | ISO 20022 (43 families, official XSDs), SWIFT MT bridge, Mojaloop FSPIOP, post-quantum connector signatures (ML-DSA-44, MAYO-2) |
+| Status | verified in the Motoko battery and integration runs; not deployed to a production chain; not independently audited |
 
 Manticore is written in Motoko for the Thebes substrate. Its ISO 20022 layer is
 built from the official schemas; its settlement and FSPIOP layers follow the
