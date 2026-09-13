@@ -59,7 +59,7 @@ module {
     lotMethod : LotMethod;
     confirmationDueDays : Nat;         // an unconfirmed deal after this many days is an alert (T+1 by default)
     breakAgeAlertDays : Nat;           // an open break this old is an alert
-    maxCurvePoints : Nat;              // ≤ 16
+    maxCurvePoints : Nat;              // ≤ 40
   };
   public type LotMethod = { #fifo; #averageCost };
   public func lotMethodText(m : LotMethod) : Text { switch (m) { case (#fifo) "fifo"; case (#averageCost) "averageCost" } };

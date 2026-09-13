@@ -158,6 +158,11 @@ switch (Core.row(s, fwdId)) { case (?r) { if (r.secondAmount != M.quoteAmount(fw
 switch (Core.row(s, bondId)) { case (?r) { if (r.nominalLeft != buy.nominal or r.costLeft != M.cleanCost(buy.nominal, buy.priceMicro) or r.yieldMillionths == 0 or r.legs != 2) fail("bond row facts " # debug_show (r.nominalLeft, r.costLeft, r.yieldMillionths)) }; case null fail("bond row") };
 switch (Core.row(s, irsId)) { case (?r) { if (r.legs != 4) fail("irs legs " # debug_show (r.legs)) }; case null fail("irs row") };
 if (Core.openAll(s).size() != 6) fail("six open deals");
+// the per-currency open counters (S4.1) equal a walk of the open deals — a deal with two currencies counts once under each
+func walkedIn(ccy : Text) : Nat { var n = 0; for (d in Core.openAll(s).vals()) { if (Text.equal(Core.rowCurrency(s, d), ccy) or Text.equal(d.secondCurrency, ccy)) n += 1 }; n };
+for (c in [USD, "EGP", "EUR", "XXX"].vals()) { if (Core.openInCurrency(s, c) != walkedIn(c)) fail("open in " # c # ": counter " # Nat.toText(Core.openInCurrency(s, c)) # " walk " # Nat.toText(walkedIn(c))) };
+if (Core.openInCurrency(s, USD) == 0) fail("open in USD counted");
+Debug.print("count: per-currency open counters held equal to a walk = 4");
 Debug.print("count: deals captured = 6");
 Debug.print("count: deal refusals = 6");
 
@@ -349,8 +354,17 @@ Debug.print("count: statement entries matched = 3");
 Debug.print("count: nostro breaks recorded, aged and resolved = 2");
 
 // 7. reads and the fingerprint
-let pos = Core.positions(s, "TREASURY", terms);
+let pos = switch (Core.positions(s, "TREASURY", terms)) { case (?p) p; case null { fail("positions: the book is within the walk bound"); [] } };
 if (pos.size() == 0) fail("positions");
+// the paged walks the end-of-day job uses (S4.1): the pages of open deals union to the open set; the open-break page holds the one open break
+var walked = 0; var wc : ?Blob = null;
+label w loop { let pg = Core.openInBookFrom(s, "TREASURY", wc, 2); walked += pg.rows.size(); switch (pg.cursor) { case (?c) wc := ?c; case null break w } };
+let openBounded = switch (Core.openInBookBounded(s, "TREASURY")) { case (?xs) xs.size(); case null 0 };
+if (walked == 0 or walked != openBounded) fail("paged open walk " # Nat.toText(walked) # " vs " # Nat.toText(openBounded));
+let bpg = Core.openBreaksFrom(s, null, 16);
+if (bpg.rows.size() != 1 or bpg.cursor != null) fail("open breaks page");
+if (Core.agedBreak(s, bpg.rows[0], D0 + 20) == null) fail("the open break is aged at twenty days");
+Debug.print("count: open deals walked page by page = " # Nat.toText(walked));
 var bondPos = false;
 for (p in pos.vals()) { if (Text.equal(p.instrument, "EG0000012345")) { bondPos := true; if (p.nominal != 6_000_000_00) fail("bond position " # debug_show (p.nominal)) } };
 if (not bondPos) fail("bond position present");
@@ -364,4 +378,30 @@ if (not Blob.equal(f1, fp(s))) fail("fingerprint unstable");
 if (Blob.equal(f1, fp(s2))) fail("empty state has a different fingerprint");
 Debug.print("count: positions read = " # Nat.toText(pos.size()));
 Debug.print("count: fingerprint checks = 2");
+
+// 8. the raised caps (S4.1, the treasury review): forty pillars round-trip through the row, a forty-first refused;
+//    a quarterly swap to thirty-two years (128 periods) captured, one to thirty-three (132) refused
+ignore actOk(Core.planPolicy({ pol with maxCurvePoints = Core.MAX_CURVE_POINTS }), "policy at the cap");
+ignore refused(Core.planPolicy({ pol with maxCurvePoints = Core.MAX_CURVE_POINTS + 1 }), "policy over the cap");
+let grid : [Nat] = [1, 2, 7, 14, 21, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 365, 456, 548, 639, 730, 912, 1095, 1278, 1460, 1825, 2190, 2555, 2920, 3285, 3650, 4380, 5110, 5840, 6570, 7300, 8030, 8760, 9490, 10950];
+let forty = Array.tabulate<(Nat, Int)>(40, func(i) { (grid[i], 1_500 + i * 17) });
+publish({ id = "EGP-ZERO-40"; kind = #zeroRates; currency = EGP; day = D0; points = forty; source = h("cbe-40") });
+switch (Core.curveOn(s, "EGP-ZERO-40", D0)) {
+  case (?c) { if (c.points.size() != 40) fail("forty pillars read back " # Nat.toText(c.points.size())); var i = 0; while (i < 40) { if (c.points[i] != forty[i]) fail("pillar " # Nat.toText(i)); i += 1 }; if (not Blob.equal(c.source, h("cbe-40"))) fail("source after the pillars") };
+  case null fail("the forty-pillar curve");
+};
+let fortyOne = Array.tabulate<(Nat, Int)>(41, func(i) { (if (i < 40) grid[i] else 12_000, 1_500 + i) });
+ignore refused(Core.planPublishCurve(s, { id = "EGP-ZERO-41"; kind = #zeroRates; currency = EGP; day = D0; points = fortyOne; source = h("cbe-41") }), "forty-one pillars");
+let irs32 : TT.Irs = { irs with maturity = 32_398; // 2058-09-14
+  discountCurve = "EGP-ZERO-40"; notional = 1_000_000_00 };
+let swap128 = Core.swapPeriodsOf(irs32);
+if (swap128.size() != 128) fail("thirty-two years quarterly is 128 periods, not " # Nat.toText(swap128.size()));
+let irs32Id = capture("TREASURY", #irs(irs32), null);
+if (Core.row(s, irs32Id) == null) fail("the 128-period swap captured");
+let irs33 : TT.Irs = { irs32 with maturity = 32_763 };   // 2059-09-14
+if (Core.swapPeriodsOf(irs33).size() != 132) fail("thirty-three years quarterly is 132 periods");
+ignore refused(Core.planCapture(s, 0, "TREASURY", cp, #irs(irs33), "r-132", trader, D0, null, ctx, terms), "a 132-period swap");
+Debug.print("count: pillars round-tripped through the widened curve row = 40");
+Debug.print("count: swap periods on the captured thirty-two-year swap = " # Nat.toText(swap128.size()));
+Debug.print("count: cap refusals (policy, curve, swap) = 3");
 Debug.print("Treasury: all checks passed");

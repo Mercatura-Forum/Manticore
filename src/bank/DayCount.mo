@@ -18,11 +18,13 @@
 ///   * `fraction(convention, from, to)` — the fraction for a *period*, which is
 ///     what a loan instalment or a term deposit uses;
 ///   * `dailyDenominator(convention, day)` — the denominator of **one day**, which
-///     is what a daily-balance accrual uses. A 30/360-family convention has no
-///     well-defined single day (a 31st contributes nothing, a February day
-///     contributes more than a calendar day), so this returns null for those and a
-///     product that asks for a daily-balance accrual on one is refused at
-///     registration rather than silently given ACT/365.
+///     is what a daily-balance accrual uses. The 30/360 family accrues each calendar
+///     day at 1/360 (1/365 for 30/365) — the market's daily reading of a 360-day
+///     year, which is not the period fraction (a 31-day month accrues 31/360 by the
+///     day and 30/360 by the period; `test/DayCountInterest.test.mo` records the
+///     choice) — and ACT/ACT (ICMA) alone has no single day, its unit being the
+///     coupon period: a product asking for a daily-balance accrual under it is
+///     refused at registration rather than silently given ACT/365.
 ///
 /// References: ISDA 2006 Definitions §4.16 (the 30/360 family and ACT/ACT),
 /// ICMA Rule 251 (A001), and the ISO 20022 code set above.

@@ -33,11 +33,18 @@ def points_mo(points):
     return "[" + ", ".join("(%d, %d)" % (t, v) for t, v in points) + "]"
 
 
-def curve(n, lo, hi, tenors=(1, 7, 30, 90, 180, 365, 730, 1825)):
+def curve(n, lo, hi, tenors=(1, 7, 30, 90, 180, 365, 730, 1825), r=None):
     pts = []
     for t in tenors[:n]:
-        pts.append((t, rng.randint(lo, hi)))
+        pts.append((t, (r or rng).randint(lo, hi)))
     return pts
+
+
+# The forty-pillar grid the raised cap admits (S4.1, the treasury review): overnight to thirty years.
+TENORS_40 = (1, 2, 7, 14, 21, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 365, 456, 548, 639, 730, 912, 1095,
+             1278, 1460, 1825, 2190, 2555, 2920, 3285, 3650, 4380, 5110, 5840, 6570, 7300, 8030, 8760, 9490, 10950)
+assert len(TENORS_40) == 40
+rng2 = random.Random(20260913 + 41)   # the extended vectors draw from their own stream, so the first set is unchanged
 
 
 D0 = T.from_civil(2026, 9, 14)
@@ -56,6 +63,13 @@ for _ in range(24):
     v = T.interpolate(pts, tenor)
     df = T.discount_on(pts, tenor)
     # (points, tenor, valueNum, valueDen, dfNum, dfDen)
+    rows.append("(%s, %d, %d, %d, %d, %d)" % (points_mo(pts), tenor, v.numerator, v.denominator, df.numerator, df.denominator))
+# the forty-pillar curves: every pillar count from 17 to 40, tenors across the whole grid and past its end
+for n in range(17, 41):
+    pts = curve(n, 100, 2500, tenors=TENORS_40, r=rng2)
+    tenor = rng2.randint(0, 12000)
+    v = T.interpolate(pts, tenor)
+    df = T.discount_on(pts, tenor)
     rows.append("(%s, %d, %d, %d, %d, %d)" % (points_mo(pts), tenor, v.numerator, v.denominator, df.numerator, df.denominator))
 out.append("  /// (zero curve, tenor, interpolated n, d, discount factor n, d)")
 out.append("  public let CURVES : [([(Nat, Int)], Nat, Int, Nat, Int, Nat)] = [\n    " + ",\n    ".join(rows) + "\n  ];")
@@ -142,6 +156,28 @@ for _ in range(16):
     for p in periods:
         if p["start"] <= day and rng.random() < 0.8:
             fixings[p["start"]] = rng.randint(900, 2400)
+    mark = T.swap_mark(notional, pay_fixed, fixed, spread, conv, periods, zero, day, lambda s: fixings.get(s))
+    per_mo = "[" + ", ".join("(%d, %d)" % (p["start"], p["end"]) for p in periods) + "]"
+    fix_mo = "[" + ", ".join("(%d, %d)" % (k, v) for k, v in sorted(fixings.items())) + "]"
+    rows.append("(%s, %d, %s, %d, %d, %s, %s, %d, %s, %d)" % (conv_mo(conv, 1), notional, "true" if pay_fixed else "false", fixed, spread, per_mo, points_mo(zero), day, fix_mo, mark))
+# the long swaps the raised cap admits: quarterly to thirty and thirty-two years (120 and 128 periods), semi-annual to
+# thirty, on forty-pillar curves, with fixings recorded on the periods already started
+for months, years in ((3, 30), (3, 32), (6, 30), (3, 25)):
+    conv = rng2.choice(["A003", "A004", "A006"])
+    notional = rng2.randint(1, 100) * 1_000_000_00
+    pay_fixed = rng2.random() < 0.5
+    fixed = rng2.randint(800, 2500)
+    spread = rng2.randint(-50, 150)
+    start = D0 - rng2.randint(0, 3000)
+    maturity = T.add_months(start, 12 * years)
+    periods = T.swap_periods(start, maturity, months)
+    assert len(periods) == 12 * years // months, len(periods)
+    zero = curve(40, 1200, 2600, tenors=TENORS_40, r=rng2)
+    day = D0 + rng2.randint(0, 100)
+    fixings = {}
+    for p in periods:
+        if p["start"] <= day and rng2.random() < 0.8:
+            fixings[p["start"]] = rng2.randint(900, 2400)
     mark = T.swap_mark(notional, pay_fixed, fixed, spread, conv, periods, zero, day, lambda s: fixings.get(s))
     per_mo = "[" + ", ".join("(%d, %d)" % (p["start"], p["end"]) for p in periods) + "]"
     fix_mo = "[" + ", ".join("(%d, %d)" % (k, v) for k, v in sorted(fixings.items())) + "]"
