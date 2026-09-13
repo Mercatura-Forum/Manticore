@@ -32,6 +32,7 @@ import FaT "FacilityTypes";
 import TeT "TellerTypes";
 import TrT "TradeTypes";
 import IT "IslamicTypes";
+import TT "TreasuryTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -520,6 +521,24 @@ module {
     #openInvestmentPool : { pool : IT.Pool };
     #updatePoolReserves : { pool : IT.PoolId; per : ?Nat; irr : ?Nat };
     #distributePool : { pool : IT.PoolId; month : Text; from : Day; to : Day; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    // ── treasury (treasury): deals as commands, positions as folds, valuation by declared curves, nostro reconciliation ──
+    #setTreasuryPolicy : TT.Policy;
+    #registerSecurity : { terms : TT.SecurityTerms };
+    #publishCurve : { curve : TT.Curve };
+    #setTreasuryLimit : { limit : TT.Limit };
+    #registerNostro : { nostro : TT.Nostro };
+    /// The trader's act within their limits; a breach is a refusal unless an approver is named, in which case the deal
+    /// is recorded outside its limits and each breach is recorded after it with the approver.
+    #captureDeal : { book : BookId; counterparty : TT.Counterparty; kind : TT.DealKind; reference : Text; approver : ?Principal };
+    /// The counterparty's confirmation, by its hash and either the fields the connector read or the fxtr.014 document
+    /// itself, which the contract parses.
+    #confirmDeal : { deal : TT.DealId; confirmation : Blob; fields : ?TT.ConfirmationFields; document : ?Blob };
+    #amendDeal : { deal : TT.DealId; kind : TT.DealKind; reason : Text };
+    #cancelDeal : { deal : TT.DealId; reason : Text };
+    #settleDealLeg : { deal : TT.DealId; leg : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #markDeal : { deal : TT.DealId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordNostroStatement : { nostro : TT.NostroId; statement : Blob; from : Day; to : Day; entries : [TT.StatementEntry]; document : ?Blob };
+    #resolveNostroBreak : { breakId : TT.BreakId; resolution : Text; correction : ?{ account : Text; sub : ?Text; debit : Bool; amount : Nat; currency : Text }; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -633,6 +652,8 @@ module {
     #teller : TeT.TellerEvent;
     #trade : TrT.TradeEvent;
     #islamic : IT.IslamicEvent;
+    /// Treasury: deals, curves, limits, nostro statements and breaks (treasury).
+    #treasury : TT.TreasuryEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -764,6 +785,7 @@ module {
     #TellerError : { error : TeT.TellerError };
     #TradeError : { error : TrT.TradeError };
     #IslamicError : { error : IT.IslamicError };
+    #TreasuryError : { error : TT.TreasuryError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };

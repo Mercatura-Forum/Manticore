@@ -182,6 +182,19 @@ module {
           case (_) [];
         }
       };
+      // ── treasury (treasury): the configuration whose block carries the instruction whole ──
+      case (#treasury(te)) {
+        if (act.size() > 1) return [];
+        switch (te) {
+          case (#policySet(p)) [#setTreasuryPolicy(p)];
+          case (#securityRegistered(x)) [#registerSecurity({ terms = x.terms })];
+          case (#curvePublished(x)) [#publishCurve({ curve = x.curve })];
+          case (#limitSet(x)) [#setTreasuryLimit({ limit = x.limit })];
+          case (#nostroRegistered(x)) [#registerNostro({ nostro = x.nostro })];
+          case (#dealCancelled(x)) [#cancelDeal({ deal = x.deal; reason = x.reason })];
+          case (_) [];
+        }
+      };
       case (_) [];
     }
   };
@@ -263,6 +276,7 @@ module {
      "openFacility", "transferParticipation", "recordCovenantTest", "blockDrawdowns", "unblockDrawdowns", "recordFacilityReview", "recordRateFixing", "closeFacility",
      "setTellerPolicy", "openTellerSession", "closeTellerSession", "issueChequebook", "stopCheque",
      "setTradePolicy", "presentDocuments", "examinePresentation", "waiveDiscrepancies", "recordDemand", "presentCollection", "acceptCollection", "protestCollection", "recordTradeMessage",
-     "setIslamicPolicy", "approveShariaProduct", "flagShariaBook", "closeShariaContract", "openInvestmentPool", "updatePoolReserves"]
+     "setIslamicPolicy", "approveShariaProduct", "flagShariaBook", "closeShariaContract", "openInvestmentPool", "updatePoolReserves",
+     "setTreasuryPolicy", "registerSecurity", "publishCurve", "setTreasuryLimit", "registerNostro", "cancelDeal"]
   };
 }

@@ -92,6 +92,10 @@ import TradeCore "TradeCore";
 import TradeMessages "TradeMessages";
 import IT "IslamicTypes";
 import IslamicCore "IslamicCore";
+import TT "TreasuryTypes";
+import TreasuryCore "TreasuryCore";
+import TreasuryMessages "TreasuryMessages";
+import TreasuryMath "TreasuryMath";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -388,6 +392,12 @@ shared (initMsg) persistent actor class Bank(init : {
       // together. This is acceptance criterion 5 ("atomic") and it is a property of the ordering
       // here, not of anything the index does.
       indexN := IC.countInstructions(func() { ignore PIdx.indexBlock(postingIndex, blk, indexContext()) });
+      // The treasury's nostro index (treasury): the legs of a posted movement on a registered nostro account, written in
+      // the same message so a statement can be matched against what the journal committed and nothing less.
+      switch (blk.event) {
+        case (#posted(p)) ignore TreasuryCore.indexJournalLegs(bank.treasury, blk.index, p.valueDate, p.legs, p.sourceRef.id);
+        case (_) {};
+      };
       // The aggregates, in the same message and after the indexes, so a rule's range and a query's
       // range describe the same journal.
       activityN := IC.countInstructions(func() { recordedOpt := ?Activity.record(activity, blk, activityContext()) });
@@ -2896,6 +2906,124 @@ shared (initMsg) persistent actor class Bank(init : {
   /// The Sharia book at a glance: the policy, the counts, the charity total.
   public query func shariaStatus() : async { policy : ?IT.Policy; status : { contracts : Nat; open : Nat; charity : Nat; distributions : Nat; pools : Nat } } {
     { policy = IslamicCore.policy(bank.islamic); status = IslamicCore.status(bank.islamic) }
+  };
+
+  // ─── treasury (treasury) ────────────────────────────────────────────────────────
+
+  func treasuryView(caller : Principal, id : Nat) : Result.Result<?TT.DealView, T.BankError> {
+    switch (TreasuryCore.row(bank.treasury, id)) {
+      case null #ok(null);
+      case (?r) {
+        if (not BankCore.mayReadBook(readScope(caller), r.book)) return #err(#OutsideBookScope({ book = r.book }));
+        let (cp, reference) = BankCore.treasuryCaptureOf(bankBlocks(), id);
+        #ok(?TreasuryCore.view(bank.treasury, r, cp, reference))
+      };
+    }
+  };
+  /// A deal's row: kind, state, counterparty, the figures posted so far, the legs settled.
+  public shared query ({ caller }) func treasuryDeal(id : Nat) : async Result.Result<?TT.DealView, T.BankError> { treasuryView(caller, id) };
+  /// The terms a deal carries — from its capture block or its last amendment.
+  public shared query ({ caller }) func treasuryDealTerms(id : Nat) : async Result.Result<?TT.DealKind, T.BankError> {
+    switch (treasuryView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok(null); case (#ok(?_)) { switch (TreasuryCore.row(bank.treasury, id)) { case (?r) #ok(BankCore.treasuryKindOf(bankBlocks(), r)); case null #ok(null) } } }
+  };
+  public shared query ({ caller }) func treasuryDealsOfBook(book : Text) : async Result.Result<[TT.DealView], T.BankError> {
+    if (not BankCore.mayReadBook(readScope(caller), book)) return #err(#OutsideBookScope({ book }));
+    #ok(Array.map<TreasuryCore.DealRow, TT.DealView>(TreasuryCore.dealsOfBook(bank.treasury, book), func(r) { let (cp, reference) = BankCore.treasuryCaptureOf(bankBlocks(), r.id); TreasuryCore.view(bank.treasury, r, cp, reference) }))
+  };
+  public shared query ({ caller }) func treasuryDealsByState(state : TT.DealState, cursor : ?Blob, limit : Nat) : async { entries : [TT.DealView]; cursor : ?Blob } {
+    let page = TreasuryCore.listByState(bank.treasury, state, cursor, limit);
+    let out = List.empty<TT.DealView>();
+    for (id in page.ids.vals()) { switch (treasuryView(caller, id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+  public shared query ({ caller }) func treasuryDealsOfCounterparty(name : Text, cursor : ?Blob, limit : Nat) : async { entries : [TT.DealView]; cursor : ?Blob } {
+    let page = TreasuryCore.listByCounterparty(bank.treasury, name, cursor, limit);
+    let out = List.empty<TT.DealView>();
+    for (id in page.ids.vals()) { switch (treasuryView(caller, id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    { entries = List.toArray(out); cursor = page.cursor }
+  };
+  /// The positions of a book: open deals aggregated by kind, instrument and currency.
+  public shared query ({ caller }) func treasuryPositions(book : Text) : async Result.Result<[TT.PositionView], T.BankError> {
+    if (not BankCore.mayReadBook(readScope(caller), book)) return #err(#OutsideBookScope({ book }));
+    #ok(TreasuryCore.positions(bank.treasury, book, BankCore.treasuryTerms(bankBlocks())))
+  };
+  /// The settled purchase lots of a security in a book with nominal left, oldest first.
+  public shared query ({ caller }) func treasuryLots(book : Text, isin : Text) : async Result.Result<[TT.DealView], T.BankError> {
+    if (not BankCore.mayReadBook(readScope(caller), book)) return #err(#OutsideBookScope({ book }));
+    #ok(Array.map<TreasuryCore.DealRow, TT.DealView>(TreasuryCore.lotsOf(bank.treasury, book, isin), func(r) { let (cp, reference) = BankCore.treasuryCaptureOf(bankBlocks(), r.id); TreasuryCore.view(bank.treasury, r, cp, reference) }))
+  };
+  /// A registered security's terms.
+  public query func treasurySecurity(isin : Text) : async ?TreasuryCore.SecurityRow { TreasuryCore.security(bank.treasury, isin) };
+  /// The curve of an id in force on a day: the latest published on or before it.
+  public query func treasuryCurve(id : Text, day : Nat) : async ?TreasuryCore.CurveRow { TreasuryCore.curveOn(bank.treasury, id, day) };
+  /// A book's limits (the subject as the hash the key carries; the text is in the limit's block).
+  public shared query ({ caller }) func treasuryLimits(book : Text) : async Result.Result<[TT.Limit], T.BankError> {
+    if (not BankCore.mayReadBook(readScope(caller), book)) return #err(#OutsideBookScope({ book }));
+    #ok(TreasuryCore.limitsOf(bank.treasury, book))
+  };
+  public query func treasuryNostro(id : Text) : async ?TreasuryCore.NostroRow { TreasuryCore.nostro(bank.treasury, id) };
+  /// Our postings on a nostro over a window, with whether each was matched by a statement or recorded as a break.
+  public query func nostroPostings(nostro : Text, from : Nat, to : Nat) : async [TT.NostroPostingView] {
+    switch (TreasuryCore.nostro(bank.treasury, nostro)) {
+      case null [];
+      case (?n) Array.map<TreasuryCore.NostroLegRow, TT.NostroPostingView>(TreasuryCore.nostroLegsIn(bank.treasury, n.accountHash, from, to), func(l) { { posting = l.posting; valueDay = l.valueDay; amount = l.amount; debit = l.debit; matched = l.status == TreasuryCore.LEG_MATCHED; statement = null } });
+    }
+  };
+  func breakViewOf(b : TreasuryCore.BreakRow) : TT.BreakView {
+    let reference = switch (bankBlock(b.id)) { case (?blk) { switch (blk.event) { case (#treasury(#nostroBreak(x))) x.reference; case (_) "" } }; case null "" };
+    TreasuryCore.breakView(b, TreasuryCore.nostroIdOfHash(bank.treasury, b.nostroHash), reference, JCore.effectiveToday(journal, now()))
+  };
+  /// The open breaks of every nostro, or of one.
+  public query func nostroBreaks(nostro : ?Text, includeResolved : Bool) : async [TT.BreakView] {
+    let rows = switch (nostro) { case (?n) TreasuryCore.breaksOfNostro(bank.treasury, n, includeResolved); case null TreasuryCore.openBreaks(bank.treasury) };
+    Array.map<TreasuryCore.BreakRow, TT.BreakView>(rows, breakViewOf)
+  };
+  public query func nostroBreak(id : Nat) : async ?TT.BreakView { switch (TreasuryCore.breakRow(bank.treasury, id)) { case (?b) ?breakViewOf(b); case null null } };
+  /// The treasury at a glance: the policy and the counts.
+  public query func treasuryStatus() : async { policy : ?TT.Policy; status : TT.Status } { { policy = TreasuryCore.policy(bank.treasury); status = TreasuryCore.status(bank.treasury) } };
+  /// An FX deal's confirmation as fxtr.014.001.04, from its terms; null for a deal that is not an FX forward or swap
+  /// leg (`leg` selects the near or far leg of a swap).
+  public shared query ({ caller }) func treasuryConfirmation(id : Nat, leg : Nat) : async Result.Result<?Text, T.BankError> {
+    switch (treasuryView(caller, id)) {
+      case (#err(e)) #err(e);
+      case (#ok(null)) #ok(null);
+      case (#ok(?v)) {
+        let ?r = TreasuryCore.row(bank.treasury, id) else return #ok(null);
+        let cp = BankCore.treasuryCounterpartyOf(bankBlocks(), id);
+        let f : ?TT.FxForward = switch (BankCore.treasuryKindOf(bankBlocks(), r)) { case (?#fxForward(f)) ?f; case (?#fxSwap(x)) (if (leg == 0) ?x.near else ?x.far); case (_) null };
+        let isSwap = r.kind == 3;
+        switch (f) {
+          case null #ok(null);
+          case (?fwd) {
+            func mu(ccy : Text) : Nat8 { for (c in JCore.listCurrencies(journal).vals()) { if (Text.equal(c.code, ccy)) return c.minorUnits }; 2 };
+            let q = if (leg == 0) r.secondAmount else TreasuryMath.quoteAmount(fwd.baseAmount, fwd.rateMicro);
+            // the bank's own BIC is the one its trade policy declares (trade finance); its name is the book's
+            let ownBic = switch (TradeCore.policy(bank.trade)) { case (?p) p.bic; case null "" };
+            let ownName = switch (BankCore.getBook(bank, r.book)) { case (?b) b.name; case null r.book };
+            #ok(?TreasuryMessages.fxtr014Xml(v.reference, r.day, ownBic, ownName, cp, fwd, q, mu(fwd.base), mu(fwd.quote), isSwap))
+          };
+        }
+      };
+    }
+  };
+  /// A security deal's settlement instruction as sese.023.001.09.
+  public shared query ({ caller }) func treasurySettlementInstruction(id : Nat, safekeepingAccount : Text) : async Result.Result<?Text, T.BankError> {
+    switch (treasuryView(caller, id)) {
+      case (#err(e)) #err(e);
+      case (#ok(null)) #ok(null);
+      case (#ok(?v)) {
+        let ?r = TreasuryCore.row(bank.treasury, id) else return #ok(null);
+        switch (BankCore.treasuryKindOf(bankBlocks(), r), TreasuryCore.security(bank.treasury, r.isin)) {
+          case (?#security(t), ?sec) {
+            func mu(ccy : Text) : Nat8 { for (c in JCore.listCurrencies(journal).vals()) { if (Text.equal(c.code, ccy)) return c.minorUnits }; 2 };
+            let terms : TT.SecurityTerms = { isin = sec.isin; issuer = sec.issuer; currency = sec.currency; couponBps = sec.couponBps; couponsPerYear = sec.couponsPerYear; dayCount = TreasuryCore.conventionOf(sec); issue = sec.issue; maturity = sec.maturity };
+            let accrued = TreasuryMath.accruedCoupon(t.nominal, sec.couponBps, TreasuryCore.conventionOf(sec), TreasuryCore.couponPeriodsOf(sec, t.nominal), t.settlement);
+            #ok(?TreasuryMessages.sese023Xml(v.reference, t, terms, r.secondAmount + accrued, mu(sec.currency), safekeepingAccount, r.day))
+          };
+          case (_) #ok(null);
+        }
+      };
+    }
   };
 
   /// The collections book at a glance: the policy, the counts, the exposures per stage.

@@ -366,6 +366,23 @@ module {
     p("psia.pool.open", "psia", #create, #command("openInvestmentPool"), false, true),
     p("psia.reserve.update", "psia", #update, #command("updatePoolReserves"), false, true),
     p("psia.distribute", "psia", #update, #command("distributePool"), true, true),
+    // treasury treasury: configuration and market data are dual acts of governance; the capture records a contract and moves no
+    // money — it is the trader's own act, within the entitlements' ceiling on the deal's notional, and a breach above the
+    // recorded limits needs an approver named on the command; the legs that move money settle under dual control, as do
+    // marks, amendments, cancellations and break resolutions; the connector records confirmations and statements alone
+    p("treasury.policy", "treasury", #update, #command("setTreasuryPolicy"), false, true),
+    p("treasury.security.register", "treasury", #create, #command("registerSecurity"), false, true),
+    p("treasury.curve.publish", "treasury", #update, #command("publishCurve"), false, true),
+    p("treasury.limit.update", "treasury", #update, #command("setTreasuryLimit"), false, true),
+    p("nostro.register", "nostro", #create, #command("registerNostro"), false, true),
+    p("treasury.deal.capture", "treasury", #create, #command("captureDeal"), false, false),
+    p("treasury.deal.confirm", "treasury", #update, #command("confirmDeal"), false, false),
+    p("treasury.deal.amend", "treasury", #update, #command("amendDeal"), true, true),
+    p("treasury.deal.cancel", "treasury", #reverse, #command("cancelDeal"), true, true),
+    p("treasury.deal.settle", "treasury", #update, #command("settleDealLeg"), true, true),
+    p("treasury.deal.mark", "treasury", #update, #command("markDeal"), true, true),
+    p("nostro.statement.record", "nostro", #create, #command("recordNostroStatement"), false, false),
+    p("nostro.break.resolve", "nostro", #update, #command("resolveNostroBreak"), true, true),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -748,6 +765,9 @@ module {
       case (#openInvestmentPool(_)) "openInvestmentPool";
       case (#updatePoolReserves(_)) "updatePoolReserves";
       case (#distributePool(_)) "distributePool";
+      case (#setTreasuryPolicy(_)) "setTreasuryPolicy"; case (#registerSecurity(_)) "registerSecurity"; case (#publishCurve(_)) "publishCurve"; case (#setTreasuryLimit(_)) "setTreasuryLimit";
+      case (#registerNostro(_)) "registerNostro"; case (#captureDeal(_)) "captureDeal"; case (#confirmDeal(_)) "confirmDeal"; case (#amendDeal(_)) "amendDeal"; case (#cancelDeal(_)) "cancelDeal";
+      case (#settleDealLeg(_)) "settleDealLeg"; case (#markDeal(_)) "markDeal"; case (#recordNostroStatement(_)) "recordNostroStatement"; case (#resolveNostroBreak(_)) "resolveNostroBreak";
     }
   };
 

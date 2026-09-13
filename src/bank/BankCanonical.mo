@@ -52,6 +52,7 @@ import TCan "TellerCanonical";
 import TrT "TradeTypes";
 import TrCan "TradeCanonical";
 import ICan "IslamicCanonical";
+import TyCan "TreasuryCanonical";
 import IT "IslamicTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
@@ -659,6 +660,20 @@ module {
       case (#openInvestmentPool(x)) { w.byte(0xEF); w.byte(0x19); ICan.writePool(w, x.pool) };
       case (#updatePoolReserves(x)) { w.byte(0xEF); w.byte(0x1A); w.text(x.pool); w.optNat(x.per); w.optNat(x.irr) };
       case (#distributePool(x)) { w.byte(0xEF); w.byte(0x1B); w.text(x.pool); w.text(x.month); w.nat(x.from); w.nat(x.to); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      // treasury treasury: the extension tag 0xEF with a second byte 0x20..0x2C
+      case (#setTreasuryPolicy(p)) { w.byte(0xEF); w.byte(0x20); TyCan.writePolicy(w, p) };
+      case (#registerSecurity(x)) { w.byte(0xEF); w.byte(0x21); TyCan.writeSecurityTerms(w, x.terms) };
+      case (#publishCurve(x)) { w.byte(0xEF); w.byte(0x22); TyCan.writeCurve(w, x.curve) };
+      case (#setTreasuryLimit(x)) { w.byte(0xEF); w.byte(0x23); TyCan.writeLimit(w, x.limit) };
+      case (#registerNostro(x)) { w.byte(0xEF); w.byte(0x24); TyCan.writeNostro(w, x.nostro) };
+      case (#captureDeal(x)) { w.byte(0xEF); w.byte(0x25); w.text(x.book); TyCan.writeCounterparty(w, x.counterparty); TyCan.writeKind(w, x.kind); w.text(x.reference); TyCan.writeOptPrincipal(w, x.approver) };
+      case (#confirmDeal(x)) { w.byte(0xEF); w.byte(0x26); w.nat(x.deal); w.blob(x.confirmation); TyCan.writeOptFields(w, x.fields); w.optBlob(x.document) };
+      case (#amendDeal(x)) { w.byte(0xEF); w.byte(0x27); w.nat(x.deal); TyCan.writeKind(w, x.kind); w.text(x.reason) };
+      case (#cancelDeal(x)) { w.byte(0xEF); w.byte(0x28); w.nat(x.deal); w.text(x.reason) };
+      case (#settleDealLeg(x)) { w.byte(0xEF); w.byte(0x29); w.nat(x.deal); w.nat(x.leg); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#markDeal(x)) { w.byte(0xEF); w.byte(0x2A); w.nat(x.deal); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordNostroStatement(x)) { w.byte(0xEF); w.byte(0x2B); w.text(x.nostro); w.blob(x.statement); w.nat(x.from); w.nat(x.to); TyCan.writeEntries(w, x.entries); w.optBlob(x.document) };
+      case (#resolveNostroBreak(x)) { w.byte(0xEF); w.byte(0x2C); w.nat(x.breakId); w.text(x.resolution); TyCan.writeOptCorrection(w, x.correction); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#issueLetterOfCredit(x)) { w.byte(0x68); TrCan.writeLc(w, x.lc); w.nat(x.amount); w.text(x.currency); w.nat(x.expiry); w.text(x.placeOfExpiry); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#adviseLetterOfCredit(x)) { w.byte(0x69); w.text(x.message); w.nat(x.beneficiary); w.nat(x.beneficiaryAccount); w.bool(x.confirm); w.len16(x.checklist.size()); for ((k, cs) in x.checklist.vals()) { TrCan.writeDocumentKind(w, k); w.len16(cs.size()); for (c in cs.vals()) w.text(c) }; w.nat(x.commissionBps); w.optNat(x.facility); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#amendLetterOfCredit(x)) { w.byte(0x6A); w.nat(x.instrument); TrCan.writeAmendment(w, x.amendment); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
@@ -1428,6 +1443,7 @@ module {
       case (#teller(te)) { w.byte(0x52); TCan.writeEvent(w, te) };
       case (#trade(tr)) { w.byte(0x53); TrCan.writeEvent(w, tr) };
       case (#islamic(ie)) { w.byte(0x54); ICan.writeEvent(w, ie) };
+      case (#treasury(te)) { w.byte(0x55); TyCan.writeEvent(w, te) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -1854,8 +1870,7 @@ module {
 
   /// The Islamic-banking commands (Islamic banking): the extension tag 0xEF with a second byte; `null` when the second byte is
   /// not one of theirs, `?null` when the body is malformed.
-  func readIslamicCommand(r : C.Reader) : ??T.Command {
-    let ?sub = r.byte() else return ?null;
+  func readIslamicCommandBody(sub : Nat8, r : C.Reader) : ??T.Command {
     switch (sub) {
       case 0x01 { let ?p = ICan.readPolicy(r) else return ?null; ??#setIslamicPolicy(p) };
       case 0x02 { let ?product = r.text() else return ?null; let ?approval = ICan.readApproval(r) else return ?null; ??#approveShariaProduct({ product; approval }) };
@@ -1943,10 +1958,36 @@ module {
     }
   };
 
+  /// The treasury commands (treasury): the extension tag 0xEF with a second byte 0x20..; `null` when the second byte is
+  /// not one of theirs, `?null` when the body is malformed.
+  func readTreasuryCommand(sub : Nat8, r : C.Reader) : ??T.Command {
+    switch (sub) {
+      case 0x20 { let ?p = TyCan.readPolicy(r) else return ?null; ??#setTreasuryPolicy(p) };
+      case 0x21 { let ?terms = TyCan.readSecurityTerms(r) else return ?null; ??#registerSecurity({ terms }) };
+      case 0x22 { let ?curve = TyCan.readCurve(r) else return ?null; ??#publishCurve({ curve }) };
+      case 0x23 { let ?limit = TyCan.readLimit(r) else return ?null; ??#setTreasuryLimit({ limit }) };
+      case 0x24 { let ?nostro = TyCan.readNostro(r) else return ?null; ??#registerNostro({ nostro }) };
+      case 0x25 { let ?book = r.text() else return ?null; let ?counterparty = TyCan.readCounterparty(r) else return ?null; let ?kind = TyCan.readKind(r) else return ?null; let ?reference = r.text() else return ?null; let ?approver = TyCan.readOptPrincipal(r) else return ?null; ??#captureDeal({ book; counterparty; kind; reference; approver }) };
+      case 0x26 { let ?deal = r.nat() else return ?null; let ?confirmation = r.blob() else return ?null; let ?fields = TyCan.readOptFields(r) else return ?null; let ?document = r.optBlob() else return ?null; ??#confirmDeal({ deal; confirmation; fields; document }) };
+      case 0x27 { let ?deal = r.nat() else return ?null; let ?kind = TyCan.readKind(r) else return ?null; let ?reason = r.text() else return ?null; ??#amendDeal({ deal; kind; reason }) };
+      case 0x28 { let ?deal = r.nat() else return ?null; let ?reason = r.text() else return ?null; ??#cancelDeal({ deal; reason }) };
+      case 0x29 { let ?deal = r.nat() else return ?null; let ?leg = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#settleDealLeg({ deal; leg; postingDate; valueDate; period; narration }) };
+      case 0x2A { let ?deal = r.nat() else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#markDeal({ deal; postingDate; valueDate; period; narration }) };
+      case 0x2B { let ?nostro = r.text() else return ?null; let ?statement = r.blob() else return ?null; let ?from = r.nat() else return ?null; let ?to = r.nat() else return ?null; let ?entries = TyCan.readEntries(r) else return ?null; let ?document = r.optBlob() else return ?null; ??#recordNostroStatement({ nostro; statement; from; to; entries; document }) };
+      case 0x2C { let ?breakId = r.nat() else return ?null; let ?resolution = r.text() else return ?null; let ?correction = TyCan.readOptCorrection(r) else return ?null; let ?postingDate = r.nat() else return ?null; let ?valueDate = r.nat() else return ?null; let ?period = r.text() else return ?null; let ?narration = r.text() else return ?null; ??#resolveNostroBreak({ breakId; resolution; correction; postingDate; valueDate; period; narration }) };
+      case (_) null;
+    }
+  };
+
   func readCommandBody(r : C.Reader, withApplication : Bool) : ?T.Command {
     let ?tag = r.byte() else return null;
     switch (readTradeCommand(tag, r)) { case (?c) return c; case null {} };
-    if (tag == 0xEF) { switch (readIslamicCommand(r)) { case (?c) return c; case null return null } };
+    if (tag == 0xEF) {
+      // the second byte selects the domain: 0x01.. Islamic banking, 0x20.. treasury
+      let ?sub = r.byte() else return null;
+      if (sub >= 0x20) { switch (readTreasuryCommand(sub, r)) { case (?c) return c; case null return null } };
+      switch (readIslamicCommandBody(sub, r)) { case (?c) return c; case null return null };
+    };
     switch (tag) {
       case 0x01 { let ?id = r.text() else return null; let ?name = r.text() else return null; let ?permissions = rTexts(r) else return null; ?#defineRole({ id; name; permissions }) };
       case 0x02 { let ?subject = r.principal() else return null; let ?role = r.text() else return null; let ?scope = rScope(r) else return null; ?#grantRole({ subject; role; scope }) };
@@ -2727,6 +2768,7 @@ module {
       case 0x52 { let ?te = TCan.readEvent(r) else return null; ?#teller(te) };
       case 0x53 { let ?tr = TrCan.readEvent(r) else return null; ?#trade(tr) };
       case 0x54 { let ?ie = ICan.readEvent(r) else return null; ?#islamic(ie) };
+      case 0x55 { let ?te = TyCan.readEvent(r) else return null; ?#treasury(te) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

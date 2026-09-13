@@ -111,6 +111,9 @@ import TradeCore "TradeCore";
 import TradeMessages "TradeMessages";
 import IT "IslamicTypes";
 import IslamicCore "IslamicCore";
+import TT "TreasuryTypes";
+import TreasuryCore "TreasuryCore";
+import TreasuryMessages "TreasuryMessages";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -218,6 +221,8 @@ module {
     trade : TradeCore.State;
     /// Islamic banking (Islamic banking): the Sharia contracts, their instalments, the investment pools, the governance record.
     islamic : IslamicCore.State;
+    /// Treasury (treasury): deals, curves, limits, nostros and their reconciliation.
+    treasury : TreasuryCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -290,6 +295,7 @@ module {
       teller = TellerCore.newState(arena);
       trade = TradeCore.newState(arena);
       islamic = IslamicCore.newState(arena);
+      treasury = TreasuryCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -801,6 +807,11 @@ module {
       case (#recordIstisnaMilestone(x)) { switch (IslamicCore.row(bs.islamic, x.contract)) { case (?r) [(r.currency, r.principal * x.percentBps / 10_000)]; case null [] } };
       case (#recordNonCompliance(x)) { switch (x.contract) { case (?id) { switch (IslamicCore.row(bs.islamic, id)) { case (?r) [(r.currency, x.amount)]; case null [] } }; case null [] } };
       case (#distributePool(x)) { switch (IslamicCore.pool(bs.islamic, x.pool)) { case (?p) [(p.currency, 0)]; case null [] } };
+      // Treasury (treasury): a deal's notional in its currency
+      case (#captureDeal(x)) treasuryKindTotals(bs, x.kind);
+      case (#amendDeal(x)) treasuryKindTotals(bs, x.kind);
+      case (#cancelDeal(x) or #settleDealLeg(x) or #markDeal(x)) { switch (TreasuryCore.row(bs.treasury, x.deal)) { case (?r) [(treasuryRowCurrency(bs, r), r.notional)]; case null [] } };
+      case (#resolveNostroBreak(x)) { switch (x.correction) { case (?c) [(c.currency, c.amount)]; case null [] } };
       case (#cashDeposit(x)) tillTotals(bs, x.till, x.amount);
       case (#cashWithdrawal(x)) tillTotals(bs, x.till, x.amount);
       case (#vaultToTill(x)) tillTotals(bs, x.till, x.amount);
@@ -869,6 +880,7 @@ module {
       case (#contributeCapital(x)) ?x.postingDate; case (#distributeMusharakahProfit(x)) ?x.postingDate; case (#allocateMusharakahLoss(x)) ?x.postingDate; case (#buyMusharakahUnit(x)) ?x.postingDate;
       case (#recordMudarabahResult(x)) ?x.postingDate; case (#deliverSalam(x)) ?x.postingDate; case (#sellSalamCommodity(x)) ?x.postingDate; case (#recordSalamFailure(x)) ?x.postingDate;
       case (#recordIstisnaMilestone(x)) ?x.postingDate; case (#collectIstisnaBilling(x)) ?x.postingDate; case (#settleShariaContract(x)) ?x.postingDate; case (#recordNonCompliance(x)) ?x.postingDate; case (#distributePool(x)) ?x.postingDate;
+      case (#settleDealLeg(x)) ?x.postingDate; case (#markDeal(x)) ?x.postingDate; case (#resolveNostroBreak(x)) ?x.postingDate;
       case (#applyCharge(x)) ?x.postingDate;
       case (#waiveCharge(x)) ?x.postingDate;
       case (#postAccrual(x)) ?x.day;
@@ -1033,6 +1045,10 @@ module {
       case (#acquireMurabahaAsset(x) or #sellMurabaha(x) or #collectInstalment(x) or #grantRebate(x) or #commenceIjarah(x) or #collectRental(x) or #transferIjarahOwnership(x) or #contributeCapital(x) or #distributeMusharakahProfit(x) or #allocateMusharakahLoss(x) or #buyMusharakahUnit(x) or #recordMudarabahResult(x) or #deliverSalam(x) or #sellSalamCommodity(x) or #recordSalamFailure(x) or #recordIstisnaMilestone(x) or #collectIstisnaBilling(x) or #settleShariaContract(x)) islamicBook(bs, x.contract);
       case (#closeShariaContract(x)) islamicBook(bs, x.contract);
       case (#recordNonCompliance(x)) { switch (x.contract) { case (?id) islamicBook(bs, id); case null null } };
+      // Treasury commands name a book or a deal (its book)
+      case (#captureDeal(x)) ?x.book;
+      case (#setTreasuryLimit(x)) ?x.limit.book;
+      case (#confirmDeal(x) or #amendDeal(x) or #cancelDeal(x) or #settleDealLeg(x) or #markDeal(x)) { switch (TreasuryCore.row(bs.treasury, x.deal)) { case (?r) ?r.book; case null null } };
       case (other) E.commandBook(other);
     }
   };
@@ -1450,6 +1466,7 @@ module {
       case (?#trade(#billDiscounted(_))) List.add(introduced, TradeCore.billSub(bs.height));
       case (?#islamic(#contractOpened(_))) List.add(introduced, IslamicCore.contractSub(bs.height));
       case (?#islamic(#poolOpened(p))) List.add(introduced, IslamicCore.poolSub(p.pool.id));
+      case (?#treasury(#dealCaptured(_))) List.add(introduced, TreasuryCore.dealSub(bs.height));
       case (_) {};
     };
     let opened = List.toArray(introduced);
@@ -2271,7 +2288,7 @@ module {
         case (?sub) {
           // an account or a till of this shard, one of its books' vaults in the leg's currency, a facility's or a
           // participant's (corporate lending), or an account the same plan opens — the only sub-ledgers a shard's own postings name
-          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub) or IslamicCore.holdsSubledger(bs.islamic, sub);
+          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub) or IslamicCore.holdsSubledger(bs.islamic, sub) or TreasuryCore.holdsSubledger(bs.treasury, sub);
           if (not held) { for (i in introduced.vals()) { if (i == sub) held := true } };
           if (not held) { for ((book, _) in Map.entries(bs.books)) { if (sub == Till.vaultSubledger(book, l.currency)) held := true } };
           if (not held) return ?#ShardError({ error = #NotRouted({ identifier = ""; reason = "the posting names a sub-ledger this shard does not hold" }) });
@@ -4724,6 +4741,9 @@ module {
             or #commenceIjarah(_) or #collectRental(_) or #transferIjarahOwnership(_) or #contributeCapital(_) or #distributeMusharakahProfit(_) or #allocateMusharakahLoss(_) or #buyMusharakahUnit(_)
             or #recordMudarabahResult(_) or #deliverSalam(_) or #sellSalamCommodity(_) or #recordSalamFailure(_) or #recordIstisnaMilestone(_) or #collectIstisnaBilling(_) or #settleShariaContract(_)
             or #closeShariaContract(_) or #recordNonCompliance(_) or #openInvestmentPool(_) or #updatePoolReserves(_) or #distributePool(_)) planIslamicInner(bs, bb, js, journalCaller, now, command, authorityIndex, authId);
+      // ── treasury (treasury): likewise ──
+      case (#setTreasuryPolicy(_) or #registerSecurity(_) or #publishCurve(_) or #setTreasuryLimit(_) or #registerNostro(_) or #captureDeal(_) or #confirmDeal(_) or #amendDeal(_) or #cancelDeal(_)
+            or #settleDealLeg(_) or #markDeal(_) or #recordNostroStatement(_) or #resolveNostroBreak(_)) planTreasuryInner(bs, bb, js, journalCaller, now, command, authorityIndex, authId);
     }
   };
 
@@ -6395,6 +6415,7 @@ module {
       facilities = FacilityCore.openInBook(bs.facility, book).size();
       trade = TradeCore.openInBook(bs.trade, book).size();
       sharia = IslamicCore.openInBook(bs.islamic, book).size();
+      treasury = TreasuryCore.openInBook(bs.treasury, book).size() + TreasuryCore.openBreaks(bs.treasury).size();
       shardSize;
     }
   };
@@ -6714,6 +6735,7 @@ module {
       case (#facilities) jobFacilities(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
       case (#trade) jobTrade(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
       case (#sharia) jobSharia(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
+      case (#treasury) jobTreasury(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
     };
   };
 
@@ -7700,6 +7722,256 @@ module {
 
       case (_) #err(#TradeError({ error = #InvalidTerms({ reason = "not a trade command"; article = "" }) }));
     }
+  };
+
+  // ─── Treasury (treasury): the planners, the valuation context and the end-of-day job ─────────────────
+
+  func treasuryErr<X>(e : TT.TreasuryError) : Result.Result<X, T.BankError> { #err(#TreasuryError({ error = e })) };
+  func treasuryPlan(r : Result.Result<TT.TreasuryEvent, TT.TreasuryError>) : Result.Result<Plan, T.BankError> {
+    switch (r) { case (#err(e)) treasuryErr(e); case (#ok(ev)) #ok({ bankEvent = ?#treasury(ev); extra = []; journal = [] }) }
+  };
+  func treasuryPost(js : JCore.State, journalCaller : Principal, now : Nat64, purpose : Text, parts : [Text], act : TreasuryCore.Act, postingDate : Nat, valueDate : Nat, period : Text, narration : Text) : Result.Result<Plan, T.BankError> {
+    let extras = Array.map<TT.TreasuryEvent, T.Event>(act.extras, func(e) { #treasury(e) });
+    if (act.legs.size() == 0) return #ok({ bankEvent = ?#treasury(act.ev); extra = extras; journal = [] });
+    switch (postLegs(js, journalCaller, now, purpose, parts, act.legs, postingDate, valueDate, period, narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#treasury(act.ev); extra = extras; journal = plan.journal });
+    }
+  };
+  /// The terms of a deal: the kind recorded by the block that captured it, or by the last amendment.
+  public func treasuryTerms(bb : Blocks) : Nat -> ?TT.DealKind {
+    func(block : Nat) : ?TT.DealKind {
+      switch (bb.get(block)) {
+        case (?b) { switch (b.event) { case (#treasury(#dealCaptured(x))) ?x.kind; case (#treasury(#dealAmended(x))) ?x.kind; case (_) null } };
+        case null null;
+      }
+    }
+  };
+  public func treasuryKindOf(bb : Blocks, r : TreasuryCore.DealRow) : ?TT.DealKind { treasuryTerms(bb)(r.termsBlock) };
+  /// The counterparty's name and the reference of a deal, from its capture block.
+  public func treasuryCaptureOf(bb : Blocks, id : Nat) : (Text, Text) {
+    switch (bb.get(id)) { case (?b) { switch (b.event) { case (#treasury(#dealCaptured(x))) (x.counterparty.name, x.reference); case (_) ("", "") } }; case null ("", "") }
+  };
+  public func treasuryCounterpartyOf(bb : Blocks, id : Nat) : TT.Counterparty {
+    let none : TT.Counterparty = { party = null; name = ""; bic = ""; lei = "" };
+    switch (bb.get(id)) { case (?b) { switch (b.event) { case (#treasury(#dealCaptured(x))) x.counterparty; case (_) none } }; case null none }
+  };
+  /// The valuation context: the functional currency and the recorded spot rates of the close, the position
+  /// pairs, the rate fixings of the facilities book (corporate lending), the Sharia-flagged books (Islamic banking).
+  func treasuryCtx(bs : State) : Result.Result<TreasuryCore.Ctx, T.BankError> {
+    let ?functional = CloseCore.functional(bs.close) else return #err(#CloseError({ error = #NoFunctionalCurrency }));
+    #ok({
+      functional;
+      spot = func(ccy : Text, day : Nat) : ?Fx.Rate { CloseCore.rateOn(bs.close, ccy, day) };
+      pair = func(ccy : Text) : ?Fx.PositionPair { CloseCore.getPair(bs.close, ccy) };
+      fixing = func(index : Text, day : Nat) : ?Nat { FacilityCore.fixingOn(bs.facility, index, day) };
+      isShariaBook = func(book : Text) : Bool { IslamicCore.isShariaBook(bs.islamic, book) };
+    })
+  };
+  func treasuryRowCurrency(bs : State, r : TreasuryCore.DealRow) : Text {
+    if (r.kind == 4) { switch (TreasuryCore.security(bs.treasury, r.isin)) { case (?x) x.currency; case null "" } } else r.currency
+  };
+  func treasuryKindTotals(bs : State, kind : TT.DealKind) : [(JT.Currency, Nat)] {
+    switch (kind) {
+      case (#moneyMarket(m)) [(m.currency, m.principal)];
+      case (#fxForward(f)) [(f.base, f.baseAmount)];
+      case (#fxSwap(x)) [(x.near.base, x.near.baseAmount + x.far.baseAmount)];
+      case (#security(t)) { switch (TreasuryCore.security(bs.treasury, t.isin)) { case (?x) [(x.currency, t.nominal)]; case null [] } };
+      case (#irs(i)) [(i.currency, i.notional)];
+      case (#fxOption(o)) [(o.quote, o.premium)];
+    }
+  };
+  func treasuryRow(bs : State, id : TT.DealId) : Result.Result<TreasuryCore.DealRow, T.BankError> {
+    switch (TreasuryCore.row(bs.treasury, id)) { case (?r) #ok(r); case null treasuryErr(#UnknownDeal({ deal = id })) }
+  };
+  func treasuryKind(bb : Blocks, r : TreasuryCore.DealRow) : Result.Result<TT.DealKind, T.BankError> {
+    switch (treasuryKindOf(bb, r)) { case (?k) #ok(k); case null treasuryErr(#UnknownDeal({ deal = r.id })) }
+  };
+
+  /// The treasury commands (treasury), planned apart from the main switch so that switch stays under the chain's
+  /// function-complexity bound.
+  func planTreasuryInner(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, command : T.Command, authorityIndex : Nat, authId : Text) : Result.Result<Plan, T.BankError> {
+    let today = JCore.effectiveToday(js, now);
+    switch (command) {
+      case (#setTreasuryPolicy(pol)) {
+        for (code in TreasuryCore.accountsOf(pol).vals()) {
+          switch (JCore.getAccount(js, code)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "treasury policy"; account = code }) })); case (?_) {} };
+        };
+        treasuryPlan(TreasuryCore.planPolicy(pol))
+      };
+      case (#registerSecurity(x)) treasuryPlan(TreasuryCore.planRegisterSecurity(bs.treasury, x.terms, today));
+      case (#publishCurve(x)) {
+        switch (TreasuryCore.planPublishCurve(bs.treasury, x.curve)) {
+          case (#err(e)) treasuryErr(e);
+          case (#ok(null)) #ok({ bankEvent = null; extra = []; journal = [] });
+          case (#ok(?ev)) #ok({ bankEvent = ?#treasury(ev); extra = []; journal = [] });
+        }
+      };
+      case (#setTreasuryLimit(x)) {
+        switch (requireOpenBook(bs, x.limit.book)) { case (?e) return #err(e); case null {} };
+        treasuryPlan(TreasuryCore.planSetLimit(x.limit, today))
+      };
+      case (#registerNostro(x)) {
+        switch (JCore.getAccount(js, x.nostro.account)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "nostro"; account = x.nostro.account }) })); case (?_) {} };
+        treasuryPlan(TreasuryCore.planRegisterNostro(bs.treasury, x.nostro, today))
+      };
+      case (#captureDeal(x)) {
+        switch (requireFeature(bs, ProdT.FEATURE_FX)) { case (?e) return #err(e); case null {} };
+        switch (requireOpenBook(bs, x.book)) { case (?e) return #err(e); case null {} };
+        let ctx = switch (treasuryCtx(bs)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        // the trader is whoever proposed the act; the approver on the command is the desk head who accepted a breach
+        let trader = switch (bb.get(authorityIndex)) { case (?b) b.caller; case null journalCaller };
+        switch (TreasuryCore.planCapture(bs.treasury, bs.height, x.book, x.counterparty, x.kind, x.reference, trader, today, x.approver, ctx, treasuryTerms(bb))) {
+          case (#err(e)) treasuryErr(e);
+          case (#ok(r)) #ok({ bankEvent = ?#treasury(r.ev); extra = Array.map<TT.TreasuryEvent, T.Event>(r.extras, func(e) { #treasury(e) }); journal = [] });
+        }
+      };
+      case (#confirmDeal(x)) {
+        let r = switch (treasuryRow(bs, x.deal)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let cp = treasuryCounterpartyOf(bb, x.deal);
+        func minorUnitsOf(ccy : Text) : ?Nat8 { for (c in JCore.listCurrencies(js).vals()) { if (Text.equal(c.code, ccy)) return ?c.minorUnits }; null };
+        let fields : TT.ConfirmationFields = switch (x.fields, x.document) {
+          case (?f, null) f;
+          case (null, ?doc) {
+            if (r.kind != 2 and r.kind != 3) return treasuryErr(#BadDocument({ reason = "an fxtr.014 confirms an FX deal; other kinds are confirmed by their fields" }));
+            switch (TreasuryMessages.parseFxtr014(doc, r.currency, minorUnitsOf)) { case (#ok(f)) f; case (#err(reason)) return treasuryErr(#BadDocument({ reason })) }
+          };
+          case (null, null) return treasuryErr(#BadDocument({ reason = "a confirmation carries its fields or the document" }));
+          case (?_, ?_) return treasuryErr(#BadDocument({ reason = "a confirmation carries its fields or the document, not both" }));
+        };
+        let kind = switch (treasuryKind(bb, r)) { case (#err(e)) return #err(e); case (#ok(k)) k };
+        treasuryPlan(TreasuryCore.planConfirm(bs.treasury, x.deal, x.confirmation, fields, cp, kind, today))
+      };
+      case (#amendDeal(x)) {
+        let ctx = switch (treasuryCtx(bs)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        treasuryPlan(TreasuryCore.planAmend(bs.treasury, x.deal, x.kind, x.reason, today, ctx))
+      };
+      case (#cancelDeal(x)) treasuryPlan(TreasuryCore.planCancel(bs.treasury, x.deal, x.reason, today));
+      case (#settleDealLeg(x)) {
+        switch (requireFeature(bs, ProdT.FEATURE_FX)) { case (?e) return #err(e); case null {} };
+        let r = switch (treasuryRow(bs, x.deal)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let kind = switch (treasuryKind(bb, r)) { case (#err(e)) return #err(e); case (#ok(k)) k };
+        let ctx = switch (treasuryCtx(bs)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        switch (TreasuryCore.planSettleLeg(bs.treasury, r, kind, x.leg, x.valueDate, ctx)) {
+          case (#err(e)) treasuryErr(e);
+          case (#ok(act)) treasuryPost(js, journalCaller, now, "treasury-settle", [authId, Nat.toText(x.deal), Nat.toText(x.leg)], act, x.postingDate, x.valueDate, x.period, x.narration);
+        }
+      };
+      case (#markDeal(x)) {
+        switch (requireFeature(bs, ProdT.FEATURE_FX)) { case (?e) return #err(e); case null {} };
+        let r = switch (treasuryRow(bs, x.deal)) { case (#err(e)) return #err(e); case (#ok(r)) r };
+        let kind = switch (treasuryKind(bb, r)) { case (#err(e)) return #err(e); case (#ok(k)) k };
+        let ctx = switch (treasuryCtx(bs)) { case (#err(e)) return #err(e); case (#ok(c)) c };
+        switch (TreasuryCore.planMark(bs.treasury, r, kind, x.valueDate, ctx)) {
+          case (#err(e)) treasuryErr(e);
+          case (#ok(null)) #ok({ bankEvent = null; extra = []; journal = [] });
+          case (#ok(?act)) treasuryPost(js, journalCaller, now, "treasury-mark", [authId, Nat.toText(x.deal), Nat.toText(x.valueDate)], act, x.postingDate, x.valueDate, x.period, x.narration);
+        }
+      };
+      case (#recordNostroStatement(x)) {
+        let entries = switch (x.document) {
+          case (?doc) {
+            if (x.entries.size() > 0) return treasuryErr(#BadDocument({ reason = "the entries come from the document or from the command, not both" }));
+            let ?nr = TreasuryCore.nostro(bs.treasury, x.nostro) else return treasuryErr(#UnknownNostro({ nostro = x.nostro }));
+            var mu : Nat8 = 2;
+            for (c in JCore.listCurrencies(js).vals()) { if (Text.equal(c.code, nr.currency)) mu := c.minorUnits };
+            switch (TreasuryMessages.parseCamt053(doc, nr.currency, mu)) { case (#ok(parsed)) parsed.entries; case (#err(reason)) return treasuryErr(#BadDocument({ reason })) }
+          };
+          case null x.entries;
+        };
+        switch (TreasuryCore.planRecordStatement(bs.treasury, x.nostro, x.statement, x.from, x.to, entries, today)) {
+          case (#err(e)) treasuryErr(e);
+          case (#ok(r)) #ok({ bankEvent = ?#treasury(r.ev); extra = Array.map<TT.TreasuryEvent, T.Event>(r.breaks, func(e) { #treasury(e) }); journal = [] });
+        }
+      };
+      case (#resolveNostroBreak(x)) {
+        switch (x.correction) { case (?c) { switch (JCore.getAccount(js, c.account)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "nostro correction"; account = c.account }) })); case (?_) {} } }; case null {} };
+        switch (TreasuryCore.planResolveBreak(bs.treasury, x.breakId, x.resolution, x.correction, today)) {
+          case (#err(e)) treasuryErr(e);
+          case (#ok(act)) treasuryPost(js, journalCaller, now, "nostro-resolve", [authId, Nat.toText(x.breakId)], act, x.postingDate, x.valueDate, x.period, x.narration);
+        }
+      };
+      case (_) treasuryErr(#InvalidTerms({ reason = "not a treasury command" }));
+    }
+  };
+
+  /// End-of-day job 15: for every open deal of the book, in this order — the coupon falling due, the day's accrual,
+  /// the mark against the day's curves and spot, then every leg due on or before the day; then the breaks that aged
+  /// past the policy's threshold and the confirmations overdue, each an alert. A missing rate or curve fails the
+  /// deal's item and nothing else, so the period cannot close with a deal unvalued and nobody seeing it.
+  func jobTreasury(
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
+  ) {
+    if (TreasuryCore.policy(bs.treasury) == null) { fail(acc, index, item.job, book, "no treasury policy"); return };
+    let ctx = switch (treasuryCtx(bs)) { case (#err(e)) { fail(acc, index, item.job, book, debug_show e); return }; case (#ok(c)) c };
+    func post(kind : Text, id : Nat, part : Text, act : TreasuryCore.Act, narration : Text) : Bool {
+      if (act.legs.size() > 0) {
+        if (not Posting.balances(act.legs)) { fail(acc, index, item.job, Nat.toText(id), kind # ": the legs do not balance"); return false };
+        let input : JT.PostingInput = { idempotencyKey = Posting.key(kind, [Nat.toText(id), part, Nat.toText(day)]); postingDate = day; valueDate = day; period; legs = act.legs; sourceRef = { kind; id = Nat.toText(id) # "/" # part # "/" # Nat.toText(day) }; narration; correctionOf = null };
+        switch (batchPost(js, jb, journalCaller, now, acc, input)) { case (?why) { fail(acc, index, item.job, Nat.toText(id), why); return false }; case null {} };
+      };
+      record(acc, #treasury(act.ev));
+      for (e in act.extras.vals()) record(acc, #treasury(e));
+      true
+    };
+    for (r0 in TreasuryCore.openInBook(bs.treasury, book).vals()) {
+      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r0.id)) };
+      if (not mine) continue;
+      acc.examined += 1;
+      let ?kind = treasuryKindOf(bb, r0) else { fail(acc, index, item.job, Nat.toText(r0.id), "the deal's terms are not in the log"); continue };
+      func current() : ?TreasuryCore.DealRow { TreasuryCore.row(bs.treasury, r0.id) };
+      // the coupon falling due today
+      switch (current()) {
+        case (?r) { switch (TreasuryCore.planCoupon(bs.treasury, r, kind, day)) { case (#ok(?a)) ignore post("treasury-coupon", r.id, "c", a, "coupon"); case (#ok(null)) {}; case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e) } };
+        case null {};
+      };
+      // the day's accrual
+      switch (current()) {
+        case (?r) { switch (TreasuryCore.planAccrue(bs.treasury, r, kind, day)) { case (#ok(?a)) ignore post("treasury-accrual", r.id, "a", a, "accrual to day " # Nat.toText(day)); case (#ok(null)) {}; case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e) } };
+        case null {};
+      };
+      // the mark
+      switch (current()) {
+        case (?r) { switch (TreasuryCore.planMark(bs.treasury, r, kind, day, ctx)) { case (#ok(?a)) ignore post("treasury-mark", r.id, "m", a, "valuation at day " # Nat.toText(day)); case (#ok(null)) {}; case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e) } };
+        case null {};
+      };
+      // the legs due
+      var leg = 0;
+      label legs while (leg < r0.legs) {
+        let ?r = current() else break legs;
+        if (not TreasuryCore.isOpen(r)) break legs;
+        if (TreasuryCore.legSettled(r, leg)) { leg += 1; continue legs };
+        let secMaturity = switch (TreasuryCore.security(bs.treasury, r.isin)) { case (?x) x.maturity; case null 0 };
+        switch (TreasuryCore.legDue(kind, leg, secMaturity)) {
+          case (?due) {
+            if (due > day) break legs;
+            switch (TreasuryCore.planSettleLeg(bs.treasury, r, kind, leg, day, ctx)) {
+              case (#ok(a)) { if (not post("treasury-settle", r.id, Nat.toText(leg), a, "leg " # Nat.toText(leg) # " settled")) break legs };
+              case (#err(e)) { fail(acc, index, item.job, Nat.toText(r.id), debug_show e); break legs };
+            };
+          };
+          case null break legs;
+        };
+        leg += 1;
+      };
+    };
+    if (only == null) {
+      for (ev in TreasuryCore.agedBreaks(bs.treasury, day).vals()) {
+        record(acc, #treasury(ev));
+        switch (ev) {
+          case (#breakAged(b)) { switch (alertFor(bs, { rule = "nostro.break.aged"; version = 1; account = b.breakId; day; postings = []; detail = "nostro break " # Nat.toText(b.breakId) # " open for " # Nat.toText(b.ageDays) # " days" }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
+          case (_) {};
+        };
+      };
+      for (ev in TreasuryCore.overdueConfirmations(bs.treasury, day).vals()) {
+        record(acc, #treasury(ev));
+        switch (ev) {
+          case (#confirmationOverdue(c)) { switch (alertFor(bs, { rule = "treasury.confirmation.overdue"; version = 1; account = c.deal; day; postings = []; detail = "deal " # Nat.toText(c.deal) # " unconfirmed for " # Nat.toText(c.ageDays) # " days" }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
+          case (_) {};
+        };
+      };
+    };
   };
 
   // ─── Islamic banking (Islamic banking): the planners and their postings ─────────────────
@@ -9265,6 +9537,7 @@ module {
       case (#teller(te)) { TellerCore.apply(s.teller, block.index, te) };
       case (#trade(tr)) { TradeCore.fold(s.trade, block.index, tr) };
       case (#islamic(ie)) { IslamicCore.fold(s.islamic, block.index, ie) };
+      case (#treasury(te)) { TreasuryCore.fold(s.treasury, block.index, te) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -9399,6 +9672,7 @@ module {
       case (#teller(_)) "teller";
       case (#trade(_)) "trade";
       case (#islamic(_)) "islamic";
+      case (#treasury(_)) "treasury";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -9696,6 +9970,7 @@ module {
     TellerCore.fingerprintInto(w, s.teller);
     TradeCore.fingerprintInto(w, s.trade);
     IslamicCore.fingerprintInto(w, s.islamic);
+    TreasuryCore.fingerprintInto(w, s.treasury);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);
