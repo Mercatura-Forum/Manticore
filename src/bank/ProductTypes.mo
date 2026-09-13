@@ -410,6 +410,11 @@ module {
     /// account stays bound to the version it was opened under.
     #productAmended : { id : ProductId; version : ProductVersion; supersedes : ProductVersion; name : Text; terms : ProductTerms };
     #productClosedToNewAccounts : { id : ProductId; version : ProductVersion };
+    /// A redenomination (S4.1): the one amendment that changes the currency — a new version whose terms are the
+    /// old ones in the new currency, with the accrual evidence of the old currency carried to the new.
+    #productRedenominated : { id : ProductId; version : ProductVersion; supersedes : ProductVersion; from : JT.Currency; to : JT.Currency; terms : ProductTerms };
+    /// An account re-expressed in the new currency and bound to the redenominated version.
+    #accountRedenominated : { account : AccountId; version : ProductVersion; from : JT.Currency; to : JT.Currency };
     #accountOpened : {
       product : ProductId; version : ProductVersion; party : PT.PartyId; book : Text;
       identifier : Text; currency : JT.Currency; opened : Day; maturity : ?Day;
@@ -434,6 +439,9 @@ module {
       residueNumerator : Nat; residueDenominator : Nat; residueNegative : Bool;
     };
     #loanDisbursed : { account : AccountId; amount : Nat; day : Day; schedule : [Instalment] };
+    /// The schedule terms a reschedule gave one account (S4.1): what a later contractual reset re-derives from,
+    /// so a reset inside a modification keeps the modification's structure (amortisation, frequency, grace).
+    #scheduleTermsSet : { account : AccountId; terms : ScheduleTerms; effective : Day };
     #loanRescheduled : { account : AccountId; version : Nat; effective : Day; schedule : [Instalment] };
     #repaymentReceived : { account : AccountId; day : Day; amount : Nat; applied : Allocation; overpayment : Nat };
     #provisionSet : { account : AccountId; band : ?Text; stage : ?Nat; required : Nat; previous : Nat };

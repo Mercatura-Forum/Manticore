@@ -644,6 +644,9 @@ List.add(events, #party(#reviewGraceSet({ days = 60 })));
 List.add(events, #product(#productRegistered({ id = "SAV"; version = 1; name = "Savings"; terms = savingsTerms })));
 List.add(events, #product(#productRegistered({ id = "LOAN"; version = 1; name = "Term loan"; terms = loanTerms })));
 List.add(events, #product(#productAmended({ id = "SAV"; version = 2; supersedes = 1; name = "Savings v2"; terms = savingsTerms })));
+List.add(events, #product(#productRedenominated({ id = "SAV"; version = 3; supersedes = 2; from = "EGP"; to = "EGN"; terms = savingsTerms })));
+List.add(events, #product(#accountRedenominated({ account = 600; version = 3; from = "EGP"; to = "EGN" })));
+List.add(events, #product(#scheduleTermsSet({ account = 600; terms = { amortisation = #equalInstalments; instalments = 4; every = #quarterly; principalGrace = 0; interestGrace = 0; moratoriumDays = 0 }; effective = 20756 })));
 List.add(events, #product(#productClosedToNewAccounts({ id = "SAV"; version = 1 })));
 List.add(events, #product(#accountOpened({ product = "SAV"; version = 2; party = 5; book = "BR01"; identifier = "EG380037000100000000000000055"; currency = "EGP"; opened = 20705; maturity = null; openingRate = null; allocationOrder = [] })));
 List.add(events, #product(#accountOpened({ product = "FD"; version = 1; party = 5; book = "HQ"; identifier = "EG380037000100000000000000056"; currency = "EGP"; opened = 20705; maturity = ?20887; openingRate = ?pRate(10, 100); allocationOrder = [#principal, #interest, #fee, #penalty] })));
@@ -680,6 +683,13 @@ List.add(events, #close(#fxPairSet({ pair = kwdPair })));
 List.add(events, #close(#fxRateSet({ rate = usdRate })));
 List.add(events, #close(#backValueWindowSet({ window })));
 List.add(events, #close(#backValueApproved({ book = "BR01"; valueDate = 20700; approver = carol; reason = "corrected" })));
+List.add(events, #close(#currencyCalendarSet({ currency = "USD"; calendar = ?{ restDays = [5, 6]; holidays = [20817]; policy = #reject } })));
+List.add(events, #close(#currencyCalendarSet({ currency = "USD"; calendar = null })));
+List.add(events, #close(#redenominationDeclared({ redenomination = { from = "TRY"; to = "TRN"; minorUnits = 2 : Nat8; ratioNumerator = 1; ratioDenominator = 1_000_000; bridgeAccount = "1998"; roundingAccount = "5900"; day = 20726 }; products = ["SAV-TRY", "CUR-TRY"] })));
+List.add(events, #close(#balanceRedenominated({ from = "TRY"; to = "TRN"; account = "2110"; subledger = ?("\01\02\03" : Blob); productAccount = ?600; oldAmount = 1_234_567_890; newAmount = 1_235; creditBalance = true; day = 20726 })));
+List.add(events, #close(#balanceRedenominated({ from = "TRY"; to = "TRN"; account = "1201"; subledger = null; productAccount = null; oldAmount = 500_000_000; newAmount = 500; creditBalance = false; day = 20726 })));
+List.add(events, #close(#redenominationCompleted({ from = "TRY"; to = "TRN"; rows = 3; oldTotal = 1_734_567_890; newTotal = 1_735; roundingAmount = 1; roundingDebit = true; day = 20726 })));
+List.add(events, #close(#redenominationCompleted({ from = "TRY"; to = "TRN"; rows = 3; oldTotal = 1_734_567_890; newTotal = 1_735; roundingAmount = 0; roundingDebit = false; day = 20726 })));
 List.add(events, #close(#fxDealBooked({ sell = "EGP"; sellAmount = 48_500_00; buy = "USD"; buyAmount = 1_000_00; rateNumerator = 4850; rateDenominator = 100; asOf = 20726; day = 20726 })));
 List.add(events, #close(#fxRevalued({ currency = "USD"; position = 1_000_00; equivalent = 48_000_00; revalued = 48_500_00; movement = 500_00; direction = #gain; rateNumerator = 4850; rateDenominator = 100; rateAsOf = 20726; day = 20726 })));
 List.add(events, #close(#fxRevalued({ currency = "USD"; position = 1_000_00; equivalent = 49_000_00; revalued = 48_500_00; movement = 500_00; direction = #loss; rateNumerator = 4850; rateDenominator = 100; rateAsOf = 20726; day = 20726 })));
@@ -751,6 +761,8 @@ List.add(events, #batch(#eodRetry({
 List.add(events, #batch(#eodRetry({ book = "BR01"; businessDate = 0; resolved = []; failures = []; posted = 0 })));
 List.add(events, #batch(#eodFailureResolved({ book = "HQ"; businessDate = 20726; item = 14; entity = "rent"; justification = "customer closed the mandate" })));
 List.add(events, #batch(#eodFailureResolved({ book = "BR01"; businessDate = 0; item = 0; entity = ""; justification = "x" })));
+List.add(events, #batch(#eodItemCursor({ book = "HQ"; businessDate = 20726; item = 14; cursor = Blob.fromArray([0x00, 0x48, 0x51, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07]) })));
+List.add(events, #batch(#eodItemCursor({ book = "BR01"; businessDate = 0; item = 0; cursor = Blob.fromArray([0x01]) })));
 // ─── reporting ────────────────────────────────────────────────────────
 List.add(events, #report(#reportDefinitionRegistered({ definition = sampleReportDef; hash = sampleHash32 })));
 List.add(events, #report(#reportDefinitionRegistered({ definition = {

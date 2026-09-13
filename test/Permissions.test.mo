@@ -413,6 +413,9 @@ let commands : [T.Command] = [
   #recordPreArbitration({ dispute = 1460 }),
   #resolveDispute({ dispute = 1460; outcome = #cardholder; finalAmount = 250_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
   #markFraud({ transaction = 1450; blockCard = true }),
+  // ── the close layer's currency acts (S4.1) ──
+  #setCurrencyCalendar({ currency = "USD"; calendar = ?{ restDays = [5, 6]; holidays = [20817]; policy = #reject } }),
+  #redenominateCurrency({ from = "TRY"; to = "TRN"; minorUnits = 2; ratioNumerator = 1; ratioDenominator = 1_000_000; bridgeAccount = "1998"; roundingAccount = "5900"; day = 20726 }),
   // ── closed-month packing ──
   #openPacking({ period = "2026-09" }),
   #rollPackToArchive({ pack = 1; cid = 1_000_003 : Nat64; archive = Principal.fromBlob("\6E\3E\78\13") }),
@@ -480,7 +483,7 @@ Debug.print("count: catalogue entries guarding a command = " # Nat.toText(comman
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
 assert (methodEntries == 24);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending), the card authorization (fields and cain.001) and clearing batch (cards)
-assert (commandEntries == 290);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking) + the thirteen treasury acts (treasury) + the seventeen card acts (cards)
+assert (commandEntries == 292);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking) + the thirteen treasury acts (treasury) + the seventeen card acts (cards) + the two currency acts (S4.1)
 
 // Identifiers are unique, and every identifier resolves through `find`.
 let ids = P.ids();

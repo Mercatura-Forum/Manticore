@@ -307,6 +307,13 @@ module {
     /// so "who allowed this back-valued entry" is answerable by replay.
     #approveBackValue : { book : BookId; valueDate : Day; reason : Text };
     #openDeferralSchedule : { schedule : CT.Schedule };
+    /// A currency's own working-day calendar (S4.1); null removes it. A value date in the currency must be a
+    /// business day in the bank's calendar and in the currency's.
+    #setCurrencyCalendar : { currency : JT.Currency; calendar : ?JT.CalendarConfig };
+    /// A currency redenominated (S4.1): declared here, carried out by the end-of-day job of the day, `from`
+    /// closed to new postings when it completes. Refused for the functional currency and while open instruments
+    /// or pendings exist in `from`.
+    #redenominateCurrency : CT.Redenomination;
     // Money-visible: each behind its own activation height.
     /// A cross-currency movement, booked as four legs through the currency's position
     /// pair so each currency balances within itself.

@@ -693,6 +693,9 @@ module {
       case (#recordPreArbitration(x)) { w.byte(0xEF); w.byte(0x3E); w.nat(x.dispute) };
       case (#resolveDispute(x)) { w.byte(0xEF); w.byte(0x3F); w.nat(x.dispute); CdCan.writeOutcome(w, x.outcome); w.nat(x.finalAmount); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#markFraud(x)) { w.byte(0xEF); w.byte(0x40); w.nat(x.transaction); w.bool(x.blockCard) };
+      // S4.1: the close layer's currency calendars and redenomination, 0xEF + 0x50..0x5F
+      case (#setCurrencyCalendar(x)) { w.byte(0xEF); w.byte(0x50); w.text(x.currency); w.calendar(x.calendar) };
+      case (#redenominateCurrency(x)) { w.byte(0xEF); w.byte(0x51); CC.wRedenomination(w, x) };
       case (#issueLetterOfCredit(x)) { w.byte(0x68); TrCan.writeLc(w, x.lc); w.nat(x.amount); w.text(x.currency); w.nat(x.expiry); w.text(x.placeOfExpiry); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#adviseLetterOfCredit(x)) { w.byte(0x69); w.text(x.message); w.nat(x.beneficiary); w.nat(x.beneficiaryAccount); w.bool(x.confirm); w.len16(x.checklist.size()); for ((k, cs) in x.checklist.vals()) { TrCan.writeDocumentKind(w, k); w.len16(cs.size()); for (c in cs.vals()) w.text(c) }; w.nat(x.commissionBps); w.optNat(x.facility); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#amendLetterOfCredit(x)) { w.byte(0x6A); w.nat(x.instrument); TrCan.writeAmendment(w, x.amendment); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
@@ -2000,6 +2003,13 @@ module {
   };
 
   /// The card commands (cards): the extension tag 0xEF with a second byte 0x30..0x40.
+  func readCurrencyCommand(sub : Nat8, r : C.Reader) : ??T.Command {
+    switch (sub) {
+      case 0x50 { let ?currency = r.text() else return ?null; let ?calendar = r.calendar() else return ?null; ??#setCurrencyCalendar({ currency; calendar }) };
+      case 0x51 { let ?x = CC.rRedenomination(r) else return ?null; ??#redenominateCurrency(x) };
+      case _ null;
+    }
+  };
   func readCardCommand(sub : Nat8, r : C.Reader) : ??T.Command {
     func dates() : ?(Nat, Nat, Text, Text) { let ?pd = r.nat() else return null; let ?vd = r.nat() else return null; let ?p = r.text() else return null; let ?n = r.text() else return null; ?(pd, vd, p, n) };
     switch (sub) {
@@ -2030,6 +2040,7 @@ module {
     if (tag == 0xEF) {
       // the second byte selects the domain: 0x01.. Islamic banking, 0x20.. treasury
       let ?sub = r.byte() else return null;
+      if (sub >= 0x50) { switch (readCurrencyCommand(sub, r)) { case (?c) return c; case null return null } };
       if (sub >= 0x30) { switch (readCardCommand(sub, r)) { case (?c) return c; case null return null } };
       if (sub >= 0x20) { switch (readTreasuryCommand(sub, r)) { case (?c) return c; case null return null } };
       switch (readIslamicCommandBody(sub, r)) { case (?c) return c; case null return null };

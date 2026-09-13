@@ -637,6 +637,10 @@ let commands : [T.Command] = [
   #recordPreArbitration({ dispute = 1460 }),
   #resolveDispute({ dispute = 1460; outcome = #cardholder; finalAmount = 250_00; postingDate = 20726; valueDate = 20726; period = "2026-09"; narration = "s40" }),
   #markFraud({ transaction = 1450; blockCard = true }),
+  // S4.1: the close layer's currency calendars and redenomination
+  #setCurrencyCalendar({ currency = "USD"; calendar = ?{ restDays = [5, 6]; holidays = [20817, 20818]; policy = #reject } }),
+  #setCurrencyCalendar({ currency = "USD"; calendar = null }),
+  #redenominateCurrency({ from = "TRY"; to = "TRN"; minorUnits = 2; ratioNumerator = 1; ratioDenominator = 1_000_000; bridgeAccount = "1998"; roundingAccount = "5900"; day = 20726 }),
 ];
 
 // ─── 1. command hash: deterministic, and sensitive to every field ────────────
@@ -808,6 +812,8 @@ let golden : [(Text, Text, Text)] = [
   ("openDispute", "d08d4df4d977b93970af2f089cca02fcd8c490c1437808986ce87e88ae39c50a", "c5315ec04d9e8946c58a8bec14c77da9d74f4bb78b0f9e0dd984a548d52c228a"),
   ("recordPreArbitration", "2f9cb6ec8e405373080d5082f2f4ebcecf83ea32816cef62ef0f633d75d0f40e", "a4deafc2082b9cc137db0ff4e38e1a6cf60ddac84909bea406b950e609fc068c"),
   ("markFraud", "3f66eff72f4e70134bfd60a33e2b6d935d04dc7a5c4b321659d1184ad190afb1", "bacfb01a8c9569b02354ae62b1b9ebc1b370fd50640925df8fb31b65854f5335"),
+  ("setCurrencyCalendar", "ddf265f11b26b79b597e2385a129a17e1bb90c86888bef26a19cf1f400fe58a6", "535b0fc76e36ba155cb6d5bf5a7bfb09db8bbd16e5cbf96f401a63cdff986d02"),
+  ("redenominateCurrency", "ae33f70fb744affa1837d3ada7cfc3599d161df6d70a3135c2b4fc99f02e2ad9", "10fc19a9436593821ed4d9bc01d0da78a845df0bfb6aab544dc68f5ef2909754"),
 ];
 var goldenChecked = 0;
 for (family in Reconstruct.families().vals()) {

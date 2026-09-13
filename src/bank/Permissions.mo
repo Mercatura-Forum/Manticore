@@ -144,7 +144,9 @@ module {
     p("backvalue.window.update", "backvalue", #update, #command("setBackValueWindow"), false, true),
     p("backvalue.approve", "backvalue", #approve, #command("approveBackValue"), false, true),
     p("deferral.create", "deferral", #create, #command("openDeferralSchedule"), false, true),
+    p("fx.calendar.update", "fx.calendar", #update, #command("setCurrencyCalendar"), false, true),
     // Money-visible, therefore money-moving and dual by default.
+    p("fx.redenominate", "fx", #update, #command("redenominateCurrency"), true, true),
     p("fx.deal.create", "fx.deal", #create, #command("bookFxDeal"), true, true),
     p("fx.realise", "fx", #close, #command("realiseFxPosition"), true, true),
     p("interest.adjust", "interest", #reverse, #command("adjustAccrual"), true, true),
@@ -602,7 +604,7 @@ module {
       case (#settleTill(_)) "settleTill";
       // ── value dating, foreign currency and the close ──
       case (#setFunctionalCurrency(_)) "setFunctionalCurrency";
-      case (#setFxPair(_)) "setFxPair";
+      case (#setFxPair(_)) "setFxPair"; case (#setCurrencyCalendar(_)) "setCurrencyCalendar"; case (#redenominateCurrency(_)) "redenominateCurrency";
       case (#setFxRate(_)) "setFxRate";
       case (#setBackValueWindow(_)) "setBackValueWindow";
       case (#approveBackValue(_)) "approveBackValue";

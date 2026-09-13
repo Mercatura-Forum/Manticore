@@ -32,6 +32,7 @@
 /// bounded by the product catalogue, not the customer base.
 
 import Nat "mo:core/Nat";
+import Int "mo:core/Int";
 import Nat8 "mo:core/Nat8";
 import Text "mo:core/Text";
 import Blob "mo:core/Blob";
@@ -171,12 +172,15 @@ module {
     subledgers : RI.State;
     accountsByParty : RI.State;        // party(8) ‖ account(8) -> 0
     accountsByProduct : RI.State;      // productOrd(4) ‖ account(8) -> 0
+    accountsByProductBook : RI.State;  // productOrd(4) ‖ bookOrd(4) ‖ account(8) -> 0: what a book's end-of-day walks, a page at a time
     schedules : RI.State;              // account(8) ‖ seq(4) -> block(8)
     chargesApplied : RI.State;         // account(8) ‖ charge(32) ‖ day(4) -> block(8)
     chargesWaived : RI.State;          // likewise
     tillRows : RI.State;               // till(32) -> TillRow
     productOrdinals : Map.Map<Text, Nat>;
     productNames : List.List<Text>;
+    /// accounts not closed, per (product ordinal, book ordinal): the plan's entity count without a walk
+    openByProductBook : Map.Map<(Nat, Nat), Nat>;
     currencyOrdinals : Map.Map<Text, Nat>;
     currencyNames : List.List<Text>;
     bookOrdinals : Map.Map<Text, Nat>;
@@ -187,6 +191,8 @@ module {
     /// The last accrual posted per (product, currency), so a run cannot post the
     /// same business date twice and a gap is visible.
     accruedTo : Map.Map<(Text, Text), Nat>;
+    /// account -> the schedule terms its last reschedule set (S4.1); absent, the product's apply.
+    scheduleTerms : Map.Map<Nat, T.ScheduleTerms>;
     /// (product, currency, business date) -> the amount that accrual posting booked.
     /// This is what makes a back-value correction a subtraction of two knowable
     /// quantities: the fold recomputed now, less what was actually booked. It is the
@@ -218,18 +224,21 @@ module {
       subledgers = RI.newStateIn(arena, { keyBytes = 32; valBytes = 8 });
       accountsByParty = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
       accountsByProduct = RI.newStateIn(arena, { keyBytes = 12; valBytes = 1 });
+      accountsByProductBook = RI.newStateIn(arena, { keyBytes = 16; valBytes = 1 });
       schedules = RI.newStateIn(arena, { keyBytes = 12; valBytes = 8 });
       chargesApplied = RI.newStateIn(arena, { keyBytes = CHARGE_KEY_BYTES; valBytes = 8 });
       chargesWaived = RI.newStateIn(arena, { keyBytes = CHARGE_KEY_BYTES; valBytes = 8 });
       tillRows = RI.newStateIn(arena, { keyBytes = TILL_KEY_BYTES; valBytes = TILL_ROW_BYTES });
       productOrdinals = Map.empty<Text, Nat>();
       productNames = List.empty<Text>();
+      openByProductBook = Map.empty<(Nat, Nat), Nat>();
       currencyOrdinals = Map.empty<Text, Nat>();
       currencyNames = List.empty<Text>();
       bookOrdinals = Map.empty<Text, Nat>();
       bookNames = List.empty<Text>();
       capitalisations = Map.empty<(Text, Text), List.List<(Nat, Nat)>>();
       accruedTo = Map.empty<(Text, Text), Nat>();
+      scheduleTerms = Map.empty<Nat, T.ScheduleTerms>();
       accruals = Map.empty<(Text, Text, Nat), Nat>();
       var highestAccount = 0;
     }
@@ -304,7 +313,25 @@ module {
     switch (RI.get(s.accountRows, R.key(id, 8))) { case (?v) ?decodeAccountRow(v); case null null }
   };
 
-  func putAccountRow(s : State, id : T.AccountId, r : AccountRow) { ignore RI.put(s.accountRows, R.key(id, 8), encodeAccountRow(r)) };
+  func cmpNN(a : (Nat, Nat), b : (Nat, Nat)) : { #less; #equal; #greater } { switch (Nat.compare(a.0, b.0)) { case (#equal) Nat.compare(a.1, b.1); case (o) o } };
+  func bumpOpen(s : State, key : (Nat, Nat), delta : Int) {
+    let cur : Int = switch (Map.get(s.openByProductBook, cmpNN, key)) { case (?v) v; case null 0 };
+    let next = cur + delta;
+    if (next <= 0) ignore Map.delete(s.openByProductBook, cmpNN, key) else Map.add(s.openByProductBook, cmpNN, key, Int.abs(next));
+  };
+  func putAccountRow(s : State, id : T.AccountId, r : AccountRow) {
+    // the per-(product, book) open count follows the status across the write
+    let was = switch (accountRow(s, id)) { case (?o) o.status != #closed; case null false };
+    let is = r.status != #closed;
+    if (is and not was) bumpOpen(s, (r.productOrd, r.bookOrd), 1) else if (was and not is) bumpOpen(s, (r.productOrd, r.bookOrd), -1);
+    ignore RI.put(s.accountRows, R.key(id, 8), encodeAccountRow(r))
+  };
+  /// The accounts of a product in a book that are not closed, from the fold's counter.
+  public func openAccountCount(s : State, product : T.ProductId, book : Text) : Nat {
+    let ?p = Map.get(s.productOrdinals, Text.compare, product) else return 0;
+    let ?b = Map.get(s.bookOrdinals, Text.compare, book) else return 0;
+    switch (Map.get(s.openByProductBook, cmpNN, (p, b))) { case (?n) n; case null 0 }
+  };
 
   func mustRow(s : State, id : Nat) : AccountRow {
     switch (accountRow(s, id)) { case (?r) r; case null Runtime.trap("product fold: unknown account " # Nat.toText(id)) }
@@ -393,9 +420,10 @@ module {
     };
     ?{
       id; product = o.product; version = row.version; party = o.party; book = o.book; identifier = o.identifier;
-      subledger = Posting.subledgerOf(o.identifier); currency = o.currency; status = row.status;
+      // the currency is the row's: the opening's, until a redenomination re-expressed the account (S4.1)
+      subledger = Posting.subledgerOf(o.identifier); currency = nameOf(s.currencyNames, row.currencyOrd); status = row.status;
       opened = o.opened; maturity = o.maturity; openingRate; allocationOrder = o.allocationOrder;
-      lastCapitalised = lastCapitalisedOf(s, o.product, o.currency, id, o.opened);
+      lastCapitalised = lastCapitalisedOf(s, o.product, nameOf(s.currencyNames, row.currencyOrd), id, o.opened);
       facility; scheduleVersions = row.scheduleCount; disbursed; writtenOff = row.writtenOff; allowance; band;
       openedAtBlock = id; closedAtBlock = if (row.closedAt == 0) null else ?row.closedAt;
     }
@@ -423,6 +451,8 @@ module {
   };
 
   public func accruedTo(s : State, product : Text, ccy : Text) : ?Nat { Map.get(s.accruedTo, cmpTT, (product, ccy)) };
+  /// The schedule terms an account's last reschedule set, if any.
+  public func scheduleTermsOf(s : State, account : Nat) : ?T.ScheduleTerms { Map.get(s.scheduleTerms, Nat.compare, account) };
 
   /// The amount the accrual run for one business date booked, if it ran. Null is the
   /// evidence a day is missing, which is what gates a period close.
@@ -544,6 +574,19 @@ module {
   /// caller's business: the batch shards it, a preview is a preview.
   public func accountsOfProduct(s : State, bb : Blocks, product : T.ProductId) : [AccountEntry] {
     Array.map<Nat, AccountEntry>(accountIdsOfProduct(s, product), func(id) { mustGet(s, bb, id) })
+  };
+  /// One page of the ids of a product's accounts in a book, ascending, from an account id (inclusive) — what the
+  /// end-of-day walks a chunk at a time (the adversarial audit of 13 September, finding A1). `next` is the id to resume at.
+  public func accountIdsOfProductInBookFrom(s : State, product : T.ProductId, book : Text, from : ?T.AccountId, limit : Nat) : { ids : [T.AccountId]; next : ?T.AccountId } {
+    let ?p = Map.get(s.productOrdinals, Text.compare, product) else return { ids = []; next = null };
+    let ?b = Map.get(s.bookOrdinals, Text.compare, book) else return { ids = []; next = null };
+    let prefix = Blob.toArray(R.key2(p, 4, b, 4));
+    let lo = Blob.fromArray(Array.concat<Nat8>(prefix, Array.repeat<Nat8>(0, 8)));
+    let hi = Blob.fromArray(Array.concat<Nat8>(prefix, Array.repeat<Nat8>(255, 8)));
+    let cursor = switch (from) { case (?id) ?Blob.fromArray(Array.concat<Nat8>(prefix, Blob.toArray(R.key(id, 8)))); case null null };
+    let page = RI.range(s.accountsByProductBook, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    { ids = Array.map<(Blob, Blob), Nat>(page.entries, func((k, _)) { R.getNat(Blob.toArray(k), 8, 8) });
+      next = switch (page.cursor) { case (?k) ?R.getNat(Blob.toArray(k), 8, 8); case null null } }
   };
 
   public let MAX_PAGE : Nat = 500;
@@ -728,6 +771,37 @@ module {
           case null {};
         };
       };
+      case (#productRedenominated(x)) {
+        switch (Map.get(s.versions, cmpTN, (x.id, x.supersedes))) {
+          case (?old) { old.supersededBy := ?x.version; old.openToNewAccounts := false };
+          case null {};
+        };
+        let name = switch (Map.get(s.versions, cmpTN, (x.id, x.supersedes))) { case (?old) old.name; case null x.id };
+        let entry : VersionEntry = {
+          id = x.id; version = x.version; name; terms = x.terms;
+          registeredAtBlock = blockIndex;
+          var supersededBy = null;
+          var openToNewAccounts = true;
+        };
+        Map.add(s.versions, cmpTN, (x.id, x.version), entry);
+        Map.add(s.current, Text.compare, x.id, x.version);
+        // the accrual evidence of the old currency is the new currency's: the days were run
+        switch (Map.get(s.accruedTo, cmpTT, (x.id, x.from))) { case (?d) Map.add(s.accruedTo, cmpTT, (x.id, x.to), d); case null {} };
+        let carried = List.empty<(Nat, Nat)>();
+        for (((p, c, d), a) in Map.entries(s.accruals)) { if (Text.equal(p, x.id) and Text.equal(c, x.from)) List.add(carried, (d, a)) };
+        for ((d, a) in List.values(carried)) { Map.add(s.accruals, cmpTTN, (x.id, x.to, d), a) };
+        // and the capitalisation runs: what was capitalised to a day stays capitalised to it in the new currency
+        switch (Map.get(s.capitalisations, cmpTT, (x.id, x.from))) {
+          case (?runs) {
+            let l = switch (Map.get(s.capitalisations, cmpTT, (x.id, x.to))) { case (?l) l; case null { let l = List.empty<(Nat, Nat)>(); Map.add(s.capitalisations, cmpTT, (x.id, x.to), l); l } };
+            for (r in List.values(runs)) List.add(l, r);
+          };
+          case null {};
+        };
+      };
+      case (#accountRedenominated(x)) {
+        putAccountRow(s, x.account, { mustRow(s, x.account) with version = x.version; currencyOrd = ordinalOf(s.currencyOrdinals, s.currencyNames, x.to) });
+      };
       case (#accountOpened(x)) {
         let productOrd = ordinalOf(s.productOrdinals, s.productNames, x.product);
         putAccountRow(s, blockIndex, {
@@ -740,6 +814,7 @@ module {
         ignore RI.put(s.subledgers, Posting.subledgerOf(x.identifier), R.key(blockIndex, 8));
         ignore RI.put(s.accountsByParty, R.key2(x.party, 8, blockIndex, 8), "\00");
         ignore RI.put(s.accountsByProduct, R.key2(productOrd, 4, blockIndex, 8), "\00");
+        ignore RI.put(s.accountsByProductBook, Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.key2(productOrd, 4, ordinalOf(s.bookOrdinals, s.bookNames, x.book), 4)), Blob.toArray(R.key(blockIndex, 8)))), "\00");
         if (blockIndex > s.highestAccount) s.highestAccount := blockIndex;
       };
       case (#accountStatusSet(x)) {
@@ -773,6 +848,7 @@ module {
         ignore RI.put(s.schedules, R.key2(x.account, 8, r.scheduleCount, 4), R.key(blockIndex, 8));
         putAccountRow(s, x.account, { r with scheduleCount = r.scheduleCount + 1 });
       };
+      case (#scheduleTermsSet(x)) { Map.add(s.scheduleTerms, Nat.compare, x.account, x.terms) };
       case (#repaymentReceived(_)) {};   // the money is the journal's; nothing to fold
       case (#provisionSet(x)) { putAccountRow(s, x.account, { mustRow(s, x.account) with provisionBlock = blockIndex }) };
       case (#loanWrittenOff(x)) { putAccountRow(s, x.account, { mustRow(s, x.account) with writtenOff = true }) };
@@ -834,7 +910,8 @@ module {
     fingerprintRows(w, s.accountsByIdentifier, IDENTIFIER_KEY_BYTES);
     fingerprintRows(w, s.subledgers, 32);
     fingerprintRows(w, s.accountsByParty, 16);
-    fingerprintRows(w, s.accountsByProduct, 12);
+    fingerprintRows(w, s.accountsByProduct, 12); fingerprintRows(w, s.accountsByProductBook, 16);
+    w.nat(Map.size(s.openByProductBook)); for (((p, b), n) in Map.entries(s.openByProductBook)) { w.nat(p); w.nat(b); w.nat(n) };
     fingerprintRows(w, s.schedules, 12);
     fingerprintRows(w, s.chargesApplied, CHARGE_KEY_BYTES);
     fingerprintRows(w, s.chargesWaived, CHARGE_KEY_BYTES);
@@ -845,6 +922,8 @@ module {
     for (n in List.values(s.bookNames)) w.text(n);
     for (((p, c), runs) in Map.entries(s.capitalisations)) { w.text(p); w.text(c); w.len16(List.size(runs)); for ((b, to) in List.values(runs)) { w.nat(b); w.nat(to) } };
     w.nat(s.highestAccount);
+    w.nat(Map.size(s.scheduleTerms));
+    for ((a, t) in Map.entries(s.scheduleTerms)) { w.nat(a); w.nat(t.instalments); w.nat(t.principalGrace); w.nat(t.interestGrace); w.nat(t.moratoriumDays) };
     w.nat(Map.size(s.accruedTo));
     for (((p, c), d) in Map.entries(s.accruedTo)) { w.text(p); w.text(c); w.nat(d) };
     w.nat(Map.size(s.accruals));

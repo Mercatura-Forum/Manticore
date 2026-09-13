@@ -63,6 +63,7 @@ import Iban "Iban";
 import MC "MakerChecker";
 import Reconstruct "Reconstruct";
 import RI "mo:ledger/RegionIndex";
+import R "StableRows";
 import ProdT "ProductTypes";
 import ProductCore "ProductCore";
 import Products "Products";
@@ -1518,7 +1519,7 @@ module {
         if (not Text.equal(a.currency, currency)) return #err(#ProductError({ error = #CurrencyMismatch({ expected = a.currency; actual = currency }) }));
         if (terms.kind == #loan) return #err(#ProductError({ error = #AccountNotOfKind({ account = acctId; expected = "a deposit product"; actual = "loan" }) }));
         // the value day is the sender's when this shard's calendar allows it, else today's
-        let effective = switch (valueDateGate(bs, js, a.book, period, terms.valueDateConvention, valueDay)) { case (#ok(d)) d; case (#err(_)) today };
+        let effective = switch (valueDateGate(bs, js, a.book, period, terms.valueDateConvention, terms.currency, valueDay)) { case (#ok(d)) d; case (#err(_)) today };
         let openPeriod = switch (periodContaining(js, today)) { case (?p) p; case null return #err(#ProductError({ error = #InvalidTerms({ reason = "no open period contains today" }) })) };
         let (postingDate, bookPeriod, valueDate) = switch (JCore.getPeriod(js, period)) {
           case (?p) { if (p.status == #open and p.start <= today and today <= p.end) (today, period, effective) else (today, openPeriod, today) };
@@ -2438,6 +2439,11 @@ module {
         if (x.height != T.ACTIVATION_OFF and not JCore.isActive(js)) {
           return #err(#FeatureInactive({ feature = x.feature; activationHeight = x.height; height = Nat64.fromNat(bs.height) }));
         };
+        // a run's plan reads the features active at its opening block; nothing changes them under a run
+        switch (BatchCore.anyOpenRun(bs.batch)) {
+          case (?r) return #err(#BatchError({ error = #RunOpenForDate({ book = r.book; businessDate = r.businessDate; valueDate = r.businessDate }) }));
+          case null {};
+        };
         #ok({ bankEvent = ?#featureActivationSet({ feature = x.feature; height = x.height }); extra = []; journal = [] })
       };
 
@@ -2989,7 +2995,7 @@ module {
               return #err(#ProductError({ error = #AccountNotOfKind({ account = m.account; expected = "a deposit product"; actual = "loan" }) }));
             };
             if (m.amount == 0) return #err(#ProductError({ error = #InvalidTerms({ reason = "a deposit of zero moves nothing" }) }));
-            switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, m.valueDate)) {
+            switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, terms.currency, m.valueDate)) {
               case (#err(e)) return #err(e);
               case (#ok(valueDate)) {
                 switch (fundingLeg(bs, bb, js, terms, m.funding, a.currency, #debit, m.amount)) {
@@ -3014,7 +3020,7 @@ module {
               return #err(#ProductError({ error = #AccountNotOfKind({ account = m.account; expected = "a deposit product"; actual = "loan" }) }));
             };
             if (m.amount == 0) return #err(#ProductError({ error = #InvalidTerms({ reason = "a withdrawal of zero moves nothing" }) }));
-            switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, m.valueDate)) {
+            switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, terms.currency, m.valueDate)) {
               case (#err(e)) return #err(e);
               case (#ok(valueDate)) {
                 let side = ProductCore.normalSideOf(terms.kind);
@@ -3052,10 +3058,10 @@ module {
                 if (fromTerms.kind == #loan or toTerms.kind == #loan) {
                   return #err(#ProductError({ error = #AccountNotOfKind({ account = x.from; expected = "two deposit products"; actual = "loan" }) }));
                 };
-                switch (valueDateGate(bs, js, from_.book, x.period, fromTerms.valueDateConvention, x.valueDate)) {
+                switch (valueDateGate(bs, js, from_.book, x.period, fromTerms.valueDateConvention, fromTerms.currency, x.valueDate)) {
                   case (#err(e)) return #err(e);
                   case (#ok(valueDate)) {
-                    switch (valueDateGate(bs, js, to_.book, x.period, toTerms.valueDateConvention, valueDate)) {
+                    switch (valueDateGate(bs, js, to_.book, x.period, toTerms.valueDateConvention, toTerms.currency, valueDate)) {
                       case (#err(e)) return #err(e);
                       case (#ok(effective)) {
                         let side = ProductCore.normalSideOf(fromTerms.kind);
@@ -3239,7 +3245,7 @@ module {
                 }
               };
             };
-            let valueDate = switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, m.valueDate)) {
+            let valueDate = switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, terms.currency, m.valueDate)) {
               case (#err(e)) return #err(e);
               case (#ok(d)) d;
             };
@@ -3316,6 +3322,12 @@ module {
           return #err(#ProductError({ error = #InvalidTerms({ reason = "a recovery follows a write-off; this loan has not been written off" }) }));
         };
         if (m.amount == 0) return #err(#ProductError({ error = #InvalidTerms({ reason = "a recovery of zero moves nothing" }) }));
+        // a recovery file closed by `closeRecovery` takes no further recovery: the close is the last act of the exposure's
+        // life on this log (found by the S4.1 delinquency case)
+        switch (CollectionsCore.row(bs.collections, m.account)) {
+          case (?r) { if (r.stage == #closed) return #err(#CollectionsError({ error = #InvalidStageTransition({ account = m.account; from = "closed"; to = "recovery" }) })) };
+          case null {};
+        };
         let ?recovery = Products.roleAccount(terms, #recovery) else return #err(#ProductError({ error = #RoleUnmapped({ product = a.product; role = "recovery" }) }));
         switch (fundingLeg(bs, bb, js, terms, m.funding, a.currency, #debit, m.amount)) {
           case (#err(e)) #err(e);
@@ -3444,6 +3456,19 @@ module {
         switch (requirePairAccounts(js, x.pair)) { case (?e) return #err(e); case null {} };
         #ok({ bankEvent = ?#close(#fxPairSet({ pair = x.pair })); extra = []; journal = [] })
       };
+
+      case (#setCurrencyCalendar(x)) {
+        if (JCore.currencyMinorUnits(js, x.currency) == null) {
+          return #err(#CloseError({ error = #InvalidPair({ reason = "currency " # x.currency # " is not registered in the journal" }) }));
+        };
+        switch (x.calendar) {
+          case (?c) { for (d in c.restDays.vals()) { if (d > 6) return #err(#CloseError({ error = #CalendarPolicy({ reason = "a rest day is a weekday 0..6" }) })) } };
+          case null {};
+        };
+        #ok({ bankEvent = ?#close(#currencyCalendarSet({ currency = x.currency; calendar = x.calendar })); extra = []; journal = [] })
+      };
+
+      case (#redenominateCurrency(x)) redenominationPlan(bs, bb, js, jb, x);
 
       case (#setFxRate(x)) {
         let ?functional = CloseCore.functional(bs.close) else return #err(#CloseError({ error = #NoFunctionalCurrency }));
@@ -4245,7 +4270,7 @@ module {
         if (m.amount == 0) return #err(#FacilityError({ error = #InvalidTerms({ reason = "a rental of nothing" }) }));
         let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
         let ?rent = Products.roleAccount(terms, #rentReceivable) else return #err(#ProductError({ error = #RoleUnmapped({ product = r.product; role = "rentReceivable" }) }));
-        let valueDate = switch (valueDateGate(bs, js, r.book, m.period, terms.valueDateConvention, m.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let valueDate = switch (valueDateGate(bs, js, r.book, m.period, terms.valueDateConvention, terms.currency, m.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
         switch (fundingLeg(bs, bb, js, terms, m.funding, r.currency, #debit, m.amount)) {
           case (#err(e)) #err(e);
           case (#ok(source)) {
@@ -4495,7 +4520,7 @@ module {
           case (#err(e)) #err(e);
           case (#ok((from_, fromTerms))) {
             if (fromTerms.kind == #loan) return #err(#ProductError({ error = #AccountNotOfKind({ account = x.from; expected = "a deposit product"; actual = "loan" }) }));
-            switch (valueDateGate(bs, js, from_.book, x.period, fromTerms.valueDateConvention, x.valueDate)) {
+            switch (valueDateGate(bs, js, from_.book, x.period, fromTerms.valueDateConvention, fromTerms.currency, x.valueDate)) {
               case (#err(e)) #err(e);
               case (#ok(valueDate)) {
                 let side = ProductCore.normalSideOf(fromTerms.kind);
@@ -4702,9 +4727,10 @@ module {
           return #err(#BatchError({ error = #BusinessDateMismatch({ businessDate = today; requested = x.businessDate }) }));
         };
         let shardSize = if (x.shardSize == 0) Batch.DEFAULT_SHARD_SIZE else x.shardSize;
-        // the plan is fixed here, from the accounts that exist now
+        // the plan is fixed here: the registry as it stands at this block (the opening block is the next one), the
+        // accounts that exist now
         let maxAccount = highestAccount(bs);
-        switch (Batch.plan(planInput(bs, bb, x.book, maxAccount, shardSize))) {
+        switch (Batch.plan(planInput(bs, x.book, x.businessDate, bs.height, shardSize))) {
           case (#err(#invalidShardSize(d))) #err(#BatchError({ error = #InvalidShardSize({ shardSize = d.shardSize }) }));
           case (#err(#planTooLarge(d))) #err(#BatchError({ error = #PlanTooLarge({ items = d.items }) }));
           case (#ok(items)) {
@@ -4725,7 +4751,7 @@ module {
                 book = x.book; businessDate = x.businessDate; shardSize;
                 openedAtHeight = JCore.height(js); maxAccount;
                 planHash = Batch.planHash(items); items = items.size();
-                entities = Batch.entityCount(items);
+                entities = planEntities(bs, bb, x.book, items);
               }));
               extra = []; journal = [];
             })
@@ -5001,7 +5027,34 @@ module {
   /// One account's accrual over `[from, to)`, on the terms of the version it was
   /// opened under — not the product's current terms, which is what makes an
   /// amendment safe.
+  /// The interest of one account over [from, to): the product's terms over the value-dated balances. A window that
+  /// spans the day the account's currency was redenominated is two windows — the old-currency days valued in the old
+  /// currency and re-expressed at the ratio, the new-currency days in the new — so a capitalisation or a correction
+  /// across the day neither loses the old days nor reads them at zero (S4.1).
   func accountAccrual(bs : State, js : JCore.State, a : ProductCore.AccountEntry, from : ProdT.Day, to : ProdT.Day) : Result.Result<I.Signed, T.BankError> {
+    switch (CloseCore.redenominationOfProduct(bs.close, a.product)) {
+      case (?rd) {
+        if (from < rd.day and rd.day < to and Text.equal(rd.to, a.currency)) {
+          let x1 = switch (accountAccrualIn(bs, js, a, rd.from, from, rd.day)) { case (#err(e)) return #err(e); case (#ok(x)) x };
+          let x2 = switch (accountAccrualIn(bs, js, a, a.currency, rd.day, to)) { case (#err(e)) return #err(e); case (#ok(x)) x };
+          // x1 in the old currency, scaled to the new: × ratioNumerator / ratioDenominator, exact
+          let scaled : I.Signed = { numerator = x1.numerator * rd.ratioNumerator; denominator = x1.denominator * rd.ratioDenominator; negative = x1.negative };
+          return #ok(addSigned(scaled, x2));
+        };
+        if (to <= rd.day and Text.equal(rd.to, a.currency)) return accountAccrualIn(bs, js, a, rd.from, from, to);
+        accountAccrualIn(bs, js, a, a.currency, from, to)
+      };
+      case null accountAccrualIn(bs, js, a, a.currency, from, to);
+    }
+  };
+  func addSigned(x : I.Signed, y : I.Signed) : I.Signed {
+    let xn = x.numerator * y.denominator; let yn = y.numerator * x.denominator; let den = x.denominator * y.denominator;
+    if (x.negative == y.negative) { { numerator = xn + yn; denominator = den; negative = x.negative } }
+    else if (xn >= yn) { { numerator = xn - yn; denominator = den; negative = x.negative } }
+    else { { numerator = yn - xn; denominator = den; negative = y.negative } }
+  };
+  func accountAccrualIn(bs : State, js : JCore.State, a : ProductCore.AccountEntry, currency : JT.Currency, from : ProdT.Day, to : ProdT.Day) : Result.Result<I.Signed, T.BankError> {
+    if (to <= from) return #ok(I.zero());
     let ?terms = ProductCore.termsOf(bs.product, a) else return #err(#ProductError({ error = #UnknownVersion({ product = a.product; version = a.version }) }));
     let ?it = terms.interest else return #ok(I.zero());
     let side = ProductCore.normalSideOf(terms.kind);
@@ -5011,14 +5064,14 @@ module {
     let rate = switch (a.openingRate) {
       case (?r) r;
       case null {
-        let reference = Posting.accountBalanceOn(js, terms.control, a.subledger, a.currency, side, to).net;
+        let reference = Posting.accountBalanceOn(js, terms.control, a.subledger, currency, side, to).net;
         switch (Products.rateAt(it.chart, reference)) {
           case (?r) r;
           case null return #err(#TermError({ reason = "no rate band covers a balance of " # Nat.toText(reference) }));
         }
       };
     };
-    let reader = Posting.creditBalanceReader(js, terms.control, a.subledger, a.currency, side, it.minimumBalance);
+    let reader = Posting.creditBalanceReader(js, terms.control, a.subledger, currency, side, it.minimumBalance);
     let result = switch (it.basis) {
       case (#dailyBalance) I.dailyBalanceAccrual(reader, rate, it.convention, from, to);
       case (#averageDailyBalance) I.averageBalanceAccrual(reader, rate, it.convention, from, to);
@@ -5210,7 +5263,7 @@ module {
       case (#ok((a, terms))) {
         if (a.writtenOff) return #err(#ProductError({ error = #LoanWrittenOffAlready({ account = m.account }) }));
         if (m.amount == 0) return #err(#ProductError({ error = #InvalidTerms({ reason = "a repayment of zero moves nothing" }) }));
-        let valueDate = switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, m.valueDate)) {
+        let valueDate = switch (valueDateGate(bs, js, a.book, m.period, terms.valueDateConvention, terms.currency, m.valueDate)) {
           case (#err(e)) return #err(e);
           case (#ok(d)) d;
         };
@@ -5313,7 +5366,10 @@ module {
         if (rateNow != ?rate) List.add(extra, #product(#accountRateSet({ account; rate; effective })));
         #ok({
           bankEvent = ?#product(#loanRescheduled({ account = account; version = ProductCore.scheduleCount(a) + 1; effective = effective; schedule = out.rows }));
-          extra = List.toArray(extra); journal;
+          // the terms this reschedule gave the account, recorded so a later contractual reset re-derives from them and not
+          // from the product's template (a reset landing inside a modification kept the modification — the S4.1 case);
+          // a reset itself records nothing here: the terms it used are the ones already recorded
+          extra = if (modification) Array.concat(List.toArray(extra), [#product(#scheduleTermsSet({ account; terms = terms_; effective }))]) else List.toArray(extra); journal;
         })
       };
 
@@ -5694,7 +5750,7 @@ module {
   public func resolveValueDate(bs : State, js : JCore.State, product : ProdT.ProductId, requested : ProdT.Day) : Result.Result<CT.ResolvedDateView, T.BankError> {
     let ?v = ProductCore.currentVersion(bs.product, product) else return #err(#ProductError({ error = #UnknownProduct({ product }) }));
     let sole = Conv.requiresRejectPolicy(JCore.calendar(js)) == null;
-    switch (Conv.resolve(JCore.calendar(js), v.terms.valueDateConvention, requested)) {
+    switch (Conv.resolve(CloseCore.mergedCalendar(bs.close, JCore.calendar(js), [v.terms.currency]), v.terms.valueDateConvention, requested)) {
       case (#ok(r)) #ok({
         requested = r.requested; effective = r.effective; moved = r.moved;
         convention = Conv.conventionText(r.convention); soleShiftingLayer = sole;
@@ -5844,8 +5900,14 @@ module {
     book : Text,
     period : JT.PeriodId,
     convention : Conv.Convention,
+    currency : JT.Currency,
     requested : ProdT.Day,
   ) : Result.Result<ProdT.Day, T.BankError> {
+    // a currency closed by a redenomination takes no new postings: its successor does
+    switch (CloseCore.closedTo(bs.close, currency)) {
+      case (?successor) return #err(#CloseError({ error = #CurrencyClosed({ currency; successor }) }));
+      case null {};
+    };
     if (CloseCore.bookClosed(bs.close, book, period)) {
       return #err(#CloseError({ error = #BookClosedForPeriod({ book; period }) }));
     };
@@ -5860,7 +5922,9 @@ module {
       };
       case null {};
     };
-    let effective = switch (Conv.resolve(JCore.calendar(js), convention, requested)) {
+    // the calendar the convention resolves against is the bank's merged with the currency's own
+    let calendar = CloseCore.mergedCalendar(bs.close, JCore.calendar(js), [currency]);
+    let effective = switch (Conv.resolve(calendar, convention, requested)) {
       case (#ok(r)) r.effective;
       case (#err(#notABusinessDay(d))) {
         return #err(#CloseError({ error = #ValueDateNotResolved({
@@ -6072,6 +6136,12 @@ module {
     let ?functional = CloseCore.functional(bs.close) else return #err(#CloseError({ error = #NoFunctionalCurrency }));
     if (Text.equal(x.sell, x.buy)) return #err(#CloseError({ error = #InvalidRate({ reason = "a deal needs two different currencies" }) }));
     if (x.sellAmount == 0 or x.buyAmount == 0) return #err(#CloseError({ error = #InvalidRate({ reason = "a deal of zero moves nothing" }) }));
+    for (c in [x.sell, x.buy].vals()) {
+      switch (CloseCore.closedTo(bs.close, c)) { case (?successor) return #err(#CloseError({ error = #CurrencyClosed({ currency = c; successor }) })); case null {} };
+      if (not Conv.isBusinessDay(CloseCore.mergedCalendar(bs.close, JCore.calendar(js), [c]), x.valueDate)) {
+        return #err(#CloseError({ error = #ValueDateNotBusinessInCurrency({ currency = c; day = x.valueDate }) }));
+      };
+    };
     let foreign = if (Text.equal(x.sell, functional)) x.buy else x.sell;
     if (not Text.equal(x.sell, functional) and not Text.equal(x.buy, functional)) {
       return #err(#CloseError({ error = #InvalidRate({ reason = "one side of a deal is the functional currency" }) }));
@@ -6154,6 +6224,12 @@ module {
   ) : Result.Result<Plan, T.BankError> {
     let ?v = ProductCore.currentVersion(bs.product, x.product) else return #err(#ProductError({ error = #UnknownProduct({ product = x.product }) }));
     if (x.to <= x.from) return #err(#ProductError({ error = #NothingToAccrue({ account = 0; from = x.from; to = x.to }) }));
+    // the window ends where the accruals end: a day the end of day has not accrued yet would be booked here and then
+    // again by the run that reaches it (found by the S4.1 back-value case)
+    switch (ProductCore.accruedTo(bs.product, x.product, x.currency)) {
+      case null return #err(#CloseError({ error = #InvalidWindow({ reason = "no accrual has run for " # x.product # " in " # x.currency # "; there is nothing to correct" }) }));
+      case (?last) { if (x.to > last + 1) return #err(#CloseError({ error = #InvalidWindow({ reason = "the window ends on day " # Nat.toText(x.to) # " but the last accrual is for day " # Nat.toText(last) # "; run the end of day first, or end the window at " # Nat.toText(last + 1) }) })) };
+    };
     // recomputed: the fold over every account of the product, for the range
     var num : Nat = 0;
     var den : Nat = 1;
@@ -6383,63 +6459,76 @@ module {
   /// rather than by hoping an iteration order is stable.
   public func highestAccount(bs : State) : Nat { ProductCore.highestAccount(bs.product) };
 
-  /// The accounts of a product at or below a bound, in identifier order. This is the
-  /// list a plan item's position range indexes into, and ordering it by identifier is
-  /// what makes a position range mean the same thing on every chunk.
-  func shardAccounts(bs : State, bb : Blocks, product : Text, maxAccount : Nat) : [ProductCore.AccountEntry] {
-    let all = ProductCore.accountsOfProduct(bs.product, productBlocks(bb), product);
-    let kept = List.empty<ProductCore.AccountEntry>();
-    for (a in all.vals()) { if (a.id <= maxAccount and a.status != #closed) List.add(kept, a) };
-    let arr = List.toArray(kept);
-    Array.sort<ProductCore.AccountEntry>(arr, func(x, y) { Nat.compare(x.id, y.id) })
-  };
-
-  /// What the plan is built from. A pure projection of the product registry and the
-  /// account set, so the plan is a function of its inputs and nothing else.
-  public func planInput(bs : State, bb : Blocks, book : Text, maxAccount : Nat, shardSize : Nat) : Batch.Input {
-    let products = List.empty<{ product : Text; currency : JT.Currency; accounts : Nat; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>();
+  /// What the plan is built from: the product registry **as it stood at the block that opened the run** — a
+  /// version registered at or after that block waits for the next run — the domain features active at that
+  /// block, and the redenominations declared for the date. Nothing here counts rows, so nothing the day's work or
+  /// the day's acts do can change the plan under a run (the adversarial audit of 13 September, finding B1; the
+  /// counts a chunk used to take on every advance — every account of every product decoded and sorted — were
+  /// finding A1). Bounded by the registry, not the customers.
+  public func planInput(bs : State, book : Text, businessDate : Nat, asOfBlock : Nat, shardSize : Nat) : Batch.Input {
+    let products = List.empty<{ product : Text; currency : JT.Currency; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>();
     // the registry in identifier order, so the plan does not depend on map iteration
     let versions = Array.sort<ProductCore.VersionEntry>(
       ProductCore.listVersions(bs.product),
       func(a, b) { switch (Text.compare(a.id, b.id)) { case (#equal) Nat.compare(a.version, b.version); case (o) o } },
     );
-    let seen = List.empty<Text>();
-    for (v in versions.vals()) {
-      var already = false;
-      for (id in List.values(seen)) { if (Text.equal(id, v.id)) already := true };
-      if (not already) {
-        List.add(seen, v.id);
-        if (v.terms.kind != #till) {
-          // only the accounts of this book are this book's work
-          var n = 0;
-          for (a in shardAccounts(bs, bb, v.id, maxAccount).vals()) { if (Text.equal(a.book, book)) n += 1 };
-          List.add(products, {
-            product = v.id; currency = v.terms.currency; accounts = n;
-            accrues = v.terms.interest != null;
-            credit = v.terms.kind == #loan;
-            term = v.terms.kind == #termDeposit or v.terms.kind == #recurringDeposit;
-            charges = v.terms.charges.size() > 0;
-          });
+    // per product, the latest version registered before the run opened: versions ascend within a product
+    var current : ?ProductCore.VersionEntry = null;
+    func flush() {
+      switch (current) {
+        case (?v) {
+          if (v.terms.kind != #till) {
+            List.add(products, {
+              product = v.id; currency = v.terms.currency;
+              accrues = v.terms.interest != null;
+              credit = v.terms.kind == #loan;
+              term = v.terms.kind == #termDeposit or v.terms.kind == #recurringDeposit;
+              charges = v.terms.charges.size() > 0;
+            });
+          };
         };
+        case null {};
+      };
+      current := null;
+    };
+    for (v in versions.vals()) {
+      if (v.registeredAtBlock < asOfBlock) {
+        switch (current) {
+          case (?c) { if (not Text.equal(c.id, v.id)) flush() };
+          case null {};
+        };
+        current := ?v;
       };
     };
-    var tills = 0;
-    for (t in ProductCore.listTills(bs.product, productBlocks(bb)).vals()) {
-      if (Text.equal(t.book, book) and t.status != #closed) tills += 1;
-    };
+    flush();
+    func activeAt(feature : Text) : Bool { featureActivation(bs, feature) <= Nat64.fromNat(asOfBlock) };
     {
       products = List.toArray(products);
-      instructions = BatchCore.instructionsOf(bs.batch, book).size();
-      tills;
-      monitoringRules = MonitoringCore.active(bs.monitoring, #endOfDay).size();
-      offers = OriginationCore.offeredInBook(bs.origination, book);
-      facilities = FacilityCore.openInBook(bs.facility, book).size();
-      trade = TradeCore.openInBook(bs.trade, book).size();
-      sharia = IslamicCore.openInBook(bs.islamic, book).size();
-      treasury = TreasuryCore.openInBook(bs.treasury, book).size() + TreasuryCore.openBreaks(bs.treasury).size();
-      cards = cardsOpenInBook(bs, book) + CardCore.openDisputes(bs.cards).size();
+      domains = {
+        facilities = activeAt(ProdT.FEATURE_CREDIT); trade = activeAt(ProdT.FEATURE_CREDIT); sharia = activeAt(ProdT.FEATURE_CREDIT);
+        treasury = activeAt(ProdT.FEATURE_FX); cards = activeAt(ProdT.FEATURE_ACCOUNT_MONEY);
+      };
+      // declared for the date — completed or not, so the plan is the same from the run's first chunk to its last
+      redenominations = Array.map<CloseCore.RedenominationEntry, { from : JT.Currency; to : JT.Currency; products : [Text] }>(CloseCore.redenominationsDeclaredOn(bs.close, businessDate), func(e) { { from = e.redenomination.from; to = e.redenomination.to; products = e.products } });
       shardSize;
     }
+  };
+
+  /// How many entities the plan names: the accounts of every product it walks (in the book, not closed, from the
+  /// fold's counters), one per accruing product, and the book's standing instructions and tills. Recorded once, when
+  /// the run opens; never a hash input.
+  public func planEntities(bs : State, bb : Blocks, book : Text, items : [Batch.PlanItem]) : Nat {
+    var n = 0;
+    for (it in items.vals()) {
+      if (Batch.walksAccounts(it)) n += ProductCore.openAccountCount(bs.product, it.product, book)
+      else switch (it.job) {
+        case (#accrual) n += 1;
+        case (#standingInstructions) n += BatchCore.instructionsOf(bs.batch, book).size();
+        case (#tillCheck) { for (t in ProductCore.listTills(bs.product, productBlocks(bb)).vals()) { if (Text.equal(t.book, book) and t.status != #closed) n += 1 } };
+        case (_) {};
+      };
+    };
+    n
   };
 
   /// What one advance did. The run commits as it goes — see `runEndOfDayChunk` — so this
@@ -6583,11 +6672,14 @@ module {
     true
   };
 
+  /// Record one failure. Never dropped: a walk stops before the entity that would take the chunk's list past
+  /// `Batch.MAX_FAILURES` and hands the run the place it stopped, so the next chunk carries on with a fresh list
+  /// (the adversarial audit of 13 September, finding C1 — the cap used to drop the 513th failure and every one
+  /// after it in silence, so the entities behind them were neither retried nor blocking the close).
   func fail(acc : ChunkAcc, item : Nat, job : Batch.Job, entity : Text, error : Text) {
-    if (List.size(acc.failures) < Batch.MAX_FAILURES) {
-      List.add(acc.failures, { item; job; entity; error; attempts = 1 });
-    };
+    List.add(acc.failures, { item; job; entity; error; attempts = 1 });
   };
+  func failuresFull(acc : ChunkAcc) : Bool { List.size(acc.failures) >= Batch.MAX_FAILURES };
 
   /// Advance an open run by up to `limit` plan items.
   ///
@@ -6615,7 +6707,7 @@ module {
       return #err(#BatchError({ error = #RunComplete({ book; businessDate }) }));
     };
     // the plan, re-derived and checked against what the opening block recorded
-    let items = switch (Batch.plan(planInput(bs, bb, book, run.maxAccount, run.shardSize))) {
+    let items = switch (Batch.plan(planInput(bs, book, run.businessDate, run.openedAtBlock, run.shardSize))) {
       case (#ok(xs)) xs;
       case (#err(#invalidShardSize(d))) return #err(#BatchError({ error = #InvalidShardSize({ shardSize = d.shardSize }) }));
       case (#err(#planTooLarge(d))) return #err(#BatchError({ error = #PlanTooLarge({ items = d.items }) }));
@@ -6647,7 +6739,7 @@ module {
     for (f in BatchCore.retryable(bs.batch, run).vals()) {
       if (f.item < items.size()) {
         let before = List.size(acc.failures);
-        runItem(bs, bb, js, jb, journalCaller, now, acc, run, items[f.item], f.item, businessDate, ?f.entity);
+        ignore runItem(bs, bb, js, jb, journalCaller, now, acc, run, items[f.item], f.item, businessDate, ?f.entity, null);
         var again = false;
         var i = before;
         while (i < List.size(acc.failures)) {
@@ -6678,10 +6770,17 @@ module {
     let from = run.cursor;
     var cursor = run.cursor;
     var done = 0;
-    while (done < limit and cursor < items.size()) {
-      runItem(bs, bb, js, jb, journalCaller, now, acc, run, items[cursor], cursor, businessDate, null);
-      cursor += 1;
-      done += 1;
+    // An item that is a walk of its own (the treasury job) may hand back the place it stopped: the
+    // chunk then ends inside that item, the cursor stays on it, and the place is recorded after the
+    // chunk's block so the next advance resumes there. Only the first item of a chunk can be resumed —
+    // it is the one the run's cursor names.
+    var itemCursor : ?Blob = null;
+    label items while (done < limit and cursor < items.size()) {
+      let sub = if (cursor == run.cursor) run.itemCursor else null;
+      switch (runItem(bs, bb, js, jb, journalCaller, now, acc, run, items[cursor], cursor, businessDate, null, sub)) {
+        case (?rest) { itemCursor := ?rest; break items };
+        case null { cursor += 1; done += 1 };
+      };
     };
     // the failures this chunk found, which are the ones after the retry pass's
     let chunkFailures = List.empty<BT.Failure>();
@@ -6694,6 +6793,7 @@ module {
       zeroMovement = acc.zeroMovement - retryZero;
       failures = List.toArray(chunkFailures);
     })));
+    switch (itemCursor) { case (?c) record(acc, #batch(#eodItemCursor({ book; businessDate; item = cursor; cursor = c }))); case null {} };
     let completed = cursor >= items.size();
     if (completed) {
       // the totals are the run's own, so the completion block states what the whole run
@@ -6735,54 +6835,67 @@ module {
     /// entity that failed and never the whole shard again, so a re-attempt cannot
     /// re-examine or re-record anything that already succeeded.
     only : ?Text,
-  ) {
+    /// Where the item stopped when the previous chunk ended inside it (the treasury walk), else null.
+    sub : ?Blob,
+  ) : ?Blob {
     let period = switch (periodForDay(js, day)) { case (?p) p; case null "" };
     if (Text.equal(period, "") and item.job != #ageing and item.job != #statementCut and item.job != #tillCheck and item.job != #offerExpiry) {
       acc.examined += 1;
       fail(acc, index, item.job, item.product, "no open period contains day " # Nat.toText(day));
-      return;
+      return null;
     };
     switch (item.job) {
       case (#accrual) jobAccrual(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period);
-      case (#charges) forShard(bs, bb, run, item, only, func(a) { jobCharge(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
-      case (#instalmentsDue) forShard(bs, bb, run, item, only, func(a) { jobInstalment(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
-      case (#ageing) forShard(bs, bb, run, item, only, func(a) { jobAgeing(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
-      case (#provisioning) forShard(bs, bb, run, item, only, func(a) { jobProvision(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
-      case (#maturity) forShard(bs, bb, run, item, only, func(a) { jobMaturity(bs, js, jb, journalCaller, now, acc, item, index, day, period, a) });
-      case (#standingInstructions) jobInstructions(bs, bb, js, jb, journalCaller, now, acc, run, item, index, day, period, only);
-      case (#statementCut) forShard(bs, bb, run, item, only, func(a) { jobStatement(bs, js, acc, item, index, day, a) });
+      case (#charges) return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) { jobCharge(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
+      case (#instalmentsDue) return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) { jobInstalment(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
+      case (#ageing) return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) { jobAgeing(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
+      case (#provisioning) return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) { jobProvision(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, a) });
+      case (#maturity) return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) { jobMaturity(bs, js, jb, journalCaller, now, acc, item, index, day, period, a) });
+      case (#standingInstructions) return jobInstructions(bs, bb, js, jb, journalCaller, now, acc, run, item, index, day, period, only, sub);
+      case (#statementCut) return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) { jobStatement(bs, js, acc, item, index, day, a) });
       case (#tillCheck) jobTillCheck(bs, bb, js, acc, item, index, day, run.book, only);
-      case (#monitoring) forShard(bs, bb, run, item, only, func(a) { jobMonitoring(bs, acc, item, index, day, a) });
-      case (#offerExpiry) jobOfferExpiry(bs, acc, item, index, day, run.book, only);
-      case (#facilities) jobFacilities(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
-      case (#trade) jobTrade(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
-      case (#sharia) jobSharia(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
-      case (#treasury) jobTreasury(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
-      case (#cards) jobCards(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
+      case (#monitoring) return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) { jobMonitoring(bs, acc, item, index, day, a) });
+      case (#offerExpiry) return jobOfferExpiry(bs, acc, item, index, day, run.book, only, sub);
+      case (#facilities) return jobFacilities(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only, sub);
+      case (#trade) return jobTrade(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only, sub);
+      case (#sharia) return jobSharia(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only, sub);
+      case (#treasury) return jobTreasury(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only, sub);
+      case (#cards) return jobCards(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only, sub);
+      case (#redenomination) return jobRedenomination(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run, only, sub);
     };
+    null
   };
 
   /// The accounts a per-account item covers: the product's accounts of the run's book,
   /// in identifier order, in the item's own half-open position range.
-  func forShard(bs : State, bb : Blocks, run : BatchCore.RunEntry, item : Batch.PlanItem, only : ?Text, body : (ProductCore.AccountEntry) -> ()) {
-    let all = shardAccounts(bs, bb, item.product, run.maxAccount);
-    let mine = List.empty<ProductCore.AccountEntry>();
-    for (a in all.vals()) { if (Text.equal(a.book, run.book)) List.add(mine, a) };
-    let arr = List.toArray(mine);
-    // `from` and `to` are 1-based and the range is **half-open**, exactly as
-    // `Batch.plan` emits it and as `Batch.entityCount` counts it. Treating it as closed
-    // would process the account at every shard boundary twice, which is invisible in
-    // the journal — the derived key makes the second attempt a duplicate — and visible
-    // only as an `examined` total that changes with the shard size.
-    var i = item.from;
-    while (i < item.to and i >= 1 and i <= arr.size()) {
-      let a = arr[i - 1];
-      switch (only) {
-        case null body(a);
-        case (?e) { if (Text.equal(e, Nat.toText(a.id))) body(a) };
+  /// The accounts of the item's product in the run's book, `run.shardSize` a chunk, from where the previous chunk
+  /// stopped: one page of the (product, book) index, each id decoded once. An account opened after the run
+  /// (`id > maxAccount`) ends the walk — ids ascend — and one closed since is skipped. The walk also stops before
+  /// an account when the chunk's failure list is full, handing back that account's id so nothing is dropped. A
+  /// retry names one account and reads it by id, never the walk.
+  func walkAccounts(bs : State, bb : Blocks, run : BatchCore.RunEntry, item : Batch.PlanItem, only : ?Text, sub : ?Blob, acc : ChunkAcc, body : (ProductCore.AccountEntry) -> ()) : ?Blob {
+    switch (only) {
+      case (?e) {
+        let ?id = Nat.fromText(e) else return null;
+        switch (ProductCore.get(bs.product, productBlocks(bb), id)) {
+          case (?a) { if (a.id <= run.maxAccount and Text.equal(a.book, run.book) and Text.equal(a.product, item.product) and a.status != #closed) body(a) };
+          case null {};
+        };
+        return null;
       };
-      i += 1;
+      case null {};
     };
+    let from : ?Nat = switch (sub) { case (?c) { let bytes = Blob.toArray(c); if (bytes.size() == 8) ?R.getNat(bytes, 0, 8) else null }; case null null };
+    let page = ProductCore.accountIdsOfProductInBookFrom(bs.product, item.product, run.book, from, run.shardSize);
+    for (id in page.ids.vals()) {
+      if (id > run.maxAccount) return null;
+      if (failuresFull(acc)) return ?R.key(id, 8);
+      switch (ProductCore.get(bs.product, productBlocks(bb), id)) {
+        case (?a) { if (a.status != #closed) body(a) };
+        case null {};
+      };
+    };
+    switch (page.next) { case (?n) { if (n > run.maxAccount) null else ?R.key(n, 8) }; case null null }
   };
 
   // ─── job 1: interest accrual ──────────────────────────────────────────────
@@ -6790,9 +6903,26 @@ module {
   /// One aggregate posting per (product, currency) for the date. Must precede anything
   /// that reads accrued interest, which is why it is first in the plan and not a matter
   /// of when the operator happened to run it.
+  /// Job 1 accrues every calendar day since the product's last accrual — the rest days and holidays between two
+  /// runs as much as the business date itself — one posting and one block per day, each block naming its calendar
+  /// day, every posting dated on the run's business date (the journal's calendar refuses a rest-day value date, as
+  /// it should: the interest of a weekend is booked on the business day that follows it). So the payable carries the
+  /// whole month and a window of days has a record for each. The first run of a product accrues its own day only:
+  /// there is no earlier run to catch up to.
   func jobAccrual(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
     acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId,
+  ) {
+    let start = switch (ProductCore.accruedTo(bs.product, item.product, item.currency)) { case (?last) { if (last < day) last + 1 else day }; case null day };
+    var d = start;
+    while (d <= day) {
+      accrueDay(bs, bb, js, jb, journalCaller, now, acc, item, index, d, day, period);
+      d += 1;
+    };
+  };
+  func accrueDay(
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, postingDay : ProdT.Day, period : JT.PeriodId,
   ) {
     switch (accrualFor(bs, bb, js, item.product, item.currency, day)) {
       case (#err(e)) { acc.examined += 1; fail(acc, index, item.job, item.product, debug_show (e)) };
@@ -6814,7 +6944,7 @@ module {
           switch (Products.roleAccount(v.terms, #interestReceivable), Products.roleAccount(v.terms, #suspense)) {
             case (?receivable, ?suspense) {
               let input = Posting.simple("accrual-suspense", [item.product, item.currency, Nat.toText(day)],
-                Posting.leg(receivable, null, #debit, item.currency, total), Posting.leg(suspense, null, #credit, item.currency, total), day, day, period, "end-of-day accrual held in suspense");
+                Posting.leg(receivable, null, #debit, item.currency, total), Posting.leg(suspense, null, #credit, item.currency, total), postingDay, postingDay, period, "end-of-day accrual held in suspense");
               switch (batchPost(js, jb, journalCaller, now, acc, input)) {
                 case (?why) fail(acc, index, item.job, item.product, why);
                 case null { for ((account, amount) in r.suspended.vals()) record(acc, #collections(#interestSuspended({ account; amount; day }))) };
@@ -6827,7 +6957,7 @@ module {
         switch (accrualLegs(v.terms, item.currency, r.amount)) {
           case (#err(e)) fail(acc, index, item.job, item.product, debug_show (e));
           case (#ok((debit, credit))) {
-            let input = Posting.simple("accrual", [item.product, item.currency, Nat.toText(day)], debit, credit, day, day, period, "end-of-day accrual");
+            let input = Posting.simple("accrual", [item.product, item.currency, Nat.toText(day)], debit, credit, postingDay, postingDay, period, "end-of-day accrual");
             switch (batchPost(js, jb, journalCaller, now, acc, input)) {
               case (?why) fail(acc, index, item.job, item.product, why);
               case null {};
@@ -7129,16 +7259,28 @@ module {
   func jobInstructions(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
     acc : ChunkAcc, run : BatchCore.RunEntry, item : Batch.PlanItem, index : Nat,
-    day : ProdT.Day, period : JT.PeriodId, only : ?Text,
-  ) {
-    let all = BatchCore.instructionsOf(bs.batch, run.book);
-    let sorted = Array.sort<BatchCore.InstructionEntry>(all, func(x, y) { Text.compare(x.instruction.id, y.instruction.id) });
-    // half-open, as above
-    var i = item.from;
-    label work while (i < item.to and i >= 1 and i <= sorted.size()) {
-      let si = sorted[i - 1].instruction;
-      let mine = switch (only) { case null true; case (?e) Text.equal(e, si.id) };
-      if (not mine) { i += 1; continue work };
+    day : ProdT.Day, period : JT.PeriodId, only : ?Text, sub : ?Blob,
+  ) : ?Blob {
+    // a retry names one instruction; the walk takes the book's instructions a page of `shardSize` map entries at a
+    // time from the recorded cursor (the id to resume at), stopping before an instruction when the failure list is full
+    let rows = switch (only) {
+      case (?e) { switch (BatchCore.getInstruction(bs.batch, e)) { case (?x) { if (Text.equal(x.instruction.book, run.book) and not x.cancelled) [x] else [] }; case null [] } };
+      case null [];
+    };
+    var next : ?Text = null;
+    let work = switch (only) {
+      case (?_) rows;
+      case null {
+        let from : ?Text = switch (sub) { case (?c) Text.decodeUtf8(c); case null null };
+        let page = BatchCore.instructionsOfFrom(bs.batch, run.book, from, run.shardSize);
+        next := page.next;
+        page.rows
+      };
+    };
+    var i = 0;
+    label work while (i < work.size()) {
+      let si = work[i].instruction;
+      if (only == null and failuresFull(acc)) return ?Text.encodeUtf8(si.id);
       acc.examined += 1;
       if (not BT.dueOn(si, day)) { acc.zeroMovement += 1 }
       else {
@@ -7165,6 +7307,7 @@ module {
       };
       i += 1;
     };
+    switch (next) { case (?n) ?Text.encodeUtf8(n); case null null }
   };
 
   // ─── job 8: the statement cut ─────────────────────────────────────────────
@@ -7237,28 +7380,31 @@ module {
 
   /// Job 11 (origination and underwriting): every credit offer of the book still standing is examined; one whose validity ended
   /// before the date lapses, as a block. A retry names the one application.
-  func jobOfferExpiry(bs : State, acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, book : Text, only : ?Text) {
-    for (id in OriginationCore.offeredInBookIds(bs.origination, book).vals()) {
-      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(id)) };
-      if (mine) {
-        acc.examined += 1;
-        switch (OriginationCore.row(bs.origination, id)) {
-          case (?r) {
-            switch (r.offer) {
-              case (?o) { if (o.expiresAt < day) record(acc, #origination(#offerExpired({ application = id; day }))) else acc.zeroMovement += 1 };
-              case null acc.zeroMovement += 1;
-            };
+  func jobOfferExpiry(bs : State, acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, book : Text, only : ?Text, sub : ?Blob) : ?Blob {
+    // a retry names one application; the walk pages the offered stage a chunk at a time from the recorded cursor
+    var next : ?Blob = null;
+    let ids : [Nat] = switch (only) {
+      case (?e) { switch (Nat.fromText(e)) { case (?id) [id]; case null [] } };
+      case null { let page = OriginationCore.offeredInBookFrom(bs.origination, book, sub, Batch.ALERTS_PER_CHUNK); next := page.cursor; page.ids };
+    };
+    for (id in ids.vals()) {
+      acc.examined += 1;
+      switch (OriginationCore.row(bs.origination, id)) {
+        case (?r) {
+          switch (r.offer) {
+            case (?o) { if (o.expiresAt < day) record(acc, #origination(#offerExpired({ application = id; day }))) else acc.zeroMovement += 1 };
+            case null acc.zeroMovement += 1;
           };
-          case null fail(acc, index, item.job, Nat.toText(id), "the application's row is gone");
         };
+        case null fail(acc, index, item.job, Nat.toText(id), "the application's row is gone");
       };
     };
+    next
   };
 
   /// The business date of the book's latest end-of-day run before `day`, or the day before when there is none.
   func previousRunDay(bs : State, book : Text, day : Nat) : Nat {
-    var prev = 0;
-    for (run in BatchCore.listRuns(bs.batch).vals()) { if (Text.equal(run.book, book) and run.businessDate < day and run.businessDate > prev) prev := run.businessDate };
+    let prev = BatchCore.previousRunDay(bs.batch, book, day);
     if (prev == 0) day - 1 else prev
   };
 
@@ -7270,11 +7416,18 @@ module {
   /// reset day is re-priced to the fixing plus the spread when the rate moves. A retry names the one facility.
   func jobFacilities(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
-    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
-  ) {
-    for (fid in FacilityCore.openInBook(bs.facility, book).vals()) {
-      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(fid)) };
-      if (not mine) continue;
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text, sub : ?Blob,
+  ) : ?Blob {
+    // a retry names one row and reads it by id; the walk pages the book index a chunk at a time from the recorded
+    // cursor and stops before a row when the failure list is full, handing back that row's key
+    var next : ?Blob = null;
+    let ids : [Nat] = switch (only) {
+      case (?e) { switch (Nat.fromText(e)) { case (?id) [id]; case null [] } };
+      case null { let page = FacilityCore.openInBookFrom(bs.facility, book, sub, Batch.ROWS_PER_CHUNK); next := page.cursor; page.ids };
+    };
+    for (id in ids.vals()) {
+      if (only == null and failuresFull(acc)) return ?FacilityCore.bookCursor(book, id);
+      let fid = id;
       acc.examined += 1;
       let ?r = FacilityCore.row(bs.facility, fid) else { fail(acc, index, item.job, Nat.toText(fid), "the facility's row is gone"); continue };
       let ?terms = facilityTerms(bs, r) else { fail(acc, index, item.job, Nat.toText(fid), "the facility's product is gone"); continue };
@@ -7375,7 +7528,9 @@ module {
                           case (#ok(pr)) {
                             let rate : I.Rate = { numerator = pr.rateBps; denominator = 10_000; negative = false };
                             if (a.openingRate != ?rate) {
-                              switch (ProductCore.schedule(bs.product, productBlocks(bb), a), terms.schedule) {
+                              // the schedule terms of the drawing's last reschedule, else the product's: a reset inside a modification keeps the modification's structure
+                              let baseTerms : ?ProdT.ScheduleTerms = switch (ProductCore.scheduleTermsOf(bs.product, acct)) { case (?t) ?t; case null terms.schedule };
+                              switch (ProductCore.schedule(bs.product, productBlocks(bb), a), baseTerms) {
                                 case (?current, ?sch) {
                                   var remaining = 0;
                                   for (row in current.rows.vals()) { if (row.dueDate >= day) remaining += 1 };
@@ -7415,6 +7570,7 @@ module {
       };
       if (not moved) acc.zeroMovement += 1;
     };
+    next
   };
 
   /// The open period a day falls in, if any.
@@ -7761,11 +7917,6 @@ module {
     }
   };
   func cardBook(bs : State, id : CdT.CardId) : ?T.BookId { switch (CardCore.card(bs.cards, id)) { case (?r) ProductCore.bookOf(bs.product, r.account); case null null } };
-  func cardsOpenInBook(bs : State, book : Text) : Nat {
-    var n = 0;
-    for (st in [#issued, #active, #blocked].vals()) { for (r in CardCore.cardsInState(bs.cards, st).vals()) { if (ProductCore.bookOf(bs.product, r.account) == ?book) n += 1 } };
-    n
-  };
   /// The scheme's full record (rules and connector key) from its declaring block.
   public func cardSchemeOf(bb : Blocks, row : CardCore.SchemeRow) : ?CdT.Scheme {
     switch (bb.get(row.block)) { case (?b) { switch (b.event) { case (#card(#schemeDeclared(x))) ?x.scheme; case (_) null } }; case null null }
@@ -8110,12 +8261,23 @@ module {
   /// dispute steps due alerted, credit-card statement cycles cut on the product's day.
   func jobCards(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
-    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
-  ) {
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text, sub : ?Blob,
+  ) : ?Blob {
     ignore period;
-    if (CardCore.policy(bs.cards) == null) { fail(acc, index, item.job, book, "no card policy"); return };
+    // no policy means no card was ever issued (an issue needs one): nothing to walk, not a failure
+    if (CardCore.policy(bs.cards) == null) return null;
+    // the item is three walks — expired holds (the journal names them, 500 a chunk), the open disputes by cursor
+    // (phase 0x01), the book's active cards for the statement cycle by cursor (phase 0x02) — resumed where the
+    // previous chunk stopped
+    var phase : Nat8 = 0x00;
+    var cursor : ?Blob = null;
+    switch (sub) {
+      case (?c) { let bytes = Blob.toArray(c); if (bytes.size() > 0) { phase := bytes[0]; if (bytes.size() > 1) cursor := ?Blob.fromArray(Array.sliceToArray<Nat8>(bytes, 1, bytes.size())) } };
+      case null {};
+    };
+    func withPhase(ph : Nat8, c : Blob) : Blob { Blob.fromArray(Array.concat<Nat8>([ph], Blob.toArray(c))) };
     // expired holds: the journal names them; those that are a card's are voided and recorded
-    for (idx in JCore.expiredPendings(js, now, 500).vals()) {
+    for (idx in (if (phase == 0x00 and only == null) JCore.expiredPendings(js, now, 500) else []).vals()) {
       switch (CardCore.authOfHold(bs.cards, idx)) {
         case (?a) {
           if (a.holdOpen) {
@@ -8129,20 +8291,31 @@ module {
         case null {};
       };
     };
-    if (only == null) {
-      for (ev in CardCore.dueDisputes(bs.cards, day).vals()) {
-        record(acc, #card(ev));
-        switch (ev) {
-          case (#disputeStepDue(d)) { switch (alertFor(bs, { rule = "card.dispute.step.due"; version = 1; account = d.dispute; day; postings = []; detail = "dispute " # Nat.toText(d.dispute) # " at " # CdT.stageText(d.stage) # " due day " # Nat.toText(d.dueDay) }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
-          case (_) {};
+    if (only == null and phase <= 0x01) {
+      let page = CardCore.openDisputesFrom(bs.cards, (if (phase == 0x01) cursor else null), Batch.ALERTS_PER_CHUNK);
+      for (d0 in page.rows.vals()) {
+        switch (CardCore.dueDispute(d0, day)) {
+          case (?ev) {
+            record(acc, #card(ev));
+            switch (ev) {
+              case (#disputeStepDue(d)) { switch (alertFor(bs, { rule = "card.dispute.step.due"; version = 1; account = d.dispute; day; postings = []; detail = "dispute " # Nat.toText(d.dispute) # " at " # CdT.stageText(d.stage) # " due day " # Nat.toText(d.dueDay) }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
+              case (_) {};
+            };
+          };
+          case null {};
         };
       };
+      switch (page.cursor) { case (?c) return ?withPhase(0x01, c); case null { phase := 0x02; cursor := null } };
     };
-    // statement cycles: every active credit card whose product's statement day is today, in this book
-    for (r in CardCore.cardsInState(bs.cards, #active).vals()) {
-      if (ProductCore.bookOf(bs.product, r.account) != ?book) continue;
-      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r.id)) };
-      if (not mine) continue;
+    // statement cycles: every active credit card of the book whose product's statement day is today, a page at a time;
+    // a retry names one card and reads it by id
+    var next : ?Blob = null;
+    let rows : [CardCore.CardRow] = switch (only) {
+      case (?e) { switch (Nat.fromText(e)) { case (?id) { switch (CardCore.card(bs.cards, id)) { case (?r) { if (r.state == #active and ProductCore.bookOf(bs.product, r.account) == ?book) [r] else [] }; case null [] } }; case null [] } };
+      case null { let page = CardCore.activeInBookFrom(bs.cards, book, cursor, Batch.ROWS_PER_CHUNK); next := page.cursor; page.rows };
+    };
+    for (r in rows.vals()) {
+      if (only == null and failuresFull(acc)) return ?withPhase(0x02, CardCore.bookCursor(book, r.id));
       switch (CardCore.product(bs.cards, r.product)) {
         case (?p) {
           if (p.credit and dayOfMonth(day) == p.statementDay and CardCore.statement(bs.cards, r.id, day) == null) {
@@ -8162,6 +8335,7 @@ module {
         case null {};
       };
     };
+    switch (next) { case (?c) ?withPhase(0x02, c); case null null }
   };
   func dayOfMonth(day : Nat) : Nat { let (_, _, d) = civilOf(day); d };
   func civilOf(day : Nat) : (Nat, Nat, Nat) {
@@ -8181,6 +8355,164 @@ module {
     let interestAcc = switch (Array.find<ProdT.RoleMapping>(terms.roles, func(x) { x.role == #interestReceivable })) { case (?x) x.account; case null "" };
     let interest = if (interestAcc == "") 0 else { let ib = Posting.accountBalanceOn(js, interestAcc, a.subledger, a.currency, #debit, day); let ib0 = Posting.accountBalanceOn(js, interestAcc, a.subledger, a.currency, #debit, if (day > 30) day - 30 else 0); if (ib.net >= ib0.net and not ib.overdrawn and not ib0.overdrawn) ib.net - ib0.net else 0 };
     (purchases, 0, interest)
+  };
+
+  // ─── Redenomination (S4.1): the declaring act and end-of-day job 17 ─────────────────────────────────
+
+  /// `newMinor = oldMinor × num / den`, rounded half-even once.
+  func redenominate(amount : Nat, num : Nat, den : Nat) : Nat {
+    let n = amount * num;
+    let q = n / den;
+    let r = n % den;
+    if (2 * r > den) q + 1 else if (2 * r == den) (if (q % 2 == 1) q + 1 else q) else q
+  };
+  func redenominationRefused<X>(reason : Text) : Result.Result<X, T.BankError> { #err(#CloseError({ error = #RedenominationRefused({ reason }) })) };
+
+  /// The declaring act: refused for the functional currency, while anything but product accounts and general-ledger
+  /// balances holds the currency (open deals, facilities, instruments, contracts, disputes, journal pendings), and on
+  /// any day but the business date it names. It re-versions every product of the currency into the successor by the
+  /// same act (the accrual evidence carried), so the day's end-of-day plan runs the accrual, charges and statements in
+  /// the successor on the balances job 17 re-expresses first.
+  func redenominationPlan(bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, x : CT.Redenomination) : Result.Result<Plan, T.BankError> {
+    let ?functional = CloseCore.functional(bs.close) else return #err(#CloseError({ error = #NoFunctionalCurrency }));
+    if (Text.equal(x.from, functional)) return redenominationRefused("the functional currency is not redenominated by this act: every equivalent, rate and reserve is expressed in it");
+    if (Text.equal(x.from, x.to)) return redenominationRefused("a redenomination names two currencies");
+    if (JCore.currencyMinorUnits(js, x.from) == null) return redenominationRefused("currency " # x.from # " is not registered in the journal");
+    switch (JCore.currencyMinorUnits(js, x.to)) {
+      case null return redenominationRefused("register the successor currency " # x.to # " in the journal first");
+      case (?mu) { if (mu != x.minorUnits) return redenominationRefused("the successor's minor units are " # Nat.toText(Nat8.toNat(mu)) # ", not " # Nat.toText(Nat8.toNat(x.minorUnits))) };
+    };
+    if (x.ratioNumerator == 0 or x.ratioDenominator == 0) return redenominationRefused("the ratio is two positive integers");
+    switch (requirePostableAccount(js, x.bridgeAccount)) { case (?e) return #err(e); case null {} };
+    switch (requirePostableAccount(js, x.roundingAccount)) { case (?e) return #err(e); case null {} };
+    if (Text.equal(x.bridgeAccount, x.roundingAccount)) return redenominationRefused("the bridge and the rounding account are two accounts");
+    let ?today = JCore.businessDate(js) else return redenominationRefused("no business date is set");
+    if (x.day != today) return redenominationRefused("a redenomination is declared on the business date it runs: " # Nat.toText(today));
+    if (CloseCore.pendingRedenomination(bs.close, x.from) != null) return redenominationRefused("a redenomination of " # x.from # " is already declared");
+    if (CloseCore.closedTo(bs.close, x.from) != null) return redenominationRefused(x.from # " was already redenominated");
+    if (CloseCore.closedTo(bs.close, x.to) != null) return redenominationRefused(x.to # " was itself redenominated");
+    for (b in listBooks(bs).vals()) { switch (BatchCore.openRunCovering(bs.batch, b.id, today)) { case (?_) return redenominationRefused("an end-of-day run for the date is open in book " # b.id); case null {} } };
+    // what else holds the currency: named, so the bank settles or migrates it first — each figure a counter the
+    // domain's fold keeps per currency, read in constant time whatever the books hold (S4.1, the treasury review)
+    let deals = TreasuryCore.openInCurrency(bs.treasury, x.from);
+    if (deals > 0) return redenominationRefused(Nat.toText(deals) # " open treasury deals are in " # x.from);
+    let facilities = FacilityCore.openInCurrency(bs.facility, x.from);
+    if (facilities > 0) return redenominationRefused(Nat.toText(facilities) # " open facilities are in " # x.from);
+    let instruments = TradeCore.openInCurrency(bs.trade, x.from);
+    if (instruments > 0) return redenominationRefused(Nat.toText(instruments) # " open trade instruments are in " # x.from);
+    let contracts = IslamicCore.openInCurrency(bs.islamic, x.from);
+    if (contracts > 0) return redenominationRefused(Nat.toText(contracts) # " open Sharia contracts are in " # x.from);
+    let disputes = CardCore.openInCurrency(bs.cards, x.from);
+    if (disputes > 0) return redenominationRefused(Nat.toText(disputes) # " open card disputes are in " # x.from);
+    let pendings = JCore.pendingLegsInCurrency(js, x.from);
+    if (pendings > 0) return redenominationRefused(Nat.toText(pendings) # " pending posting legs (holds, cheques, reservations) are in " # x.from);
+    // the products of the currency, re-versioned into the successor by this act
+    let extras = List.empty<T.Event>();
+    let products = List.empty<Text>();
+    let versions = Array.sort<ProductCore.VersionEntry>(ProductCore.listVersions(bs.product), func(a, b) { switch (Text.compare(a.id, b.id)) { case (#equal) Nat.compare(a.version, b.version); case (o) o } });
+    for (v in versions.vals()) {
+      switch (ProductCore.currentVersion(bs.product, v.id)) {
+        case (?cur) {
+          if (cur.version == v.version and Text.equal(cur.terms.currency, x.from) and Array.find<Text>(List.toArray(products), func(id) { Text.equal(id, v.id) }) == null) {
+            List.add(products, v.id);
+            let terms : ProdT.ProductTerms = { cur.terms with currency = x.to };
+            List.add(extras, #product(#productRedenominated({ id = v.id; version = cur.version + 1; supersedes = cur.version; from = x.from; to = x.to; terms })));
+          };
+        };
+        case null {};
+      };
+    };
+    #ok({ bankEvent = ?#close(#redenominationDeclared({ redenomination = x; products = List.toArray(products) })); extra = List.toArray(extras); journal = [] })
+  };
+
+  /// Job 17, first in the day's plan: every balance of the currency re-expressed in the successor through the bridge,
+  /// the products' accounts re-bound to the redenominated version, the general-ledger balances of the currency, the
+  /// rounding difference posted so the bridge's two sides are each other at the ratio, the currency closed.
+  func jobRedenomination(
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, run : BatchCore.RunEntry, only : ?Text, sub : ?Blob,
+  ) : ?Blob {
+    let ?pending = CloseCore.pendingRedenomination(bs.close, item.currency) else {
+      // declared for the day and already carried out: nothing to do twice (the plan keeps the item; the work was recorded)
+      if (CloseCore.closedTo(bs.close, item.currency) != null) { acc.examined += 1; acc.zeroMovement += 1; return null };
+      acc.examined += 1; fail(acc, index, item.job, item.currency, "no redenomination of " # item.currency # " is declared"); return null;
+    };
+    let rd = pending.redenomination;
+    func convertRow(code : Text, sub : ?Blob, productAccount : ?Nat, tag : Text) : ?Text {
+      let b = JCore.balance(js, code, sub, rd.from);
+      if (b.debitsPending != 0 or b.creditsPending != 0) return ?("pending postings in " # rd.from # " are open on " # code);
+      if (b.creditsPosted == b.debitsPosted) return null;
+      let creditBalance = b.creditsPosted > b.debitsPosted;
+      let old = if (creditBalance) b.creditsPosted - b.debitsPosted else b.debitsPosted - b.creditsPosted;
+      let new = redenominate(old, rd.ratioNumerator, rd.ratioDenominator);
+      let legs = if (creditBalance) [
+        Posting.leg(code, sub, #debit, rd.from, old), Posting.leg(rd.bridgeAccount, null, #credit, rd.from, old),
+        Posting.leg(rd.bridgeAccount, null, #debit, rd.to, new), Posting.leg(code, sub, #credit, rd.to, new),
+      ] else [
+        Posting.leg(code, sub, #credit, rd.from, old), Posting.leg(rd.bridgeAccount, null, #debit, rd.from, old),
+        Posting.leg(rd.bridgeAccount, null, #credit, rd.to, new), Posting.leg(code, sub, #debit, rd.to, new),
+      ];
+      let input : JT.PostingInput = {
+        idempotencyKey = Posting.key("redenominate", [rd.from, rd.to, code, tag, Nat.toText(day)]); postingDate = day; valueDate = day; period; legs;
+        sourceRef = { kind = "redenomination"; id = rd.from # "/" # rd.to # "/" # code # "/" # tag }; narration = "redenomination " # rd.from # " to " # rd.to; correctionOf = null;
+      };
+      switch (batchPost(js, jb, journalCaller, now, acc, input)) {
+        case (?why) ?why;
+        case null { record(acc, #close(#balanceRedenominated({ from = rd.from; to = rd.to; account = code; subledger = sub; productAccount; oldAmount = old; newAmount = new; creditBalance; day }))); null };
+      }
+    };
+    if (Batch.walksAccounts(item)) {
+      // a walk of one product's accounts: every role balance of each account in the old currency re-expressed
+      return walkAccounts(bs, bb, run, item, only, sub, acc, func(a) {
+        acc.examined += 1;
+        if (not Text.equal(a.currency, rd.from)) { acc.zeroMovement += 1; return };
+        let ?terms = ProductCore.termsOf(bs.product, a) else { fail(acc, index, item.job, Nat.toText(a.id), "the account's product version is gone"); return };
+        let codes = List.empty<Text>();
+        List.add(codes, terms.control);
+        for (rm in terms.roles.vals()) { if (Array.find<Text>(List.toArray(codes), func(c) { Text.equal(c, rm.account) }) == null) List.add(codes, rm.account) };
+        var moved = 0;
+        for (code in List.values(codes)) {
+          switch (convertRow(code, ?a.subledger, ?a.id, Nat.toText(a.id))) { case (?why) { fail(acc, index, item.job, Nat.toText(a.id), why); return }; case null moved += 1 };
+        };
+        let ?cur = ProductCore.currentVersion(bs.product, a.product) else { fail(acc, index, item.job, Nat.toText(a.id), "the product is no longer registered"); return };
+        record(acc, #product(#accountRedenominated({ account = a.id; version = cur.version; from = rd.from; to = rd.to })));
+      });
+    };
+    // the completion item: the general-ledger balances of the currency (the bridge excepted), then the rounding
+    acc.examined += 1;
+    var rows = 0;
+    for (ac in JCore.listAccounts(js).vals()) {
+      if (not Text.equal(ac.code, rd.bridgeAccount)) {
+        let b = JCore.balance(js, ac.code, null, rd.from);
+        if (b.creditsPosted != b.debitsPosted or b.debitsPending != 0 or b.creditsPending != 0) {
+          switch (convertRow(ac.code, null, null, "gl")) { case (?why) { fail(acc, index, item.job, ac.code, why); return null }; case null rows += 1 };
+        };
+      };
+    };
+    // the bridge holds, in the old currency, everything converted; in the new, its counterpart — made exact here
+    let bf = JCore.balance(js, rd.bridgeAccount, null, rd.from);
+    let bt = JCore.balance(js, rd.bridgeAccount, null, rd.to);
+    let fromCredit = bf.creditsPosted >= bf.debitsPosted;
+    let oldTotal = if (fromCredit) bf.creditsPosted - bf.debitsPosted else bf.debitsPosted - bf.creditsPosted;
+    let newTotal = if (fromCredit) (if (bt.debitsPosted >= bt.creditsPosted) bt.debitsPosted - bt.creditsPosted else 0) else (if (bt.creditsPosted >= bt.debitsPosted) bt.creditsPosted - bt.debitsPosted else 0);
+    let expected = redenominate(oldTotal, rd.ratioNumerator, rd.ratioDenominator);
+    var roundingAmount = 0; var roundingDebit = false;
+    if (expected != newTotal) {
+      // the bridge's new-currency side is a debit when the old side is a credit (liabilities converted), a credit otherwise
+      let short = expected > newTotal;
+      let amt = if (short) expected - newTotal else newTotal - expected;
+      let bridgeDebit = (fromCredit and short) or (not fromCredit and not short);
+      let legs = if (bridgeDebit) [Posting.leg(rd.bridgeAccount, null, #debit, rd.to, amt), Posting.leg(rd.roundingAccount, null, #credit, rd.to, amt)]
+                 else [Posting.leg(rd.roundingAccount, null, #debit, rd.to, amt), Posting.leg(rd.bridgeAccount, null, #credit, rd.to, amt)];
+      let input : JT.PostingInput = {
+        idempotencyKey = Posting.key("redenominate", [rd.from, rd.to, "rounding", Nat.toText(day)]); postingDate = day; valueDate = day; period; legs;
+        sourceRef = { kind = "redenomination"; id = rd.from # "/" # rd.to # "/rounding" }; narration = "redenomination rounding " # rd.from # " to " # rd.to; correctionOf = null;
+      };
+      switch (batchPost(js, jb, journalCaller, now, acc, input)) { case (?why) { fail(acc, index, item.job, rd.roundingAccount, why); return null }; case null {} };
+      roundingAmount := amt; roundingDebit := not bridgeDebit;
+    };
+    record(acc, #close(#redenominationCompleted({ from = rd.from; to = rd.to; rows; oldTotal; newTotal = expected; roundingAmount; roundingDebit; day })));
+    null
   };
 
   // ─── Treasury (treasury): the planners, the valuation context and the end-of-day job ─────────────────
@@ -8355,15 +8687,30 @@ module {
   };
 
   /// End-of-day job 15: for every open deal of the book, in this order — the coupon falling due, the day's accrual,
-  /// the mark against the day's curves and spot, then every leg due on or before the day; then the breaks that aged
-  /// past the policy's threshold and the confirmations overdue, each an alert. A missing rate or curve fails the
-  /// deal's item and nothing else, so the period cannot close with a deal unvalued and nobody seeing it.
+  /// the mark against the day's curves and spot, then every leg due on or before the day — and, for each deal walked,
+  /// the confirmation overdue; then the breaks that aged past the policy's threshold, each an alert. A missing rate
+  /// or curve fails the deal's item and nothing else, so the period cannot close with a deal unvalued and nobody
+  /// seeing it.
+  ///
+  /// The item is a walk of its own (S4.1, the treasury review): the deals come off the book index a page of
+  /// `Batch.TREASURY_DEALS_PER_CHUNK` at a time and the open breaks off the status index a page of
+  /// `Batch.TREASURY_BREAKS_PER_CHUNK`, and a chunk that ends inside either walk hands back the place it stopped —
+  /// one phase byte (0x00 deals, 0x01 breaks) and the index cursor — which the run records and the next advance
+  /// resumes from. A retry names one deal and works it alone, reading the row by id, never the walk.
   func jobTreasury(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
-    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
-  ) {
-    if (TreasuryCore.policy(bs.treasury) == null) { fail(acc, index, item.job, book, "no treasury policy"); return };
-    let ctx = switch (treasuryCtx(bs)) { case (#err(e)) { fail(acc, index, item.job, book, debug_show e); return }; case (#ok(c)) c };
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text, sub : ?Blob,
+  ) : ?Blob {
+    // no policy means no deal was ever captured (a capture needs one): nothing to walk, not a failure
+    if (TreasuryCore.policy(bs.treasury) == null) return null;
+    let ctx = switch (treasuryCtx(bs)) {
+      case (#err(e)) {
+        // a book with nothing open has nothing to value; one with deals or breaks open fails, named
+        if (TreasuryCore.openCountOf(bs.treasury, book) > 0 or TreasuryCore.openBreakCount(bs.treasury) > 0) fail(acc, index, item.job, book, debug_show e);
+        return null;
+      };
+      case (#ok(c)) c;
+    };
     func post(kind : Text, id : Nat, part : Text, act : TreasuryCore.Act, narration : Text) : Bool {
       if (act.legs.size() > 0) {
         if (not Posting.balances(act.legs)) { fail(acc, index, item.job, Nat.toText(id), kind # ": the legs do not balance"); return false };
@@ -8374,11 +8721,9 @@ module {
       for (e in act.extras.vals()) record(acc, #treasury(e));
       true
     };
-    for (r0 in TreasuryCore.openInBook(bs.treasury, book).vals()) {
-      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r0.id)) };
-      if (not mine) continue;
+    func workDeal(r0 : TreasuryCore.DealRow) {
       acc.examined += 1;
-      let ?kind = treasuryKindOf(bb, r0) else { fail(acc, index, item.job, Nat.toText(r0.id), "the deal's terms are not in the log"); continue };
+      let ?kind = treasuryKindOf(bb, r0) else { fail(acc, index, item.job, Nat.toText(r0.id), "the deal's terms are not in the log"); return };
       func current() : ?TreasuryCore.DealRow { TreasuryCore.row(bs.treasury, r0.id) };
       // the coupon falling due today
       switch (current()) {
@@ -8414,23 +8759,72 @@ module {
         };
         leg += 1;
       };
+      // the confirmation overdue, asked of the deal as it is after the day's work
+      switch (TreasuryCore.row(bs.treasury, r0.id)) {
+        case (?r) {
+          switch (TreasuryCore.overdueConfirmation(bs.treasury, r, day)) {
+            case (?ev) {
+              record(acc, #treasury(ev));
+              switch (ev) {
+                case (#confirmationOverdue(c)) { switch (alertFor(bs, { rule = "treasury.confirmation.overdue"; version = 1; account = c.deal; day; postings = []; detail = "deal " # Nat.toText(c.deal) # " unconfirmed for " # Nat.toText(c.ageDays) # " days" }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
+                case (_) {};
+              };
+            };
+            case null {};
+          };
+        };
+        case null {};
+      };
     };
-    if (only == null) {
-      for (ev in TreasuryCore.agedBreaks(bs.treasury, day).vals()) {
-        record(acc, #treasury(ev));
-        switch (ev) {
-          case (#breakAged(b)) { switch (alertFor(bs, { rule = "nostro.break.aged"; version = 1; account = b.breakId; day; postings = []; detail = "nostro break " # Nat.toText(b.breakId) # " open for " # Nat.toText(b.ageDays) # " days" }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
-          case (_) {};
+    switch (only) {
+      case (?e) {
+        // a retry: the one deal named, by id — no walk
+        let ?id = Nat.fromText(e) else { fail(acc, index, item.job, e, "the retry names no deal"); return null };
+        switch (TreasuryCore.row(bs.treasury, id)) { case (?r) { if (TreasuryCore.isOpen(r)) workDeal(r) }; case null {} };
+        return null;
+      };
+      case null {};
+    };
+    // the walk: phase byte then the index cursor
+    var phase : Nat8 = 0x00;
+    var cursor : ?Blob = null;
+    switch (sub) {
+      case (?c) {
+        let bytes = Blob.toArray(c);
+        if (bytes.size() == 0) { fail(acc, index, item.job, book, "the item cursor is empty"); return null };
+        phase := bytes[0];
+        if (bytes.size() > 1) cursor := ?Blob.fromArray(Array.sliceToArray<Nat8>(bytes, 1, bytes.size()));
+      };
+      case null {};
+    };
+    func withPhase(ph : Nat8, c : Blob) : Blob { Blob.fromArray(Array.concat<Nat8>([ph], Blob.toArray(c))) };
+    if (phase == 0x00) {
+      let page = TreasuryCore.openInBookFrom(bs.treasury, book, cursor, Batch.TREASURY_DEALS_PER_CHUNK);
+      for (r0 in page.rows.vals()) workDeal(r0);
+      switch (page.cursor) {
+        case (?c) return ?withPhase(0x00, c);
+        case null { phase := 0x01; cursor := null };
+      };
+    };
+    if (phase == 0x01) {
+      let page = TreasuryCore.openBreaksFrom(bs.treasury, cursor, Batch.TREASURY_BREAKS_PER_CHUNK);
+      for (b in page.rows.vals()) {
+        switch (TreasuryCore.agedBreak(bs.treasury, b, day)) {
+          case (?ev) {
+            record(acc, #treasury(ev));
+            switch (ev) {
+              case (#breakAged(x)) { switch (alertFor(bs, { rule = "nostro.break.aged"; version = 1; account = x.breakId; day; postings = []; detail = "nostro break " # Nat.toText(x.breakId) # " open for " # Nat.toText(x.ageDays) # " days" }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
+              case (_) {};
+            };
+          };
+          case null {};
         };
       };
-      for (ev in TreasuryCore.overdueConfirmations(bs.treasury, day).vals()) {
-        record(acc, #treasury(ev));
-        switch (ev) {
-          case (#confirmationOverdue(c)) { switch (alertFor(bs, { rule = "treasury.confirmation.overdue"; version = 1; account = c.deal; day; postings = []; detail = "deal " # Nat.toText(c.deal) # " unconfirmed for " # Nat.toText(c.ageDays) # " days" }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
-          case (_) {};
-        };
-      };
+      switch (page.cursor) { case (?c) return ?withPhase(0x01, c); case null {} };
+      return null;
     };
+    fail(acc, index, item.job, book, "the item cursor names no phase");
+    null
   };
 
   // ─── Islamic banking (Islamic banking): the planners and their postings ─────────────────
@@ -8838,18 +9232,26 @@ module {
   /// and a block only when the figure is not zero.
   func jobSharia(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
-    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
-  ) {
-    let ?pol = IslamicCore.policy(bs.islamic) else { fail(acc, index, item.job, book, "no sharia policy"); return };
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text, sub : ?Blob,
+  ) : ?Blob {
+    // no policy means no contract was ever opened (a capture needs one): nothing to walk, not a failure
+    let ?pol = IslamicCore.policy(bs.islamic) else return null;
     func post(kind : Text, id : Nat, part : Text, legs : [JT.Leg], narration : Text) : Bool {
       if (legs.size() == 0) return true;
       if (not Posting.balances(legs)) { fail(acc, index, item.job, Nat.toText(id), kind # ": the legs do not balance"); return false };
       let input : JT.PostingInput = { idempotencyKey = Posting.key(kind, [Nat.toText(id), part, Nat.toText(day)]); postingDate = day; valueDate = day; period; legs; sourceRef = { kind; id = Nat.toText(id) # "/" # part # "/" # Nat.toText(day) }; narration; correctionOf = null };
       switch (batchPost(js, jb, journalCaller, now, acc, input)) { case (?why) { fail(acc, index, item.job, Nat.toText(id), why); false }; case null true }
     };
-    for (r in IslamicCore.openInBook(bs.islamic, book).vals()) {
-      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r.id)) };
-      if (not mine) continue;
+    // a retry names one row and reads it by id; the walk pages the book index a chunk at a time from the recorded
+    // cursor and stops before a row when the failure list is full, handing back that row's key
+    var next : ?Blob = null;
+    let ids : [Nat] = switch (only) {
+      case (?e) { switch (Nat.fromText(e)) { case (?id) [id]; case null [] } };
+      case null { let page = IslamicCore.openInBookFrom(bs.islamic, book, sub, Batch.ROWS_PER_CHUNK); next := page.cursor; page.ids };
+    };
+    for (id in ids.vals()) {
+      if (only == null and failuresFull(acc)) return ?IslamicCore.bookCursor(book, id);
+      let ?r = IslamicCore.row(bs.islamic, id) else continue;
       acc.examined += 1;
       let sub = IslamicCore.contractSub(r.id);
       switch (r.kind, r.stage) {
@@ -8918,6 +9320,7 @@ module {
         case (_, _) {};
       };
     };
+    next
   };
 
   // ─── trade finance (trade finance): the planners' helpers ────────────────────────────
@@ -9043,7 +9446,7 @@ module {
   func tradeValueDate(bs : State, bb : Blocks, js : JCore.State, book : Text, account : ProdT.AccountId, period : Text, requested : Nat) : Result.Result<Nat, T.BankError> {
     if (account == 0) return #ok(requested);
     switch (ProductCore.get(bs.product, productBlocks(bb), account)) {
-      case (?a) { switch (ProductCore.termsOf(bs.product, a)) { case (?terms) valueDateGate(bs, js, book, period, terms.valueDateConvention, requested); case null #ok(requested) } };
+      case (?a) { switch (ProductCore.termsOf(bs.product, a)) { case (?terms) valueDateGate(bs, js, book, period, terms.valueDateConvention, terms.currency, requested); case null #ok(requested) } };
       case null #ok(requested);
     }
   };
@@ -9157,9 +9560,10 @@ module {
   /// figure is not zero.
   func jobTrade(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
-    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
-  ) {
-    let ?pol = TradeCore.policy(bs.trade) else { fail(acc, index, item.job, book, "no trade policy"); return };
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text, sub : ?Blob,
+  ) : ?Blob {
+    // no policy means no instrument was ever issued (an issue needs one): nothing to walk, not a failure
+    let ?pol = TradeCore.policy(bs.trade) else return null;
     let calendar = JCore.calendar(js);
     func post(kind : Text, id : Nat, legs : [JT.Leg], narration : Text) : Bool {
       if (legs.size() == 0) return true;
@@ -9174,9 +9578,16 @@ module {
       for ((id, e) in List.values(earnedNow)) { if (id == r.id) return { r with commissionEarned = e } };
       r
     };
-    for (r in TradeCore.openInBook(bs.trade, book).vals()) {
-      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r.id)) };
-      if (not mine) continue;
+    // a retry names one row and reads it by id; the walk pages the book index a chunk at a time from the recorded
+    // cursor and stops before a row when the failure list is full, handing back that row's key
+    var next : ?Blob = null;
+    let ids : [Nat] = switch (only) {
+      case (?e) { switch (Nat.fromText(e)) { case (?id) [id]; case null [] } };
+      case null { let page = TradeCore.openInBookFrom(bs.trade, book, sub, Batch.ROWS_PER_CHUNK); next := page.cursor; page.ids };
+    };
+    for (id in ids.vals()) {
+      if (only == null and failuresFull(acc)) return ?TradeCore.bookCursor(book, id);
+      let ?r = TradeCore.row(bs.trade, id) else continue;
       acc.examined += 1;
       // 1. commission (undertakings) or discount (bills) earned to the day
       if (r.commissionTotal > 0 and (r.kind == 1 or r.kind == 2 or r.kind == 4)) {
@@ -9267,6 +9678,7 @@ module {
         case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e);
       };
     };
+    next
   };
 
   // ─── branch and teller (branch and teller): the planners' helpers ───────────────────────
@@ -9324,7 +9736,7 @@ module {
           case (#inBranch(p)) { switch (cashSourceLeg(bs, bb, js, #till(p.till), a.currency, #credit, x.amount, x.postingDate)) { case (#err(e)) return #err(e); case (#ok(l)) l } };
           case (#clearing(_)) Posting.leg(pol.clearing, null, #credit, a.currency, x.amount);
         };
-        let valueDate = switch (valueDateGate(bs, js, a.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+        let valueDate = switch (valueDateGate(bs, js, a.book, x.period, terms.valueDateConvention, terms.currency, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
         let input = Posting.simple("cheque", [authId, Nat.toText(x.account), Nat.toText(x.serial)], Posting.leg(terms.control, ?a.subledger, #debit, a.currency, x.amount), sink, x.postingDate, valueDate, x.period, x.narration);
         let expiresAt = now + Nat64.fromNat(pol.clearingWindowDays) * 86_400_000_000_000;
         switch (JCore.prepareReserve(js, journalCaller, now, input, ?expiresAt)) {
@@ -9432,7 +9844,7 @@ module {
     let accountId = bs.height;
     let opened = switch (planOpenAccount(bs, js, journalCaller, r.product, r.party, pe.book, r.currency, null, [], ?rate, authorityIndex, [])) { case (#err(e)) return #err(e); case (#ok(o)) o };
     let ?sch = terms.schedule else return #err(#ProductError({ error = #ScheduleRequired({ product = r.product }) }));
-    let valueDate = switch (valueDateGate(bs, js, r.book, m.period, terms.valueDateConvention, m.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let valueDate = switch (valueDateGate(bs, js, r.book, m.period, terms.valueDateConvention, terms.currency, m.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
     // a finance lease's schedule carries the residual as the balloon the lessee does not pay
     let schTerms : ProdT.ScheduleTerms = switch (r.kind) { case (#financeLease(l)) ({ sch with amortisation = #balloon({ finalPrincipal = l.residual }) }); case (_) sch };
     let generated = Products.schedule(m.amount, rate, schTerms, terms.rounding, valueDate);
@@ -9471,7 +9883,7 @@ module {
     switch (r.kind) { case (#syndicatedAgent(_)) {}; case (k) return #err(#FacilityError({ error = #WrongKind({ facility = x.facility; kind = FaT.kindText(k); wanted = "syndicatedAgent" }) })) };
     let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
     let payable = switch (roleOf(terms, r.product, #participantPayable)) { case (#err(e)) return #err(e); case (#ok(c)) c };
-    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, terms.currency, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
     let legs = List.empty<JT.Leg>();
     let amounts = List.empty<(PT.PartyId, Nat)>();
     var total = 0;
@@ -9527,7 +9939,7 @@ module {
     let expense = switch (roleOf(terms, r.product, #impairmentExpense)) { case (#err(e)) return #err(e); case (#ok(c)) c };
     let allowance = switch (roleOf(terms, r.product, #allowance)) { case (#err(e)) return #err(e); case (#ok(c)) c };
     let loss = lease.residual - x.residual;
-    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, terms.currency, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
     let posting = switch (postLegs(js, journalCaller, now, "residual", [authId, Nat.toText(x.facility), Nat.toText(valueDate)], [Posting.leg(expense, null, #debit, r.currency, loss), Posting.leg(allowance, ?a.subledger, #credit, r.currency, loss)], x.postingDate, valueDate, x.period, x.narration)) { case (#err(e)) return #err(e); case (#ok(p)) p };
     // the balloon re-derived: the remaining instalments at the lease's rate, the new residual at the end
     let ?current = ProductCore.schedule(bs.product, productBlocks(bb), a) else return #err(#ProductError({ error = #ScheduleRequired({ product = r.product }) }));
@@ -9554,7 +9966,7 @@ module {
     let unearned = switch (roleOf(terms, r.product, #unearnedDiscount)) { case (#err(e)) return #err(e); case (#ok(c)) c };
     var face = 0; var advance = 0; var discount = 0; var retention = 0;
     for (it in x.receivables.vals()) { let fig = FacilityCore.purchaseFigures(r.kind, it); face += it.face; advance += fig.advance; discount += fig.discount; retention += fig.retention };
-    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, terms.currency, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
     let legs = List.empty<JT.Leg>();
     List.add(legs, Posting.leg(purchased, ?facilitySub(x.facility), #debit, r.currency, face));
     if (advance > 0) List.add(legs, Posting.leg(clientTerms.control, ?client.subledger, #credit, r.currency, advance));
@@ -9584,7 +9996,7 @@ module {
     let purchased = switch (roleOf(terms, r.product, #purchasedReceivables)) { case (#err(e)) return #err(e); case (#ok(c)) c };
     let unearned = switch (roleOf(terms, r.product, #unearnedDiscount)) { case (#err(e)) return #err(e); case (#ok(c)) c };
     let income = switch (roleOf(terms, r.product, #discountIncome)) { case (#err(e)) return #err(e); case (#ok(c)) c };
-    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, terms.currency, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
     let legs = List.empty<JT.Leg>();
     switch (fundingLeg(bs, bb, js, terms, x.funding, r.currency, #debit, rec.face)) { case (#err(e)) return #err(e); case (#ok(l)) List.add(legs, l) };
     List.add(legs, Posting.leg(purchased, ?facilitySub(x.facility), #credit, r.currency, rec.face));
@@ -9607,7 +10019,7 @@ module {
   func planDishonour(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { facility : FaT.FacilityId; ref : Blob; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
     let (r, rec) = switch (openReceivable(bs, x.facility, x.ref, [#open])) { case (#err(e)) return #err(e); case (#ok(p)) p };
     let recourse = switch (r.kind) { case (#factoring(f)) f.recourse; case (_) false };
-    let valueDate = switch (facilityTerms(bs, r)) { case (?terms) { switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d } }; case null return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) })) };
+    let valueDate = switch (facilityTerms(bs, r)) { case (?terms) { switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, terms.currency, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d } }; case null return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) })) };
     if (not recourse) return #ok({ bankEvent = ?#facility(#receivableDishonoured({ facility = x.facility; ref = x.ref; face = rec.face; chargedBack = false; day = valueDate })); extra = []; journal = [] });
     let ?terms = facilityTerms(bs, r) else return #err(#ProductError({ error = #UnknownProduct({ product = r.product }) }));
     let clientId = switch (r.kind) { case (#factoring(f)) f.clientAccount; case (_) 0 };
@@ -9636,7 +10048,7 @@ module {
     let purchased = switch (roleOf(terms, r.product, #purchasedReceivables)) { case (#err(e)) return #err(e); case (#ok(c)) c };
     let unearned = switch (roleOf(terms, r.product, #unearnedDiscount)) { case (#err(e)) return #err(e); case (#ok(c)) c };
     let writeOff = switch (roleOf(terms, r.product, #writeOff)) { case (#err(e)) return #err(e); case (#ok(c)) c };
-    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
+    let valueDate = switch (valueDateGate(bs, js, r.book, x.period, terms.valueDateConvention, terms.currency, x.valueDate)) { case (#err(e)) return #err(e); case (#ok(d)) d };
     let legs = List.empty<JT.Leg>();
     let loss = rec.advance + rec.recognised;
     if (loss > 0) List.add(legs, Posting.leg(writeOff, null, #debit, r.currency, loss));
@@ -9680,6 +10092,25 @@ module {
       case (_) {
         let open = Array.filter<(ProdT.AccountId, Bool)>(FacilityCore.drawingsOf(bs.facility, facility), func((_, o)) { o });
         if (open.size() != 1) return #err(#FacilityError({ error = #HasDrawings({ facility; open = open.size() }) }));
+        // a repayment notice announces at most what the drawing owes: more is the agent's error, a mismatch, never an
+        // overpayment credited to a participation (found by the S4.1 syndication case)
+        switch (notice) {
+          case (#repayment(_)) {
+            switch (ProductCore.get(bs.product, productBlocks(bb), open[0].0)) {
+              case (?a) {
+                switch (ProductCore.termsOf(bs.product, a)) {
+                  case (?terms) {
+                    let owed = Loans.allocationTotal(loanOutstanding(js, a, terms, valueDay));
+                    if (ourShare > owed) return #err(#FacilityError({ error = #NoticeMismatch({ reason = "the repayment of " # Nat.toText(ourShare) # " exceeds the drawing's outstanding of " # Nat.toText(owed) }) }));
+                  };
+                  case null {};
+                };
+              };
+              case null {};
+            };
+          };
+          case (_) {};
+        };
         let m : T.MoneyMove = { account = open[0].0; amount = ourShare; postingDate = valueDay; valueDate = valueDay; period; narration = "the bank's share of the syndicate's repayment"; funding = #glAccount(part.agentAccount) };
         switch (repayPlan(bs, bb, js, journalCaller, now, m, authId)) {
           case (#err(e)) #err(e);
@@ -9997,7 +10428,7 @@ module {
       case (#trade(tr)) { TradeCore.fold(s.trade, block.index, tr) };
       case (#islamic(ie)) { IslamicCore.fold(s.islamic, block.index, ie) };
       case (#treasury(te)) { TreasuryCore.fold(s.treasury, block.index, te) };
-      case (#card(ce)) { CardCore.fold(s.cards, block.index, ce) };
+      case (#card(ce)) { CardCore.fold(s.cards, block.index, ce, func(a) { switch (ProductCore.bookOf(s.product, a)) { case (?b) b; case null "" } }) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -10067,6 +10498,15 @@ module {
     for ((ccy, amount) in totals.vals()) {
       let prev = consumedFor(s, subject, ccy, day);
       Map.add(s.consumed, cmpPCD, (subject, ccy, day), prev + amount);
+      // the limit is a per-day figure: the subject's earlier days in this currency are spent and leave the map, so it
+      // holds at most one live day per (subject, currency) and never grows with the calendar (the adversarial audit of
+      // 13 September, finding α1 — the map used to keep every (subject, currency, day) ever consumed)
+      let stale = List.empty<(Principal, Text, Nat)>();
+      label scan for (((p, c, d), _) in Map.entriesFrom(s.consumed, cmpPCD, (subject, ccy, 0))) {
+        if (not Principal.equal(p, subject) or not Text.equal(c, ccy)) break scan;
+        if (d < day) List.add(stale, (p, c, d));
+      };
+      for (k in List.values(stale)) { ignore Map.delete(s.consumed, cmpPCD, k) };
     };
   };
 

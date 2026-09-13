@@ -1669,6 +1669,23 @@ shared (initMsg) persistent actor class Bank(init : {
 
   public query func functionalCurrency() : async ?JT.Currency { CloseCore.functional(bank.close) };
   public query func listFxPairs() : async [CT.PositionPair] { CloseCore.listPairs(bank.close) };
+  /// A currency's own working-day calendar (S4.1), and all of them.
+  public query func currencyCalendar(currency : Text) : async ?JT.CalendarConfig { CloseCore.currencyCalendar(bank.close, currency) };
+  public query func currencyCalendars() : async [(Text, JT.CalendarConfig)] { CloseCore.listCurrencyCalendars(bank.close) };
+  /// The first day on or after `requested` that is a business day in the bank's calendar and in both currencies' own:
+  /// what a cross-currency deal's value date resolves to under the following convention.
+  public query func resolveFxValueDate(sell : Text, buy : Text, requested : ProdT.Day) : async { requested : ProdT.Day; effective : ProdT.Day; moved : Bool } {
+    let cal = CloseCore.mergedCalendar(bank.close, JCore.calendar(journal), [sell, buy]);
+    var d = requested;
+    while (not Conv.isBusinessDay(cal, d) and d < requested + 366) d += 1;
+    { requested; effective = d; moved = d != requested }
+  };
+  /// The redenominations declared and not completed, and every currency closed by one (with its successor).
+  public query func redenominationStatus() : async { pending : [{ redenomination : CT.Redenomination; products : [Text] }]; closed : [(Text, Text)] } {
+    let closed = List.empty<(Text, Text)>();
+    for (c in JCore.listCurrencies(journal).vals()) { switch (CloseCore.closedTo(bank.close, c.code)) { case (?to) List.add(closed, (c.code, to)); case null {} } };
+    { pending = CloseCore.pendingRedenominations(bank.close); closed = List.toArray(closed) }
+  };
   public query func listFxRates() : async [CT.Rate] { CloseCore.listRates(bank.close) };
 
   /// The rate recorded for exactly this day, and nothing else: an earlier day's rate
@@ -1745,12 +1762,12 @@ shared (initMsg) persistent actor class Bank(init : {
     switch (BatchCore.getRun(bank.batch, book, businessDate)) {
       case null #err(#BatchError({ error = #UnknownRun({ book; businessDate }) }));
       case (?run) {
-        switch (Batch.plan(BankCore.planInput(bank, bankBlocks(), book, run.maxAccount, run.shardSize))) {
+        switch (Batch.plan(BankCore.planInput(bank, book, run.businessDate, run.openedAtBlock, run.shardSize))) {
           case (#err(#invalidShardSize(d))) #err(#BatchError({ error = #InvalidShardSize({ shardSize = d.shardSize }) }));
           case (#err(#planTooLarge(d))) #err(#BatchError({ error = #PlanTooLarge({ items = d.items }) }));
           case (#ok(items)) #ok({
             items; planHash = Batch.planHash(items);
-            entities = Batch.entityCount(items);
+            entities = run.entities;   // the figure the opening block recorded: never recounted, never a hash input
             inJobOrder = Batch.inJobOrder(items);
           });
         }
@@ -2930,9 +2947,15 @@ shared (initMsg) persistent actor class Bank(init : {
   public shared query ({ caller }) func treasuryDealTerms(id : Nat) : async Result.Result<?TT.DealKind, T.BankError> {
     switch (treasuryView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok(null); case (#ok(?_)) { switch (TreasuryCore.row(bank.treasury, id)) { case (?r) #ok(BankCore.treasuryKindOf(bankBlocks(), r)); case null #ok(null) } } }
   };
-  public shared query ({ caller }) func treasuryDealsOfBook(book : Text) : async Result.Result<[TT.DealView], T.BankError> {
+  /// A book's deals, paged: the cursor continues where the page stopped; a limit above the page bound is refused with
+  /// the bound named (S4.1, the treasury review).
+  public shared query ({ caller }) func treasuryDealsOfBook(book : Text, cursor : ?Blob, limit : Nat) : async Result.Result<{ entries : [TT.DealView]; cursor : ?Blob }, T.BankError> {
     if (not BankCore.mayReadBook(readScope(caller), book)) return #err(#OutsideBookScope({ book }));
-    #ok(Array.map<TreasuryCore.DealRow, TT.DealView>(TreasuryCore.dealsOfBook(bank.treasury, book), func(r) { let (cp, reference) = BankCore.treasuryCaptureOf(bankBlocks(), r.id); TreasuryCore.view(bank.treasury, r, cp, reference) }))
+    if (limit == 0 or limit > TreasuryCore.MAX_PAGE) return #err(#QueryError({ error = #TooWide({ size = limit; bound = TreasuryCore.MAX_PAGE; narrow = "ask for at most " # Nat.toText(TreasuryCore.MAX_PAGE) # " deals a page and continue with the cursor" }) }));
+    let page = TreasuryCore.listByBook(bank.treasury, book, cursor, limit);
+    let out = List.empty<TT.DealView>();
+    for (id in page.ids.vals()) { switch (TreasuryCore.row(bank.treasury, id)) { case (?r) { let (cp, reference) = BankCore.treasuryCaptureOf(bankBlocks(), r.id); List.add(out, TreasuryCore.view(bank.treasury, r, cp, reference)) }; case null {} } };
+    #ok({ entries = List.toArray(out); cursor = page.cursor })
   };
   public shared query ({ caller }) func treasuryDealsByState(state : TT.DealState, cursor : ?Blob, limit : Nat) : async { entries : [TT.DealView]; cursor : ?Blob } {
     let page = TreasuryCore.listByState(bank.treasury, state, cursor, limit);
@@ -2949,7 +2972,10 @@ shared (initMsg) persistent actor class Bank(init : {
   /// The positions of a book: open deals aggregated by kind, instrument and currency.
   public shared query ({ caller }) func treasuryPositions(book : Text) : async Result.Result<[TT.PositionView], T.BankError> {
     if (not BankCore.mayReadBook(readScope(caller), book)) return #err(#OutsideBookScope({ book }));
-    #ok(TreasuryCore.positions(bank.treasury, book, BankCore.treasuryTerms(bankBlocks())))
+    switch (TreasuryCore.positions(bank.treasury, book, BankCore.treasuryTerms(bankBlocks()))) {
+      case (?p) #ok(p);
+      case null #err(#QueryError({ error = #TooWide({ size = TreasuryCore.openCountOf(bank.treasury, book); bound = TreasuryCore.MAX_WALK; narrow = "the book's open deals exceed the walk bound; read the deals by state or by counterparty, a page at a time" }) }));
+    }
   };
   /// The settled purchase lots of a security in a book with nominal left, oldest first.
   public shared query ({ caller }) func treasuryLots(book : Text, isin : Text) : async Result.Result<[TT.DealView], T.BankError> {
@@ -2985,6 +3011,13 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func nostroBreak(id : Nat) : async ?TT.BreakView { switch (TreasuryCore.breakRow(bank.treasury, id)) { case (?b) ?breakViewOf(b); case null null } };
   /// The treasury at a glance: the policy and the counts.
   public query func treasuryStatus() : async { policy : ?TT.Policy; status : TT.Status } { { policy = TreasuryCore.policy(bank.treasury); status = TreasuryCore.status(bank.treasury) } };
+  /// The fold-maintained figures a book's limits read in constant time (S4.1, the treasury review): the realised P&L
+  /// of every deal plus the marks of the open ones, the open FX exposure, the open deals — what a walk of the rows
+  /// would sum, which the campaign asserts.
+  public query func treasuryBookFigures(book : Text, currency : Text) : async { pnl : Int; openFxPosition : Int; openDeals : Nat; counterpartyExposure : [(Text, Int)] } {
+    { pnl = TreasuryCore.aggregate(bank.treasury, "pnl|" # book # "|" # currency); openFxPosition = TreasuryCore.aggregate(bank.treasury, "pos|" # book # "|" # currency);
+      openDeals = TreasuryCore.openCountOf(bank.treasury, book); counterpartyExposure = [] }
+  };
   // ─── cards (cards) ──────────────────────────────────────────────────────────
 
   /// An authorization from the acquirer through the connector (`card.authorize`): the request the connector
@@ -3471,7 +3504,14 @@ shared (initMsg) persistent actor class Bank(init : {
   /// One certificate over both tips.
   public query func tipCertificate() : async ?BCert.Certificate { BCert.certificate(cert) };
 
-  /// Fingerprints of both derived states, live and replayed from their logs.
+  /// The live fingerprints alone, with the heights: constant in the log's size, so a harness can hold the state still
+  /// across a refusal or an upgrade on a log too long for `fingerprints` to replay inside one query (S4.1).
+  public query func fingerprintsLive() : async { bankLive : Blob; journalLive : Blob; bankHeight : Nat; journalHeight : Nat } {
+    { bankLive = BankCore.fingerprint(bank); journalLive = JCore.fingerprint(journal); bankHeight = BankCore.height(bank); journalHeight = JCore.height(journal) }
+  };
+
+  /// Fingerprints of both derived states, live and replayed from their logs. The replay is the whole log in one
+  /// query, so this read is bounded by the log's size: a long log is checked by the external verifier instead.
   public query func fingerprints() : async {
     bankLive : Blob; bankReplayed : Blob; journalLive : Blob; journalReplayed : Blob;
     bankHeight : Nat; journalHeight : Nat;

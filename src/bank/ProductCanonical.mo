@@ -235,6 +235,9 @@ module {
       case (#tillSettled(x)) { w.byte(0x16); w.text(x.till); w.nat(x.declared); w.nat(x.book); wDifference(w, x.difference); w.nat(x.day) };
       case (#tillClosed(x)) { w.byte(0x17); w.text(x.till) };
       case (#accountRateSet(x)) { w.byte(0x18); w.nat(x.account); wRate(w, x.rate); w.nat(x.effective) };
+      case (#productRedenominated(x)) { w.byte(0x19); w.text(x.id); w.nat(x.version); w.nat(x.supersedes); w.text(x.from); w.text(x.to); wTerms(w, x.terms) };
+      case (#accountRedenominated(x)) { w.byte(0x1A); w.nat(x.account); w.nat(x.version); w.text(x.from); w.text(x.to) };
+      case (#scheduleTermsSet(x)) { w.byte(0x1B); w.nat(x.account); wSchedule(w, x.terms); w.nat(x.effective) };
     };
   };
 
@@ -707,6 +710,9 @@ module {
       };
       case 0x17 { let ?till = r.text() else return null; ?#tillClosed({ till }) };
       case 0x18 { let ?account = r.nat() else return null; let ?rate = rRate(r) else return null; let ?effective = r.nat() else return null; ?#accountRateSet({ account; rate; effective }) };
+      case 0x19 { let ?id = r.text() else return null; let ?version = r.nat() else return null; let ?supersedes = r.nat() else return null; let ?from = r.text() else return null; let ?to = r.text() else return null; let ?terms = rTerms(r) else return null; ?#productRedenominated({ id; version; supersedes; from; to; terms }) };
+      case 0x1A { let ?account = r.nat() else return null; let ?version = r.nat() else return null; let ?from = r.text() else return null; let ?to = r.text() else return null; ?#accountRedenominated({ account; version; from; to }) };
+      case 0x1B { let ?account = r.nat() else return null; let ?terms = rSchedule(r) else return null; let ?effective = r.nat() else return null; ?#scheduleTermsSet({ account; terms; effective }) };
       case _ null;
     }
   };
