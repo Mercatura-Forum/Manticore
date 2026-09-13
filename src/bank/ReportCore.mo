@@ -180,6 +180,28 @@ module {
     List.toArray(out)
   };
 
+  /// One page of the issued statements, by key from a cursor (inclusive).
+  public func statementsFrom(s : State, cursor : ?Text, limit : Nat) : { rows : [RT.StatementRef]; next : ?Text } {
+    let rows = List.empty<RT.StatementRef>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.statements, Text.compare, c); case null Map.entries(s.statements) };
+    for ((k, e) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, e.statement) };
+    { rows = List.toArray(rows); next = null }
+  };
+  /// One page of the certified artefacts, by key from a cursor (inclusive).
+  public func certifiedFrom(s : State, cursor : ?Text, limit : Nat) : { rows : [CertifiedEntry]; next : ?Text } {
+    let rows = List.empty<CertifiedEntry>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.certified, Text.compare, c); case null Map.entries(s.certified) };
+    for ((k, e) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, e) };
+    { rows = List.toArray(rows); next = null }
+  };
+  /// One page of the dead letters, by position from a cursor (inclusive).
+  public func deadLettersFrom(s : State, cursor : ?Nat, limit : Nat) : { rows : [RT.DeadLetter]; next : ?Nat } {
+    let rows = List.empty<RT.DeadLetter>();
+    var i = switch (cursor) { case (?c) c; case null 0 };
+    let n = List.size(s.deadLetters);
+    while (i < n) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?i }; List.add(rows, List.at(s.deadLetters, i)); i += 1 };
+    { rows = List.toArray(rows); next = null }
+  };
   public func listStatements(s : State) : [RT.StatementRef] {
     let out = List.empty<RT.StatementRef>();
     for ((_, e) in Map.entries(s.statements)) List.add(out, e.statement);

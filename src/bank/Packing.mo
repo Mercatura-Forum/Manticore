@@ -581,6 +581,14 @@ module {
 
   public func getPack(s : State, pack : Nat) : ?PackView { switch (Map.get(s.packs, Nat.compare, pack)) { case (?p) ?view(p); case null null } };
 
+  /// One page of the packs, by number from a cursor (inclusive).
+  public func packsFrom(s : State, cursor : ?Nat, limit : Nat) : { rows : [PackView]; next : ?Nat } {
+    let rows = List.empty<PackView>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.packs, Nat.compare, c); case null Map.entries(s.packs) };
+    for ((k, p) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, view(p)) };
+    { rows = List.toArray(rows); next = null }
+  };
+  public func packCount(s : State) : Nat { Map.size(s.packs) };
   public func listPacks(s : State) : [PackView] {
     let out = List.empty<PackView>();
     for ((_, p) in Map.entries(s.packs)) List.add(out, view(p));

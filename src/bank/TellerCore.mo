@@ -61,6 +61,7 @@ module {
     var sessionsOpened : Nat;
     var differences : Nat;
     var movementsDispatched : Nat;
+    var movementsInTransit : Nat;
     var chequesPresented : Nat;
     var chequesReturned : Nat;
     var draftsIssued : Nat;
@@ -77,7 +78,7 @@ module {
       cheques = RI.newStateIn(arena, { keyBytes = 16; valBytes = CHEQUE_ROW_BYTES });
       drafts = RI.newStateIn(arena, { keyBytes = 8; valBytes = DRAFT_ROW_BYTES });
       subledgers = RI.newStateIn(arena, { keyBytes = 32; valBytes = 1 });
-      var policy = null; var sessionsOpened = 0; var differences = 0; var movementsDispatched = 0; var chequesPresented = 0; var chequesReturned = 0; var draftsIssued = 0;
+      var policy = null; var sessionsOpened = 0; var differences = 0; var movementsDispatched = 0; var movementsInTransit = 0; var chequesPresented = 0; var chequesReturned = 0; var draftsIssued = 0;
     }
   };
 
@@ -455,10 +456,10 @@ module {
       case (#cashDispatched(x)) {
         ignore RI.put(s.movements, R.key(block, 8), encodeMovement({ product = x.product; fromBook = x.fromBook; toBook = x.toBook; currency = x.currency; amount = x.amount; inTransit = true; dispatchedBlock = block; receivedBlock = 0 }));
         holdSub(s, transitSub(block));
-        s.movementsDispatched += 1;
+        s.movementsDispatched += 1; s.movementsInTransit += 1;
       };
       case (#cashReceived(x)) {
-        switch (movement(s, x.movement)) { case (?m) ignore RI.put(s.movements, R.key(x.movement, 8), encodeMovement({ m with inTransit = false; receivedBlock = block })); case null {} };
+        switch (movement(s, x.movement)) { case (?m) { if (m.inTransit and s.movementsInTransit > 0) s.movementsInTransit -= 1; ignore RI.put(s.movements, R.key(x.movement, 8), encodeMovement({ m with inTransit = false; receivedBlock = block })) }; case null {} };
       };
       case (#vaultToCentralBank(_) or #centralBankToVault(_)) {};
       case (#chequebookIssued(x)) ignore RI.put(s.chequebooks, R.key2(x.account, 8, x.from, 8), R.key(x.to, 8));
@@ -532,6 +533,15 @@ module {
     ?{ id; product = m.product; fromBook = m.fromBook; toBook = m.toBook; currency = m.currency; amount = m.amount; inTransit = m.inTransit; dispatchedBlock = m.dispatchedBlock; receivedBlock = if (m.inTransit) null else ?m.receivedBlock }
   };
   /// Every movement still in transit, bounded by the rows.
+  public func inTransitCount(s : State) : Nat { s.movementsInTransit };
+  /// One page of the movements still in transit, off the movement store from a cursor: `limit` bounds the rows examined.
+  public func inTransitFrom(s : State, cursor : ?Blob, limit : Nat) : { rows : [TT.MovementView]; cursor : ?Blob } {
+    let out = List.empty<TT.MovementView>();
+    let (lo, hi) = R.fullRange(8);
+    let page = RI.range(s.movements, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
+    for ((k, v) in page.entries.vals()) { let m = decodeMovement(v); if (m.inTransit) { switch (movementView(s, R.getNat(Blob.toArray(k), 0, 8))) { case (?mv) List.add(out, mv); case null {} } } };
+    { rows = List.toArray(out); cursor = page.cursor }
+  };
   public func inTransit(s : State) : [TT.MovementView] {
     let out = List.empty<TT.MovementView>();
     let (lo, hi) = R.fullRange(8);
@@ -563,7 +573,7 @@ module {
       case null w.byte(0);
       case (?p) { w.byte(1); w.text(p.overShort); w.text(p.cashInTransit); w.text(p.centralBank); w.text(p.draftsPayable); w.text(p.clearing); w.nat(p.staleDays); w.nat(p.clearingWindowDays) };
     };
-    w.nat(s.sessionsOpened); w.nat(s.differences); w.nat(s.movementsDispatched); w.nat(s.chequesPresented); w.nat(s.chequesReturned); w.nat(s.draftsIssued);
+    w.nat(s.sessionsOpened); w.nat(s.differences); w.nat(s.movementsDispatched); w.nat(s.movementsInTransit); w.nat(s.chequesPresented); w.nat(s.chequesReturned); w.nat(s.draftsIssued);
     fingerprintRows(w, s.sessions, 8); fingerprintRows(w, s.openSession, 32); fingerprintRows(w, s.tillDenoms, 40); fingerprintRows(w, s.vaultDenoms, 48);
     fingerprintRows(w, s.movements, 8); fingerprintRows(w, s.chequebooks, 16); fingerprintRows(w, s.cheques, 16); fingerprintRows(w, s.drafts, 8); fingerprintRows(w, s.subledgers, 32);
   };

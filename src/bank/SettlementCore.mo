@@ -199,6 +199,30 @@ module {
   };
   public func accountsIn(p : ST.Participant, currency : Text) : ?ST.ParticipantAccounts { for (a in p.accounts.vals()) { if (Text.equal(a.currency, currency)) return ?a }; null };
   public func window(s : State, id : ST.WindowId) : ?ST.Window { Map.get(s.windows, Nat.compare, id) };
+  /// One page of the windows, by id from a cursor (inclusive); `next` is the id to resume at.
+  public func windowsFrom(s : State, cursor : ?Nat, limit : Nat) : { rows : [ST.Window]; next : ?Nat } {
+    let rows = List.empty<ST.Window>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.windows, Nat.compare, c); case null Map.entries(s.windows) };
+    for ((k, x) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, x) };
+    { rows = List.toArray(rows); next = null }
+  };
+  public func windowCount(s : State) : Nat { Map.size(s.windows) };
+  /// One page of the settlements, by id from a cursor (inclusive); `next` is the id to resume at.
+  public func settlementsFrom(s : State, cursor : ?Nat, limit : Nat) : { rows : [ST.Settlement]; next : ?Nat } {
+    let rows = List.empty<ST.Settlement>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.settlements, Nat.compare, c); case null Map.entries(s.settlements) };
+    for ((k, x) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, x) };
+    { rows = List.toArray(rows); next = null }
+  };
+  public func settlementCount(s : State) : Nat { Map.size(s.settlements) };
+  /// One page of the participants, by id from a cursor (inclusive); `next` is the id to resume at.
+  public func participantsFrom(s : State, cursor : ?Nat, limit : Nat) : { rows : [ST.Participant]; next : ?Nat } {
+    let rows = List.empty<ST.Participant>();
+    let it = switch (cursor) { case (?c) Map.entriesFrom(s.participants, Nat.compare, c); case null Map.entries(s.participants) };
+    for ((k, x) in it) { if (List.size(rows) >= limit) return { rows = List.toArray(rows); next = ?k }; List.add(rows, x) };
+    { rows = List.toArray(rows); next = null }
+  };
+  public func participantCount(s : State) : Nat { Map.size(s.participants) };
   public func windows(s : State) : [ST.Window] { Array.map<(Nat, ST.Window), ST.Window>(Map.toArray(s.windows), func((_, x)) { x }) };
   public func openWindow(s : State, schemeId : ST.SchemeId, businessDate : Nat) : ?ST.WindowId { Map.get(s.openWindows, cmpSD, (schemeId, businessDate)) };
   public func settlement(s : State, id : ST.SettlementId) : ?ST.Settlement { Map.get(s.settlements, Nat.compare, id) };
