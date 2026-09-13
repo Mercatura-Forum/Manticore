@@ -706,7 +706,7 @@ class Reader(V.Reader):
     # ─── the end-of-day batch ──────────────────────────────────────────
 
     JOBS = {1: "accrual", 2: "charges", 3: "instalmentsDue", 4: "ageing", 5: "provisioning",
-            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade", 14: "sharia", 15: "treasury"}
+            6: "maturity", 7: "standingInstructions", 8: "statementCut", 9: "tillCheck", 10: "monitoring", 11: "offerExpiry", 12: "facilities", 13: "trade", 14: "sharia", 15: "treasury", 16: "cards"}
 
     def b_job(self):
         rank = self.nat()
@@ -1458,6 +1458,8 @@ class Reader(V.Reader):
         # the extension tag 0xEF with a second byte: 0x01.. Islamic banking (Islamic banking), 0x20.. treasury (treasury)
         if tag == 0xEF:
             sub = self.byte()
+            if sub >= 0x30:
+                return self.card_command(sub)
             if sub >= 0x20:
                 return self.treasury_command(sub)
             return self.islamic_command(sub)
@@ -2214,6 +2216,181 @@ class Reader(V.Reader):
             return {"confirmationOverdue": {"deal": self.nat(), "ageDays": self.nat(), "day": self.nat()}}
         raise ValueError(f"unknown treasury event tag {t:#x}")
 
+    # ── cards (cards) ──
+    CARD_POLICY = ["disputeSuspense", "interchangeIncome", "schemeFees", "fraudLosses", "cardFeeIncome"]
+    CARD_DECLINES = [None, "unknownCard", "cardNotActive", "cardBlocked", "cardExpired", "mccDenied", "channelDenied", "internationalDenied", "overPerTransaction", "overDailyLimit", "velocity",
+                     "insufficientFunds", "cryptogramInvalid", "pinFailed", "duplicate", "unknownOriginal", "originalNotOpen", "amountExceedsOriginal", "currencyMismatch", "schemeMismatch"]
+    CARD_STAGES = ["opened", "provisionalCredit", "chargeback", "representment", "preArbitration", "resolved"]
+
+    def c_policy(self):
+        out = {k: self.text() for k in self.CARD_POLICY}
+        out["provisionalCreditCeiling"] = self.nat(); out["clearingTolerance"] = self.nat(); out["stanReplayDays"] = self.nat()
+        return out
+
+    def c_rules(self):
+        source = self.text()
+        n = self.len16()
+        bands = [{"mccFrom": self.nat(), "mccTo": self.nat(), "bps": self.nat(), "fixed": self.nat()} for _ in range(n)]
+        floor = self.nat(); hold = self.nat()
+        n = self.len16()
+        reasons = [{"code": self.text(), "description": self.text(), "chargebackDays": self.nat(), "representmentDays": self.nat(), "preArbitrationDays": self.nat()} for _ in range(n)]
+        return {"source": source, "interchange": bands, "floorLimit": floor, "holdDays": hold, "reasons": reasons, "feeBps": self.nat()}
+
+    def c_sig_scheme(self):
+        return ["none", "mayo2", "mldsa44"][self.byte()]
+
+    def c_scheme(self):
+        return {"id": self.text(), "name": self.text(), "settlementAccount": self.text(), "settlementCurrency": self.text(), "rules": self.c_rules(), "connectorScheme": self.c_sig_scheme(), "connectorKey": self.blob()}
+
+    def c_channels(self):
+        return {"pos": self.bool(), "atm": self.bool(), "ecom": self.bool(), "contactless": self.bool(), "international": self.bool()}
+
+    def c_controls(self):
+        return {"dailyLimit": self.nat(), "perTransactionLimit": self.nat(), "mccAllow": self.t_nats(), "mccDeny": self.t_nats(), "channels": self.c_channels(), "velocityCount": self.nat(), "velocityWindowMinutes": self.nat()}
+
+    def c_product(self):
+        out = {"id": self.text(), "name": self.text()}
+        k = self.byte()
+        if k == 0:
+            out["kind"] = "debit"
+        else:
+            out["kind"] = {"credit": {"statementDay": self.nat(), "minimumDueBps": self.nat(), "minimumDueFloor": self.nat(), "graceDays": self.nat()}}
+        out.update({"scheme": self.text(), "bounds": self.c_controls(), "issueFee": self.nat(), "replacementFee": self.nat(), "expiryMonths": self.nat()})
+        return out
+
+    def c_form(self):
+        return ["physical", "virtual"][self.byte()]
+
+    def c_block_reason(self):
+        b = self.byte()
+        if b == 4:
+            return {"bank": self.text()}
+        return ["customer", "lost", "stolen", "fraud"][b]
+
+    def c_replace_reason(self):
+        return ["lost", "stolen", "damaged", "expired"][self.byte()]
+
+    def c_kind(self):
+        k = self.byte()
+        if k in (2, 3, 5):
+            return {["incremental", "completion", "reversal"][[2, 3, 5].index(k)]: {"of": self.nat()}}
+        return ["purchase", "preAuthorization", None, None, "refund"][k]
+
+    def c_request(self):
+        domain = self.text()
+        assert domain == "THEBES-BANK-CARD-AUTH-v1", domain
+        out = {"token": self.blob(), "kind": self.c_kind(), "amount": self.nat(), "currency": self.text(), "mcc": self.nat(), "merchantHash": self.blob(), "merchantCountry": self.text(), "acquirer": self.text(),
+               "channel": ["pos", "atm", "ecom", "contactless"][self.byte()], "cryptogramValid": self.bool()}
+        b = self.byte()
+        out["pinVerified"] = None if b == 0 else (b == 1)
+        out["stan"] = self.text(); out["rrn"] = self.text(); out["localTime"] = self.nat64()
+        return out
+
+    def c_decision(self):
+        b = self.byte()
+        if b == 0:
+            return {"approved": {"authCode": self.text(), "hold": self.opt_nat(), "amount": self.nat()}}
+        return {"declined": self.CARD_DECLINES[self.byte()]}
+
+    def c_item(self):
+        return {"authCode": self.t_opt_text(), "token": self.blob(), "amount": self.nat(), "currency": self.text(), "mcc": self.nat(), "merchantHash": self.blob(), "acquirer": self.text(), "stan": self.text(), "rrn": self.text(), "day": self.nat(), "refund": self.bool()}
+
+    def c_outcome(self):
+        b = self.byte()
+        if b == 0:
+            return {"postedAgainstHold": {"auth": self.nat(), "hold": self.nat(), "difference": self.int_()}}
+        if b == 1:
+            return {"postedDirect": {"belowFloor": self.bool()}}
+        return {"exception": {"reason": self.text()}}
+
+    def card_command(self, sub):
+        D = self.dates
+        if sub == 0x30:
+            return {"setCardPolicy": self.c_policy()}
+        if sub == 0x31:
+            return {"declareCardScheme": {"scheme": self.c_scheme()}}
+        if sub == 0x32:
+            return {"defineCardProduct": {"product": self.c_product()}}
+        if sub == 0x33:
+            return {"issueCard": {"token": self.blob(), "account": self.nat(), "product": self.text(), "form": self.c_form(), "controls": self.c_controls(), **D()}}
+        if sub == 0x34:
+            return {"activateCard": {"card": self.nat()}}
+        if sub == 0x35:
+            return {"blockCard": {"card": self.nat(), "reason": self.c_block_reason()}}
+        if sub == 0x36:
+            return {"unblockCard": {"card": self.nat()}}
+        if sub == 0x37:
+            return {"replaceCard": {"card": self.nat(), "newToken": self.blob(), "reason": self.c_replace_reason(), **D()}}
+        if sub == 0x38:
+            return {"closeCard": {"card": self.nat(), "reason": self.text()}}
+        if sub == 0x39:
+            return {"setCardControls": {"card": self.nat(), "controls": self.c_controls(), "byCustomer": self.bool()}}
+        if sub == 0x3A:
+            return {"openDispute": {"transaction": self.nat(), "reason": self.text(), "amount": self.nat()}}
+        if sub == 0x3B:
+            return {"grantProvisionalCredit": {"dispute": self.nat(), **D()}}
+        if sub == 0x3C:
+            return {"raiseChargeback": {"dispute": self.nat(), "schemeRef": self.text(), **D()}}
+        if sub == 0x3D:
+            return {"recordRepresentment": {"dispute": self.nat(), **D()}}
+        if sub == 0x3E:
+            return {"recordPreArbitration": {"dispute": self.nat()}}
+        if sub == 0x3F:
+            return {"resolveDispute": {"dispute": self.nat(), "outcome": ["cardholder", "merchant"][self.byte()], "finalAmount": self.nat(), **D()}}
+        if sub == 0x40:
+            return {"markFraud": {"transaction": self.nat(), "blockCard": self.bool()}}
+        raise ValueError(f"unknown card command byte {sub:#x}")
+
+    def card_event(self):
+        t = self.byte()
+        if t == 0x01:
+            return {"policySet": self.c_policy()}
+        if t == 0x02:
+            return {"schemeDeclared": {"scheme": self.c_scheme(), "day": self.nat()}}
+        if t == 0x03:
+            return {"productDefined": {"product": self.c_product(), "day": self.nat()}}
+        if t == 0x04:
+            return {"cardIssued": {"tokenHash": self.blob(), "account": self.nat(), "party": self.nat(), "product": self.text(), "form": self.c_form(), "expiryMonth": self.nat(), "controls": self.c_controls(), "day": self.nat(), "replaces": self.opt_nat()}}
+        if t == 0x05:
+            return {"cardActivated": {"card": self.nat(), "day": self.nat()}}
+        if t == 0x06:
+            return {"cardBlocked": {"card": self.nat(), "reason": self.c_block_reason(), "day": self.nat()}}
+        if t == 0x07:
+            return {"cardUnblocked": {"card": self.nat(), "day": self.nat()}}
+        if t == 0x08:
+            return {"cardClosed": {"card": self.nat(), "reason": self.text(), "day": self.nat()}}
+        if t == 0x09:
+            return {"controlsSet": {"card": self.nat(), "controls": self.c_controls(), "byCustomer": self.bool(), "day": self.nat()}}
+        if t == 0x0A:
+            return {"authorised": {"card": self.opt_nat(), "request": self.c_request(), "decision": self.c_decision(), "day": self.nat()}}
+        if t == 0x0B:
+            return {"holdAdjusted": {"auth": self.nat(), "from": self.nat(), "to": self.nat(), "hold": self.opt_nat(), "kind": self.text(), "day": self.nat()}}
+        if t == 0x0C:
+            return {"holdExpired": {"auth": self.nat(), "hold": self.nat(), "day": self.nat()}}
+        if t == 0x0D:
+            return {"clearingRecorded": {"scheme": self.text(), "batch": self.blob(), "items": self.nat(), "posted": self.nat(), "exceptions": self.nat(), "interchange": self.nat(), "fees": self.nat(), "day": self.nat()}}
+        if t == 0x0E:
+            return {"cleared": {"scheme": self.text(), "batch": self.blob(), "card": self.opt_nat(), "item": self.c_item(), "outcome": self.c_outcome(), "interchange": self.nat(), "fee": self.nat(), "posting": self.opt_nat(), "day": self.nat()}}
+        if t == 0x0F:
+            return {"disputeOpened": {"transaction": self.nat(), "card": self.nat(), "reason": self.text(), "amount": self.nat(), "dueDay": self.nat(), "day": self.nat()}}
+        if t == 0x10:
+            return {"provisionalCredited": {"dispute": self.nat(), "amount": self.nat(), "day": self.nat()}}
+        if t == 0x11:
+            return {"chargebackRaised": {"dispute": self.nat(), "schemeRef": self.text(), "dueDay": self.nat(), "day": self.nat()}}
+        if t == 0x12:
+            return {"representmentRecorded": {"dispute": self.nat(), "dueDay": self.nat(), "day": self.nat()}}
+        if t == 0x13:
+            return {"preArbitrationRecorded": {"dispute": self.nat(), "dueDay": self.nat(), "day": self.nat()}}
+        if t == 0x14:
+            return {"disputeResolved": {"dispute": self.nat(), "outcome": ["cardholder", "merchant"][self.byte()], "finalAmount": self.nat(), "day": self.nat()}}
+        if t == 0x15:
+            return {"disputeStepDue": {"dispute": self.nat(), "stage": self.CARD_STAGES[self.byte()], "dueDay": self.nat(), "day": self.nat()}}
+        if t == 0x16:
+            return {"fraudMarked": {"transaction": self.nat(), "card": self.nat(), "blocked": self.bool(), "day": self.nat()}}
+        if t == 0x17:
+            return {"statementCut": {"card": self.nat(), "cycleEnd": self.nat(), "balance": self.int_(), "minimumDue": self.nat(), "dueDay": self.nat(), "purchases": self.nat(), "payments": self.nat(), "interest": self.nat(), "day": self.nat()}}
+        raise ValueError(f"unknown card event tag {t:#x}")
+
     def islamic_event(self):
         t = self.byte()
         if t == 0x01:
@@ -2835,6 +3012,8 @@ class Reader(V.Reader):
             return {"islamic": self.islamic_event()}
         if tag == 0x55:
             return {"treasury": self.treasury_event()}
+        if tag == 0x56:
+            return {"card": self.card_event()}
         if tag == 0x49:
             return {"packing": self.packing_event()}
         if tag == 0x4A:
