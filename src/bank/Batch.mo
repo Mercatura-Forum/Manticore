@@ -63,11 +63,12 @@ module {
     #trade;                   // 13: trade commissions and discounts earned, expiries, reductions, maturities (trade finance)
     #sharia;                  // 14: Murabaha profit and late-payment charity, Ijarah rentals and depreciation (Islamic banking)
     #treasury;                // 15: deal accruals, coupons, marks against the day's curves, legs falling due, break aging, overdue confirmations (treasury)
+    #cards;                   // 16: holds expired by the scheme's window, dispute steps due, statement cycles cut (cards)
   };
 
   public func jobs() : [Job] {
     [#accrual, #charges, #instalmentsDue, #ageing, #provisioning, #maturity,
-     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities, #trade, #sharia, #treasury]
+     #standingInstructions, #statementCut, #tillCheck, #monitoring, #offerExpiry, #facilities, #trade, #sharia, #treasury, #cards]
   };
 
   public func jobText(j : Job) : Text {
@@ -77,7 +78,7 @@ module {
       case (#provisioning) "provisioning"; case (#maturity) "maturity";
       case (#standingInstructions) "standingInstructions";
       case (#statementCut) "statementCut"; case (#tillCheck) "tillCheck";
-      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities"; case (#trade) "trade"; case (#sharia) "sharia"; case (#treasury) "treasury";
+      case (#monitoring) "monitoring"; case (#offerExpiry) "offerExpiry"; case (#facilities) "facilities"; case (#trade) "trade"; case (#sharia) "sharia"; case (#treasury) "treasury"; case (#cards) "cards";
     }
   };
 
@@ -85,7 +86,7 @@ module {
     switch (j) {
       case (#accrual) 1; case (#charges) 2; case (#instalmentsDue) 3; case (#ageing) 4;
       case (#provisioning) 5; case (#maturity) 6; case (#standingInstructions) 7;
-      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12; case (#trade) 13; case (#sharia) 14; case (#treasury) 15;
+      case (#statementCut) 8; case (#tillCheck) 9; case (#monitoring) 10; case (#offerExpiry) 11; case (#facilities) 12; case (#trade) 13; case (#sharia) 14; case (#treasury) 15; case (#cards) 16;
     }
   };
 
@@ -128,6 +129,7 @@ module {
       case (#trade) ?"product.credit";            // the trade book is part of the credit book: commissions, discounts, expiries, maturities
       case (#sharia) ?"product.credit";           // the Sharia book likewise: profit recognised, rentals, depreciation, charity
       case (#treasury) ?"close.fx";             // the treasury book moves money across currencies: accruals, marks, settlements
+      case (#cards) ?"product.account.money";    // expired holds release the customer's funds; a statement cut records
     }
   };
 
@@ -175,6 +177,8 @@ module {
     sharia : Nat;
     /// How many treasury deals of the book are open, plus its open nostro breaks. None, and the plan has no treasury item.
     treasury : Nat;
+    /// How many cards of the book are not closed, plus its open disputes. None, and the plan has no cards item.
+    cards : Nat;
     shardSize : Nat;
   };
 
@@ -261,6 +265,10 @@ module {
     // 15. the treasury book, one item for the book while any deal or break is open
     if (input.treasury > 0) {
       List.add(items, { job = #treasury; product = ""; currency = ""; from = 0; to = 0 });
+    };
+    // 16. the card book, one item for the book while any card or dispute is open
+    if (input.cards > 0) {
+      List.add(items, { job = #cards; product = ""; currency = ""; from = 0; to = 0 });
     };
     if (List.size(items) > MAX_PLAN_ITEMS) return #err(#planTooLarge({ items = List.size(items) }));
     #ok(List.toArray(items))

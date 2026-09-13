@@ -53,6 +53,7 @@ import TrT "TradeTypes";
 import TrCan "TradeCanonical";
 import ICan "IslamicCanonical";
 import TyCan "TreasuryCanonical";
+import CdCan "CardCanonical";
 import IT "IslamicTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
@@ -674,6 +675,24 @@ module {
       case (#markDeal(x)) { w.byte(0xEF); w.byte(0x2A); w.nat(x.deal); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#recordNostroStatement(x)) { w.byte(0xEF); w.byte(0x2B); w.text(x.nostro); w.blob(x.statement); w.nat(x.from); w.nat(x.to); TyCan.writeEntries(w, x.entries); w.optBlob(x.document) };
       case (#resolveNostroBreak(x)) { w.byte(0xEF); w.byte(0x2C); w.nat(x.breakId); w.text(x.resolution); TyCan.writeOptCorrection(w, x.correction); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      // cards cards: the extension tag 0xEF with a second byte 0x30..0x40
+      case (#setCardPolicy(p)) { w.byte(0xEF); w.byte(0x30); CdCan.writePolicy(w, p) };
+      case (#declareCardScheme(x)) { w.byte(0xEF); w.byte(0x31); CdCan.writeScheme(w, x.scheme) };
+      case (#defineCardProduct(x)) { w.byte(0xEF); w.byte(0x32); CdCan.writeProduct(w, x.product) };
+      case (#issueCard(x)) { w.byte(0xEF); w.byte(0x33); w.blob(x.token); w.nat(x.account); w.text(x.product); CdCan.writeForm(w, x.form); CdCan.writeControls(w, x.controls); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#activateCard(x)) { w.byte(0xEF); w.byte(0x34); w.nat(x.card) };
+      case (#blockCard(x)) { w.byte(0xEF); w.byte(0x35); w.nat(x.card); CdCan.writeBlockReason(w, x.reason) };
+      case (#unblockCard(x)) { w.byte(0xEF); w.byte(0x36); w.nat(x.card) };
+      case (#replaceCard(x)) { w.byte(0xEF); w.byte(0x37); w.nat(x.card); w.blob(x.newToken); CdCan.writeReplaceReason(w, x.reason); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#closeCard(x)) { w.byte(0xEF); w.byte(0x38); w.nat(x.card); w.text(x.reason) };
+      case (#setCardControls(x)) { w.byte(0xEF); w.byte(0x39); w.nat(x.card); CdCan.writeControls(w, x.controls); w.bool(x.byCustomer) };
+      case (#openDispute(x)) { w.byte(0xEF); w.byte(0x3A); w.nat(x.transaction); w.text(x.reason); w.nat(x.amount) };
+      case (#grantProvisionalCredit(x)) { w.byte(0xEF); w.byte(0x3B); w.nat(x.dispute); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#raiseChargeback(x)) { w.byte(0xEF); w.byte(0x3C); w.nat(x.dispute); w.text(x.schemeRef); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordRepresentment(x)) { w.byte(0xEF); w.byte(0x3D); w.nat(x.dispute); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#recordPreArbitration(x)) { w.byte(0xEF); w.byte(0x3E); w.nat(x.dispute) };
+      case (#resolveDispute(x)) { w.byte(0xEF); w.byte(0x3F); w.nat(x.dispute); CdCan.writeOutcome(w, x.outcome); w.nat(x.finalAmount); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
+      case (#markFraud(x)) { w.byte(0xEF); w.byte(0x40); w.nat(x.transaction); w.bool(x.blockCard) };
       case (#issueLetterOfCredit(x)) { w.byte(0x68); TrCan.writeLc(w, x.lc); w.nat(x.amount); w.text(x.currency); w.nat(x.expiry); w.text(x.placeOfExpiry); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#adviseLetterOfCredit(x)) { w.byte(0x69); w.text(x.message); w.nat(x.beneficiary); w.nat(x.beneficiaryAccount); w.bool(x.confirm); w.len16(x.checklist.size()); for ((k, cs) in x.checklist.vals()) { TrCan.writeDocumentKind(w, k); w.len16(cs.size()); for (c in cs.vals()) w.text(c) }; w.nat(x.commissionBps); w.optNat(x.facility); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
       case (#amendLetterOfCredit(x)) { w.byte(0x6A); w.nat(x.instrument); TrCan.writeAmendment(w, x.amendment); w.nat(x.postingDate); w.nat(x.valueDate); w.text(x.period); w.text(x.narration) };
@@ -1444,6 +1463,7 @@ module {
       case (#trade(tr)) { w.byte(0x53); TrCan.writeEvent(w, tr) };
       case (#islamic(ie)) { w.byte(0x54); ICan.writeEvent(w, ie) };
       case (#treasury(te)) { w.byte(0x55); TyCan.writeEvent(w, te) };
+      case (#card(ce)) { w.byte(0x56); CdCan.writeEvent(w, ce) };
       case (#packing(pe)) { w.byte(0x49); writePackingEvent(w, pe) };
       case (#shard(se)) { w.byte(0x4A); writeShardEvent(w, se) };
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
@@ -1979,12 +1999,38 @@ module {
     }
   };
 
+  /// The card commands (cards): the extension tag 0xEF with a second byte 0x30..0x40.
+  func readCardCommand(sub : Nat8, r : C.Reader) : ??T.Command {
+    func dates() : ?(Nat, Nat, Text, Text) { let ?pd = r.nat() else return null; let ?vd = r.nat() else return null; let ?p = r.text() else return null; let ?n = r.text() else return null; ?(pd, vd, p, n) };
+    switch (sub) {
+      case 0x30 { let ?p = CdCan.readPolicy(r) else return ?null; ??#setCardPolicy(p) };
+      case 0x31 { let ?scheme = CdCan.readScheme(r) else return ?null; ??#declareCardScheme({ scheme }) };
+      case 0x32 { let ?product = CdCan.readProduct(r) else return ?null; ??#defineCardProduct({ product }) };
+      case 0x33 { let ?token = r.blob() else return ?null; let ?account = r.nat() else return ?null; let ?product = r.text() else return ?null; let ?form = CdCan.readForm(r) else return ?null; let ?controls = CdCan.readControls(r) else return ?null; let ?(postingDate, valueDate, period, narration) = dates() else return ?null; ??#issueCard({ token; account; product; form; controls; postingDate; valueDate; period; narration }) };
+      case 0x34 { let ?card = r.nat() else return ?null; ??#activateCard({ card }) };
+      case 0x35 { let ?card = r.nat() else return ?null; let ?reason = CdCan.readBlockReason(r) else return ?null; ??#blockCard({ card; reason }) };
+      case 0x36 { let ?card = r.nat() else return ?null; ??#unblockCard({ card }) };
+      case 0x37 { let ?card = r.nat() else return ?null; let ?newToken = r.blob() else return ?null; let ?reason = CdCan.readReplaceReason(r) else return ?null; let ?(postingDate, valueDate, period, narration) = dates() else return ?null; ??#replaceCard({ card; newToken; reason; postingDate; valueDate; period; narration }) };
+      case 0x38 { let ?card = r.nat() else return ?null; let ?reason = r.text() else return ?null; ??#closeCard({ card; reason }) };
+      case 0x39 { let ?card = r.nat() else return ?null; let ?controls = CdCan.readControls(r) else return ?null; let ?byCustomer = r.bool() else return ?null; ??#setCardControls({ card; controls; byCustomer }) };
+      case 0x3A { let ?transaction = r.nat() else return ?null; let ?reason = r.text() else return ?null; let ?amount = r.nat() else return ?null; ??#openDispute({ transaction; reason; amount }) };
+      case 0x3B { let ?dispute = r.nat() else return ?null; let ?(postingDate, valueDate, period, narration) = dates() else return ?null; ??#grantProvisionalCredit({ dispute; postingDate; valueDate; period; narration }) };
+      case 0x3C { let ?dispute = r.nat() else return ?null; let ?schemeRef = r.text() else return ?null; let ?(postingDate, valueDate, period, narration) = dates() else return ?null; ??#raiseChargeback({ dispute; schemeRef; postingDate; valueDate; period; narration }) };
+      case 0x3D { let ?dispute = r.nat() else return ?null; let ?(postingDate, valueDate, period, narration) = dates() else return ?null; ??#recordRepresentment({ dispute; postingDate; valueDate; period; narration }) };
+      case 0x3E { let ?dispute = r.nat() else return ?null; ??#recordPreArbitration({ dispute }) };
+      case 0x3F { let ?dispute = r.nat() else return ?null; let ?outcome = CdCan.readOutcome(r) else return ?null; let ?finalAmount = r.nat() else return ?null; let ?(postingDate, valueDate, period, narration) = dates() else return ?null; ??#resolveDispute({ dispute; outcome; finalAmount; postingDate; valueDate; period; narration }) };
+      case 0x40 { let ?transaction = r.nat() else return ?null; let ?blockCard = r.bool() else return ?null; ??#markFraud({ transaction; blockCard }) };
+      case (_) null;
+    }
+  };
+
   func readCommandBody(r : C.Reader, withApplication : Bool) : ?T.Command {
     let ?tag = r.byte() else return null;
     switch (readTradeCommand(tag, r)) { case (?c) return c; case null {} };
     if (tag == 0xEF) {
       // the second byte selects the domain: 0x01.. Islamic banking, 0x20.. treasury
       let ?sub = r.byte() else return null;
+      if (sub >= 0x30) { switch (readCardCommand(sub, r)) { case (?c) return c; case null return null } };
       if (sub >= 0x20) { switch (readTreasuryCommand(sub, r)) { case (?c) return c; case null return null } };
       switch (readIslamicCommandBody(sub, r)) { case (?c) return c; case null return null };
     };
@@ -2769,6 +2815,7 @@ module {
       case 0x53 { let ?tr = TrCan.readEvent(r) else return null; ?#trade(tr) };
       case 0x54 { let ?ie = ICan.readEvent(r) else return null; ?#islamic(ie) };
       case 0x55 { let ?te = TyCan.readEvent(r) else return null; ?#treasury(te) };
+      case 0x56 { let ?ce = CdCan.readEvent(r) else return null; ?#card(ce) };
       case 0x49 { let ?pe = readPackingEvent(r) else return null; ?#packing(pe) };
       case 0x4A { let ?se = readShardEvent(r) else return null; ?#shard(se) };
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };

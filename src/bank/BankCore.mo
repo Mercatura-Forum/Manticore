@@ -114,6 +114,10 @@ import IslamicCore "IslamicCore";
 import TT "TreasuryTypes";
 import TreasuryCore "TreasuryCore";
 import TreasuryMessages "TreasuryMessages";
+import CdT "CardTypes";
+import CardCore "CardCore";
+import CdCan "CardCanonical";
+import CardMessages "CardMessages";
 import AlT "AlertTypes";
 import Packing "Packing";
 import ST "ShardTypes";
@@ -223,6 +227,8 @@ module {
     islamic : IslamicCore.State;
     /// Treasury (treasury): deals, curves, limits, nostros and their reconciliation.
     treasury : TreasuryCore.State;
+    /// Cards (cards): cards, decisions, holds, clearing, disputes, statements.
+    cards : CardCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
     /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
     packing : PackingFold;
@@ -296,6 +302,7 @@ module {
       trade = TradeCore.newState(arena);
       islamic = IslamicCore.newState(arena);
       treasury = TreasuryCore.newState(arena);
+      cards = CardCore.newState(arena);
       packing = { var current = null; var packedThroughBlock = 0; var packedThroughDay = 0; var bankPackedThroughBlock = 0; var packs = 0; sealed = Map.empty<Nat, { period : Text; periodEnd : Nat; lo : Nat; hi : Nat; segments : Nat; bankLo : Nat; bankHi : Nat; bankSegments : Nat }>(); var roll = null; var archivedThroughBlock = 0; var archivedPacks = 0; archives = Map.empty<Nat, { cid : Nat64; archive : Principal; hi : Nat }>() };
       shard = ShardCore.newState();
       settlement = SettlementCore.newState(arena);
@@ -812,6 +819,10 @@ module {
       case (#amendDeal(x)) treasuryKindTotals(bs, x.kind);
       case (#cancelDeal(x) or #settleDealLeg(x) or #markDeal(x)) { switch (TreasuryCore.row(bs.treasury, x.deal)) { case (?r) [(treasuryRowCurrency(bs, r), r.notional)]; case null [] } };
       case (#resolveNostroBreak(x)) { switch (x.correction) { case (?c) [(c.currency, c.amount)]; case null [] } };
+      // Cards (cards): a provisional credit or a resolution in the transaction's currency; a fee at issue
+      case (#grantProvisionalCredit(x)) { switch (CardCore.dispute(bs.cards, x.dispute)) { case (?d) { switch (CardCore.clearedRow(bs.cards, d.transaction)) { case (?t) [(t.currency, d.amount)]; case null [] } }; case null [] } };
+      case (#resolveDispute(x)) { switch (CardCore.dispute(bs.cards, x.dispute)) { case (?d) { switch (CardCore.clearedRow(bs.cards, d.transaction)) { case (?t) [(t.currency, x.finalAmount)]; case null [] } }; case null [] } };
+      case (#raiseChargeback(x) or #recordRepresentment(x)) { switch (CardCore.dispute(bs.cards, x.dispute)) { case (?d) { switch (CardCore.clearedRow(bs.cards, d.transaction)) { case (?t) [(t.currency, d.amount)]; case null [] } }; case null [] } };
       case (#cashDeposit(x)) tillTotals(bs, x.till, x.amount);
       case (#cashWithdrawal(x)) tillTotals(bs, x.till, x.amount);
       case (#vaultToTill(x)) tillTotals(bs, x.till, x.amount);
@@ -881,6 +892,7 @@ module {
       case (#recordMudarabahResult(x)) ?x.postingDate; case (#deliverSalam(x)) ?x.postingDate; case (#sellSalamCommodity(x)) ?x.postingDate; case (#recordSalamFailure(x)) ?x.postingDate;
       case (#recordIstisnaMilestone(x)) ?x.postingDate; case (#collectIstisnaBilling(x)) ?x.postingDate; case (#settleShariaContract(x)) ?x.postingDate; case (#recordNonCompliance(x)) ?x.postingDate; case (#distributePool(x)) ?x.postingDate;
       case (#settleDealLeg(x)) ?x.postingDate; case (#markDeal(x)) ?x.postingDate; case (#resolveNostroBreak(x)) ?x.postingDate;
+      case (#issueCard(x)) ?x.postingDate; case (#replaceCard(x)) ?x.postingDate; case (#grantProvisionalCredit(x)) ?x.postingDate; case (#raiseChargeback(x)) ?x.postingDate; case (#recordRepresentment(x)) ?x.postingDate; case (#resolveDispute(x)) ?x.postingDate;
       case (#applyCharge(x)) ?x.postingDate;
       case (#waiveCharge(x)) ?x.postingDate;
       case (#postAccrual(x)) ?x.day;
@@ -1049,6 +1061,11 @@ module {
       case (#captureDeal(x)) ?x.book;
       case (#setTreasuryLimit(x)) ?x.limit.book;
       case (#confirmDeal(x) or #amendDeal(x) or #cancelDeal(x) or #settleDealLeg(x) or #markDeal(x)) { switch (TreasuryCore.row(bs.treasury, x.deal)) { case (?r) ?r.book; case null null } };
+      // Card commands name an account (its book) or a card (its account's book)
+      case (#issueCard(x)) ProductCore.bookOf(bs.product, x.account);
+      case (#activateCard(x) or #unblockCard(x) or #replaceCard(x) or #blockCard(x) or #closeCard(x) or #setCardControls(x)) cardBook(bs, x.card);
+      case (#openDispute(x) or #markFraud(x)) { switch (CardCore.clearedRow(bs.cards, x.transaction)) { case (?t) cardBook(bs, t.card); case null null } };
+      case (#grantProvisionalCredit(x) or #raiseChargeback(x) or #recordRepresentment(x) or #recordPreArbitration(x) or #resolveDispute(x)) { switch (CardCore.dispute(bs.cards, x.dispute)) { case (?d) cardBook(bs, d.card); case null null } };
       case (other) E.commandBook(other);
     }
   };
@@ -1467,6 +1484,7 @@ module {
       case (?#islamic(#contractOpened(_))) List.add(introduced, IslamicCore.contractSub(bs.height));
       case (?#islamic(#poolOpened(p))) List.add(introduced, IslamicCore.poolSub(p.pool.id));
       case (?#treasury(#dealCaptured(_))) List.add(introduced, TreasuryCore.dealSub(bs.height));
+      case (?#card(#disputeOpened(_))) List.add(introduced, CardCore.disputeSub(bs.height));
       case (_) {};
     };
     let opened = List.toArray(introduced);
@@ -2288,7 +2306,7 @@ module {
         case (?sub) {
           // an account or a till of this shard, one of its books' vaults in the leg's currency, a facility's or a
           // participant's (corporate lending), or an account the same plan opens — the only sub-ledgers a shard's own postings name
-          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub) or IslamicCore.holdsSubledger(bs.islamic, sub) or TreasuryCore.holdsSubledger(bs.treasury, sub);
+          var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub) or IslamicCore.holdsSubledger(bs.islamic, sub) or TreasuryCore.holdsSubledger(bs.treasury, sub) or CardCore.holdsSubledger(bs.cards, sub);
           if (not held) { for (i in introduced.vals()) { if (i == sub) held := true } };
           if (not held) { for ((book, _) in Map.entries(bs.books)) { if (sub == Till.vaultSubledger(book, l.currency)) held := true } };
           if (not held) return ?#ShardError({ error = #NotRouted({ identifier = ""; reason = "the posting names a sub-ledger this shard does not hold" }) });
@@ -4744,6 +4762,9 @@ module {
       // ── treasury (treasury): likewise ──
       case (#setTreasuryPolicy(_) or #registerSecurity(_) or #publishCurve(_) or #setTreasuryLimit(_) or #registerNostro(_) or #captureDeal(_) or #confirmDeal(_) or #amendDeal(_) or #cancelDeal(_)
             or #settleDealLeg(_) or #markDeal(_) or #recordNostroStatement(_) or #resolveNostroBreak(_)) planTreasuryInner(bs, bb, js, journalCaller, now, command, authorityIndex, authId);
+      // ── cards (cards): likewise ──
+      case (#setCardPolicy(_) or #declareCardScheme(_) or #defineCardProduct(_) or #issueCard(_) or #activateCard(_) or #blockCard(_) or #unblockCard(_) or #replaceCard(_) or #closeCard(_) or #setCardControls(_)
+            or #openDispute(_) or #grantProvisionalCredit(_) or #raiseChargeback(_) or #recordRepresentment(_) or #recordPreArbitration(_) or #resolveDispute(_) or #markFraud(_)) planCardInner(bs, bb, js, jb, journalCaller, now, command, authorityIndex, authId);
     }
   };
 
@@ -6416,6 +6437,7 @@ module {
       trade = TradeCore.openInBook(bs.trade, book).size();
       sharia = IslamicCore.openInBook(bs.islamic, book).size();
       treasury = TreasuryCore.openInBook(bs.treasury, book).size() + TreasuryCore.openBreaks(bs.treasury).size();
+      cards = cardsOpenInBook(bs, book) + CardCore.openDisputes(bs.cards).size();
       shardSize;
     }
   };
@@ -6736,6 +6758,7 @@ module {
       case (#trade) jobTrade(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
       case (#sharia) jobSharia(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
       case (#treasury) jobTreasury(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
+      case (#cards) jobCards(bs, bb, js, jb, journalCaller, now, acc, item, index, day, period, run.book, only);
     };
   };
 
@@ -7722,6 +7745,442 @@ module {
 
       case (_) #err(#TradeError({ error = #InvalidTerms({ reason = "not a trade command"; article = "" }) }));
     }
+  };
+
+  // ─── Cards (cards): the planners, the signed authorization and clearing methods, the end-of-day job ─────────────────
+
+  func cardErr<X>(e : CdT.CardError) : Result.Result<X, T.BankError> { #err(#CardError({ error = e })) };
+  func cardPlan(r : Result.Result<CdT.CardEvent, CdT.CardError>) : Result.Result<Plan, T.BankError> {
+    switch (r) { case (#err(e)) cardErr(e); case (#ok(ev)) #ok({ bankEvent = ?#card(ev); extra = []; journal = [] }) }
+  };
+  func cardPost(js : JCore.State, journalCaller : Principal, now : Nat64, purpose : Text, parts : [Text], legs : [JT.Leg], postingDate : Nat, valueDate : Nat, period : Text, narration : Text, ev : CdT.CardEvent) : Result.Result<Plan, T.BankError> {
+    if (legs.size() == 0) return #ok({ bankEvent = ?#card(ev); extra = []; journal = [] });
+    switch (postLegs(js, journalCaller, now, purpose, parts, legs, postingDate, valueDate, period, narration)) {
+      case (#err(e)) #err(e);
+      case (#ok(plan)) #ok({ bankEvent = ?#card(ev); extra = []; journal = plan.journal });
+    }
+  };
+  func cardBook(bs : State, id : CdT.CardId) : ?T.BookId { switch (CardCore.card(bs.cards, id)) { case (?r) ProductCore.bookOf(bs.product, r.account); case null null } };
+  func cardsOpenInBook(bs : State, book : Text) : Nat {
+    var n = 0;
+    for (st in [#issued, #active, #blocked].vals()) { for (r in CardCore.cardsInState(bs.cards, st).vals()) { if (ProductCore.bookOf(bs.product, r.account) == ?book) n += 1 } };
+    n
+  };
+  /// The scheme's full record (rules and connector key) from its declaring block.
+  public func cardSchemeOf(bb : Blocks, row : CardCore.SchemeRow) : ?CdT.Scheme {
+    switch (bb.get(row.block)) { case (?b) { switch (b.event) { case (#card(#schemeDeclared(x))) ?x.scheme; case (_) null } }; case null null }
+  };
+  public func cardProductOf(bb : Blocks, row : CardCore.ProductRow) : ?CdT.CardProduct {
+    switch (bb.get(row.block)) { case (?b) { switch (b.event) { case (#card(#productDefined(x))) ?x.product; case (_) null } }; case null null }
+  };
+  /// A card's controls from the block that last set them.
+  public func cardControlsOf(bb : Blocks, r : CardCore.CardRow) : ?CdT.Controls {
+    switch (bb.get(r.controlsBlock)) { case (?b) { switch (b.event) { case (#card(#cardIssued(x))) ?x.controls; case (#card(#controlsSet(x))) ?x.controls; case (_) null } }; case null null }
+  };
+  func cardWorld(bs : State, bb : Blocks, r : CardCore.CardRow) : Result.Result<{ product : CdT.CardProduct; scheme : CdT.Scheme; schemeRow : CardCore.SchemeRow; controls : CdT.Controls }, T.BankError> {
+    let ?pr = CardCore.product(bs.cards, r.product) else return cardErr(#UnknownProduct({ product = r.product }));
+    let ?product = cardProductOf(bb, pr) else return cardErr(#UnknownProduct({ product = r.product }));
+    let ?sr = CardCore.scheme(bs.cards, pr.scheme) else return cardErr(#UnknownScheme({ scheme = pr.scheme }));
+    let ?scheme = cardSchemeOf(bb, sr) else return cardErr(#UnknownScheme({ scheme = pr.scheme }));
+    let ?controls = cardControlsOf(bb, r) else return cardErr(#UnknownCard({ card = r.id }));
+    #ok({ product; scheme; schemeRow = sr; controls })
+  };
+  func schemeWorld(bs : State, bb : Blocks, id : Text) : Result.Result<(CardCore.SchemeRow, CdT.Scheme), T.BankError> {
+    let ?sr = CardCore.scheme(bs.cards, id) else return cardErr(#UnknownScheme({ scheme = id }));
+    let ?sc = cardSchemeOf(bb, sr) else return cardErr(#UnknownScheme({ scheme = id }));
+    #ok((sr, sc))
+  };
+  /// The funds a card may draw on: the account's posted credits less posted and pending debits, plus the product's
+  /// overdraft (a credit card's line) — the journal's own view of availability, pendings included.
+  func cardAvailable(bs : State, bb : Blocks, js : JCore.State, account : ProdT.AccountId) : Nat {
+    switch (requireAccount(bs, bb, account)) {
+      case (#ok((a, terms))) {
+        let b = JCore.balance(js, terms.control, ?a.subledger, a.currency);
+        let line = switch (terms.limits.overdraft) { case (?o) o; case null 0 };
+        let owed = b.debitsPosted + b.debitsPending;
+        if (b.creditsPosted + line > owed) b.creditsPosted + line - owed else 0
+      };
+      case (#err(_)) 0;
+    }
+  };
+  func cardFee(bs : State, bb : Blocks, js : JCore.State, pol : CdT.Policy, account : ProdT.AccountId, fee : Nat, day : Nat) : Result.Result<[JT.Leg], T.BankError> {
+    if (fee == 0) return #ok([]);
+    switch (customerLeg(bs, bb, js, account, #debit, currencyOfAccount(bs, bb, account), fee, day)) {
+      case (#err(e)) #err(e);
+      case (#ok((l, a, _))) #ok([l, Posting.leg(pol.cardFeeIncome, null, #credit, a.currency, fee)]);
+    }
+  };
+  func currencyOfAccount(bs : State, bb : Blocks, account : ProdT.AccountId) : Text { switch (requireAccount(bs, bb, account)) { case (#ok((a, _))) a.currency; case (#err(_)) "" } };
+
+  /// The card commands (cards), planned apart from the main switch so that switch stays under the chain's
+  /// function-complexity bound.
+  func planCardInner(bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64, command : T.Command, authorityIndex : Nat, authId : Text) : Result.Result<Plan, T.BankError> {
+    let today = JCore.effectiveToday(js, now);
+    ignore jb;
+    switch (command) {
+      case (#setCardPolicy(pol)) {
+        for (code in CardCore.accountsOf(pol).vals()) {
+          switch (JCore.getAccount(js, code)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "card policy"; account = code }) })); case (?_) {} };
+        };
+        cardPlan(CardCore.planPolicy(pol))
+      };
+      case (#declareCardScheme(x)) {
+        switch (JCore.getAccount(js, x.scheme.settlementAccount)) { case null return #err(#ProductError({ error = #RoleAccountUnknown({ role = "scheme settlement"; account = x.scheme.settlementAccount }) })); case (?_) {} };
+        cardPlan(CardCore.planDeclareScheme(bs.cards, x.scheme, today))
+      };
+      case (#defineCardProduct(x)) cardPlan(CardCore.planDefineProduct(bs.cards, x.product, today));
+      case (#issueCard(x)) {
+        let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+        switch (requireFeature(bs, ProdT.FEATURE_ACCOUNT_MONEY)) { case (?e) return #err(e); case null {} };
+        let (a, terms) = switch (movableAccount(bs, bb, js, x.account, today)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let ?pr = CardCore.product(bs.cards, x.product) else return cardErr(#UnknownProduct({ product = x.product }));
+        let ?product = cardProductOf(bb, pr) else return cardErr(#UnknownProduct({ product = x.product }));
+        // a credit card product rides on an account with an overdraft line; a debit card on one without
+        switch (product.kind, terms.limits.overdraft) {
+          case (#credit(_), null) return cardErr(#InvalidTerms({ reason = "a credit card needs an account with a credit line (the product's overdraft)" }));
+          case (_) {};
+        };
+        let expiryMonth = CardCore.monthOf(today) + product.expiryMonths;
+        let ev = switch (CardCore.planIssue(bs.cards, x.token, x.account, a.party, x.product, x.form, x.controls, product.bounds, today, expiryMonth, null)) { case (#err(e)) return cardErr(e); case (#ok(ev)) ev };
+        let legs = switch (cardFee(bs, bb, js, pol, x.account, product.issueFee, today)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        cardPost(js, journalCaller, now, "card-issue", [authId, Nat.toText(x.account)], legs, x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (#activateCard(x)) cardPlan(CardCore.planActivate(bs.cards, x.card, today));
+      case (#blockCard(x)) cardPlan(CardCore.planBlock(bs.cards, x.card, x.reason, today));
+      case (#unblockCard(x)) cardPlan(CardCore.planUnblock(bs.cards, x.card, today));
+      case (#replaceCard(x)) {
+        let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+        let ?old = CardCore.card(bs.cards, x.card) else return cardErr(#UnknownCard({ card = x.card }));
+        if (old.state == #closed) return cardErr(#CardNotIn({ card = x.card; state = "closed"; wanted = "issued|active|blocked" }));
+        let w = switch (cardWorld(bs, bb, old)) { case (#err(e)) return #err(e); case (#ok(w)) w };
+        let expiryMonth = CardCore.monthOf(today) + w.product.expiryMonths;
+        let ev = switch (CardCore.planIssue(bs.cards, x.newToken, old.account, old.party, old.product, old.form, w.controls, w.product.bounds, today, expiryMonth, ?x.card)) { case (#err(e)) return cardErr(e); case (#ok(ev)) ev };
+        let fee = switch (x.reason) { case (#expired) 0; case (_) w.product.replacementFee };
+        let legs = switch (cardFee(bs, bb, js, pol, old.account, fee, today)) { case (#err(e)) return #err(e); case (#ok(l)) l };
+        cardPost(js, journalCaller, now, "card-replace", [authId, Nat.toText(x.card)], legs, x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (#closeCard(x)) cardPlan(CardCore.planClose(bs.cards, x.card, x.reason, today));
+      case (#setCardControls(x)) {
+        let ?r = CardCore.card(bs.cards, x.card) else return cardErr(#UnknownCard({ card = x.card }));
+        let w = switch (cardWorld(bs, bb, r)) { case (#err(e)) return #err(e); case (#ok(w)) w };
+        cardPlan(CardCore.planSetControls(bs.cards, x.card, x.controls, w.product.bounds, x.byCustomer, today))
+      };
+      case (#openDispute(x)) {
+        let ?t = CardCore.clearedRow(bs.cards, x.transaction) else return cardErr(#UnknownTransaction({ transaction = x.transaction }));
+        let (_, sc) = switch (schemeWorld(bs, bb, t.scheme)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        cardPlan(CardCore.planOpenDispute(bs.cards, x.transaction, x.reason, x.amount, sc.rules, today))
+      };
+      case (#grantProvisionalCredit(x)) {
+        let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+        let (ev, d) = switch (CardCore.planProvisionalCredit(bs.cards, x.dispute, today)) { case (#err(e)) return cardErr(e); case (#ok(p)) p };
+        if (d.amount > pol.provisionalCreditCeiling) return cardErr(#InvalidTerms({ reason = "the provisional credit of " # Nat.toText(d.amount) # " exceeds the policy's ceiling of " # Nat.toText(pol.provisionalCreditCeiling) # "; the dispute proceeds by chargeback" }));
+        let ?card = CardCore.card(bs.cards, d.card) else return cardErr(#UnknownCard({ card = d.card }));
+        let (l, a, _) = switch (customerLeg(bs, bb, js, card.account, #credit, currencyOfAccount(bs, bb, card.account), d.amount, today)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        cardPost(js, journalCaller, now, "card-dispute-credit", [authId, Nat.toText(x.dispute)], [Posting.leg(pol.disputeSuspense, ?CardCore.disputeSub(x.dispute), #debit, a.currency, d.amount), l], x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (#raiseChargeback(x)) {
+        let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+        let ?d0 = CardCore.dispute(bs.cards, x.dispute) else return cardErr(#UnknownDispute({ dispute = x.dispute }));
+        let ?t = CardCore.clearedRow(bs.cards, d0.transaction) else return cardErr(#UnknownTransaction({ transaction = d0.transaction }));
+        let (_, sc) = switch (schemeWorld(bs, bb, t.scheme)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let reason = disputeReasonOf(bb, x.dispute);
+        let (ev, d) = switch (CardCore.planChargeback(bs.cards, x.dispute, x.schemeRef, sc.rules, reason, today)) { case (#err(e)) return cardErr(e); case (#ok(p)) p };
+        // the scheme credits us: the suspense is relieved (or, with no provisional credit yet, the cardholder is credited)
+        let legs = if (d.provisional > 0) [Posting.leg(sc.settlementAccount, null, #debit, t.currency, d.amount), Posting.leg(pol.disputeSuspense, ?CardCore.disputeSub(x.dispute), #credit, t.currency, d.amount)]
+          else {
+            let ?card = CardCore.card(bs.cards, d.card) else return cardErr(#UnknownCard({ card = d.card }));
+            let (l, _, _) = switch (customerLeg(bs, bb, js, card.account, #credit, t.currency, d.amount, today)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+            [Posting.leg(sc.settlementAccount, null, #debit, t.currency, d.amount), l]
+          };
+        cardPost(js, journalCaller, now, "card-chargeback", [authId, Nat.toText(x.dispute)], legs, x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (#recordRepresentment(x)) {
+        let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+        let ?d0 = CardCore.dispute(bs.cards, x.dispute) else return cardErr(#UnknownDispute({ dispute = x.dispute }));
+        let ?t = CardCore.clearedRow(bs.cards, d0.transaction) else return cardErr(#UnknownTransaction({ transaction = d0.transaction }));
+        let (_, sc) = switch (schemeWorld(bs, bb, t.scheme)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let (ev, d) = switch (CardCore.planRepresentment(bs.cards, x.dispute, sc.rules, disputeReasonOf(bb, x.dispute), today)) { case (#err(e)) return cardErr(e); case (#ok(p)) p };
+        // the merchant represents: the scheme takes the chargeback back; the amount returns to the suspense (the cardholder keeps the provisional credit until the case resolves)
+        let legs = [Posting.leg(pol.disputeSuspense, ?CardCore.disputeSub(x.dispute), #debit, t.currency, d.amount), Posting.leg(sc.settlementAccount, null, #credit, t.currency, d.amount)];
+        cardPost(js, journalCaller, now, "card-representment", [authId, Nat.toText(x.dispute)], legs, x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (#recordPreArbitration(x)) {
+        let ?d0 = CardCore.dispute(bs.cards, x.dispute) else return cardErr(#UnknownDispute({ dispute = x.dispute }));
+        let ?t = CardCore.clearedRow(bs.cards, d0.transaction) else return cardErr(#UnknownTransaction({ transaction = d0.transaction }));
+        let (_, sc) = switch (schemeWorld(bs, bb, t.scheme)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        switch (CardCore.planPreArbitration(bs.cards, x.dispute, sc.rules, disputeReasonOf(bb, x.dispute), today)) { case (#err(e)) cardErr(e); case (#ok((ev, _))) #ok({ bankEvent = ?#card(ev); extra = []; journal = [] }) }
+      };
+      case (#resolveDispute(x)) {
+        let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+        let (ev, d) = switch (CardCore.planResolve(bs.cards, x.dispute, x.outcome, x.finalAmount, today)) { case (#err(e)) return cardErr(e); case (#ok(p)) p };
+        let ?t = CardCore.clearedRow(bs.cards, d.transaction) else return cardErr(#UnknownTransaction({ transaction = d.transaction }));
+        let ?card = CardCore.card(bs.cards, d.card) else return cardErr(#UnknownCard({ card = d.card }));
+        let sub = ?CardCore.disputeSub(x.dispute);
+        // what the suspense holds: the provisional credit, less what a chargeback relieved, plus what a representment returned
+        let suspense = Posting.accountBalanceOn(js, pol.disputeSuspense, CardCore.disputeSub(x.dispute), t.currency, #debit, today);
+        let held = if (suspense.overdrawn) 0 else suspense.net;
+        let legs = List.empty<JT.Leg>();
+        switch (x.outcome) {
+          case (#cardholder) {
+            // the cardholder keeps the credit (given now if it never was); the suspense not covered by the scheme is the bank's loss
+            if (d.provisional == 0 and x.finalAmount > 0) {
+              let (l, _, _) = switch (customerLeg(bs, bb, js, card.account, #credit, t.currency, x.finalAmount, today)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+              if (d.stage == #chargeback) { List.add(legs, Posting.leg(pol.disputeSuspense, sub, #debit, t.currency, x.finalAmount)); List.add(legs, l) }
+              else { List.add(legs, Posting.leg(pol.fraudLosses, null, #debit, t.currency, x.finalAmount)); List.add(legs, l) };
+            };
+            if (held > 0) { List.add(legs, Posting.leg(pol.fraudLosses, null, #debit, t.currency, held)); List.add(legs, Posting.leg(pol.disputeSuspense, sub, #credit, t.currency, held)) };
+          };
+          case (#merchant) {
+            // the provisional credit comes back from the cardholder; the suspense clears
+            if (d.provisional > 0) {
+              let (l, _, _) = switch (customerLeg(bs, bb, js, card.account, #debit, t.currency, d.provisional, today)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+              List.add(legs, l);
+              if (held >= d.provisional) List.add(legs, Posting.leg(pol.disputeSuspense, sub, #credit, t.currency, d.provisional))
+              else { if (held > 0) List.add(legs, Posting.leg(pol.disputeSuspense, sub, #credit, t.currency, held)); List.add(legs, Posting.leg(pol.fraudLosses, null, #credit, t.currency, d.provisional - held)) };
+            } else if (held > 0) { List.add(legs, Posting.leg(pol.fraudLosses, null, #debit, t.currency, held)); List.add(legs, Posting.leg(pol.disputeSuspense, sub, #credit, t.currency, held)) };
+          };
+        };
+        cardPost(js, journalCaller, now, "card-dispute-resolve", [authId, Nat.toText(x.dispute)], List.toArray(legs), x.postingDate, x.valueDate, x.period, x.narration, ev)
+      };
+      case (#markFraud(x)) cardPlan(CardCore.planMarkFraud(bs.cards, x.transaction, x.blockCard, today));
+      case (_) cardErr(#InvalidTerms({ reason = "not a card command" }));
+    }
+  };
+  func disputeReasonOf(bb : Blocks, id : CdT.DisputeId) : Text { switch (bb.get(id)) { case (?b) { switch (b.event) { case (#card(#disputeOpened(x))) x.reason; case (_) "" } }; case null "" } };
+
+  /// An authorization from the acquirer through the connector: the signature judged under the scheme's key over the
+  /// request's canonical bytes; the decision is a block whether approved or declined; an approval places the hold as
+  /// the journal's pending posting expiring at the scheme's window. Returns the plan and the decision.
+  public func planAuthorizeCard(bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64, req : CdT.AuthRequest, signature : Blob, verify : Verify) : Result.Result<{ plan : Plan; decision : CdT.Decision; scheme : Text }, T.BankError> {
+    let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+    let today = JCore.effectiveToday(js, now);
+    let cardRow = CardCore.cardByToken(bs.cards, req.token);
+    // the scheme is the card's product's; an unknown token is judged under the first declared scheme's key so the decline is still a block
+    let (sr, sc, w) : (?CardCore.SchemeRow, ?CdT.Scheme, ?{ product : CdT.CardProduct; scheme : CdT.Scheme; schemeRow : CardCore.SchemeRow; controls : CdT.Controls }) = switch (cardRow) {
+      case (?r) { switch (cardWorld(bs, bb, r)) { case (#ok(w)) (?w.schemeRow, ?w.scheme, ?w); case (#err(e)) return #err(e) } };
+      case null (null, null, null);
+    };
+    switch (sc) {
+      case (?scheme) { if (not verify(scheme.connectorScheme, scheme.connectorKey, CdCan.requestBytes(req), signature)) return cardErr(#BadSignature) };
+      case null {};
+    };
+    func decided(d : CdT.Decision, journal : [JournalStep]) : Result.Result<{ plan : Plan; decision : CdT.Decision; scheme : Text }, T.BankError> {
+      #ok({ plan = { bankEvent = ?#card(#authorised({ card = switch (cardRow) { case (?r) ?r.id; case null null }; request = req; decision = d; day = today })); extra = []; journal }; decision = d; scheme = switch (sr) { case (?x) x.id; case null "" } })
+    };
+    let (r, world) = switch (cardRow, w) { case (?r, ?w) (r, w); case (_) return decided(#declined(#unknownCard), []) };
+    let facts : CardCore.Facts = { available = cardAvailable(bs, bb, js, r.account); today; nowNs = now; bounds = world.product.bounds; controls = world.controls; rules = world.scheme.rules; productScheme = world.product.scheme; settlementCurrency = currencyOfAccount(bs, bb, r.account) };
+    let decision = CardCore.decide(bs.cards, req, ?r, facts, pol.stanReplayDays);
+    switch (decision) {
+      case (#declined(_)) decided(decision, []);
+      case (#approved(a)) {
+        let (acct, terms) = switch (requireAccount(bs, bb, r.account)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+        let ?period = periodForDay(js, today) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(today) }) }));
+        let expiresAt = now + Nat64.fromNat(world.scheme.rules.holdDays) * 86_400_000_000_000;
+        func reserve(amount : Nat, tag : Text) : Result.Result<(JournalStep, Nat), T.BankError> {
+          let input : JT.PostingInput = {
+            idempotencyKey = Posting.key("card-hold", [req.acquirer, req.stan, req.rrn, tag, Nat.toText(bs.height)]); postingDate = today; valueDate = today; period;
+            legs = [Posting.leg(terms.control, ?acct.subledger, #debit, acct.currency, amount), Posting.leg(world.scheme.settlementAccount, null, #credit, acct.currency, amount)];
+            sourceRef = { kind = "card-hold"; id = req.acquirer # "/" # req.stan # "/" # req.rrn }; narration = "card authorization " # req.stan; correctionOf = null;
+          };
+          switch (JCore.prepareReserve(js, journalCaller, now, input, ?expiresAt)) {
+            case (#err(e)) #err(#JournalError({ error = e }));
+            case (#ok(#duplicate(idx))) #err(#JournalError({ error = #IdempotencyKeyReused({ existing = idx }) }));
+            case (#ok(#event(ev))) #ok((#event(ev), JCore.height(js)));
+          }
+        };
+        switch (req.kind) {
+          case (#purchase or #preAuthorization) {
+            let (step, idx) = switch (reserve(req.amount, "h")) { case (#err(e)) return #err(e); case (#ok(p)) p };
+            decided(#approved({ authCode = CardCore.authCodeOf(bs.height); hold = ?idx; amount = req.amount }), [step])
+          };
+          case (#refund) decided(#approved({ authCode = CardCore.authCodeOf(bs.height); hold = null; amount = req.amount }), []);
+          case (#reversal(o) or #completion(o) or #incremental(o)) {
+            // the original's hold is voided and, when an amount remains, re-reserved at the new figure in the same act
+            let ?orig = CardCore.auth(bs.cards, o.of) else return decided(#declined(#unknownOriginal), []);
+            let newAmount : Nat = switch (req.kind) { case (#reversal(_)) (if (orig.holdAmount > req.amount) orig.holdAmount - req.amount else 0); case (#completion(_)) req.amount; case (_) orig.holdAmount + req.amount };
+            let voided = switch (JCore.prepareVoidPending(js, jb, journalCaller, orig.hold)) { case (#err(e)) return #err(#JournalError({ error = e })); case (#ok(ev)) #event(ev) };
+            let kindText = switch (req.kind) { case (#reversal(_)) "reversal"; case (#completion(_)) "completion"; case (_) "incremental" };
+            if (newAmount == 0) {
+              let plan : Plan = { bankEvent = ?#card(#authorised({ card = ?r.id; request = req; decision = #approved({ authCode = a.authCode; hold = ?orig.hold; amount = req.amount }); day = today })); extra = [#card(#holdAdjusted({ auth = o.of; from = orig.holdAmount; to = 0; hold = null; kind = kindText; day = today }))]; journal = [voided] };
+              return #ok({ plan; decision = #approved({ authCode = a.authCode; hold = ?orig.hold; amount = req.amount }); scheme = world.scheme.id });
+            };
+            // the authorization block is committed first, so the re-reservation lands at height + 1 of the journal — its index is the journal's next height
+            let (step, idx) = switch (reserve(newAmount, kindText)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+            // the void is the first journal step; the reservation follows it, so its index is one past the void's
+            let plan : Plan = { bankEvent = ?#card(#authorised({ card = ?r.id; request = req; decision = #approved({ authCode = a.authCode; hold = ?(idx + 1); amount = req.amount }); day = today })); extra = [#card(#holdAdjusted({ auth = o.of; from = orig.holdAmount; to = newAmount; hold = ?(idx + 1); kind = kindText; day = today }))]; journal = [voided, step] };
+            #ok({ plan; decision = #approved({ authCode = a.authCode; hold = ?(idx + 1); amount = req.amount }); scheme = world.scheme.id })
+          };
+        }
+      };
+    }
+  };
+
+  /// A clearing batch from the scheme through the connector: the signature judged under the scheme's key; each item
+  /// posts against its hold (within the tolerance), directly (no hold, at or below the floor), or is recorded as an
+  /// exception; interchange and the scheme's fee post with each item. One block for the batch, one per item.
+  public func planClearingBatch(bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64, schemeId : Text, batch : Blob, items : [CdT.ClearingItem], signature : Blob, verify : Verify) : Result.Result<Plan, T.BankError> {
+    let pol = switch (CardCore.policy(bs.cards)) { case (?p) p; case null return cardErr(#NoPolicy) };
+    let today = JCore.effectiveToday(js, now);
+    let (_, sc) = switch (schemeWorld(bs, bb, schemeId)) { case (#err(e)) return #err(e); case (#ok(p)) p };
+    if (batch.size() != 32) return cardErr(#BadDocument({ reason = "a batch is recorded by its sha256" }));
+    if (CardCore.batchKnown(bs.cards, batch)) return cardErr(#BatchKnown({ batch }));
+    if (items.size() == 0 or items.size() > CardCore.MAX_BATCH_ITEMS) return cardErr(#BadDocument({ reason = "1.." # Nat.toText(CardCore.MAX_BATCH_ITEMS) # " items" }));
+    if (not verify(sc.connectorScheme, sc.connectorKey, CdCan.batchBytes(schemeId, batch, items), signature)) return cardErr(#BadSignature);
+    let ?period = periodForDay(js, today) else return #err(#JournalConfigError({ error = #UnknownPeriod({ id = "day " # Nat.toText(today) }) }));
+    let extras = List.empty<T.Event>();
+    let steps = List.empty<JournalStep>();
+    var posted = 0; var exceptions = 0; var interchangeTotal = 0; var feeTotal = 0;
+    // the journal's height advances with every step planned here, so each item's posting index is predicted from it
+    var nextIndex = JCore.height(js);
+    var seq = 0;
+    for (it in items.vals()) {
+      seq += 1;
+      let cardRow = CardCore.cardByToken(bs.cards, it.token);
+      func exception(reason : Text) { List.add(extras, #card(#cleared({ scheme = schemeId; batch; card = switch (cardRow) { case (?c) ?c.id; case null null }; item = it; outcome = #exception({ reason }); interchange = 0; fee = 0; posting = null; day = today }))); exceptions += 1 };
+      let ?cr = cardRow else { exception("unknown card token"); continue };
+      let (acct, terms) = switch (requireAccount(bs, bb, cr.account)) { case (#err(_)) { exception("the card's account is unknown"); continue }; case (#ok(p)) p };
+      if (not Text.equal(it.currency, acct.currency)) { exception("currency " # it.currency # " is not the account's"); continue };
+      let interchange = CardCore.interchangeOf(sc.rules, it.mcc, it.amount);
+      let fee = CardCore.feeOf(sc.rules, it.amount);
+      func sideLegs(refund : Bool, amount : Nat) : [JT.Leg] {
+        // a purchase debits the cardholder and credits the scheme; a refund the other way; interchange is the issuer's income, the fee its expense
+        let main = if (refund) [Posting.leg(sc.settlementAccount, null, #debit, acct.currency, amount), Posting.leg(terms.control, ?acct.subledger, #credit, acct.currency, amount)]
+                   else [Posting.leg(terms.control, ?acct.subledger, #debit, acct.currency, amount), Posting.leg(sc.settlementAccount, null, #credit, acct.currency, amount)];
+        let ic = if (interchange > 0) [Posting.leg(sc.settlementAccount, null, #debit, acct.currency, interchange), Posting.leg(pol.interchangeIncome, null, #credit, acct.currency, interchange)] else [];
+        let fe = if (fee > 0) [Posting.leg(pol.schemeFees, null, #debit, acct.currency, fee), Posting.leg(sc.settlementAccount, null, #credit, acct.currency, fee)] else [];
+        Array.concat(Array.concat(main, ic), fe)
+      };
+      var refusal = "";
+      func post(legs : [JT.Leg], tag : Text) : ?Nat {
+        let input : JT.PostingInput = {
+          idempotencyKey = Posting.key("card-clearing", [schemeId, Nat.toText(R8(batch)), Nat.toText(seq), tag]); postingDate = today; valueDate = today; period; legs;
+          sourceRef = { kind = "card-clearing"; id = it.acquirer # "/" # it.stan # "/" # it.rrn }; narration = "card clearing " # it.rrn; correctionOf = null;
+        };
+        switch (JCore.preparePost(js, journalCaller, now, input)) {
+          case (#ok(#event(ev))) { List.add(steps, #event(ev)); nextIndex += 1; ?(nextIndex - 1) };
+          case (#ok(#duplicate(idx))) { List.add(steps, #existing(idx)); ?idx };
+          case (#err(e)) { refusal := debug_show e; null };
+        }
+      };
+      var outcome : ?CdT.ClearingOutcome = null; var postingIdx : ?Nat = null;
+      switch (it.authCode) {
+        case (?code) {
+          switch (CardCore.authByCode(bs.cards, code)) {
+            case (?a) {
+              if (a.card != cr.id) { exception("the authorization is another card's"); continue };
+              if (not a.holdOpen) { exception("the authorization's hold is not open"); continue };
+              let diff : Int = (it.amount : Int) - a.holdAmount;
+              if (Int.abs(diff) > pol.clearingTolerance) {
+                // outside the tolerance: the hold is voided and the clearing posts directly
+                switch (JCore.prepareVoidPending(js, jb, journalCaller, a.hold)) { case (#ok(ev)) { List.add(steps, #event(ev)); nextIndex += 1 }; case (#err(_)) { exception("the hold could not be voided"); continue } };
+                switch (post(sideLegs(it.refund, it.amount), "d")) { case (?p) { postingIdx := ?p; outcome := ?#postedAgainstHold({ auth = a.id; hold = a.hold; difference = diff }) }; case null { exception("the posting was refused by the journal: " # refusal); continue } };
+              } else {
+                // the hold posts; the difference, the interchange and the fee post beside it
+                switch (JCore.preparePostPending(js, jb, journalCaller, now, a.hold, ?{ postingDate = today; valueDate = today; valueDateRequested = null; period })) {
+                  case (#ok(#event(ev))) { List.add(steps, #event(ev)); nextIndex += 1; postingIdx := ?(nextIndex - 1) };
+                  case (#ok(#expired(_))) { exception("the hold had expired"); continue };
+                  case (#err(_)) { exception("the hold could not be posted"); continue };
+                };
+                let adj = if (diff > 0) [Posting.leg(terms.control, ?acct.subledger, #debit, acct.currency, Int.abs(diff)), Posting.leg(sc.settlementAccount, null, #credit, acct.currency, Int.abs(diff))]
+                          else if (diff < 0) [Posting.leg(sc.settlementAccount, null, #debit, acct.currency, Int.abs(diff)), Posting.leg(terms.control, ?acct.subledger, #credit, acct.currency, Int.abs(diff))] else [];
+                let side = Array.concat(adj, Array.concat(if (interchange > 0) [Posting.leg(sc.settlementAccount, null, #debit, acct.currency, interchange), Posting.leg(pol.interchangeIncome, null, #credit, acct.currency, interchange)] else [],
+                                                          if (fee > 0) [Posting.leg(pol.schemeFees, null, #debit, acct.currency, fee), Posting.leg(sc.settlementAccount, null, #credit, acct.currency, fee)] else []));
+                if (side.size() > 0) { switch (post(side, "a")) { case (?_) {}; case null { exception("the adjustment was refused by the journal: " # refusal); continue } } };
+                outcome := ?#postedAgainstHold({ auth = a.id; hold = a.hold; difference = diff });
+              };
+            };
+            case null { exception("unknown authorization code " # code); continue };
+          };
+        };
+        case null {
+          if (not it.refund and it.amount > sc.rules.floorLimit) { exception("no authorization and the amount is above the floor limit"); continue };
+          switch (post(sideLegs(it.refund, it.amount), "d")) { case (?p) { postingIdx := ?p; outcome := ?#postedDirect({ belowFloor = true }) }; case null { exception("the posting was refused by the journal: " # refusal); continue } };
+        };
+      };
+      switch (outcome) {
+        case (?o) { List.add(extras, #card(#cleared({ scheme = schemeId; batch; card = ?cr.id; item = it; outcome = o; interchange; fee; posting = postingIdx; day = today }))); posted += 1; interchangeTotal += interchange; feeTotal += fee };
+        case null {};
+      };
+    };
+    #ok({ bankEvent = ?#card(#clearingRecorded({ scheme = schemeId; batch; items = items.size(); posted; exceptions; interchange = interchangeTotal; fees = feeTotal; day = today })); extra = List.toArray(extras); journal = List.toArray(steps) })
+  };
+  func R8(b : Blob) : Nat { var n = 0; var i = 0; for (x in b.vals()) { if (i < 8) n := n * 256 + Nat8.toNat(x); i += 1 }; n };
+
+  /// End-of-day job 16: holds past the scheme's window voided (the journal's own expiry, recorded per authorization),
+  /// dispute steps due alerted, credit-card statement cycles cut on the product's day.
+  func jobCards(
+    bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
+    acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, period : JT.PeriodId, book : Text, only : ?Text,
+  ) {
+    ignore period;
+    if (CardCore.policy(bs.cards) == null) { fail(acc, index, item.job, book, "no card policy"); return };
+    // expired holds: the journal names them; those that are a card's are voided and recorded
+    for (idx in JCore.expiredPendings(js, now, 500).vals()) {
+      switch (CardCore.authOfHold(bs.cards, idx)) {
+        case (?a) {
+          if (a.holdOpen) {
+            acc.examined += 1;
+            switch (JCore.prepareVoidPending(js, jb, journalCaller, idx)) {
+              case (#ok(ev)) { ignore acc.recorder.journal(ev); record(acc, #card(#holdExpired({ auth = a.id; hold = idx; day }))) };
+              case (#err(e)) fail(acc, index, item.job, Nat.toText(a.id), debug_show e);
+            };
+          };
+        };
+        case null {};
+      };
+    };
+    if (only == null) {
+      for (ev in CardCore.dueDisputes(bs.cards, day).vals()) {
+        record(acc, #card(ev));
+        switch (ev) {
+          case (#disputeStepDue(d)) { switch (alertFor(bs, { rule = "card.dispute.step.due"; version = 1; account = d.dispute; day; postings = []; detail = "dispute " # Nat.toText(d.dispute) # " at " # CdT.stageText(d.stage) # " due day " # Nat.toText(d.dueDay) }, #endOfDay)) { case (?a) record(acc, a); case null {} } };
+          case (_) {};
+        };
+      };
+    };
+    // statement cycles: every active credit card whose product's statement day is today, in this book
+    for (r in CardCore.cardsInState(bs.cards, #active).vals()) {
+      if (ProductCore.bookOf(bs.product, r.account) != ?book) continue;
+      let mine = switch (only) { case null true; case (?e) Text.equal(e, Nat.toText(r.id)) };
+      if (not mine) continue;
+      switch (CardCore.product(bs.cards, r.product)) {
+        case (?p) {
+          if (p.credit and dayOfMonth(day) == p.statementDay and CardCore.statement(bs.cards, r.id, day) == null) {
+            acc.examined += 1;
+            switch (requireAccount(bs, bb, r.account)) {
+              case (#ok((a, terms))) {
+                let b = Posting.accountBalanceOn(js, terms.control, a.subledger, a.currency, #credit, day);
+                let balance : Int = if (b.overdrawn) b.net else -(b.net : Int);   // what the cardholder owes (positive when overdrawn)
+                let (purchases, payments, interest) = cycleFigures(bs, js, r, a, terms, day);
+                let minimumDue = if (balance <= 0) 0 else Nat.max(Int.abs(balance) * p.minimumDueBps / 10_000, Nat.min(p.minimumDueFloor, Int.abs(balance)));
+                record(acc, #card(#statementCut({ card = r.id; cycleEnd = day; balance; minimumDue; dueDay = day + p.graceDays; purchases; payments; interest; day })));
+              };
+              case (#err(e)) fail(acc, index, item.job, Nat.toText(r.id), debug_show e);
+            };
+          };
+        };
+        case null {};
+      };
+    };
+  };
+  func dayOfMonth(day : Nat) : Nat { let (_, _, d) = civilOf(day); d };
+  func civilOf(day : Nat) : (Nat, Nat, Nat) {
+    let z = day + 719468; let era = z / 146097; let doe = z - era * 146097; let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400; let doy = doe - (365 * yoe + yoe / 4 - yoe / 100); let mp = (5 * doy + 2) / 153; let d = doy - (153 * mp + 2) / 5 + 1; let m = if (mp < 10) mp + 3 else mp - 9;
+    (if (m <= 2) y + 1 else y, m, d)
+  };
+  /// The cycle's purchases and payments since the previous statement (the cleared rows of the card and the account's
+  /// credits in the cycle), and the interest the engine charged: read from the card's cleared rows and the journal.
+  func cycleFigures(bs : State, js : JCore.State, r : CardCore.CardRow, a : ProductCore.AccountEntry, terms : ProdT.ProductTerms, day : Nat) : (Nat, Nat, Nat) {
+    var purchases = 0;
+    for (c in CardCore.clearedOfCard(bs.cards, r.id).vals()) { if (c.day > day - 31 and c.day <= day and c.outcome != 3) { if (c.refund) {} else purchases += c.amount } };
+    // payments: the account's credits over the cycle less card refunds; interest: the product's interest-receivable role movements are the engine's, read as the overdraft interest posted in the cycle
+    let nowB = Posting.accountBalanceOn(js, terms.control, a.subledger, a.currency, #credit, day);
+    let thenB = Posting.accountBalanceOn(js, terms.control, a.subledger, a.currency, #credit, if (day > 30) day - 30 else 0);
+    ignore nowB; ignore thenB;
+    let interestAcc = switch (Array.find<ProdT.RoleMapping>(terms.roles, func(x) { x.role == #interestReceivable })) { case (?x) x.account; case null "" };
+    let interest = if (interestAcc == "") 0 else { let ib = Posting.accountBalanceOn(js, interestAcc, a.subledger, a.currency, #debit, day); let ib0 = Posting.accountBalanceOn(js, interestAcc, a.subledger, a.currency, #debit, if (day > 30) day - 30 else 0); if (ib.net >= ib0.net and not ib.overdrawn and not ib0.overdrawn) ib.net - ib0.net else 0 };
+    (purchases, 0, interest)
   };
 
   // ─── Treasury (treasury): the planners, the valuation context and the end-of-day job ─────────────────
@@ -9538,6 +9997,7 @@ module {
       case (#trade(tr)) { TradeCore.fold(s.trade, block.index, tr) };
       case (#islamic(ie)) { IslamicCore.fold(s.islamic, block.index, ie) };
       case (#treasury(te)) { TreasuryCore.fold(s.treasury, block.index, te) };
+      case (#card(ce)) { CardCore.fold(s.cards, block.index, ce) };
       case (#shard(se)) { ShardCore.apply(s.shard, block.index, se) };
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
@@ -9673,6 +10133,7 @@ module {
       case (#trade(_)) "trade";
       case (#islamic(_)) "islamic";
       case (#treasury(_)) "treasury";
+      case (#card(_)) "card";
       case (#packing(_)) "packing";
       case (#shard(_)) "shard";
       case (#settlement(_)) "settlement";
@@ -9971,6 +10432,7 @@ module {
     TradeCore.fingerprintInto(w, s.trade);
     IslamicCore.fingerprintInto(w, s.islamic);
     TreasuryCore.fingerprintInto(w, s.treasury);
+    CardCore.fingerprintInto(w, s.cards);
     w.nat(s.packing.packs); w.nat(s.packing.packedThroughBlock); w.nat(s.packing.packedThroughDay); w.nat(s.packing.bankPackedThroughBlock);
     switch (s.packing.current) { case (?c) { w.byte(1); w.nat(c.pack); w.text(c.period); w.nat(c.periodEnd); w.nat(c.lo); w.nat(c.hi); w.nat(c.bankLo); w.nat(c.bankHi) }; case null w.byte(0) };
     w.nat(s.packing.archivedThroughBlock); w.nat(s.packing.archivedPacks);

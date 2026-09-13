@@ -96,6 +96,10 @@ import TT "TreasuryTypes";
 import TreasuryCore "TreasuryCore";
 import TreasuryMessages "TreasuryMessages";
 import TreasuryMath "TreasuryMath";
+import CdT "CardTypes";
+import CardCore "CardCore";
+import CdCan "CardCanonical";
+import CardMessages "CardMessages";
 import PkT "PackingTypes";
 import Packing "Packing";
 import Pack "Pack";
@@ -2981,6 +2985,122 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func nostroBreak(id : Nat) : async ?TT.BreakView { switch (TreasuryCore.breakRow(bank.treasury, id)) { case (?b) ?breakViewOf(b); case null null } };
   /// The treasury at a glance: the policy and the counts.
   public query func treasuryStatus() : async { policy : ?TT.Policy; status : TT.Status } { { policy = TreasuryCore.policy(bank.treasury); status = TreasuryCore.status(bank.treasury) } };
+  // ─── cards (cards) ──────────────────────────────────────────────────────────
+
+  /// An authorization from the acquirer through the connector (`card.authorize`): the request the connector
+  /// translated (ISO 8583 or cain.001 — the token, never the PAN) with its signature under the scheme's key; the
+  /// decision is a block either way, an approval placing the hold as the journal's pending posting. The answer
+  /// carries the ISO 8583 response code and the approval code for the acquirer.
+  public shared ({ caller }) func authorizeCard(request : CdT.AuthRequest, signature : Blob) : async Result.Result<{ block : Nat; decision : CdT.Decision; responseCode : Text; hold : ?Nat }, T.BankError> {
+    switch (requireMethodPermission(caller, "authorizeCard")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    switch (BankCore.planAuthorizeCard(bank, bankBlocks(), journal, journalBlocks(), me(), now(), request, signature, verifyConnectorSignature)) {
+      case (#err(e)) fail<{ block : Nat; decision : CdT.Decision; responseCode : Text; hold : ?Nat }>(caller, "card.authorize", { error = e; record = true });
+      case (#ok(r)) {
+        let at = BankCore.height(bank);
+        switch (r.plan.bankEvent) { case (?ev) ignore commitBank(caller, ev); case null {} };
+        for (ev in r.plan.extra.vals()) ignore commitBank(caller, ev);
+        var hold : ?Nat = null;
+        for (step in r.plan.journal.vals()) { switch (step) { case (#event(ev)) { let b = commitJournal(ev); switch (ev) { case (#pending(_)) hold := ?b.index; case (_) {} } }; case (#existing(_)) {} } };
+        #ok({ block = at; decision = r.decision; responseCode = CdT.responseCode(r.decision); hold })
+      };
+    }
+  };
+  /// The same, from the acquirer's cain.001 document: parsed by the contract, judged as above, answered as cain.002.
+  public shared ({ caller }) func authorizeCardIso20022(document : Blob, signature : Blob) : async Result.Result<{ block : Nat; decision : CdT.Decision; response : Text }, T.BankError> {
+    switch (requireMethodPermission(caller, "authorizeCardIso20022")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    let parsed = switch (CardMessages.parseCain001(document)) { case (#ok(p)) p; case (#err(reason)) return fail<{ block : Nat; decision : CdT.Decision; response : Text }>(caller, "card.authorize", { error = #CardError({ error = #BadDocument({ reason }) }); record = true }) };
+    switch (BankCore.planAuthorizeCard(bank, bankBlocks(), journal, journalBlocks(), me(), now(), parsed.request, signature, verifyConnectorSignature)) {
+      case (#err(e)) fail<{ block : Nat; decision : CdT.Decision; response : Text }>(caller, "card.authorize", { error = e; record = true });
+      case (#ok(r)) {
+        let at = BankCore.height(bank);
+        switch (r.plan.bankEvent) { case (?ev) ignore commitBank(caller, ev); case null {} };
+        for (ev in r.plan.extra.vals()) ignore commitBank(caller, ev);
+        for (step in r.plan.journal.vals()) { switch (step) { case (#event(ev)) ignore commitJournal(ev); case (#existing(_)) {} } };
+        let issuer = switch (TradeCore.policy(bank.trade)) { case (?p) p.bic; case null "THEBES" };
+        #ok({ block = at; decision = r.decision; response = CardMessages.cain002Xml(parsed.request, r.decision, issuer, parsed.acquirerCountry, JCore.effectiveToday(journal, now()), parsed.messageFunction) })
+      };
+    }
+  };
+  /// A clearing batch from the scheme through the connector (`card.clearing.record`), signed under the scheme's key.
+  public shared ({ caller }) func recordClearingBatch(scheme : Text, batch : Blob, items : [CdT.ClearingItem], signature : Blob) : async Result.Result<{ block : Nat; posted : Nat; exceptions : Nat; postings : [Nat] }, T.BankError> {
+    switch (requireMethodPermission(caller, "recordClearingBatch")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    switch (BankCore.planClearingBatch(bank, bankBlocks(), journal, journalBlocks(), me(), now(), scheme, batch, items, signature, verifyConnectorSignature)) {
+      case (#err(e)) fail<{ block : Nat; posted : Nat; exceptions : Nat; postings : [Nat] }>(caller, "card.clearing.record", { error = e; record = true });
+      case (#ok(plan)) {
+        let at = BankCore.height(bank);
+        var posted = 0; var exceptions = 0;
+        switch (plan.bankEvent) { case (?#card(#clearingRecorded(x))) { posted := x.posted; exceptions := x.exceptions; ignore commitBank(caller, #card(#clearingRecorded(x))) }; case (?ev) ignore commitBank(caller, ev); case null {} };
+        // the journal steps land before the item blocks so each item's recorded posting index is the index it names
+        let postings = List.empty<Nat>();
+        for (step in plan.journal.vals()) { switch (step) { case (#event(ev)) List.add(postings, commitJournal(ev).index); case (#existing(idx)) List.add(postings, idx) } };
+        for (ev in plan.extra.vals()) ignore commitBank(caller, ev);
+        #ok({ block = at; posted; exceptions; postings = List.toArray(postings) })
+      };
+    }
+  };
+  func cardView(caller : Principal, id : Nat) : Result.Result<?CdT.CardView, T.BankError> {
+    switch (CardCore.card(bank.cards, id)) {
+      case null #ok(null);
+      case (?r) {
+        let book = ProductCore.bookOf(bank.product, r.account);
+        if (not BankCore.mayReadOptBook(readScope(caller), book)) return #err(#OutsideBookScope({ book = switch (book) { case (?b) b; case null "" } }));
+        let none : CdT.Controls = { dailyLimit = 0; perTransactionLimit = 0; mccAllow = []; mccDeny = []; channels = { pos = false; atm = false; ecom = false; contactless = false; international = false }; velocityCount = 0; velocityWindowMinutes = 0 };
+        let controls : CdT.Controls = switch (BankCore.cardControlsOf(bankBlocks(), r)) { case (?c) c; case null none };
+        #ok(?CardCore.view(bank.cards, r, controls))
+      };
+    }
+  };
+  /// A card's row by its id; never the token, never a PAN.
+  public shared query ({ caller }) func card(id : Nat) : async Result.Result<?CdT.CardView, T.BankError> { cardView(caller, id) };
+  /// The card a token stands for, for the connector that holds only the token.
+  public shared query ({ caller }) func cardByToken(token : Blob) : async Result.Result<?CdT.CardView, T.BankError> {
+    switch (CardCore.cardByToken(bank.cards, token)) { case (?r) cardView(caller, r.id); case null #ok(null) }
+  };
+  public shared query ({ caller }) func cardsOfAccount(account : Nat) : async [CdT.CardView] {
+    let out = List.empty<CdT.CardView>();
+    for (r in CardCore.cardsOfAccount(bank.cards, account).vals()) { switch (cardView(caller, r.id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    List.toArray(out)
+  };
+  public shared query ({ caller }) func cardsOfParty(party : Nat) : async [CdT.CardView] {
+    let out = List.empty<CdT.CardView>();
+    for (r in CardCore.cardsOfParty(bank.cards, party).vals()) { switch (cardView(caller, r.id)) { case (#ok(?v)) List.add(out, v); case (_) {} } };
+    List.toArray(out)
+  };
+  func authViewOf(a : CardCore.AuthRow) : CdT.AuthView {
+    let (stan, rrn) = switch (bankBlock(a.id)) { case (?b) { switch (b.event) { case (#card(#authorised(x))) (x.request.stan, x.request.rrn); case (_) ("", "") } }; case null ("", "") };
+    CardCore.authView(a, stan, rrn)
+  };
+  /// A decision by its block, or by the approval code the acquirer quotes.
+  public query func cardAuthorization(id : Nat) : async ?CdT.AuthView { switch (CardCore.auth(bank.cards, id)) { case (?a) ?authViewOf(a); case null null } };
+  public query func cardAuthorizationByCode(code : Text) : async ?CdT.AuthView { switch (CardCore.authByCode(bank.cards, code)) { case (?a) ?authViewOf(a); case null null } };
+  /// A card's decisions on a day, approved and declined.
+  public shared query ({ caller }) func cardAuthorizationsOfDay(card : Nat, day : Nat) : async Result.Result<[CdT.AuthView], T.BankError> {
+    switch (cardView(caller, card)) { case (#err(e)) #err(e); case (#ok(null)) #ok([]); case (#ok(?_)) #ok(Array.map<CardCore.AuthRow, CdT.AuthView>(CardCore.authsOfCardDay(bank.cards, card, day), authViewOf)) }
+  };
+  /// A card's open holds over a window of days.
+  public shared query ({ caller }) func cardOpenHolds(card : Nat, from : Nat, to : Nat) : async Result.Result<[CdT.AuthView], T.BankError> {
+    switch (cardView(caller, card)) { case (#err(e)) #err(e); case (#ok(null)) #ok([]); case (#ok(?_)) #ok(Array.map<CardCore.AuthRow, CdT.AuthView>(CardCore.openHoldsOf(bank.cards, card, from, to), authViewOf)) }
+  };
+  public query func cardTransaction(id : Nat) : async ?CardCore.ClearedRow { CardCore.clearedRow(bank.cards, id) };
+  public shared query ({ caller }) func cardTransactionsOf(card : Nat) : async Result.Result<[CardCore.ClearedRow], T.BankError> {
+    switch (cardView(caller, card)) { case (#err(e)) #err(e); case (#ok(null)) #ok([]); case (#ok(?_)) #ok(CardCore.clearedOfCard(bank.cards, card)) }
+  };
+  func disputeViewOf(d : CardCore.DisputeRow) : CdT.DisputeView {
+    let reason = switch (bankBlock(d.id)) { case (?b) { switch (b.event) { case (#card(#disputeOpened(x))) x.reason; case (_) "" } }; case null "" };
+    CardCore.disputeView(d, reason)
+  };
+  public query func cardDispute(id : Nat) : async ?CdT.DisputeView { switch (CardCore.dispute(bank.cards, id)) { case (?d) ?disputeViewOf(d); case null null } };
+  public query func cardDisputesOpen() : async [CdT.DisputeView] { Array.map<CardCore.DisputeRow, CdT.DisputeView>(CardCore.openDisputes(bank.cards), disputeViewOf) };
+  public query func cardStatement(card : Nat, cycleEnd : Nat) : async ?CardCore.StatementRow { CardCore.statement(bank.cards, card, cycleEnd) };
+  public query func cardScheme(id : Text) : async ?CdT.Scheme { switch (CardCore.scheme(bank.cards, id)) { case (?r) BankCore.cardSchemeOf(bankBlocks(), r); case null null } };
+  public query func cardProduct(id : Text) : async ?CdT.CardProduct { switch (CardCore.product(bank.cards, id)) { case (?r) BankCore.cardProductOf(bankBlocks(), r); case null null } };
+  /// The cards book at a glance: the policy and the counts.
+  public query func cardStatus() : async { policy : ?CdT.Policy; status : CdT.Status } { { policy = CardCore.policy(bank.cards); status = CardCore.status(bank.cards) } };
+  /// The canonical bytes the connector signs for an authorization request and a clearing batch — published so a
+  /// connector can be built from the interface alone.
+  public query func cardRequestBytes(request : CdT.AuthRequest) : async Blob { CdCan.requestBytes(request) };
+  public query func cardBatchBytes(scheme : Text, batch : Blob, items : [CdT.ClearingItem]) : async Blob { CdCan.batchBytes(scheme, batch, items) };
+
   /// An FX deal's confirmation as fxtr.014.001.04, from its terms; null for a deal that is not an FX forward or swap
   /// leg (`leg` selects the near or far leg of a swap).
   public shared query ({ caller }) func treasuryConfirmation(id : Nat, leg : Nat) : async Result.Result<?Text, T.BankError> {

@@ -33,6 +33,7 @@ import TeT "TellerTypes";
 import TrT "TradeTypes";
 import IT "IslamicTypes";
 import TT "TreasuryTypes";
+import CdT "CardTypes";
 import PkT "PackingTypes";
 import ST "ShardTypes";
 import SeT "SettlementTypes";
@@ -539,6 +540,26 @@ module {
     #markDeal : { deal : TT.DealId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
     #recordNostroStatement : { nostro : TT.NostroId; statement : Blob; from : Day; to : Day; entries : [TT.StatementEntry]; document : ?Blob };
     #resolveNostroBreak : { breakId : TT.BreakId; resolution : Text; correction : ?{ account : Text; sub : ?Text; debit : Bool; amount : Nat; currency : Text }; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    // ── cards (cards): issuance, controls and disputes as commands; authorizations and clearing arrive as signed methods ──
+    #setCardPolicy : CdT.Policy;
+    #declareCardScheme : { scheme : CdT.Scheme };
+    #defineCardProduct : { product : CdT.CardProduct };
+    /// The token the vault minted stands for the card; the PAN never arrives.
+    #issueCard : { token : CdT.Token; account : ProdT.AccountId; product : CdT.ProductId; form : CdT.Form; controls : CdT.Controls; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #activateCard : { card : CdT.CardId };
+    #blockCard : { card : CdT.CardId; reason : CdT.BlockReason };
+    #unblockCard : { card : CdT.CardId };
+    #replaceCard : { card : CdT.CardId; newToken : CdT.Token; reason : CdT.ReplaceReason; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #closeCard : { card : CdT.CardId; reason : Text };
+    /// `byCustomer` is the channel's statement of who asked (recorded); the permission's scope decides who may.
+    #setCardControls : { card : CdT.CardId; controls : CdT.Controls; byCustomer : Bool };
+    #openDispute : { transaction : CdT.ClearedId; reason : Text; amount : Nat };
+    #grantProvisionalCredit : { dispute : CdT.DisputeId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #raiseChargeback : { dispute : CdT.DisputeId; schemeRef : Text; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordRepresentment : { dispute : CdT.DisputeId; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #recordPreArbitration : { dispute : CdT.DisputeId };
+    #resolveDispute : { dispute : CdT.DisputeId; outcome : CdT.Outcome; finalAmount : Nat; postingDate : Day; valueDate : Day; period : Text; narration : Text };
+    #markFraud : { transaction : CdT.ClearedId; blockCard : Bool };
     // ── closed-month packing: opening a pack over a closed period, rolling a sealed one to an archive ──
     #openPacking : { period : Text };
     #rollPackToArchive : { pack : Nat; cid : Nat64; archive : Principal };
@@ -654,6 +675,8 @@ module {
     #islamic : IT.IslamicEvent;
     /// Treasury: deals, curves, limits, nostro statements and breaks (treasury).
     #treasury : TT.TreasuryEvent;
+    /// Cards: issuance, decisions, holds, clearing, disputes, statements (cards).
+    #card : CdT.CardEvent;
     /// Closed-month packing: a pack opened, every segment, every advance, the seal.
     #packing : PkT.PackingEvent;
     /// Shards: the routing rule's versions, and every step of every inter-shard transfer.
@@ -786,6 +809,7 @@ module {
     #TradeError : { error : TrT.TradeError };
     #IslamicError : { error : IT.IslamicError };
     #TreasuryError : { error : TT.TreasuryError };
+    #CardError : { error : CdT.CardError };
     #PackingError : { error : PkT.Error };
     #ShardError : { error : ST.ShardError };
     #SettlementError : { error : SeT.SettlementError };

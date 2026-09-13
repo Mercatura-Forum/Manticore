@@ -195,6 +195,24 @@ module {
           case (_) [];
         }
       };
+      // ── cards (cards): the configuration and the record-only lifecycle acts whose block carries the instruction whole ──
+      case (#card(ce)) {
+        if (act.size() > 1) return [];
+        switch (ce) {
+          case (#policySet(p)) [#setCardPolicy(p)];
+          case (#schemeDeclared(x)) [#declareCardScheme({ scheme = x.scheme })];
+          case (#productDefined(x)) [#defineCardProduct({ product = x.product })];
+          case (#cardActivated(x)) [#activateCard({ card = x.card })];
+          case (#cardBlocked(x)) [#blockCard({ card = x.card; reason = x.reason })];
+          case (#cardUnblocked(x)) [#unblockCard({ card = x.card })];
+          case (#cardClosed(x)) [#closeCard({ card = x.card; reason = x.reason })];
+          case (#controlsSet(x)) [#setCardControls({ card = x.card; controls = x.controls; byCustomer = x.byCustomer })];
+          case (#disputeOpened(x)) [#openDispute({ transaction = x.transaction; reason = x.reason; amount = x.amount })];
+          case (#preArbitrationRecorded(x)) [#recordPreArbitration({ dispute = x.dispute })];
+          case (#fraudMarked(x)) [#markFraud({ transaction = x.transaction; blockCard = x.blocked })];
+          case (_) [];
+        }
+      };
       case (_) [];
     }
   };
@@ -277,6 +295,7 @@ module {
      "setTellerPolicy", "openTellerSession", "closeTellerSession", "issueChequebook", "stopCheque",
      "setTradePolicy", "presentDocuments", "examinePresentation", "waiveDiscrepancies", "recordDemand", "presentCollection", "acceptCollection", "protestCollection", "recordTradeMessage",
      "setIslamicPolicy", "approveShariaProduct", "flagShariaBook", "closeShariaContract", "openInvestmentPool", "updatePoolReserves",
-     "setTreasuryPolicy", "registerSecurity", "publishCurve", "setTreasuryLimit", "registerNostro", "cancelDeal"]
+     "setTreasuryPolicy", "registerSecurity", "publishCurve", "setTreasuryLimit", "registerNostro", "cancelDeal",
+     "setCardPolicy", "declareCardScheme", "defineCardProduct", "activateCard", "blockCard", "unblockCard", "closeCard", "setCardControls", "openDispute", "recordPreArbitration", "markFraud"]
   };
 }

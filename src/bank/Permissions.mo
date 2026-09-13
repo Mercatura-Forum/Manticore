@@ -383,6 +383,29 @@ module {
     p("treasury.deal.mark", "treasury", #update, #command("markDeal"), true, true),
     p("nostro.statement.record", "nostro", #create, #command("recordNostroStatement"), false, false),
     p("nostro.break.resolve", "nostro", #update, #command("resolveNostroBreak"), true, true),
+    // cards cards: the policy, schemes and products are dual acts of governance; issuing, unblocking and replacing a card are
+    // dual; activation, blocking, closing and the customer's controls are single acts; an authorization and a clearing batch
+    // are the connector's signed methods; a provisional credit and a resolution move money and are dual
+    p("card.policy", "card", #update, #command("setCardPolicy"), false, true),
+    p("card.scheme.declare", "card", #create, #command("declareCardScheme"), false, true),
+    p("card.product.define", "card", #create, #command("defineCardProduct"), false, true),
+    p("card.issue", "card", #create, #command("issueCard"), true, true),
+    p("card.activate", "card", #update, #command("activateCard"), false, false),
+    p("card.block", "card", #update, #command("blockCard"), false, false),
+    p("card.unblock", "card", #update, #command("unblockCard"), false, true),
+    p("card.replace", "card", #update, #command("replaceCard"), true, true),
+    p("card.close", "card", #close, #command("closeCard"), false, false),
+    p("card.controls.update", "card", #update, #command("setCardControls"), false, false),
+    p("card.dispute.open", "card", #create, #command("openDispute"), false, false),
+    p("card.dispute.credit", "card", #update, #command("grantProvisionalCredit"), true, true),
+    p("card.dispute.chargeback", "card", #update, #command("raiseChargeback"), true, true),
+    p("card.dispute.representment", "card", #update, #command("recordRepresentment"), true, true),
+    p("card.dispute.prearbitration", "card", #update, #command("recordPreArbitration"), false, false),
+    p("card.dispute.resolve", "card", #close, #command("resolveDispute"), true, true),
+    p("card.fraud.mark", "card", #update, #command("markFraud"), false, false),
+    p("card.authorize", "card", #create, #method("authorizeCard"), false, false),
+    p("card.authorize.iso20022", "card", #create, #method("authorizeCardIso20022"), false, false),
+    p("card.clearing.record", "card", #create, #method("recordClearingBatch"), false, false),
     // ── closed-month packing ──
     // Opening a pack decides which history leaves the live indexes; dual, like the close it
     // follows. Advancing one is an open method: see `openMethods`.
@@ -768,6 +791,9 @@ module {
       case (#setTreasuryPolicy(_)) "setTreasuryPolicy"; case (#registerSecurity(_)) "registerSecurity"; case (#publishCurve(_)) "publishCurve"; case (#setTreasuryLimit(_)) "setTreasuryLimit";
       case (#registerNostro(_)) "registerNostro"; case (#captureDeal(_)) "captureDeal"; case (#confirmDeal(_)) "confirmDeal"; case (#amendDeal(_)) "amendDeal"; case (#cancelDeal(_)) "cancelDeal";
       case (#settleDealLeg(_)) "settleDealLeg"; case (#markDeal(_)) "markDeal"; case (#recordNostroStatement(_)) "recordNostroStatement"; case (#resolveNostroBreak(_)) "resolveNostroBreak";
+      case (#setCardPolicy(_)) "setCardPolicy"; case (#declareCardScheme(_)) "declareCardScheme"; case (#defineCardProduct(_)) "defineCardProduct"; case (#issueCard(_)) "issueCard"; case (#activateCard(_)) "activateCard";
+      case (#blockCard(_)) "blockCard"; case (#unblockCard(_)) "unblockCard"; case (#replaceCard(_)) "replaceCard"; case (#closeCard(_)) "closeCard"; case (#setCardControls(_)) "setCardControls"; case (#openDispute(_)) "openDispute";
+      case (#grantProvisionalCredit(_)) "grantProvisionalCredit"; case (#raiseChargeback(_)) "raiseChargeback"; case (#recordRepresentment(_)) "recordRepresentment"; case (#recordPreArbitration(_)) "recordPreArbitration"; case (#resolveDispute(_)) "resolveDispute"; case (#markFraud(_)) "markFraud";
     }
   };
 
