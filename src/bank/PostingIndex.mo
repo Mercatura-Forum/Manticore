@@ -72,6 +72,10 @@ import RI "mo:ledger/RegionIndex";
 import RB "mo:ledger/RegionRebuild";
 
 module {
+  /// The layout of the posting, activity and pack stores in Regions (S4.10). There is no fold of these from the log yet:
+  /// an upgrade to code with another layout is refused by the bank's lifecycle check rather than risk reading old rows.
+  public let LAYOUT_VERSION : Nat = 1;
+
 
   // ═══════════════════════════════════════════════════════
   //  WIDTHS; every one of these is a row in the capacity model §2

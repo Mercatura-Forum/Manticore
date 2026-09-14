@@ -3058,6 +3058,17 @@ class Reader(V.Reader):
             return {"payments": self.payments_event()}
         if tag == 0x4D:
             return {"fspiop": self.fspiop_event()}
+        if tag == 0x57:
+            k = self.byte()
+            if k == 0x01:
+                return {"rebuild": {"started": {"layoutFrom": self.nat(), "layoutTo": self.nat(), "journalLayoutFrom": self.nat(),
+                                               "journalLayoutTo": self.nat(), "bankBlocks": self.nat(), "journalBlocks": self.nat()}}}
+            if k == 0x02:
+                return {"rebuild": {"chunk": {"bankFrom": self.nat(), "bankTo": self.nat(), "journalFrom": self.nat(), "journalTo": self.nat()}}}
+            if k == 0x03:
+                return {"rebuild": {"completed": {"layout": self.nat(), "journalLayout": self.nat(), "bankBlocks": self.nat(), "journalBlocks": self.nat(),
+                                                 "bankFingerprint": self.blob(), "journalFingerprint": self.blob()}}}
+            raise ValueError(f"unknown rebuild event kind {k:#x}")
         raise ValueError(f"unknown bank event tag {tag:#x}")
 
 

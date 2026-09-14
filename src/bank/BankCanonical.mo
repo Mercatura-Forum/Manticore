@@ -1472,6 +1472,14 @@ module {
       case (#settlement(se)) { w.byte(0x4B); writeSettlementEvent(w, se) };
       case (#payments(pe)) { w.byte(0x4C); writePaymentsEvent(w, pe) };
       case (#fspiop(fe)) { w.byte(0x4D); writeFspiopEvent(w, fe) };
+      case (#rebuild(re)) {
+        w.byte(0x57);
+        switch (re) {
+          case (#started(x)) { w.byte(0x01); w.nat(x.layoutFrom); w.nat(x.layoutTo); w.nat(x.journalLayoutFrom); w.nat(x.journalLayoutTo); w.nat(x.bankBlocks); w.nat(x.journalBlocks) };
+          case (#chunk(x)) { w.byte(0x02); w.nat(x.bankFrom); w.nat(x.bankTo); w.nat(x.journalFrom); w.nat(x.journalTo) };
+          case (#completed(x)) { w.byte(0x03); w.nat(x.layout); w.nat(x.journalLayout); w.nat(x.bankBlocks); w.nat(x.journalBlocks); w.blob(x.bankFingerprint); w.blob(x.journalFingerprint) };
+        };
+      };
     };
   };
 
@@ -2832,6 +2840,29 @@ module {
       case 0x4B { let ?se = readSettlementEvent(r) else return null; ?#settlement(se) };
       case 0x4C { let ?pe = readPaymentsEvent(r) else return null; ?#payments(pe) };
       case 0x4D { let ?fe = readFspiopEvent(r) else return null; ?#fspiop(fe) };
+      case 0x57 {
+        let ?k = r.byte() else return null;
+        switch (k) {
+          case 0x01 {
+            let ?layoutFrom = r.nat() else return null; let ?layoutTo = r.nat() else return null;
+            let ?journalLayoutFrom = r.nat() else return null; let ?journalLayoutTo = r.nat() else return null;
+            let ?bankBlocks = r.nat() else return null; let ?journalBlocks = r.nat() else return null;
+            ?#rebuild(#started({ layoutFrom; layoutTo; journalLayoutFrom; journalLayoutTo; bankBlocks; journalBlocks }))
+          };
+          case 0x02 {
+            let ?bankFrom = r.nat() else return null; let ?bankTo = r.nat() else return null;
+            let ?journalFrom = r.nat() else return null; let ?journalTo = r.nat() else return null;
+            ?#rebuild(#chunk({ bankFrom; bankTo; journalFrom; journalTo }))
+          };
+          case 0x03 {
+            let ?layout = r.nat() else return null; let ?journalLayout = r.nat() else return null;
+            let ?bankBlocks = r.nat() else return null; let ?journalBlocks = r.nat() else return null;
+            let ?bankFingerprint = r.blob() else return null; let ?journalFingerprint = r.blob() else return null;
+            ?#rebuild(#completed({ layout; journalLayout; bankBlocks; journalBlocks; bankFingerprint; journalFingerprint }))
+          };
+          case _ null;
+        }
+      };
       case _ null;
     }
   };

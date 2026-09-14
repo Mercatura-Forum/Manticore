@@ -271,6 +271,12 @@ module {
     }
   };
 
+  /// The layout of the bank's derived state; every fold's row widths, key widths and index set, across every domain
+  /// core. A contract records the layout its state was written with; an upgrade to code with another rebuilds the state
+  /// from the log (S4.10) rather than reading old bytes as new rows. Raised on any such change: the S4.1 deal row
+  /// (205 → 213), curve row (258 → 570) and the indexes added since are layout 1, the first stamped.
+  public let LAYOUT_VERSION : Nat = 1;
+
   public func newState(admin : Principal) : State {
     let arena = RI.newArena();
     {
@@ -10433,6 +10439,7 @@ module {
       case (#settlement(se)) { SettlementCore.apply(s.settlement, block.index, se) };
       case (#payments(pe)) { PaymentsCore.apply(s.payments, block.index, block.timestamp, pe) };
       case (#fspiop(fe)) { FspiopCore.apply(s.fspiop, block.index, fe) };
+      case (#rebuild(_)) {};   // the rebuild's own trail: folded as nothing, so a rebuild reaching its own blocks changes nothing
       case (#packing(pe)) {
         switch (pe) {
           case (#packOpened(x)) { s.packing.current := ?{ pack = x.pack; period = x.period; periodEnd = x.periodEnd; lo = x.lo; hi = x.hi; bankLo = x.bankLo; bankHi = x.bankHi } };

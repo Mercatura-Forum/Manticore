@@ -385,6 +385,22 @@ Debug.print("count: daily-limit boundary checks = 3");
 let replayed = Core.replay(installer, BankMemLog.blocks(bchain));
 assert (Core.fingerprint(replayed) == fp());
 assert (Core.consumedFor(replayed, maker, "EGP", TODAY) == 120_000_00);
+// the fold a rebuild runs (S4.10); the same blocks applied a chunk at a time into a fresh state, the chunk boundary
+// anywhere; reaches the same fingerprint: a rebuild interrupted and resumed at any block is the fold of the log
+let allBlocks = BankMemLog.blocks(bchain);
+var chunkedRebuilds = 0;
+for (chunk in [1, 7, 50].vals()) {
+  let rebuilt = Core.newState(installer);
+  var cursor = 0;
+  while (cursor < allBlocks.size()) {
+    var n = 0;
+    while (cursor < allBlocks.size() and n < chunk) { Core.apply(rebuilt, BankMemLog.reader(bchain), allBlocks[cursor]); cursor += 1; n += 1 };
+  };
+  assert (Core.fingerprint(rebuilt) == fp());
+  chunkedRebuilds += 1;
+};
+assert (Core.LAYOUT_VERSION >= 1);
+Debug.print("count: chunked rebuilds reaching the live fingerprint = " # Nat.toText(chunkedRebuilds));
 // and an independent walk of the blocks agrees
 var independent : Nat = 0;
 for (b in BankMemLog.blocks(bchain).vals()) {

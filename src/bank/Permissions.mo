@@ -480,6 +480,7 @@ module {
     ("rejectShardTransfer", "the caller is held to the receiving shard's principal for a transfer that was sent; the pending is voided once and the customer's money released"),
     ("expireTransfers", "expiry is a fact of the clock: a reservation past its deadline is voided as the journal's own sweep voids, the caller chooses nothing, and an open path means a stalled timer cannot leave money reserved for ever"),
     ("advanceSettlement", "the settlement's window and phases were fixed by the dual-authorised opening; the netting is arithmetic over the window's committed transfers and the batch either settles whole or is refused, so an advancing caller cannot choose what settles — only that progress happens"),
+    ("advanceRebuild", "the rebuild folds the two logs as they stand into a state the layout check dropped; the fold cannot choose what it folds, the blocks it appends are its own trail and fold as nothing, and an open path means a stalled driver cannot leave a bank unable to serve its books"),
     ("advanceBulk", "the bulk's items were fixed when it was received under the scheme's grant; advancing reserves or commits the next items exactly as the scheme asked, and a re-driven bulk posts nothing new"),
     ]
   };

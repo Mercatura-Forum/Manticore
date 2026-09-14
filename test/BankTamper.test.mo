@@ -763,6 +763,9 @@ List.add(events, #batch(#eodFailureResolved({ book = "HQ"; businessDate = 20726;
 List.add(events, #batch(#eodFailureResolved({ book = "BR01"; businessDate = 0; item = 0; entity = ""; justification = "x" })));
 List.add(events, #batch(#eodItemCursor({ book = "HQ"; businessDate = 20726; item = 14; cursor = Blob.fromArray([0x00, 0x48, 0x51, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07]) })));
 List.add(events, #batch(#eodItemCursor({ book = "BR01"; businessDate = 0; item = 0; cursor = Blob.fromArray([0x01]) })));
+List.add(events, #rebuild(#started({ layoutFrom = 1; layoutTo = 2; journalLayoutFrom = 1; journalLayoutTo = 1; bankBlocks = 4_812; journalBlocks = 9_011 })));
+List.add(events, #rebuild(#chunk({ bankFrom = 0; bankTo = 500; journalFrom = 0; journalTo = 500 })));
+List.add(events, #rebuild(#completed({ layout = 2; journalLayout = 1; bankBlocks = 4_812; journalBlocks = 9_011; bankFingerprint = Blob.fromArray(Array.tabulate<Nat8>(32, func(i) { Nat8.fromNat(i) })); journalFingerprint = Blob.fromArray(Array.tabulate<Nat8>(32, func(i) { Nat8.fromNat(255 - i) })) })));
 // ─── reporting ────────────────────────────────────────────────────────
 List.add(events, #report(#reportDefinitionRegistered({ definition = sampleReportDef; hash = sampleHash32 })));
 List.add(events, #report(#reportDefinitionRegistered({ definition = {

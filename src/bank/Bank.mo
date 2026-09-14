@@ -157,10 +157,10 @@ shared (initMsg) persistent actor class Bank(init : {
   // ─── persisted state ──────────────────────────────────────────────────────
 
   let installer : Principal = initMsg.caller;
-  let bank : BankCore.State = BankCore.newState(installer);
+  var bank : BankCore.State = BankCore.newState(installer);
   let bankLog : BLog.State = BLog.newState();
   let cert : BCert.State = BCert.newState();
-  let journal : JCore.State = JCore.newState(Principal.fromActor(self));
+  var journal : JCore.State = JCore.newState(Principal.fromActor(self));
   let journalLog : JLog.State = JLog.newState();
   /// The posting indexes, in stable memory, maintained in the posting's own message. Not part of
   /// `BankCore.State` on purpose: nothing here is the authority for anything. A balance is a journal
@@ -188,6 +188,20 @@ shared (initMsg) persistent actor class Bank(init : {
   let packing : Packing.State = Packing.newState(postingIndex.arena);
   /// The archive roll: a sealed pack's segments to an archive child, the journal's prefix gone.
   let roll : ArchiveRoll.State = ArchiveRoll.newState();
+
+  // ─── the layout of the derived state, and its rebuild from the log (S4.10) ───
+  //
+  // Every fold's rows and indexes live in Regions at fixed widths and persist across an upgrade verbatim; only the
+  // code's reading of them can change. The state records the layout it was written with; an upgrade to code whose
+  // layout differs does not read the old bytes as new rows; it drops the derived state and folds it again from the
+  // two logs, `REBUILD_CHUNK` blocks a message, every update refused `#Rebuilding` until the fold reaches the tip.
+  // The posting indexes, the activity indexes and the pack stores have layouts of their own and no fold from the log
+  // yet: an upgrade that changes one of those is refused outright (the trap below), so it can never corrupt.
+  var bankLayout : Nat = BankCore.LAYOUT_VERSION;
+  var journalLayout : Nat = JCore.LAYOUT_VERSION;
+  var indexLayout : Nat = PIdx.LAYOUT_VERSION;
+  var rebuild : ?{ layoutFrom : Nat; layoutTo : Nat; journalLayoutFrom : Nat; journalLayoutTo : Nat; var bankCursor : Nat; var journalCursor : Nat; bankBlocks : Nat; journalBlocks : Nat } = null;
+  transient let REBUILD_CHUNK : Nat = 500;
 
   // ─── helpers ──────────────────────────────────────────────────────────────
 
@@ -252,6 +266,75 @@ shared (initMsg) persistent actor class Bank(init : {
     reserveOnEvent(b);
     paymentsOnEvent(b);
     b
+  };
+
+  func rebuildingError() : ?T.BankError {
+    switch (rebuild) {
+      case (?r) ?#Rebuilding({ bankCursor = r.bankCursor; bankBlocks = r.bankBlocks; journalCursor = r.journalCursor; journalBlocks = r.journalBlocks });
+      case null null;
+    }
+  };
+  /// Begin a rebuild: the derived states dropped and re-created in fresh arenas (the old Regions stay allocated and
+  /// unreferenced; stable memory is not reclaimed on this substrate), the journal restored from its checkpoint series
+  /// where the log has a packed prefix, the start recorded as a block the fold will later pass over as nothing.
+  func startRebuild(layoutTo : Nat, journalLayoutTo : Nat) {
+    let bankBlocks_ = BLog.length(bankLog);
+    let journalBlocks_ = JLog.length(journalLog);
+    let cp = switch (JCore.checkpointPosition(journal)) { case (?c) { switch (c.last) { case (?l) ?{ first = c.first; last = l }; case null null } }; case null null };
+    let started = JCore.rebuildStart(me(), RI.newArena(), journalBlocks(), cp);
+    journal := started.state;
+    bank := BankCore.newState(installer);
+    rebuild := ?{ layoutFrom = bankLayout; layoutTo; journalLayoutFrom = journalLayout; journalLayoutTo; var bankCursor = 0; var journalCursor = started.next; bankBlocks = bankBlocks_; journalBlocks = journalBlocks_ };
+    bankLayout := layoutTo;
+    journalLayout := journalLayoutTo;
+    ignore appendForTheFold(#rebuild(#started({ layoutFrom = bankLayout; layoutTo; journalLayoutFrom = journalLayout; journalLayoutTo; bankBlocks = bankBlocks_; journalBlocks = journalBlocks_ })));
+  };
+  /// A rebuild block appended to the log without being applied: the fold reaches it and applies it once, exactly as a
+  /// replay would; applying it here too would count it twice in the rebuilt state's height. The completion block, which
+  /// the fold has already passed the tip of, goes through `commitBank` and is applied once there.
+  func appendForTheFold(event : T.Event) : T.Block {
+    let b = BLog.append(bankLog, now(), me(), event);
+    recertify();
+    b
+  };
+
+  /// One chunk of the rebuild: up to `REBUILD_CHUNK` bank blocks and as many journal blocks folded, the cursors recorded.
+  /// Open to any caller, as the other advances are: the fold cannot choose what it folds. The fold stops at the block
+  /// count the rebuild started with; the blocks the rebuild itself appends fold as nothing and are passed over as the
+  /// cursor reaches them.
+  public shared func advanceRebuild() : async Result.Result<{ bankCursor : Nat; bankBlocks : Nat; journalCursor : Nat; journalBlocks : Nat; completed : Bool }, T.BankError> {
+    let ?r = rebuild else return #err(#InvalidBook({ reason = "no rebuild is in progress" }));
+    let bankEnd = BLog.length(bankLog);
+    let journalEnd = JLog.length(journalLog);
+    let bankFrom = r.bankCursor;
+    let journalFrom = r.journalCursor;
+    var n = 0;
+    while (r.bankCursor < bankEnd and n < REBUILD_CHUNK) {
+      switch (bankBlock(r.bankCursor)) { case (?b) BankCore.apply(bank, bankBlocks(), b); case null {} };
+      r.bankCursor += 1; n += 1;
+    };
+    n := 0;
+    while (r.journalCursor < journalEnd and n < REBUILD_CHUNK) {
+      switch (JLog.get(journalLog, r.journalCursor)) { case (?b) JCore.apply(journal, journalBlocks(), b); case null {} };
+      r.journalCursor += 1; n += 1;
+    };
+    let completed = r.bankCursor >= BLog.length(bankLog) and r.journalCursor >= JLog.length(journalLog);
+    if (completed) {
+      // the live journal drops the idempotency keys of every packed range; the rebuilt one must too
+      JCore.dropIdempotencyThrough(journal, bank.packing.packedThroughBlock);
+      rebuild := null;
+      ignore commitBank(me(), #rebuild(#completed({ layout = bankLayout; journalLayout; bankBlocks = r.bankCursor; journalBlocks = r.journalCursor; bankFingerprint = BankCore.fingerprint(bank); journalFingerprint = JCore.fingerprint(journal) })));
+    } else {
+      ignore appendForTheFold(#rebuild(#chunk({ bankFrom; bankTo = r.bankCursor; journalFrom; journalTo = r.journalCursor })));
+    };
+    #ok({ bankCursor = r.bankCursor; bankBlocks = BLog.length(bankLog); journalCursor = r.journalCursor; journalBlocks = JLog.length(journalLog); completed })
+  };
+  /// Where the rebuild stands, or null when the state is the fold of its logs.
+  public query func rebuildStatus() : async ?{ layoutFrom : Nat; layoutTo : Nat; bankCursor : Nat; bankBlocks : Nat; journalCursor : Nat; journalBlocks : Nat } {
+    switch (rebuild) { case (?r) ?{ layoutFrom = r.layoutFrom; layoutTo = r.layoutTo; bankCursor = r.bankCursor; bankBlocks = r.bankBlocks; journalCursor = r.journalCursor; journalBlocks = r.journalBlocks }; case null null }
+  };
+  public query func layoutVersions() : async { bank : Nat; journal : Nat; postingIndex : Nat; code : { bank : Nat; journal : Nat; postingIndex : Nat } } {
+    { bank = bankLayout; journal = journalLayout; postingIndex = indexLayout; code = { bank = BankCore.LAYOUT_VERSION; journal = JCore.LAYOUT_VERSION; postingIndex = PIdx.LAYOUT_VERSION } }
   };
 
   /// A lifted compliance hold acts in the message that recorded it: a release posts the held
@@ -481,6 +564,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// from the catalogue; there is no default-allow branch because the identifier
   /// is a required argument.
   func requireMethodPermission(caller : Principal, method : Text) : Result.Result<T.PermissionId, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     let ?perm = P.byMethod(method) else Runtime.trap("Bank: method " # method # " has no catalogue entry");
     let op : E.Operation = { permission = perm.id; book = null; totals = [] };
     switch (BankCore.authorise(bank, caller, op, JCore.effectiveToday(journal, now()))) {
@@ -638,6 +722,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// own reason: expiry is a fact of the clock, the caller chooses nothing, and
   /// the block is attributed to the canister.
   public shared func expireProposals(limit : Nat) : async Nat {
+    if (rebuildingError() != null) return 0;   // nothing is appended under a rebuild but its own trail
     let expired = BankCore.expiredProposals(bank, now(), Nat.min(limit, 100));
     for (idx in expired.vals()) { ignore commitBank(me(), BankCore.expiryEvent(idx)) };
     expired.size()
@@ -666,6 +751,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// reasoning is the journal's own for its expiry sweep: an open advance path means a
   /// stalled timer cannot leave a bank unable to close its books.
   public shared func advanceEndOfDay(book : T.BookId, businessDate : ProdT.Day, limit : Nat) : async Result.Result<AdvanceResult, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     // The run records through these, as it goes, so every job reads what the jobs before
     // it posted; in this very chunk as well as in earlier ones. Both append to the log
     // and apply to state, which is what `commitBank` and `commitJournal` do everywhere
@@ -701,6 +787,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// is a bank block; a segment, an advance, the seal; so the log carries the pack's progress and
   /// a restart resumes from what the engine holds.
   public shared func advancePacking(limit : Nat) : async Result.Result<PackAdvanceResult, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     let ?_ = bank.packing.current else return #err(#PackingError({ error = #NotPacking }));
     switch (Packing.advance(packing, packingContext(), limit)) {
       case (#err(e)) #err(#PackingError({ error = e }));
@@ -732,6 +819,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// the call's reply is not waited for: the archive acknowledges by calling back, and only that
   /// acknowledgement is recorded as the segment being archived.
   public shared func advanceArchiveRoll(limit : Nat) : async Result.Result<RollAdvanceResult, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     let ?_ = bank.packing.roll else return #err(#PackingError({ error = #NotRolling }));
     switch (ArchiveRoll.advance(roll, rollContext(), limit)) {
       case (#err(e)) #err(#PackingError({ error = e }));
@@ -767,6 +855,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// principal, the segment one that was sent, the hash the segment's own; anything else is
   /// refused and recorded nowhere. Recorded as `#segmentArchived`.
   public shared ({ caller }) func acknowledgeArchivedSegment(pack : Nat, seq : Nat, sha256 : Blob) : async Bool {
+    if (rebuildingError() != null) return false;
     switch (ArchiveRoll.ack(roll, rollContext(), caller, pack, seq, sha256)) {
       case (#err(_)) false;
       case (#ok(_)) { ignore commitBank(me(), #packing(#segmentArchived({ pack; seq; sha256 }))); true };
@@ -787,6 +876,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// Send an open transfer to its shard. Open (`Permissions.openMethods`); recorded before the call.
   public shared func sendShardTransfer(transfer : Nat) : async Result.Result<{ attempt : Nat; block : Nat }, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     let ev = switch (ShardCore.planSend(bank.shard, transfer)) { case (#err(e)) return #err(#ShardError({ error = e })); case (#ok(ev)) ev };
     let ?t = ShardCore.outbound(bank.shard, transfer) else return #err(#ShardError({ error = #UnknownTransfer({ transfer }) }));
     let ?to = ShardCore.shard(bank.shard, t.toShard) else return #err(#ShardError({ error = #UnknownShard({ shard = t.toShard }) }));
@@ -802,6 +892,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// in (sending shard, transfer). The sending shard is called back with the posting, or with the
   /// refusal.
   public shared ({ caller }) func receiveShardTransfer(fromShard : Nat, transfer : Nat, toIdentifier : Text, amount : Nat, currency : Text, valueDay : Nat, period : Text, narration : Text) : async Result.Result<{ posting : Nat }, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     let ?_ = ShardCore.rule(bank.shard) else return #err(#ShardError({ error = #NoRule }));
     let ?from = ShardCore.shardByPrincipal(bank.shard, caller) else return #err(#ShardError({ error = #NotAShard({ caller }) }));
     if (from.index != fromShard) return #err(#ShardError({ error = #NotAShard({ caller }) }));
@@ -832,6 +923,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// The receiving shard's word that it posted: the pending is posted here, once.
   public shared ({ caller }) func acknowledgeShardTransfer(transfer : Nat, receiverPosting : Nat) : async Result.Result<(), T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     switch (BankCore.planSettleShardTransfer(bank, journal, journalBlocks(), me(), now(), caller, transfer, receiverPosting)) {
       case (#err(e)) #err(e);
       case (#ok(r)) { ignore commitJournal(r.step); ignore commitBank(me(), #shard(r.event)); #ok(()) };
@@ -840,6 +932,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// The receiving shard's word that it could not: the pending is voided here, once.
   public shared ({ caller }) func rejectShardTransfer(transfer : Nat, reason : Text) : async Result.Result<(), T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     switch (BankCore.planReturnShardTransfer(bank, journal, journalBlocks(), me(), caller, transfer, reason)) {
       case (#err(e)) #err(e);
       case (#ok(r)) { ignore commitJournal(r.step); ignore commitBank(me(), #shard(r.event)); #ok(()) };
@@ -866,6 +959,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// Void every reservation past its deadline, up to `limit`, from the row cursor. Open: expiry is a
   /// fact of the clock.
   public shared func expireTransfers(limit : Nat) : async { examined : Nat; expired : Nat; next : ?Nat } {
+    if (rebuildingError() != null) return { examined = 0; expired = 0; next = null };
     var cursor : ?Nat = null;
     var examined = 0;
     var expired = 0;
@@ -896,6 +990,7 @@ shared (initMsg) persistent actor class Bank(init : {
   let settlementJobs : Map.Map<Nat, BankCore.SettlementJob> = Map.empty<Nat, BankCore.SettlementJob>();
 
   public shared func advanceSettlement(settlement : Nat, limit : Nat) : async Result.Result<BankCore.SettlementAdvance, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     let job = switch (Map.get(settlementJobs, Nat.compare, settlement)) { case (?j) j; case null { let j = BankCore.newSettlementJob(); Map.add(settlementJobs, Nat.compare, settlement, j); j } };
     let r = BankCore.advanceSettlement(bank, bankBlocks(), journal, journalBlocks(), me(), now(), settlement, job, limit, bankRecorder());
     switch (r) { case (#ok(a)) { if (a.done) ignore Map.delete(settlementJobs, Nat.compare, settlement) }; case (#err(_)) {} };
@@ -904,6 +999,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// A bulk's items, prepared and reserved, or committed, or voided, a chunk at a time.
   public shared func advanceBulk(bulk : Nat, limit : Nat) : async Result.Result<BankCore.BulkAdvance, T.BankError> {
+    switch (rebuildingError()) { case (?e) return #err(e); case null {} };
     BankCore.advanceBulk(bank, bankBlocks(), journal, journalBlocks(), me(), now(), bulk, limit, bankRecorder())
   };
 
@@ -3812,9 +3908,19 @@ shared (initMsg) persistent actor class Bank(init : {
   // The substrate clears certified data on upgrade; restore it from persisted state.
   BCert.recertify(cert);
 
+  // The layout check (S4.10). A store without a fold from the log refuses the upgrade whole; the two that have one
+  // start their rebuild here, in the upgrade's own message, so no read ever sees old bytes as new rows.
+  if (indexLayout != PIdx.LAYOUT_VERSION) {
+    Runtime.trap("Bank: the posting index layout is " # Nat.toText(indexLayout) # " and this code expects " # Nat.toText(PIdx.LAYOUT_VERSION) # "; no rebuild path exists for it — the upgrade is refused");
+  };
+  if ((switch (rebuild) { case null true; case (?_) false }) and (bankLayout != BankCore.LAYOUT_VERSION or journalLayout != JCore.LAYOUT_VERSION)) {
+    startRebuild(BankCore.LAYOUT_VERSION, JCore.LAYOUT_VERSION);
+  };
+
   // Proposals past their lifetime are recorded expired, never silently dropped;
   // the rule the journal applies to its own pending postings.
   ignore Timer.recurringTimer<system>(#seconds 60, func() : async () {
+    if (rebuildingError() != null) return;   // a rebuild folds the log; nothing is appended to it but the rebuild's own trail
     let expired = BankCore.expiredProposals(bank, now(), 50);
     for (idx in expired.vals()) { ignore commitBank(me(), BankCore.expiryEvent(idx)) };
   });

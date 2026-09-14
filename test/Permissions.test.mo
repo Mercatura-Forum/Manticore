@@ -533,14 +533,15 @@ for ((m, reason) in P.openMethods().vals()) {
   opens += 1;
 };
 Debug.print("count: deliberately open methods with a stated reason = " # Nat.toText(opens));
-// Twelve, and only twelve: the proposal expiry sweep, the three advances (end of day, packing,
+// Thirteen, and only thirteen: the proposal expiry sweep, the three advances (end of day, packing,
 // archive roll), the archive's acknowledgement, the four steps of an inter-shard transfer after
-// its dual-authorised opening, the reservation expiry sweep, and the settlement and bulk advances. All are paths where the caller chooses nothing; expiry
+// its dual-authorised opening, the reservation expiry sweep, the settlement and bulk advances, and the rebuild's
+// advance (S4.10). All are paths where the caller chooses nothing; expiry
 // is a fact of the clock, an advance can only execute the plan the opening block already
-// fixed, and the acknowledgements and the receive are held to the declared counterpart's
-// principal and to the act's own key or hash; and the advances would leave a bank stuck
+// fixed, a rebuild can only fold the log as it stands, and the acknowledgements and the receive are held to the
+// declared counterpart's principal and to the act's own key or hash; and the advances would leave a bank stuck
 // behind a stalled timer if they were guarded.
-assert (opens == 12);
+assert (opens == 13);
 var openNames = "";
 for ((m, _) in P.openMethods().vals()) { openNames #= m # " " };
 assert (Text.contains(openNames, #text "expireProposals"));

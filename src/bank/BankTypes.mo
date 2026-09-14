@@ -694,8 +694,18 @@ module {
     #payments : PayT.PaymentsEvent;
     /// FSPIOP: the participant directory, the oracle, the quotes, the transfers, every request.
     #fspiop : FT.FspiopEvent;
+    /// The derived state rebuilt from the log after an upgrade to code with another layout (S4.10): the start, every
+    /// chunk, the completion with the fingerprints the rebuilt state reached. Folded as nothing; the log is the record,
+    /// these blocks are the rebuild's own audit trail.
+    #rebuild : RebuildEvent;
     // refusals, recorded so a bank can prove what it prevented
     #operationRefused : { subject : Principal; permission : PermissionId; reason : RefusalReason; detail : Text };
+  };
+
+  public type RebuildEvent = {
+    #started : { layoutFrom : Nat; layoutTo : Nat; journalLayoutFrom : Nat; journalLayoutTo : Nat; bankBlocks : Nat; journalBlocks : Nat };
+    #chunk : { bankFrom : Nat; bankTo : Nat; journalFrom : Nat; journalTo : Nat };
+    #completed : { layout : Nat; journalLayout : Nat; bankBlocks : Nat; journalBlocks : Nat; bankFingerprint : Blob; journalFingerprint : Blob };
   };
 
   /// What an execution charged against the maker's daily limit: the day and the totals by currency.
@@ -757,6 +767,9 @@ module {
   // ─── Results and errors ────────────────────────────────────────────────────
 
   public type BankError = {
+    /// The derived state is being rebuilt from the log after a layout change (S4.10): every update waits; the cursors
+    /// say how far the fold has come.
+    #Rebuilding : { bankCursor : Nat; bankBlocks : Nat; journalCursor : Nat; journalBlocks : Nat };
     #AnonymousCaller;
     #NotBankAdmin;
     #NoGrant : { permission : PermissionId };
