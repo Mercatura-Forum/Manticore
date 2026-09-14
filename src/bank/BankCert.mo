@@ -1,4 +1,4 @@
-/// BankCert.mo — IC certified data over both logs at once.
+/// BankCert.mo; certified data over both logs at once.
 ///
 /// A posting must be provable and so must the authority behind it, so one
 /// certificate carries both Merkle roots:
@@ -8,7 +8,7 @@
 ///                                     labeled "mmr_root" )
 ///     labeled "thebes_journal"  (the journal's own tree, built by JournalCert)
 ///
-/// Labels are in lexicographic order inside the fork, as IC hash-tree lookup
+/// Labels are in lexicographic order inside the fork, as hash-tree lookup
 /// requires ("thebes_bank" < "thebes_journal"). A journal verifier finds
 /// `thebes_journal/mmr_root` through the fork exactly as it does on a standalone
 /// journal canister, so `integration/verify_entry.py` from the journal repository
@@ -89,7 +89,7 @@ module {
     CertifiedData.set(truncate32(Cert.hashTree(combinedTree(s))));
   };
 
-  /// Re-set certified data from persisted state (the IC clears it on upgrade).
+  /// Re-set certified data from persisted state (the substrate clears it on upgrade).
   public func recertify(s : State) {
     if (s.committed) CertifiedData.set(truncate32(Cert.hashTree(combinedTree(s))));
   };

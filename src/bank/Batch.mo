@@ -1,4 +1,4 @@
-/// Batch.mo — the end-of-day run's plan, as pure arithmetic.
+/// Batch.mo; the end-of-day run's plan, as pure arithmetic.
 ///
 /// A canister message has a bounded instruction budget, so a run over a portfolio of
 /// any size cannot be one message. The moment it is chunked, three failure modes open
@@ -6,12 +6,12 @@
 /// rather than by operational care.
 ///
 /// **The inputs cannot move.** A run is keyed on a business date, and its inputs are
-/// the journal's value-dated balances at that date — immutable once the date has
+/// the journal's value-dated balances at that date; immutable once the date has
 /// passed, unless a posting is back-valued into it. So while a run for a date is open
 /// the bank layer refuses any posting value-dated on or before it. The book for the
 /// date is closed to new history for the duration of the run, which is what "close of
 /// business" has always meant. The alternative — letting back-valued postings land and
-/// partially recomputing an in-flight run — makes the output a function of arrival
+/// partially recomputing an in-flight run; makes the output a function of arrival
 /// order, which is the class of bug that is invisible in testing and expensive in
 /// production.
 ///
@@ -65,7 +65,7 @@ module {
     #sharia;                  // 14: Murabaha profit and late-payment charity, Ijarah rentals and depreciation (Islamic banking)
     #treasury;                // 15: deal accruals, coupons, marks against the day's curves, legs falling due, break aging, overdue confirmations (treasury)
     #cards;                   // 16: holds expired by the scheme's window, dispute steps due, statement cycles cut (cards)
-    #redenomination;          // 17: a declared redenomination carried out — the products re-versioned, every balance re-expressed, the currency closed (S4.1)
+    #redenomination;          // 17: a declared redenomination carried out; the products re-versioned, every balance re-expressed, the currency closed (S4.1)
   };
 
   public func jobs() : [Job] {
@@ -95,7 +95,7 @@ module {
   /// Where a job's items stand in the plan. The rank is the job's name in every encoding and never changes; the
   /// position is the order of the day's work. They differ once: a redenomination re-expresses every balance of its
   /// currency **before** the day's accrual, charges and statements, so those run in the new currency on the
-  /// converted balances — its rank names it (17), its position is first (0).
+  /// converted balances; its rank names it (17), its position is first (0).
   public func jobPosition(j : Job) : Nat { switch (j) { case (#redenomination) 0; case (other) jobRank(other) } };
 
   /// One unit of work. A per-account job's item covers a half-open range of positions
@@ -162,12 +162,12 @@ module {
 
   /// What a plan is built from. Passed in rather than read here, so the plan is a
   /// function of its inputs and a test can build one without a journal.
-  /// What the plan is a function of — and nothing else. Every field is fixed for the life of a run: the
+  /// What the plan is a function of; and nothing else. Every field is fixed for the life of a run: the
   /// products are the registry as it stood at the block that opened the run (a version registered later
   /// waits for the next run), the domain flags are the features active at that block, the redenominations
   /// are those declared for the date. Nothing here counts rows: an item over a product, a book's
   /// instructions, tills, offers, facilities, instruments, contracts, deals or cards is in the plan whether
-  /// the book holds one of them or none — an item over nothing examines nothing — so no account opening,
+  /// the book holds one of them or none; an item over nothing examines nothing; so no account opening,
   /// closing, capture, settlement or definition during the run can change the plan's hash and leave the
   /// run unadvanceable (the adversarial audit of 13 September, finding B1).
   public type Input = {
@@ -272,7 +272,7 @@ module {
   /// account for each position of a per-account shard, one instruction, one till check.
   ///
   /// This is not the same number as a run's `examined` total and is not meant to be.
-  /// The aggregate accrual names one entity — the product — and examines every account
+  /// The aggregate accrual names one entity; the product; and examines every account
   /// of it, and the till check names one entity and examines every open till of the
   /// book. So `examined` is at least `entities` and usually more. What both figures are
   /// is **independent of the shard size**, which is the property chunking has to have.

@@ -1,11 +1,11 @@
-// BankTamper.test.mo — the bank log's block encoding, and tamper detection.
+// BankTamper.test.mo; the bank log's block encoding, and tamper detection.
 //
 // Every `Event` variant round-trips byte-for-byte, including a proposal carrying
 // every `Command` variant; a single flipped byte anywhere in a block is detected
 // and never served; every unsupported version byte and every truncated or
 // over-long buffer is refused.
 //
-// engine: wasi-only — the sweep flips every byte of every block of a hundred-odd
+// engine: wasi-only; the sweep flips every byte of every block of a hundred-odd
 // events, which is over sixteen thousand decode-and-hash attempts. Under `moc -r`
 // it does not finish in a useful time (killed after twelve minutes with its output
 // frozen), the same reason the journal's own core battery is exempted. Its proof is

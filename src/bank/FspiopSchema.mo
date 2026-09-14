@@ -1,4 +1,4 @@
-/// FspiopSchema.mo — a JSON body against the FSPIOP v1.1 request profile (FspiopProfiles.mo,
+/// FspiopSchema.mo; a JSON body against the FSPIOP v1.1 request profile (FspiopProfiles.mo,
 /// generated from the official OpenAPI snippets), the way IsoSchema.mo holds an ISO 20022 message
 /// against its XSD-derived profile. Every issue names a rule, the JSON path and what was found:
 ///
@@ -10,7 +10,7 @@
 ///   FSPIOP-JSON-ITEMS     an array with fewer or more items than its bounds
 ///   FSPIOP-JSON-RANGE     an integer outside its minimum/maximum
 ///   FSPIOP-JSON-ANYOF     a value matching none of the alternatives (anyOf), or not exactly one (oneOf)
-///   FSPIOP-JSON-UNENFORCED a pattern outside Rx's subset — reported, never silently passed
+///   FSPIOP-JSON-UNENFORCED a pattern outside Rx's subset; reported, never silently passed
 ///
 /// Properties the schema does not name are allowed, as OpenAPI 3.0 allows them by default and as the
 /// reference's validator does; the business rules of FspiopCore.mo read what they need afterwards.

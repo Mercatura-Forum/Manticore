@@ -1,9 +1,9 @@
-/// ReportCore.mo — the reporting layer's state, as a fold over its own blocks.
+/// ReportCore.mo; the reporting layer's state, as a fold over its own blocks.
 ///
 /// The reporting layer **reads**. The only state it holds is what was registered or issued:
 /// report definitions, return templates, the statement map a deployment declares, the
 /// statement register, the hashes of the artefacts that have been certified, the feed's
-/// recorded endpoints and its dead letters. No figure is stored anywhere — a report is a
+/// recorded endpoints and its dead letters. No figure is stored anywhere; a report is a
 /// fold over the journal at a stated height, which is why a back-dated posting needs no
 /// recalculation for any report to be right about the height it names.
 
@@ -133,7 +133,7 @@ module {
   /// The register key of a certified artefact.
   ///
   /// It includes the **content hash**, because the hash is what distinguishes two artefacts that
-  /// share a kind, an identifier, a book, a period and a height but not their parameters — the
+  /// share a kind, an identifier, a book, a period and a height but not their parameters; the
   /// native and the functional view of one report, say. Keying without it would file two
   /// different artefacts under one entry and lose one of them; including it makes
   /// re-certification of the identical artefact idempotent and certification of a different one
@@ -263,7 +263,7 @@ module {
   //  THE ARTEFACT ROOT
   // ═══════════════════════════════════════════════════════
 
-  /// A root over every certified artefact, as a fold over the entries in key order — so it
+  /// A root over every certified artefact, as a fold over the entries in key order; so it
   /// is a function of the state rather than of the order the blocks arrived in.
   ///
   /// This is **not** a new leaf in the certified tree, and deliberately. A report's content

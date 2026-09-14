@@ -1,8 +1,8 @@
-/// Zero-per-hash-allocation SHA-256 / double-SHA256 in Motoko — optimized.
+/// Zero-per-hash-allocation SHA-256 / double-SHA256 in Motoko; optimized.
 ///
 /// A `Hasher` owns all scratch (state `h`, saved `h1`, schedule `w`, one 64-byte
 /// `block`) preallocated ONCE. Every hash reads input from, and writes its digest into,
-/// caller-provided `[var Nat8]` buffers — no `Blob`, no array, nothing allocated per
+/// caller-provided `[var Nat8]` buffers; no `Blob`, no array, nothing allocated per
 /// hash. The Merkle root is computed in place over one flat `[var Nat8]` buffer
 /// (32 B/leaf) halved level by level. Whole-tree allocation is O(1) (the Hasher).
 ///
@@ -40,7 +40,7 @@ module {
     func setIV() { var i = 0; while (i < 8) { h[i] := IV[i]; i += 1 } };
 
     // Compress the 64 bytes currently in `block` into `h`. Straight schedule (64-word
-    // array, direct indices) — faster in Motoko than a %16 sliding window, since Nat
+    // array, direct indices); faster in Motoko than a %16 sliding window, since Nat
     // modulo costs more than a fixed array bounds check.
     func compress() {
       var i = 0;

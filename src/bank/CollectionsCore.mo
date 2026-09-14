@@ -1,4 +1,4 @@
-/// CollectionsCore.mo — the exposures' stages, folded from the bank's log, in stable memory (collections and recovery).
+/// CollectionsCore.mo; the exposures' stages, folded from the bank's log, in stable memory (collections and recovery).
 ///
 /// One 100-byte row per lending exposure keyed by account; an index by stage (stage ‖ account → dpd) for the
 /// worklist by stage, an index by collector (collector key ‖ account → stage) for a collector's worklist. Rows
@@ -28,7 +28,7 @@ module {
 
   /// `stage(1) ‖ dpd(4) ‖ sinceDay(4) ‖ sinceBlock(8) ‖ flags(1: utp=1, restructured=2, hasCollector=4, hasPromise=8)
   ///  ‖ collector(30: len ‖ bytes, zero-padded) ‖ promiseAmount(8) ‖ promiseBy(4) ‖ suspenseHeld(8) ‖ writtenOff(8)
-  ///  ‖ recovered(8) ‖ actions(4) ‖ lastActionDay(4) ‖ promiseBaseline(8)` — 100 bytes.
+  ///  ‖ recovered(8) ‖ actions(4) ‖ lastActionDay(4) ‖ promiseBaseline(8)`; 100 bytes.
   public type Row = {
     stage : CT.Stage; dpd : Nat; sinceDay : Nat; sinceBlock : Nat;
     unlikelyToPay : Bool; restructured : Bool; collector : ?Principal; promise : ?{ amount : Nat; by : Nat; baseline : Nat };
@@ -122,7 +122,7 @@ module {
 
   public func stageRank(s : CT.Stage) : Nat { Nat8.toNat(CT.stageCode(s)) };
 
-  /// The stage an exposure is in, from its days past due and what has been decided about it — the one rule,
+  /// The stage an exposure is in, from its days past due and what has been decided about it; the one rule,
   /// written once here and once in the Python oracle. Write-off, recovery and closed are left where they are
   /// (the product engine's acts and the closing command move them); a restructured exposure re-enters by its
   /// days past due on the new schedule and keeps its flag; an exposure in collections stays there while it is
@@ -297,7 +297,7 @@ module {
     #ok(#stageDerived({ account; from = r.stage; to = #closed; dpd = r.dpd; day; reason = #closed; note = "" }))
   };
 
-  /// The promise the end-of-day judges on `day` — the one that fell due before it — with the repaid total
+  /// The promise the end-of-day judges on `day`; the one that fell due before it; with the repaid total
   /// it was made against; kept when what has been repaid since reaches the amount.
   public func duePromise(s : State, account : Nat, day : Nat) : ?{ amount : Nat; by : Nat; baseline : Nat } {
     let ?r = row(s, account) else return null;
@@ -347,7 +347,7 @@ module {
     { exposures = s.exposures; transitions = s.transitions; actions = s.actions; promises = s.promises; promisesKept = s.promisesKept; promisesBroken = s.promisesBroken }
   };
 
-  /// Exposures per stage, walked — a report figure, bounded by the rows.
+  /// Exposures per stage, walked; a report figure, bounded by the rows.
   public func stageDistribution(s : State) : [(Text, Nat)] {
     let counts = VarArray.repeat<Nat>(0, 9);
     let (lo, hi) = R.fullRange(8);

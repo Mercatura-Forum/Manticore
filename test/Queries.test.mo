@@ -1,8 +1,8 @@
-// Queries.test.mo — the bounded, paged read against a brute-force oracle.
+// Queries.test.mo; the bounded, paged read against a brute-force oracle.
 //
 // `PostingIndex.test.mo` proves the rows are right. This proves the **read** is right: that
-// `Queries.run` pages, unioned, equal a straightforward filter over the same postings — same rows,
-// same order, no duplicate and no gap — at every page size, for every index the engine can pick, and
+// `Queries.run` pages, unioned, equal a straightforward filter over the same postings; same rows,
+// same order, no duplicate and no gap; at every page size, for every index the engine can pick, and
 // that a filter past the bound is refused naming its size rather than truncated or trapped.
 //
 // The oracle is a list of the postings built in the heap, filtered with a plain predicate. It shares
@@ -12,7 +12,7 @@
 //
 //   * **every index the engine can pick** answers: account (I1), class (I4), currency (I3) and day
 //     (I2), and the page says which one it was;
-//   * **pages unioned equal the oracle**, at page sizes 1, 2, 3, 7, 13, 100 and 500 — so a cursor
+//   * **pages unioned equal the oracle**, at page sizes 1, 2, 3, 7, 13, 100 and 500; so a cursor
 //     handed straight back neither repeats nor skips a row;
 //   * **the limit is honoured and capped** at `MAX_LIMIT`, whatever a caller asks for;
 //   * **an amount band** filters exactly, including over a saturated row whose eight-byte field
@@ -23,11 +23,11 @@
 //     resolved to, and the page counts the superseded row it walked past;
 //   * **refusal, not truncation**: a window wider than `MAX_SCAN` is `#TooWide` with the size and a
 //     sentence that says how to narrow it, and the same filter inside the bound answers;
-//   * **refusal, not an empty page**, for a currency, class or account the bank has never seen —
+//   * **refusal, not an empty page**, for a currency, class or account the bank has never seen;
 //     because "no such currency" and "no movements in it" are different answers;
 //   * **an inverted window and an inverted amount band** are refused, not answered empty.
 //
-// engine: wasi-only — a Region is stable memory, which the interpreter does not provide.
+// engine: wasi-only; a Region is stable memory, which the interpreter does not provide.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -330,7 +330,7 @@ func oracle(
       };
     };
   };
-  // key order: the day first, then the posting number — the order every one of the four keys imposes
+  // key order: the day first, then the posting number; the order every one of the four keys imposes
   Array.sort<Want>(List.toArray(out), func(a, b) {
     switch (Nat.compare(a.valueDay, b.valueDay)) { case (#equal) Nat.compare(a.postingNo, b.postingNo); case (o) o }
   })

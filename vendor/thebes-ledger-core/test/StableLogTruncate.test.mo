@@ -1,12 +1,12 @@
-// StableLogTruncate.test.mo — a log whose prefix leaves and whose regions come back.
+// StableLogTruncate.test.mo; a log whose prefix leaves and whose regions come back.
 //
 // What is proved: entries read back byte for byte before and after a truncation; the truncated ones
 // answer null and the live ones do not; a data region and an index chunk that held only truncated
 // entries return to the pool and the next appends reuse them, so the region count does not grow
 // across a second round of the same size; a truncation past the end traps by contract (not
-// exercised — `truncateThrough` is documented to trap); `recover` rebuilds the counters.
+// exercised; `truncateThrough` is documented to trap); `recover` rebuilds the counters.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";

@@ -1,4 +1,4 @@
-// RegionIndex.test.mo — the stable-memory index against a brute-force oracle.
+// RegionIndex.test.mo; the stable-memory index against a brute-force oracle.
 //
 // Every criterion of the index design rests on this module being right, so it is proved
 // against a sorted array held in the heap: the same keys go into both, and every read is compared.
@@ -6,8 +6,8 @@
 //   * **`get` agrees with the oracle** on every key inserted and every key not inserted;
 //   * **`put` overwrites** in place and reports the previous value, which is what an aggregate's
 //     read-modify-write reads;
-//   * **`range` pages, unioned, equal the oracle's slice** — same entries, same order, no
-//     duplicate and no gap — over random ranges, at every page size from 1 upwards, and with the
+//   * **`range` pages, unioned, equal the oracle's slice**; same entries, same order, no
+//     duplicate and no gap; over random ranges, at every page size from 1 upwards, and with the
 //     cursor handed straight back;
 //   * **a range over a composite key** returns exactly the account-and-date slice, which is the
 //     query the index exists for;
@@ -18,7 +18,7 @@
 //   * **`reset` returns every page** and a rebuild reuses them, so a closed month's packing saves
 //     space rather than adding to it.
 //
-// engine: wasi-only — a Region is stable memory, which the interpreter does not provide.
+// engine: wasi-only; a Region is stable memory, which the interpreter does not provide.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -41,7 +41,7 @@ func next() : Nat32 {
   seed
 };
 // The **high** sixteen bits, not the low ones. A linear congruential generator modulo 2^32 has
-// low-order bits with very short periods — with these parameters `next() % 4` has period four — so
+// low-order bits with very short periods; with these parameters `next() % 4` has period four; so
 // `below(4)` was returning a fixed cycle and one whole arm of this test (a posting in two
 // currencies) never ran. The output said so: "multi-currency postings = 0". Using the top bits
 // removes it.
@@ -347,7 +347,7 @@ assert (s1.leafCap == 227);
 assert (s1.internalCap == 314);
 Debug.print("count: capacity-model leaf and internal capacities confirmed = 2");
 // the keys above were planted in key order, so the fill is the append-ordered case the model
-// predicts near 100% for — and the depth is what 4,808 entries needs, not the 4 of a billion
+// predicts near 100% for; and the depth is what 4,808 entries needs, not the 4 of a billion
 assert (s1.leafFillPercent >= 90);
 assert (s1.depth >= 2 and s1.depth <= 3);
 Debug.print("count: append-ordered leaf fill at or above 90% = 1");

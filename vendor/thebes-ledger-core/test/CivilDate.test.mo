@@ -1,11 +1,11 @@
-// CivilDate.test.mo — calendar arithmetic against independently computed vectors
+// CivilDate.test.mo; calendar arithmetic against independently computed vectors
 // (Python datetime, see the comment on each vector) and exhaustive round-trip.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
 import D "../src/journal/CivilDate";
 
-// (y, m, d, days since 1970-01-01) — values from Python: (date(y,m,d) - date(1970,1,1)).days
+// (y, m, d, days since 1970-01-01); values from Python: (date(y,m,d) - date(1970,1,1)).days
 let vectors : [(Nat, Nat, Nat, Nat)] = [
   (1970, 1, 1, 0), (1970, 1, 2, 1), (1999, 12, 31, 10956), (2000, 1, 1, 10957),
   (2000, 2, 29, 11016), (2000, 3, 1, 11017), (2024, 2, 29, 19782), (2026, 1, 1, 20454),

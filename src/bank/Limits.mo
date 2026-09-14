@@ -1,10 +1,10 @@
-/// Limits.mo — facilities, overdrafts and per-operation ceilings.
+/// Limits.mo; facilities, overdrafts and per-operation ceilings.
 ///
 /// The important decision here is what this module does **not** do. An overdraft
 /// facility is not checked by this layer before a posting is submitted. It is
 /// expressed as the journal's own numeric balance limit on the customer's
-/// (control account, sub-ledger, currency) triple — `#debitsNotExceedCreditsPlus`
-/// for a deposit-side account — so the limit is enforced at admission by the same
+/// (control account, sub-ledger, currency) triple; `#debitsNotExceedCreditsPlus`
+/// for a deposit-side account; so the limit is enforced at admission by the same
 /// engine that enforces per-currency balance, over posted **and** pending amounts,
 /// and a direct poster cannot bypass it: the limit is engine-enforced rather than
 /// checked by the application.
@@ -16,7 +16,7 @@
 /// What remains for this module is the arithmetic around the limit: translating a
 /// product's declared limits into the journal event, reading back what headroom an
 /// account has, and the two checks that are genuinely product-level rather than
-/// ledger-level — the minimum operating balance a withdrawal must leave behind,
+/// ledger-level; the minimum operating balance a withdrawal must leave behind,
 /// and the largest single movement a product permits.
 
 import Nat "mo:core/Nat";
@@ -94,7 +94,7 @@ module {
   /// because they are terms and not invariants: the largest single movement, and
   /// the balance that must remain behind. Returns the first failure.
   ///
-  /// The facility itself is deliberately *not* pre-checked here — `wouldExceed`
+  /// The facility itself is deliberately *not* pre-checked here; `wouldExceed`
   /// below exists for a caller that wants to report the headroom in its own error
   /// rather than let admission do it, and the engine check happens regardless.
   public func checkWithdrawal(limits : T.Limits, amount : Nat, balanceAfter : Nat, overdrawnAfter : Bool) : ?LimitFault {

@@ -1,14 +1,14 @@
-/// AlertTypes.mo — an alert is a finding with a review.
+/// AlertTypes.mo; an alert is a finding with a review.
 ///
 /// A monitoring rule that is met produces a finding (`MonitoringTypes.Finding`); an alert is that
-/// finding **recorded** — in a bank block, at posting time for the cheap rules and by the
-/// end-of-day batch for the window rules — and then reviewed by compliance under maker-checker:
+/// finding **recorded**; in a bank block, at posting time for the cheap rules and by the
+/// end-of-day batch for the window rules; and then reviewed by compliance under maker-checker:
 /// cleared with a reason, or escalated to a suspicious-transaction report. Every step is a block,
 /// so the trail is the log. A report to the financial intelligence unit (EMLCU under Egypt's Law
 /// 80 of 2002) is produced **from an escalated alert and nothing else**: the same cited postings,
 /// the same rule and version, read back from the blocks.
 ///
-/// An alert is opened once. Its key is the finding — rule, version, account, day, cited postings —
+/// An alert is opened once. Its key is the finding; rule, version, account, day, cited postings;
 /// and a second finding with the same key (a retried end-of-day chunk, a query re-run) opens
 /// nothing, which is what lets the batch re-derive a chunk after a crash without a second alert.
 
@@ -68,7 +68,7 @@ module {
     version : Nat;
     ruleText : Text;
     account : Nat;
-    /// The account's identifier as the bank issued it — an account number, never a name.
+    /// The account's identifier as the bank issued it; an account number, never a name.
     identifier : Text;
     currency : Text;
     day : Nat;

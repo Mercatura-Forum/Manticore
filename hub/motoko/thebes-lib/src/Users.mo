@@ -1,26 +1,26 @@
-/// Users.mo — user registration + profiles + role tiers, built ON TOP of Admin.
+/// Users.mo; user registration + profiles + role tiers, built ON TOP of Admin.
 ///
 /// A PURE MODULE (no actor, no state of its own). The host actor holds one
 /// `Users.State` in a top-level `let` (stable under `persistent actor`,
 /// because `mo:core/Map` is mutated in place) and passes it in.
 ///
 /// What you get:
-///   • register(name)       — create/update the caller's profile (idempotent).
-///   • setAvatar(path)      — store the caller's media-contract avatar PATH
+///   • register(name)      ; create/update the caller's profile (idempotent).
+///   • setAvatar(path)     ; store the caller's media-contract avatar PATH
 ///                            (e.g. "/avatar/{principal}"); the image BYTES live
-///                            in the media contract, never here — this app only
+///                            in the media contract, never here; this app only
 ///                            holds the pointer (the storage law).
-///   • role tiers           — owner | admin | user | guest. Authority is NOT
+///   • role tiers          ; owner | admin | user | guest. Authority is NOT
 ///                            duplicated: owner/admin come straight from Admin
 ///                            (single source of truth); a registered caller is a
 ///                            `user`; everyone else is a `guest`.
-///   • requireRole(min)     — guard that Runtime.traps below the required tier.
-///   • get / all / count    — read profiles (use Pagination for large lists).
+///   • requireRole(min)    ; guard that Runtime.traps below the required tier.
+///   • get / all / count   ; read profiles (use Pagination for large lists).
 ///
 /// Trust model: every write is keyed on the caller `Principal` the host actor
-/// passes (`msg.caller` on Thebes) — never a value from untrusted arguments.
+/// passes (`msg.caller` on Thebes); never a value from untrusted arguments.
 ///
-/// Storage: `mo:core/Map` (a B-tree of order 32 — ordered + memory-efficient),
+/// Storage: `mo:core/Map` (a B-tree of order 32; ordered + memory-efficient),
 /// keyed by `Principal` with `Principal.compare`.
 
 import Map "mo:core/Map";
@@ -57,7 +57,7 @@ module {
     switch (Map.get(s.profiles, Principal.compare, p)) { case (?_) true; case null false };
   };
 
-  /// Effective role of `p` — owner/admin come from Admin (single authority),
+  /// Effective role of `p`; owner/admin come from Admin (single authority),
   /// a registered principal is a `user`, otherwise `guest`.
   public func roleOf(admin : Admin.State, s : State, p : Principal) : Role {
     if (Admin.isOwner(admin, p)) #owner
@@ -67,7 +67,7 @@ module {
   };
 
   /// Guard: trap unless `caller`'s effective role is at least `min`. Call at the
-  /// TOP of a privileged method — the trap reverts all state changes.
+  /// TOP of a privileged method; the trap reverts all state changes.
   public func requireRole(admin : Admin.State, s : State, caller : Principal, min : Role) {
     if (rank(roleOf(admin, s, caller)) < rank(min)) {
       Runtime.trap("Users: caller lacks the required role");

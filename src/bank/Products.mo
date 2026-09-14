@@ -1,12 +1,12 @@
-/// Products.mo — product validation and schedule generation, as pure functions.
+/// Products.mo; product validation and schedule generation, as pure functions.
 ///
 /// Two jobs, both deliberately free of state so they can be tested against vectors
 /// and against a reference system rather than against themselves:
 ///
-///   * `validateTerms` — everything a product must satisfy before it can be
+///   * `validateTerms`; everything a product must satisfy before it can be
 ///     registered, including the role-to-account category check Fineract performs
 ///     per slot and refuses the product without;
-///   * `schedule` — the repayment schedule for a credit product, row by row, as a
+///   * `schedule`; the repayment schedule for a credit product, row by row, as a
 ///     pure function of the terms, so it can be recomputed and compared against
 ///     Fineract's own generated schedule instalment by instalment.
 ///
@@ -253,7 +253,7 @@ module {
   //  SCHEDULE GENERATION
   // ═══════════════════════════════════════════════════════
 
-  /// Add `n` whole months to a day, clamping the day of month — the convention
+  /// Add `n` whole months to a day, clamping the day of month; the convention
   /// every instalment calendar uses, so a loan drawn on the 31st pays on the 30th
   /// in a thirty-day month and returns to the 31st afterwards.
   public func addMonths(d : CivilDate.Day, n : Nat) : CivilDate.Day {

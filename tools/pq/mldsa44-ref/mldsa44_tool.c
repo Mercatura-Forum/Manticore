@@ -1,4 +1,4 @@
-/* mldsa44_tool.c — a keypair and signatures from the pq-crystals ML-DSA-44 reference implementation,
+/* mldsa44_tool.c; a keypair and signatures from the pq-crystals ML-DSA-44 reference implementation,
  * for the payments battery (the connector side of M-6: the bank verifies, this signs).
  *
  *   mldsa44_tool keygen <seedhex32>                 -> pk hex, sk hex (deterministic from the seed)

@@ -1,4 +1,4 @@
-/// CloseCanonical.mo — the canonical bytes of the close vocabulary.
+/// CloseCanonical.mo; the canonical bytes of the close vocabulary.
 ///
 /// Tag per variant, additive, never renumbered, every variable-length part carrying
 /// its own length. Writers and readers are mirror images and the battery proves it by

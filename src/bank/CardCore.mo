@@ -1,13 +1,13 @@
-/// CardCore.mo — the card book folded from the bank's log in stable memory (cards): cards by their token digest, every
+/// CardCore.mo; the card book folded from the bank's log in stable memory (cards): cards by their token digest, every
 /// authorization decision, the holds, the cleared transactions, the disputes, the statements; the schemes and
 /// products whose rules are data.
 ///
 /// Rows: one per card (keyed by the block that issued it), one per authorization decision (approved and declined
-/// alike — the dispute and fraud patterns need both), one per cleared item, one per dispute, one per statement cut;
+/// alike; the dispute and fraud patterns need both), one per cleared item, one per dispute, one per statement cut;
 /// indexes by token digest, by account, by party, by state, by card and day (the daily and velocity folds), by
 /// hold (the journal's pending index), by acquirer reference and day (duplicates), disputes by stage. The decision
 /// engine is a pure function of the request, the card's row and controls, the product's bounds and the scheme's
-/// rules, the day's approved authorizations and the account's availability — the same inputs the battery's Python
+/// rules, the day's approved authorizations and the account's availability; the same inputs the battery's Python
 /// engine reads, so every decision is reproducible. The PAN is not here: the token's SHA-256 is the key, and the
 /// token itself is kept nowhere.
 
@@ -342,7 +342,7 @@ module {
   };
   /// The open holds of a card: its approved authorizations whose pending is still open.
   /// The card's authorizations with an open hold over `[from, to]`: one range scan of the card/day index (never a walk
-  /// day by day), the window clipped to a year — a hold lives at most the scheme's 31 days.
+  /// day by day), the window clipped to a year; a hold lives at most the scheme's 31 days.
   public func openHoldsOf(s : State, cardId : Nat, from : Nat, to : Nat) : [AuthRow] {
     if (to < from) return [];
     let hiDay = Nat.min(to, from + 366);

@@ -1,4 +1,4 @@
-/// TermProducts.mo — fixed deposits, recurring deposits and share accounts.
+/// TermProducts.mo; fixed deposits, recurring deposits and share accounts.
 ///
 /// A term product is a deposit with a maturity and a rate chosen from a chart by
 /// **term**, not by balance: a 180-day deposit earns the 180-day band's rate for
@@ -15,7 +15,7 @@
 ///
 /// A recurring deposit is the same machinery with a required instalment: each
 /// expected deposit has a due date, a shortfall is recorded rather than assumed,
-/// and interest is computed on the balance that was actually there — which is the
+/// and interest is computed on the balance that was actually there; which is the
 /// daily-balance fold, unchanged.
 
 import Nat "mo:core/Nat";
@@ -53,7 +53,7 @@ module {
 
   /// The rate for a balance-banded chart, resolved for an accrual window. A balance
   /// exactly on a band boundary belongs to the **upper** band, because bands are
-  /// `[from, to)` — stated here because "which side of the boundary" is the first
+  /// `[from, to)`; stated here because "which side of the boundary" is the first
   /// thing a depositor disputes.
   public func rateForBalance(chart : T.RateChart, balance : Nat) : { #ok : I.Rate; #err : TermFault } {
     if (chart.by != #balance) return #err(#chartIsByTerm);

@@ -1,8 +1,8 @@
-/// StableLog.mo — Append-only log backed by Region stable memory, with a prefix that can leave.
+/// StableLog.mo; Append-only log backed by Region stable memory, with a prefix that can leave.
 ///
 /// A Motoko equivalent of Rust's ic-stable-structures StableLog: survives upgrades, scales to
 /// gigabytes, O(1) append and O(1) random access. This version also lets a **prefix be truncated**
-/// and its memory reused — which a Region cannot do on its own, because a Region is never returned
+/// and its memory reused; which a Region cannot do on its own, because a Region is never returned
 /// to the system. So the log keeps its bytes in a **pool of regions**: entries are appended into
 /// the current data region until it is full, then the next region is taken from the pool (a region
 /// whose entries have all been truncated) or allocated; the index that addresses entries is kept in
@@ -11,12 +11,12 @@
 /// the pool, so the next month's entries land in the pages last month's left.
 ///
 /// Layout:
-///   region 0 — the header: base(8) ‖ count(8) ‖ dataRegion(8) ‖ dataOffset(8), rewritten on every
+///   region 0; the header: base(8) ‖ count(8) ‖ dataRegion(8) ‖ dataOffset(8), rewritten on every
 ///              append and truncation, so the state is recoverable from stable memory alone;
-///   index chunk c — slots for entries [c·INDEX_CHUNK, (c+1)·INDEX_CHUNK): offset(8) ‖ len(4) ‖ region(4);
-///   data regions — the entries' bytes, contiguous within a region; an entry never straddles two.
+///   index chunk c; slots for entries [c·INDEX_CHUNK, (c+1)·INDEX_CHUNK): offset(8) ‖ len(4) ‖ region(4);
+///   data regions; the entries' bytes, contiguous within a region; an entry never straddles two.
 ///
-/// The public surface the readers already use — `append`, `get`, `size`, `getRange`, `dataSize` — is
+/// The public surface the readers already use; `append`, `get`, `size`, `getRange`, `dataSize`; is
 /// unchanged; `get` answers null below the base as it does past the end.
 
 import Region "mo:core/Region";
@@ -162,7 +162,7 @@ module {
     Nat64.toNat(idx)
   };
 
-  /// Get entry by index. Null past the end — and below the base, where the prefix has left.
+  /// Get entry by index. Null past the end; and below the base, where the prefix has left.
   public func get(state : State, idx : Nat) : ?Blob {
     let idx64 = Nat64.fromNat(idx);
     if (idx64 >= state.entryCount or idx64 < state.base) return null;
@@ -211,8 +211,8 @@ module {
     { regions = List.size(state.regions); free = List.size(state.free); pages = Nat64.toNat(pages) }
   };
 
-  /// Let every entry at or below `hi` go. Regions that held only such entries — whole index chunks,
-  /// data regions whose last entry is at or below `hi` and are not the current one — return to the
+  /// Let every entry at or below `hi` go. Regions that held only such entries; whole index chunks,
+  /// data regions whose last entry is at or below `hi` and are not the current one; return to the
   /// pool. A base already past `hi` is left where it is.
   public func truncateThrough(state : State, hi : Nat) {
     ensureInit(state);

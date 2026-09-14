@@ -1,4 +1,4 @@
-// BankCore.test.mo — the four-eyes state machine, adversarially.
+// BankCore.test.mo; the four-eyes state machine, adversarially.
 //
 // The battery for proposal entitlements and maker-checker's criteria A-2, A-3, A-4, A-6 … A-14 on the pure
 // core. What is proved here, and what each check exists to stop:
@@ -19,7 +19,7 @@
 //   * the consumed figures are the fold of the log: replay reproduces them (A-4);
 //   * an authority refusal is recorded; a malformed-input refusal is not (the
 //     line BankCore's header draws).
-// engine: wasi-only — the battery fingerprints the whole state on every refusal.
+// engine: wasi-only; the battery fingerprints the whole state on every refusal.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -345,13 +345,13 @@ assert (scopeRefusals == 4);
 // ═══════════════════════════════════════════════════════════════════════════
 // Two manual entries have executed for this maker on this day: 10,000.00 and
 // 1,000.00. The twenty tampered proposals were refused at approval, so they
-// consumed nothing — which is itself worth asserting, because a limit charged at
+// consumed nothing; which is itself worth asserting, because a limit charged at
 // proposal time rather than at execution would read 31,000.00 here.
 let usedSoFar = Core.consumedFor(bs, maker, "EGP", TODAY);
 Debug.print("count: consumed minor units so far = " # Nat.toText(usedSoFar));
 assert (usedSoFar == 10_000_00 + 1_000_00);
 // Spend up to the limit. The per-operation ceiling is 50,000.00, so the
-// remaining 109,000.00 takes three operations — which also proves the daily
+// remaining 109,000.00 takes three operations; which also proves the daily
 // limit accumulates across operations rather than being a per-operation bound.
 var remaining : Nat = 120_000_00 - usedSoFar;
 var topUps = 0;
@@ -505,8 +505,8 @@ Debug.print("count: expiry checks = 5");
 // ═══════════════════════════════════════════════════════════════════════════
 //  A-11  no bypass: every permission enumerated
 // ═══════════════════════════════════════════════════════════════════════════
-// For every dual-authorised permission, no principal — the bank administrator
-// included — can perform its command single-handed.
+// For every dual-authorised permission, no principal; the bank administrator
+// included; can perform its command single-handed.
 var bypassAttempts = 0;
 let dualCommands : [T.Command] = [
   #defineRole({ id = "x"; name = "X"; permissions = ["command.read"] }),
@@ -841,7 +841,7 @@ Debug.print("count: journal blocks replayed = " # Nat.toText(JCore.height(js)));
 
 // Read scope: a principal holding only the book-scoped teller role sees BR01
 // only. The maker also holds `config` with no book dimension, so the union rule
-// makes it unrestricted — which is the behaviour to assert, not to work around.
+// makes it unrestricted; which is the behaviour to assert, not to work around.
 switch (Core.readableBooks(bs, teller2)) {
   case null { Debug.print("teller2 should be book-scoped"); assert false };
   case (?books) { assert (books.size() == 1 and Text.equal(books[0], "BR01")) };

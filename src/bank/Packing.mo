@@ -1,4 +1,4 @@
-/// Packing.mo — closed-month packing: a closed range of the journal packed, its index rows replaced
+/// Packing.mo; closed-month packing: a closed range of the journal packed, its index rows replaced
 /// by one summary row per account and a delta-coded list, its aggregates rolled up, in chunks.
 ///
 /// The unit is a **pack**: the journal blocks from the block after the last pack's end up to the
@@ -10,17 +10,17 @@
 ///
 /// The phases, in order:
 ///
-///   1. **encoding** — the range in segments of at most `SEGMENT_BLOCKS` blocks, each a
+///   1. **encoding**; the range in segments of at most `SEGMENT_BLOCKS` blocks, each a
 ///      self-contained `Pack` (its own dictionaries) that has already round-tripped byte for byte
 ///      before it is stored; per segment, each account's postings as a delta-coded list
 ///      (`Pack.AccountEntry`), written to the pack's store beside the segment;
-///   2. **consolidating** — an account's per-segment lists merged into one list and one summary
+///   2. **consolidating**; an account's per-segment lists merged into one list and one summary
 ///      row per (account, pack): count, debits, credits, and where the list is;
-///   3. **rebuilding** — the ten per-posting indexes replaced by generations without the packed
+///   3. **rebuilding**; the ten per-posting indexes replaced by generations without the packed
 ///      rows (`RegionRebuild`): the five posting indexes and the journal's idempotency keys by
 ///      posting number, the four activity indexes by day, the latter rolled up into monthly rows as
 ///      they go;
-///   4. **sealed** — the pack's row written, the boundary moved, the next pack allowed.
+///   4. **sealed**; the pack's row written, the boundary moved, the next pack allowed.
 ///
 /// A pack's bytes live in a store of their own (`RegionStore`), one region a pack, taken from a
 /// pool: when a pack has rolled to an archive its store is reset and the next pack fills it, so
@@ -77,7 +77,7 @@ module {
     var bankRawBytes : Nat;
     var bankDropped : Nat;
     var bankKept : Nat;
-    /// the bank segments' store: taken from the same pool, but not released by the journal's roll — the
+    /// the bank segments' store: taken from the same pool, but not released by the journal's roll; the
     /// bank's blocks stay readable here until a roll of their own carries them
     bankStoreIx : Nat;
     storeIx : Nat;
@@ -128,13 +128,13 @@ module {
   /// A segment of bank blocks: `dropped` is the count of proposal bodies the rule let go, `kept` the rest.
   public type BankSegment = { pack : Nat; seq : Nat; lo : Nat; hi : Nat; offset : Nat; bytes : Nat; rawBytes : Nat; dropped : Nat; kept : Nat; sha256 : Blob };
 
-  /// `count(4) ‖ debits(16) ‖ credits(16) ‖ offset(8) ‖ len(4)` — 48 bytes.
+  /// `count(4) ‖ debits(16) ‖ credits(16) ‖ offset(8) ‖ len(4)`; 48 bytes.
   public let ACCOUNT_ROW : Nat = 48;
   public let SEGMENT_ROW : Nat = 76;   // lo(8) hi(8) offset(8) bytes(4) rawBytes(8) postings(8) sha256(32)
   public let BANK_SEGMENT_ROW : Nat = 84;   // lo(8) hi(8) offset(8) bytes(4) rawBytes(8) dropped(8) kept(8) sha256(32)
 
   public type State = {
-    /// The pack stores: one region a pack, pooled — reset for the next pack once its pack has
+    /// The pack stores: one region a pack, pooled; reset for the next pack once its pack has
     /// rolled to an archive.
     stores : List.List<Store.State>;
     /// The consolidated account lists, never reset: what the live contract keeps of a packed
@@ -232,7 +232,7 @@ module {
     rawBlock : Nat -> ?Blob;
     blockOf : Nat -> ?JT.Block;
     /// The bank log's stored bytes of a block, and the bytes to keep of them (the same, or the preimage
-    /// and hash with the empty trailer when §18.2's rule lets a proposal's body go) — the bank's rule,
+    /// and hash with the empty trailer when §18.2's rule lets a proposal's body go); the bank's rule,
     /// applied by the bank, so this module does not read proposals.
     rawBankBlock : Nat -> ?Blob;
     bankKeep : (Nat, Blob) -> Blob;
@@ -420,7 +420,7 @@ module {
     let store = storeOf(s, job.storeIx);
     while (i < page.entries.size()) {
       // gather this account's rows; an account whose rows straddle the page boundary is finished
-      // on the next advance — the cursor stops before it
+      // on the next advance; the cursor stops before it
       let acct = R.getNat(Blob.toArray(page.entries[i].0), 8, 8);
       var j = i;
       while (j < page.entries.size() and R.getNat(Blob.toArray(page.entries[j].0), 8, 8) == acct) j += 1;
@@ -559,7 +559,7 @@ module {
   /// The bank's packed range: through which block the packs answer.
   public func bankPackedThrough(s : State) : Nat { s.bankPackedThroughBlock };
 
-  /// A packed bank block's stored bytes — one read of its segment's offsets table and one of the block —
+  /// A packed bank block's stored bytes; one read of its segment's offsets table and one of the block;
   /// or null when no sealed pack holds the block (a block above the packed range, or one that has rolled).
   public func bankBlock(s : State, index : Nat) : ?Blob {
     if (Map.size(s.packs) == 0 or index > s.bankPackedThroughBlock) return null;
@@ -613,7 +613,7 @@ module {
     switch (RI.get(s.segments, R.key2(pack, 8, seq, 4))) { case (?v) ?decodeSegment(pack, seq, v); case null null }
   };
 
-  /// A segment's bytes — what an archive is given, and what a reader unpacks.
+  /// A segment's bytes; what an archive is given, and what a reader unpacks.
   public func segmentBytes(s : State, pack : Nat, seq : Nat) : ?Blob {
     let ?p = Map.get(s.packs, Nat.compare, pack) else return null;
     if (p.archived) return null;
@@ -638,15 +638,15 @@ module {
     }
   };
 
-  /// The packs whose days overlap `[from, to]`, ascending — the ones a packed account read consults.
+  /// The packs whose days overlap `[from, to]`, ascending; the ones a packed account read consults.
   public func packsOverlapping(s : State, from : Nat, to : Nat) : [PackView] {
     let out = List.empty<PackView>();
     for ((_, p) in Map.entries(s.packs)) { if (p.maxDay >= from and p.minDay <= to) List.add(out, view(p)) };
     List.toArray(out)
   };
 
-  /// An account's packed postings over `[from, to]`, in statement order — value day, then posting
-  /// number, the order the account index pages in — at most `bound` entries: the account's summary
+  /// An account's packed postings over `[from, to]`, in statement order; value day, then posting
+  /// number, the order the account index pages in; at most `bound` entries: the account's summary
   /// rows say the size before any list is read, so a read past the bound is refused with the size.
   public func packedEntries(s : State, acct : Nat, from : Nat, to : Nat, bound : Nat) : { entries : [Pack.AccountEntry]; size : Nat; exceeded : Bool } {
     let packs = packsOverlapping(s, from, to);

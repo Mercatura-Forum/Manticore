@@ -1,4 +1,4 @@
-/// ArchiveRoll.mo — a sealed pack's segments to an archive child, and the journal's prefix gone.
+/// ArchiveRoll.mo; a sealed pack's segments to an archive child, and the journal's prefix gone.
 ///
 /// The roll is the second half of closed-month packing: the pack holds the range's blocks in a
 /// third of their bytes, and the roll moves those bytes to an archive contract, writes the
@@ -10,13 +10,13 @@
 ///
 /// The phases, each advanced in bounded steps by an open method, each step a bank block:
 ///
-///   1. **folding** — a shadow journal state, restored from the previous checkpoint (or empty for
+///   1. **folding**; a shadow journal state, restored from the previous checkpoint (or empty for
 ///      the first roll), applies the blocks up to the pack's boundary: the state as it stood then;
-///   2. **checkpointing** — that state, in parts, appended to the live journal's log;
-///   3. **sending** — each segment's bytes to the archive, recorded before the call; the archive
+///   2. **checkpointing**; that state, in parts, appended to the live journal's log;
+///   3. **sending**; each segment's bytes to the archive, recorded before the call; the archive
 ///      acknowledges by calling back (`ack`), and only its own word is recorded;
-///   4. **dropping** — the journal's five per-posting indexes rebuilt without the range;
-///   5. **truncating** — the log's prefix released, the MMR pruned below the boundary, the pack's
+///   4. **dropping**; the journal's five per-posting indexes rebuilt without the range;
+///   5. **truncating**; the log's prefix released, the MMR pruned below the boundary, the pack's
 ///      store given back, the pack archived.
 ///
 /// Packs roll in order, because the prefix leaves as a prefix. A roll is refused while a pending

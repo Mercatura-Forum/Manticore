@@ -1,4 +1,4 @@
-/// StableRows.mo — the byte helpers every fixed-width row in this component is built from.
+/// StableRows.mo; the byte helpers every fixed-width row in this component is built from.
 ///
 /// A row in a `RegionIndex` is a fixed number of bytes, and the shape used throughout the bank is
 /// the same: the record is its block in the log, and the row carries the mutable facts and pointers

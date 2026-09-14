@@ -1,6 +1,6 @@
 """iso8583_twin.py — an ISO 8583 packer/unpacker for the ASCII packagers jPOS defines (ISO87APackager, ISO93APackager),
 driven by the field tables read from jPOS's own source (`$ORACLES/jpos/packagers.json`, extracted from
-org/jpos/iso/packager/ISO87APackager.java and ISO93APackager.java of jpos 2.1.10, AGPL-3.0 — an oracle outside the
+org/jpos/iso/packager/ISO87APackager.java and ISO93APackager.java of jpos 2.1.10, AGPL-3.0; an oracle outside the
 repository, nothing of it vendored; `ORACLES` names the oracle root, `oracles` by default).
 
 It exists so the cards battery can prove the connector's dialect byte for byte: every message packed here unpacks

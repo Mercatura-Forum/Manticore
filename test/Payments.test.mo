@@ -1,7 +1,7 @@
-// Payments.test.mo — ISO 20022 messaging on the journal, on the pure state machine.
+// Payments.test.mo; ISO 20022 messaging on the journal, on the pure state machine.
 //
-// The world of Settlement.test.mo — scheme, participants with ISO 9362 BICs, three accounts a
-// currency, caps — with a rail declared on the scheme; then messages, each one block:
+// The world of Settlement.test.mo; scheme, participants with ISO 9362 BICs, three accounts a
+// currency, caps; with a rail declared on the scheme; then messages, each one block:
 //
 //   M-1  message to posting, exhaustively: a pacs.008 produces the reservation (one per transaction,
 //        keyed on its UETR); a rejected message produces none; pacs.002 ACSC posts, pacs.002 RJCT
@@ -23,7 +23,7 @@
 //   P-4  every message has its audit record (accepted, held or refused); every settlement posting
 //        made by a message names a transfer whose UETR is in an accepted message
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -85,8 +85,8 @@ var authority = 1_000_000;
 func nextAuthority() : Nat { authority += 1; authority };
 let recorder : Core.Recorder = { bank = func(ev : T.Event) : Nat { bcommit(ev) }; journal = func(ev : JT.Event) : Nat { jcommit(ev) }; monitor = Core.noMonitor };
 
-/// Plan and execute a command the way the actor does: the bank event, the journal steps, and — for a
-/// prepared transfer — the reservation in the same message.
+/// Plan and execute a command the way the actor does: the bank event, the journal steps, and; for a
+/// prepared transfer; the reservation in the same message.
 func execute(command : T.Command) : Result.Result<Nat, T.BankError> {
   switch (Core.planCommand(bs, bb(), js, jb(), bankP, clock, command, nextAuthority())) {
     case (#err(e)) #err(e);
@@ -158,7 +158,7 @@ func product(id : Text, control : Text, kind : ProdT.ProductKind, ccy : Text, ov
   } })
 };
 for (ccy in ["EGP", "USD", "EUR"].vals()) {
-  // a position may go debit up to its cap — the cap is granted per account (`grantFacility`)
+  // a position may go debit up to its cap; the cap is granted per account (`grantFacility`)
   ignore cmd(product("POS-" # ccy, "2130", #currentAccount, ccy, ?0));
   ignore cmd(product("SET-" # ccy, "2140", #currentAccount, ccy, null));
   ignore cmd(product("FEE-" # ccy, "2150", #currentAccount, ccy, null));
@@ -304,7 +304,7 @@ assert (r4.verdict == #accepted and r4.outcomes.size() == 2);
 switch (r4.outcomes[0]) { case (#acknowledged(a)) assert (a.status == "ACSP" and a.transfer == tr3); case (o) fail(debug_show (o)) };
 assert (stateOf(tr3) == #reserved);
 moneyless += 1;
-// pacs.004: the return of the committed payment — a transfer of its own, payee to payer, linked
+// pacs.004: the return of the committed payment; a transfer of its own, payee to payer, linked
 let r5 = ingest(pacs004([("RTR-1", t1.uetr, 1_200_00, "EGP")]));
 let trRet = switch (onlyOutcome(r5)) { case (#returned(x)) { assert (x.original == tr1 and x.reserved and x.committed); x.transfer }; case (o) { fail(debug_show (o)); 0 } };
 assert (stateOf(tr1) == #committed);   // the original untouched

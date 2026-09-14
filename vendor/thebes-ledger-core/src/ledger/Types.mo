@@ -1,4 +1,4 @@
-/// Types.mo — ICRC-1/ICRC-2/ICRC-3 compliant types for self-indexed ledger
+/// Types.mo; ICRC-1/ICRC-2/ICRC-3 compliant types for self-indexed ledger
 ///
 /// Matches the official Candid spec exactly. Compatible with all existing
 /// ICRC tooling (wallets, explorers, DEXes).
@@ -179,7 +179,7 @@ module {
 
   public type AccountKey = (Principal, Blob);
 
-  /// Canonical account key for Map lookups — (principal, subaccount_or_empty)
+  /// Canonical account key for Map lookups; (principal, subaccount_or_empty)
   public func accountKey(a : Account) : AccountKey {
     let sub = switch (a.subaccount) {
       case (?s) { if (isDefaultSubaccount(s)) { "" : Blob } else { s } };

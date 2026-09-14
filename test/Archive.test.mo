@@ -1,4 +1,4 @@
-// Archive.test.mo — the archive spawning flow, interrupted after every step.
+// Archive.test.mo; the archive spawning flow, interrupted after every step.
 //
 // The archive rule: "Every step must be safely repeatable and resumable. A
 // crash or rollback between any two steps must leave a state the next call can finish, never a
@@ -7,14 +7,14 @@
 //
 // What is proved here, and what each check exists to stop:
 //
-//   * a full spawn reaches `#ready` through the six steps, and the fake chain — which decodes every
-//     raw frame independently, from the engine's own layouts — ends with exactly one child holding
+//   * a full spawn reaches `#ready` through the six steps, and the fake chain; which decodes every
+//     raw frame independently, from the engine's own layouts; ends with exactly one child holding
 //     exactly the pinned image and the intended controllers;
 //   * after every step the run is cut: the bank's state is thrown away and re-folded from the block
-//     log, the driver's memory of the last reply is lost, and the flow still finishes — with the
+//     log, the driver's memory of the last reply is lost, and the flow still finishes; with the
 //     invariant that no id the chain ever gave this parent is unaccounted for;
 //   * the create step cannot be repeated while one is outstanding, so a driver that lost the reply
-//     cannot make a second orphan — and both recoveries work: finding the id and remembering it, or
+//     cannot make a second orphan; and both recoveries work: finding the id and remembering it, or
 //     a dual-authorised abandonment followed by attaching the found id to a fresh spawn;
 //   * an install that the chain rejects leaves the spawn where the install can be sent again with
 //     the same id, and a confirmation offering the empty-module hash is refused and recorded;
@@ -26,7 +26,7 @@
 //   * every archive event and command survives the canonical encoding, and the folded state's
 //     fingerprint is the same whether reached live or by replay.
 //
-// engine: wasi-only — the image store is a Region, and the journal core keeps its per-posting state
+// engine: wasi-only; the image store is a Region, and the journal core keeps its per-posting state
 // in one; the moc interpreter provides no Region.
 
 import Debug "mo:core/Debug";
@@ -249,7 +249,7 @@ func mustRefuse(command : T.Command, why : Text) {
 
 // ─── the image ───────────────────────────────────────────────────────────────
 
-// A child that is not a real module — the flow never inspects the bytes, the chain here hashes
+// A child that is not a real module; the flow never inspects the bytes, the chain here hashes
 // them, and the point is the pin, the seal and the frame. 182 bytes, like the proof's child.wat.
 let childWasm : Blob = Blob.fromArray(Array.tabulate<Nat8>(182, func(i) { Nat8.fromNat((i * 7 + 3) % 256) }));
 let childHash = Sha256.fromBlob(#sha256, childWasm);
@@ -413,7 +413,7 @@ func crash() {
 
 /// The invariant, checked against the chain's own record of who was given what: every id the chain
 /// created for this parent is either held by a spawn or a child, or its spawn is marked
-/// `#createIssued` — visible, never silent.
+/// `#createIssued`; visible, never silent.
 var invariantChecks = 0;
 func invariant() {
   var outstanding = 0;
@@ -427,7 +427,7 @@ func invariant() {
     };
   };
   // an unheld id must be explained by an outstanding create, or by an abandonment whose id was
-  // later attached (which makes it held) — so unheld ≤ outstanding + abandoned-and-not-attached
+  // later attached (which makes it held); so unheld ≤ outstanding + abandoned-and-not-attached
   var abandoned = 0;
   for ((_, sp) in Map.entries(bs.archive.spawns)) {
     switch (sp.status) { case (#abandoned(_)) abandoned += 1; case (_) {} };
@@ -440,7 +440,7 @@ func invariant() {
 
 let spawn1 = mustPass(#spawnArchive({ purpose = "2026-09 postings" }));
 assert (status(spawn1) == "authorised");
-// the pin cannot move under a spawn that is in flight — but an authorised, unsent spawn is not yet
+// the pin cannot move under a spawn that is in flight; but an authorised, unsent spawn is not yet
 mustRefuse(#spawnArchive({ purpose = "" }), "empty purpose");
 
 // step 1
@@ -448,7 +448,7 @@ let cid1 = switch (stepCreate(spawn1)) { case (#ok(c)) c; case (other) { Debug.p
 assert (cid1 == 1_000_000);
 assert (status(spawn1) == "createIssued");
 crash(); invariant();
-// a second create is refused while this one is outstanding — the driver cannot make a second orphan
+// a second create is refused while this one is outstanding; the driver cannot make a second orphan
 switch (stepCreate(spawn1)) { case (#refused(#SpawnNotIn(_))) {}; case (other) { Debug.print(debug_show (other)); assert false } };
 assert (chain.nextId == 1_000_001);
 // the pin cannot move now
@@ -456,7 +456,7 @@ mustRefuse(#pinArchiveImage({ sha256 = Sha256.fromBlob(#sha256, "\01"); bytes = 
 // an install before the id is remembered is refused
 switch (stepInstall(spawn1)) { case (#refused(#SpawnNotIn(_))) {}; case (other) { Debug.print(debug_show (other)); assert false } };
 
-// step 2 — the driver lost the reply in the crash; it reads the id back from the chain (here: the
+// step 2; the driver lost the reply in the crash; it reads the id back from the chain (here: the
 // chain's record; on the substrate: canister_status of the ids after the last known one)
 let found1 = List.last(chain.created);
 let recovered1 = switch (found1) { case (?(id, _)) id; case null { assert false; 0 : Nat64 } };
@@ -470,7 +470,7 @@ switch (stepRemember(spawn1, 999)) { case (#refused(#SpawnNotIn(_))) {}; case (o
 // and a spawn that knows an id can never be abandoned
 mustRefuse(#abandonArchiveSpawn({ spawn = spawn1; reason = "no" }), "a spawn with an id");
 
-// step 3 — the chain rejects the first install
+// step 3; the chain rejects the first install
 chain.rejectNextInstall := true;
 switch (stepInstall(spawn1)) { case (#chain(_)) {}; case (other) { Debug.print(debug_show (other)); assert false } };
 assert (status(spawn1) == "installIssued");
@@ -485,11 +485,11 @@ assert (AC.counts(bs.archive).refusedConfirmations == 1);
 switch (stepInstall(spawn1)) { case (#ok(c)) assert (c == cid1); case (other) { Debug.print(debug_show (other)); assert false } };
 switch (AC.spawn(bs.archive, spawn1)) { case (?sp) { switch (sp.status) { case (#installIssued(i)) assert (i.attempts == 2); case (_) assert false } }; case null assert false };
 crash(); invariant();
-// a third install is refused by the chain — the child holds code — which the driver reads as "confirm"
+// a third install is refused by the chain; the child holds code; which the driver reads as "confirm"
 switch (stepInstall(spawn1)) { case (#chain(w)) assert (Text.equal(w, "CanisterAlreadyHasWasm")); case (other) { Debug.print(debug_show (other)); assert false } };
 crash(); invariant();
 
-// step 4 — a wrong hash is refused; the chain's hash, which is the pin, confirms
+// step 4; a wrong hash is refused; the chain's hash, which is the pin, confirms
 switch (stepConfirm(spawn1, Sha256.fromBlob(#sha256, "\FF"))) { case (#ok(false)) {}; case (other) { Debug.print(debug_show (other)); assert false } };
 let st1 = stepStatus(cid1);
 assert (st1.moduleHash == childHash and st1.wasmBytes == 182);
@@ -497,10 +497,10 @@ switch (stepConfirm(spawn1, st1.moduleHash)) { case (#ok(true)) {}; case (other)
 assert (status(spawn1) == "installed");
 crash(); invariant();
 switch (stepConfirm(spawn1, st1.moduleHash)) { case (#refused(#SpawnNotIn(_))) {}; case (other) { Debug.print(debug_show (other)); assert false } };
-// the pin may move again once the child holds the confirmed image — but not to the same pin
+// the pin may move again once the child holds the confirmed image; but not to the same pin
 mustRefuse(#pinArchiveImage({ sha256 = childHash; bytes = 182; name = "archive-child" }), "already current");
 
-// step 5 — controllers: the parent first, then the configured set; the chain checks the caller
+// step 5; controllers: the parent first, then the configured set; the chain checks the caller
 switch (stepControllers(spawn1)) {
   case (#ok(cs)) { assert (cs.size() == 3 and Principal.equal(cs[0], bankP) and Principal.equal(cs[1], operatorKey) and Principal.equal(cs[2], governance)) };
   case (other) { Debug.print(debug_show (other)); assert false };
@@ -523,7 +523,7 @@ switch (AC.checkChild(bs.archive, cid1, stepStatus(cid1).moduleHash)) { case (#o
 switch (AC.checkChild(bs.archive, cid1, AT.EMPTY_MODULE_HASH)) { case (#ok(r)) assert (not r.matches); case (#err(_)) assert false };
 Debug.print("count: spawns brought to ready through every step = 1");
 
-// ─── run 2: the other recovery — abandon the create, attach the found id to a fresh spawn ──────
+// ─── run 2: the other recovery; abandon the create, attach the found id to a fresh spawn ──────
 
 let spawn2 = mustPass(#spawnArchive({ purpose = "2026-10 postings" }));
 let cid2 = switch (stepCreate(spawn2)) { case (#ok(c)) c; case (other) { Debug.print(debug_show (other)); assert false; 0 : Nat64 } };
@@ -550,7 +550,7 @@ assert (status(spawn3) == "ready");
 crash(); invariant();
 Debug.print("count: spawns recovered by abandon-and-attach = 1");
 
-// ─── run 3: the step table — from every state, every step is allowed or refused as documented ──
+// ─── run 3: the step table; from every state, every step is allowed or refused as documented ──
 
 // A fresh spawn walked through the states; at each state every step is tried, and the one that is
 // allowed next is the only one that is not refused (the create step is tried on a copy of the

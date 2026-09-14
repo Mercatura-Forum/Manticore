@@ -1,4 +1,4 @@
-/// BankTypes.mo — the vocabulary of the banking domain layer.
+/// BankTypes.mo; the vocabulary of the banking domain layer.
 ///
 /// Two logs live in this canister. The journal (the pinned `thebes-ledger-core`
 /// submodule) records what moved: postings, balances, periods, proofs. This
@@ -8,8 +8,8 @@
 /// and one certified tree carries both roots (`BankCert.mo`), so a posting can be
 /// proven and so can the authority behind it.
 ///
-/// Every event is one immutable block. The domain state — books, roles, grants,
-/// policies, proposals, feature activations — is a pure fold over those blocks.
+/// Every event is one immutable block. The domain state; books, roles, grants,
+/// policies, proposals, feature activations; is a pure fold over those blocks.
 ///
 /// Amounts are natural numbers of minor units, as in the journal. Nothing here
 /// holds a balance: a balance is a journal balance.
@@ -108,7 +108,7 @@ module {
 
   public type Money = { currency : JT.Currency; amount : Nat };
 
-  /// A grant's scope, evaluated against the operation's own data — never
+  /// A grant's scope, evaluated against the operation's own data; never
   /// against what the caller claims. `null` in a dimension means unrestricted.
   public type Scope = {
     books : ?[BookId];
@@ -174,7 +174,7 @@ module {
   };
 
   /// The parts of `#createCustomer`. `screening` has no party: the decision is about the party this act
-  /// creates. `lifecycle` is the state the party is left in — `#prospect`, `#pendingKyc` or `#active`
+  /// creates. `lifecycle` is the state the party is left in; `#prospect`, `#pendingKyc` or `#active`
   /// (active needs the documents its due-diligence level requires and a screening that permits movement,
   /// as `setPartyLifecycle` does). An account's `activate` is `setAccountStatus(#active)` after its opening.
   public type CustomerScreening = { listVersion : Text; listRoot : PT.Commitment; decision : { #clear; #hit : { matches : Nat }; #cleared : { reason : Text }; #confirmed }; screener : Principal; justificationCommit : PT.Commitment };
@@ -345,21 +345,21 @@ module {
     /// The fiscal year's result closed to retained earnings. It sits between
     /// `reconciled` and `closed`: income and expense close to retained earnings after
     /// the period's accruals, revaluations and deferrals are in, and before the period
-    /// is sealed — because the journal will not book a roll into a closed period, and
+    /// is sealed; because the journal will not book a roll into a closed period, and
     /// booking it before the accruals would close a result that is not yet complete.
     #rollYearEnd : { book : BookId; period : JT.PeriodId; retainedEarnings : JT.AccountCode; narration : Text };
     // ── the end-of-day batch ──
     // Opening a run is an administrative act bound to the business-date roll and is
     // authorised. **Advancing** one is not a command at all: it is an open method on
     // the actor, because the plan is fixed when the run opens, so an advancing caller
-    // cannot choose what is posted — only that progress happens.
+    // cannot choose what is posted; only that progress happens.
     #setRetryPolicy : { policy : BT.RetryPolicy };
     #defineStandingInstruction : { instruction : BT.StandingInstruction };
     #cancelStandingInstruction : { id : Text };
     #openEndOfDay : { book : BookId; businessDate : Day; shardSize : Nat };
     /// An exception on the run's report, signed off. A failure the batch cannot repair
-    /// by re-attempting it — a standing instruction the customer never funded, a till
-    /// nobody settled — has to be answerable by a person, because the alternative is a
+    /// by re-attempting it; a standing instruction the customer never funded, a till
+    /// nobody settled; has to be answerable by a person, because the alternative is a
     /// period that can never close. The justification is recorded with the act, and a
     /// sign-off for a failure the run is not carrying is refused, so this cannot be used
     /// to assert that something was dealt with when it was not.
@@ -367,7 +367,7 @@ module {
     // ── regulatory reporting and general-ledger export ──
     //
     // Reporting reads; none of these posts. What they write is the registration of the data
-    // a report is computed from, and the record that an artefact was certified — which is
+    // a report is computed from, and the record that an artefact was certified; which is
     // what makes a filed file provable rather than asserted.
     #registerReportDefinition : { definition : RepT.ReportDef };
     #registerReturnTemplate : { template : RepT.ReturnTemplate };
@@ -634,7 +634,7 @@ module {
     // maker-checker
     /// A proposal: the command's hash, the permission it falls under and the book it is scoped to (read
     /// from the command when it was proposed, so the views and the read scoping need no body), the maker,
-    /// the policy's requirement and role, the expiry and the justification — the preimage the block's hash
+    /// the policy's requirement and role, the expiry and the justification; the preimage the block's hash
     /// covers. The command itself travels behind the hash as the block's trailer (block format 2), bound to
     /// the preimage by `commandHash`: `?Command` here is the trailer, `null` once a pack has dropped it under
     /// §18.2's rule (block format 2).
@@ -660,7 +660,7 @@ module {
     #close : CT.CloseEvent;
     /// Everything the end-of-day batch records, likewise.
     #batch : BT.BatchEvent;
-    /// reporting — reporting. Registrations, certifications and issued statements; no figure.
+    /// reporting; reporting. Registrations, certifications and issued statements; no figure.
     #report : RepT.ReportEvent;
     /// Indexing: the declared configuration that gives an index key its meaning.
     #index : IdxT.IndexEvent;

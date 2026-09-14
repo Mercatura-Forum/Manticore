@@ -1,4 +1,4 @@
-// Collections.test.mo — the life of a troubled exposure as the bank records it (collections and recovery), against the rule
+// Collections.test.mo; the life of a troubled exposure as the bank records it (collections and recovery), against the rule
 // written once here and once in the Python oracle of bank_s31.py.
 //
 // What is proved, on the pure core over a real stable-memory arena:
@@ -12,7 +12,7 @@
 //     broken, interest held in suspense and released, the amounts written off and recovered;
 //   * the stage distribution and the counts; the fingerprint deterministic and changing with every event.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";

@@ -1,4 +1,4 @@
-// DayCountInterest.test.mo — the arithmetic that is money.
+// DayCountInterest.test.mo; the arithmetic that is money.
 //
 // Day-count fractions and interest accrual, as exact rationals, against published
 // vectors. The one that matters most is the last: the figure Apache Fineract 1.15.0
@@ -250,7 +250,7 @@ switch (I.dailyBalanceAccrual(fineractBalance, fiveper, #a004_Act365Fixed, SEP2,
 };
 
 // ACT/ACT (ICMA) has no single-day fraction, so a daily-balance accrual under it is
-// refused rather than approximated — the one convention of the seven that cannot
+// refused rather than approximated; the one convention of the seven that cannot
 // serve this basis.
 assert (I.dailyBalanceAccrual(fineractBalance, fiveper, #a001_ActActIcma({ couponsPerYear = 2 }), SEP2, SEP10) == null);
 Debug.print("count: daily-balance accruals refused for a coupon-period convention = 1");
@@ -285,7 +285,7 @@ Debug.print("count: empty and zero-balance accruals = 2");
 switch (I.averageBalanceAccrual(fineractBalance, fiveper, #a004_Act365Fixed, SEP2, SEP10)) {
   case (?res) {
     // (625000/8) × 5% × 8/365 = 625000 × 5 / (100 × 365): the same figure, because
-    // the window is one uniform stretch — which is the point of computing both from
+    // the window is one uniform stretch; which is the point of computing both from
     // one fold.
     let a = I.round(res.accrued, #halfEven);
     assert (a.amount == 86);

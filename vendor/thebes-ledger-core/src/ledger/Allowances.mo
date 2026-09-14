@@ -1,4 +1,4 @@
-/// Allowances.mo — ICRC-2 allowance table (port of approvals.rs)
+/// Allowances.mo; ICRC-2 allowance table (port of approvals.rs)
 ///
 /// Mechanical port of dfinity/ic rs/ledger_suite/common/ledger_core/src/approvals.rs
 ///
@@ -48,7 +48,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  STABLE STATE (pure data — no closures)
+  //  STABLE STATE (pure data; no closures)
   // ═══════════════════════════════════════════════════════
 
   public type State = {
@@ -122,7 +122,7 @@ module {
     };
     Map.add(state.table, allowanceKeyCompare, key, record);
 
-    // Track in expiration queue (duplicates are harmless — prune handles them)
+    // Track in expiration queue (duplicates are harmless; prune handles them)
     switch (expires_at) {
       case (?exp) { List.add(state.expirationQueue, (exp, key)) };
       case null {};
@@ -182,12 +182,12 @@ module {
 
     for ((exp, key) in List.values(state.expirationQueue)) {
       if (hitLiveEntry or (pruned >= limit and scanned >= maxScan)) {
-        // Past our budget — keep the rest as-is
+        // Past our budget; keep the rest as-is
         List.add(remaining, (exp, key));
       } else {
         scanned += 1;
         switch (Map.get(state.table, allowanceKeyCompare, key)) {
-          case null {}; // Already gone — drop silently
+          case null {}; // Already gone; drop silently
           case (?record) {
             if (exp <= now) {
               // Check if this queue entry still matches the record
@@ -197,12 +197,12 @@ module {
                     ignore Map.delete(state.table, allowanceKeyCompare, key);
                     pruned += 1;
                   };
-                  // else: stale duplicate — drop
+                  // else: stale duplicate; drop
                 };
-                case null {}; // No longer expires — drop
+                case null {}; // No longer expires; drop
               };
             } else {
-              // Not expired yet — keep and stop scanning (queue is ~sorted)
+              // Not expired yet; keep and stop scanning (queue is ~sorted)
               List.add(remaining, (exp, key));
               hitLiveEntry := true;
             };

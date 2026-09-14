@@ -1,4 +1,4 @@
-/// BankMemLog.mo — test support: an in-heap bank block chain using the
+/// BankMemLog.mo; test support: an in-heap bank block chain using the
 /// production encoding and hashing (BankCanonical.mo) but no Region memory, so
 /// the pure core can be driven with realistic blocks in the Motoko interpreter
 /// as well as under WASI. The journal's own test support does the same thing for

@@ -1,7 +1,7 @@
-/// RegionStore.mo — an append-only byte store in one Region.
+/// RegionStore.mo; an append-only byte store in one Region.
 ///
 /// What a pack's bytes and its per-account posting lists are kept in: appended once, read by
-/// offset and length, never rewritten. A store can be **reset** to be filled again — a Region is
+/// offset and length, never rewritten. A store can be **reset** to be filled again; a Region is
 /// never given back to the system, so a pack that has rolled to an archive leaves its store to the
 /// next pack rather than an empty region behind it.
 
@@ -46,6 +46,6 @@ module {
     Region.loadBlob(s.region, Nat64.fromNat(offset), len)
   };
 
-  /// The pages the region holds — what it costs, whatever `bytes` says.
+  /// The pages the region holds; what it costs, whatever `bytes` says.
   public func pages(s : State) : Nat { Nat64.toNat(Region.size(s.region)) };
 }

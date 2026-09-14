@@ -1,9 +1,9 @@
-/// ProductCanonical.mo — the canonical bytes of the product engine's vocabulary.
+/// ProductCanonical.mo; the canonical bytes of the product engine's vocabulary.
 ///
 /// Tag per variant, additive, never renumbered: the same rule the journal's own
 /// encoder follows, for the same reason. A product's terms are the single most
 /// disputable object in a bank, so the bytes that go in the block are a total
-/// function of the terms and nothing else — there is no map iteration, no optional
+/// function of the terms and nothing else; there is no map iteration, no optional
 /// field that can be absent in one encoding and present in another, and every
 /// variable-length part carries its own length.
 ///

@@ -1,13 +1,13 @@
-// Packing.test.mo — closed-month packing against a brute-force oracle, interrupted at every step.
+// Packing.test.mo; closed-month packing against a brute-force oracle, interrupted at every step.
 //
 // What is proved, on a random journal through the real log with two periods and a close between:
 //
 //   * every segment of the pack unpacks to the exact bytes the log holds (the codec's own round trip
 //     is repeated here, independently);
-//   * after the pack, every live posting index holds exactly the rows the day rule keeps — a row
+//   * after the pack, every live posting index holds exactly the rows the day rule keeps; a row
 //     leaves when its posting is in the packed block range and its value day is at or before the
 //     period's end; a posting of the next period made before the close keeps its rows, and so does
-//     a pending still open at the pack — and every live activity index exactly the rows of days
+//     a pending still open at the pack; and every live activity index exactly the rows of days
 //     after the period's end; compared row for row, both directions, with dumps taken before the
 //     pack and filtered by the oracle;
 //   * the monthly roll-ups equal the sums of the rows that left;
@@ -17,14 +17,14 @@
 //   * the dormancy reading after the roll-up equals the one before, for every account;
 //   * a second pack reuses the first's pages: the arena does not grow past what the first needed;
 //   * the bank's own log packs with the month (§18.3): every bank block of the range reads back through
-//     the packs as the bytes the log stored — head and empty trailer for the settled proposals whose
-//     bodies the rule lets go, the whole block for everything else — and decodes to the block it was,
+//     the packs as the bytes the log stored; head and empty trailer for the settled proposals whose
+//     bodies the rule lets go, the whole block for everything else; and decodes to the block it was,
 //     hash for hash; a body leaves only where the rule says; the chain walks from genesis across the
 //     packed prefix and the live tail; every packed block still proves against the bank's MMR root;
 //     the `StableLog` holds nothing below the packed range; bank blocks appended during the pack are
 //     above the range and stay live; the second month packs the next bank range and reads span both.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -160,8 +160,8 @@ let arenaBefore = RI.arenaStats(idx.arena);
 Debug.print("count: arena pages before the pack = " # Nat.toText(arenaBefore.pages));
 
 // ─── the bank's own log: decisions of the month, some proposals carrying bodies ───────────────
-// Every fourth block is a proposal with its body; every other proposal is "settled" — executed, its
-// command reconstructed — and the rule drops its body at the pack; the others keep theirs. The rule is
+// Every fourth block is a proposal with its body; every other proposal is "settled"; executed, its
+// command reconstructed; and the rule drops its body at the pack; the others keep theirs. The rule is
 // the bank's (`BankCore.keptBytes`, proved in BankCore.test); here its decision is the oracle's.
 let bankLog = BLog.newState();
 let maker = Principal.fromText("2vxsx-fae");
@@ -323,7 +323,7 @@ assert (BLog.length(bankLog) == BANK_N + bankLandedDuring);
 let walk = BLog.verifyChainWith(bankLog, packedBankBlock);
 assert (walk.fault == null and walk.checked == BLog.length(bankLog));
 Debug.print("count: bank chain walked across the pack = " # Nat.toText(walk.checked));
-// a walk that cannot see the packs stops at the base — the truncation is real
+// a walk that cannot see the packs stops at the base; the truncation is real
 assert (BLog.verifyChain(bankLog).checked == 0);
 // the root moved only because the tail grew during the pack; packing moves bytes, not commitments …
 assert (BLog.mmrRoot(bankLog) != ?bankRootBefore and bankLandedDuring > 0);
@@ -489,7 +489,7 @@ while (j < ACCOUNTS) {
 };
 Debug.print("count: packed statements equal to the live statements before the pack = " # Nat.toText(statements));
 // the packed lists hold every posting of the range, October's early ones included, and a read
-// over October days finds exactly those — the rows the live index also still holds
+// over October days finds exactly those; the rows the live index also still holds
 var octoberPacked = 0;
 j := 0;
 while (j < ACCOUNTS) {

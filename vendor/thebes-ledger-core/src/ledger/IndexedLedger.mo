@@ -1,4 +1,4 @@
-/// IndexedLedger.mo — Self-Indexed ICRC-1/ICRC-2/ICRC-3/ICRC-10 Token Ledger
+/// IndexedLedger.mo; Self-Indexed ICRC-1/ICRC-2/ICRC-3/ICRC-10 Token Ledger
 ///
 /// This actor constitutes the entry point of the ICRC-ME ledger. It composes
 /// eleven internal modules into a single canister that provides full ICRC
@@ -38,7 +38,7 @@ import Archive "Archive";
 shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
 
   // ═══════════════════════════════════════════════════════
-  //  CORE STATE — stable records (survive upgrades)
+  //  CORE STATE; stable records (survive upgrades)
   // ═══════════════════════════════════════════════════════
 
   let maxSupply = switch (args.max_supply) { case (?m) m; case null Bal.DEFAULT_MAX_SUPPLY };
@@ -55,11 +55,11 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   let mintingAccount : T.Account = args.minting_account;
   let maxMemoLength : Nat = switch (args.max_memo_length) { case (?m) m; case null 256 };
 
-  // Fee collector (optional — fees go to pool if null)
+  // Fee collector (optional; fees go to pool if null)
   var feeCollector : ?T.Account = null;
 
   // ═══════════════════════════════════════════════════════
-  //  ARCHIVE REGISTRY — Offload old blocks to child canisters
+  //  ARCHIVE REGISTRY; Offload old blocks to child canisters
   //
   //  When the main StableLog exceeds archiveBlockThreshold blocks,
   //  a new Archive canister is spawned and old blocks are migrated.
@@ -75,10 +75,10 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   var localBlockOffset : Nat = 0;               // first block index still in local StableLog
 
   // ═══════════════════════════════════════════════════════
-  //  CIRCUIT BREAKER — Cycle Drain Protection
+  //  CIRCUIT BREAKER; Cycle Drain Protection
   //
   //  Freezes ALL writes when cycle balance drops below threshold.
-  //  Reads (queries) stay alive — balances, blocks, proofs all accessible.
+  //  Reads (queries) stay alive; balances, blocks, proofs all accessible.
   //  State is fully preserved. Resume automatically when topped off.
   //
   //  Cost of this check: ~200 instructions (one Cycles.balance() call).
@@ -160,7 +160,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  INIT — Process initial balances (first install only)
+  //  INIT; Process initial balances (first install only)
   // ═══════════════════════════════════════════════════════
 
   func initBalances() {
@@ -193,7 +193,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   type DedupEntry = { blockIndex : Nat; timestamp : Nat64 };
   var recentTxEntries = Map.empty<Blob, DedupEntry>();
   var dedupMapSize : Nat = 0;
-  let DEDUP_MAP_CAP : Nat = 500_000; // hard ceiling — emergency eviction if exceeded
+  let DEDUP_MAP_CAP : Nat = 500_000; // hard ceiling; emergency eviction if exceeded
 
   // Adaptive pruning: scales with map size. Emergency eviction at hard cap.
   var dedupPruneCounter : Nat = 0;
@@ -226,7 +226,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   };
 
   /// The deduplication check: the window and the drift first, then the key against what the ledger has RECORDED.
-  /// Nothing is written here — a transfer refused after this check (allowance, funds, supply) must leave no trace,
+  /// Nothing is written here; a transfer refused after this check (allowance, funds, supply) must leave no trace,
   /// or its own retry with the same `created_at_time` would be answered `#Duplicate` pointing at a block that
   /// never held it (ICRC-1: the ledger must not deduplicate a transfer that was rejected). The key comes back with
   /// `#ok` and is recorded by `recordDedup` once the block is appended, with that block's index.
@@ -331,7 +331,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
       case (#ok(d)) d;
     };
 
-    // Burn — enforce min_burn_amount
+    // Burn; enforce min_burn_amount
     if (isMintingAccount(to)) {
       if (amount == 0) return #Err(#BadBurn({ min_burn_amount = 1 }));
       switch (Bal.burn(balState, from, amount + fee)) {
@@ -644,7 +644,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  INDEX QUERIES (index-ng compatible — THE INNOVATION)
+  //  INDEX QUERIES (index-ng compatible; THE INNOVATION)
   // ═══════════════════════════════════════════════════════
 
   public query func get_account_transactions(args : T.GetAccountTransactionsArgs) : async T.GetAccountTransactionsResult {
@@ -876,7 +876,7 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  MERKLE MOUNTAIN RANGE — O(log n) inclusion proofs
+  //  MERKLE MOUNTAIN RANGE; O(log n) inclusion proofs
   // ═══════════════════════════════════════════════════════
 
   /// Get the MMR root hash (commitment over all blocks)
@@ -995,19 +995,19 @@ shared(initMsg) persistent actor class IndexedLedger(args : T.InitArgs) = self {
   };
 
   // Init at end to avoid forward references.
-  // Only run on first install — state persists across upgrades.
+  // Only run on first install; state persists across upgrades.
   if (BLog.length(blockState) == 0) {
     initBalances();
   };
 
-  // IC resets CertifiedData on upgrade — recertify from persisted state
+  // IC resets CertifiedData on upgrade; recertify from persisted state
   switch (BLog.tipHash(blockState)) {
     case (?hash) Cert.updateTip(certState, BLog.length(blockState) - 1, hash);
     case null {};
   };
 
   // ═══════════════════════════════════════════════════════
-  //  MAINTENANCE TIMER — prune expired allowances every 60s
+  //  MAINTENANCE TIMER; prune expired allowances every 60s
   // ═══════════════════════════════════════════════════════
 
   ignore Timer.recurringTimer<system>(#seconds 60, func() : async () {

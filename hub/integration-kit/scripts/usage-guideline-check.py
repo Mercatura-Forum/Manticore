@@ -3,7 +3,7 @@
 
 Prints the implemented-rule count per set and per family as the canister carries it (before), evaluates every
 fixture of `integration-kit/xml/guidelines-manifest.json` in the Motoko interpreter from the same source the
-canister is built from — the official schema first (AppHdr and Document), then the rule set — and checks that
+canister is built from; the official schema first (AppHdr and Document), then the rule set; and checks that
 each conforming message passes and each violation is refused with exactly its rule id; prints the counts again
 (after), so the number is measured, not claimed. Writes the rule tables to
 `integration-kit/profiles/CBPRPLUS-RULES.json` and `HVPSPLUS-RULES.json` (or checks them with --check-rules)

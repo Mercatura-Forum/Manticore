@@ -1,4 +1,4 @@
-/// BlockLog.mo — Append-only transaction log with cryptographic hash chain
+/// BlockLog.mo; Append-only transaction log with cryptographic hash chain
 ///
 /// Each block is SHA-256 chained to its predecessor; encoded in a compact
 /// binary format (v3); and stored in Region-backed stable memory via StableLog.
@@ -133,7 +133,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  STABLE STATE (pure data — no closures)
+  //  STABLE STATE (pure data; no closures)
   // ═══════════════════════════════════════════════════════
 
   public type State = {
@@ -180,7 +180,7 @@ module {
 
   // ═══════════════════════════════════════════════════════
   //  V3 COMPACT BINARY ENCODING (zero GC pressure)
-  //  Pre-sized VarArray — no List.add, no intermediate allocations.
+  //  Pre-sized VarArray; no List.add, no intermediate allocations.
   //  CBOR is reconstructed lazily on get_blocks reads only.
   // ═══════════════════════════════════════════════════════
 
@@ -246,12 +246,12 @@ module {
     };
     // Parent hash
     switch (parentHash) { case (?h) wBlob(h); case null {} };
-    // Block hash (32 bytes, always present — enables O(1) read without recomputation)
+    // Block hash (32 bytes, always present; enables O(1) read without recomputation)
     wBlob(blockHash);
     Blob.fromArray(Array.tabulate<Nat8>(len, func(i) { buf[i] }))
   };
 
-  /// Decode block — auto-detects v1 (pipe text) / v2 (CBOR) / v3 (compact binary)
+  /// Decode block; auto-detects v1 (pipe text) / v2 (CBOR) / v3 (compact binary)
   func decodeBlock(idx : Nat, data : Blob) : ?DecodedBlock {
     let bytes = Blob.toArray(data);
     if (bytes.size() == 0) return null;
@@ -488,7 +488,7 @@ module {
   public func dataSize(state : State) : Nat { SLog.dataSize(state.stableLog) };
 
   // ═══════════════════════════════════════════════════════
-  //  MERKLE MOUNTAIN RANGE — O(log n) inclusion proofs
+  //  MERKLE MOUNTAIN RANGE; O(log n) inclusion proofs
   // ═══════════════════════════════════════════════════════
 
   /// Get the MMR root hash (covers all blocks)

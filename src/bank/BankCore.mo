@@ -1,4 +1,4 @@
-/// BankCore.mo — the banking domain state machine: admission, the fold, views.
+/// BankCore.mo; the banking domain state machine: admission, the fold, views.
 ///
 /// Shaped after `mo:journal/JournalCore`, deliberately. Every state change is
 /// one event applied by `apply`, which is the only place state changes; every
@@ -20,12 +20,12 @@
 /// policy for every such permission at install, from the genesis declaration, so
 /// the table is complete from block 0.
 ///
-/// **What a refusal records.** A refusal to exceed *authority* — no grant,
+/// **What a refusal records.** A refusal to exceed *authority*; no grant,
 /// outside scope, over a ceiling or a daily limit, self-approval, an ineligible
-/// checker, a command-hash mismatch, an expired proposal — is recorded as an
+/// checker, a command-hash mismatch, an expired proposal; is recorded as an
 /// `#operationRefused` block, because a bank has to be able to prove what it
-/// prevented. A refusal for *malformed or impossible input* — an unknown book, a
-/// closed period, an unbalanced posting — returns a typed error and records
+/// prevented. A refusal for *malformed or impossible input*; an unknown book, a
+/// closed period, an unbalanced posting; returns a typed error and records
 /// nothing, exactly as the journal refuses. The line is drawn at "did someone
 /// try to exceed what they were given", and only principals the bank has
 /// onboarded (those holding at least one grant) can cause a block, so the log
@@ -164,7 +164,7 @@ module {
     features : Map.Map<T.FeatureId, Nat64>;
     /// One fixed-width row per proposal, in stable memory, keyed by the proposal's block index
     /// (`MC.ProposalRow`). The proposal itself is its block; the row is what happened to it.
-    /// The one region every stable index of the bank's state allocates from — the maker-checker
+    /// The one region every stable index of the bank's state allocates from; the maker-checker
     /// rows, the party and product sub-states. A Region reserves 8 MiB; an arena shares it.
     arena : RI.Arena;
     proposalRows : RI.State;
@@ -179,7 +179,7 @@ module {
     /// The party / CIF and KYC sub-state, folded from the same log.
     party : PartyCore.State;
     /// The product engine's sub-state, folded from the same log. It holds
-    /// products, accounts, schedules and tills — and no balance, because a balance
+    /// products, accounts, schedules and tills; and no balance, because a balance
     /// is a journal balance.
     product : ProductCore.State;
     /// Value dating, foreign currency and the close: rates, position pairs,
@@ -189,13 +189,13 @@ module {
     close : CloseCore.State;
     /// The end-of-day batch: runs and their cursors, standing instructions, the
     /// latest statement cut per account, and the retry policy per book. The plan is not
-    /// stored — it is a pure function of what the opening block records, so it is
+    /// stored; it is a pure function of what the opening block records, so it is
     /// recomputed and checked against the recorded hash rather than kept as a second
     /// copy that could disagree.
     batch : BatchCore.State;
     /// Reporting: the registered definitions and templates, the declared statement
     /// map, the statement register, the hashes of the artefacts that have been certified,
-    /// and the feed's recorded endpoints. No figure is stored — a report is a fold over the
+    /// and the feed's recorded endpoints. No figure is stored; a report is a fold over the
     /// journal at a stated height.
     report : ReportCore.State;
     /// Indexing: the declared dimension the counterparty-class index keys on. The indexes
@@ -231,7 +231,7 @@ module {
     /// Cards (cards): cards, decisions, holds, clearing, disputes, statements.
     cards : CardCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
-    /// honour. The packs themselves — segments, rows, lists — live beside the indexes (`Packing`).
+    /// honour. The packs themselves; segments, rows, lists; live beside the indexes (`Packing`).
     packing : PackingFold;
     /// Shards: the routing rule's versions and the inter-shard transfers.
     shard : ShardCore.State;
@@ -410,7 +410,7 @@ module {
   //
   // A proposal and an override are their blocks; the state keeps a row per one saying what happened
   // to it. Rebuilding an entry therefore reads blocks, and every function that needs an entry takes
-  // the reader — the same shape as the journal's `JCore.Blocks`. `Bank.mo` hands in its `BankLog`;
+  // the reader; the same shape as the journal's `JCore.Blocks`. `Bank.mo` hands in its `BankLog`;
   // the tests hand in their in-heap chain; `replay` hands in the array it is folding.
 
   public type Blocks = { get : Nat -> ?T.Block };
@@ -441,8 +441,8 @@ module {
     b
   };
 
-  /// The last bank block whose timestamp is at most `ts` — a binary search over the log, whose timestamps
-  /// never decrease — for the bank range a pack takes (§18.3). 0 when no block is that old.
+  /// The last bank block whose timestamp is at most `ts`; a binary search over the log, whose timestamps
+  /// never decrease; for the bank range a pack takes (§18.3). 0 when no block is that old.
   public func lastBankBlockStamped(s : State, bb : Blocks, ts : Nat64) : Nat {
     if (s.height == 0) return 0;
     var lo = 0;
@@ -457,7 +457,7 @@ module {
   };
 
   /// The bytes a pack keeps of bank block `index` whose stored bytes are `raw` (§18.2, §18.3): the same,
-  /// or — for an executed proposal whose reconstruction from its act hashes to the kept hash — the preimage
+  /// or; for an executed proposal whose reconstruction from its act hashes to the kept hash; the preimage
   /// and hash with the empty trailer. A proposal still awaiting, rejected or expired keeps its body; so does
   /// one whose family is not reconstructed, or whose reconstruction does not hash right.
   public func keptBytes(s : State, bb : Blocks, index : Nat, raw : Blob) : Blob {
@@ -520,11 +520,11 @@ module {
   };
 
   /// A settled proposal's command rebuilt from its act (`Reconstruct`), with whether the rebuilt command
-  /// hashes to the hash the proposal block keeps — the rule under which a pack may drop the body. `null`
+  /// hashes to the hash the proposal block keeps; the rule under which a pack may drop the body. `null`
   /// when the proposal was not executed or its family is not reconstructed; `(c, false)` when the best
   /// candidate does not hash right (so the body must be kept).
-  /// The candidates are re-hashed under the encoding the proposal block recorded — never under the current
-  /// one — so a body dropped under version 1 is recovered for as long as version 1's encoder is kept.
+  /// The candidates are re-hashed under the encoding the proposal block recorded; never under the current
+  /// one; so a body dropped under version 1 is recovered for as long as version 1's encoder is kept.
   public func reconstruction(bb : Blocks, row : MC.ProposalRow, commandHash : Blob, encoding : Nat8) : ?(T.Command, Bool) {
     let ?events = actEvents(bb, row) else return null;
     let cands = Reconstruct.candidates(events);
@@ -578,7 +578,7 @@ module {
     switch (proposalEntry(s, bb, index)) { case (?e) ?MC.view(e); case null null }
   };
 
-  /// Every proposal — bounded by the caller's judgement, not by the function; `listProposalsPaged`
+  /// Every proposal; bounded by the caller's judgement, not by the function; `listProposalsPaged`
   /// is the read that scales.
   public func listProposals(s : State, bb : Blocks) : [T.ProposalView] {
     let out = List.empty<T.ProposalView>();
@@ -915,7 +915,7 @@ module {
   };
 
   /// The book an operation acts in. Party commands name a party rather than a
-  /// book, so the book is read out of the party record — which is the same rule
+  /// book, so the book is read out of the party record; which is the same rule
   /// as everywhere else: the scope is evaluated against the operation's own data,
   /// not against what the caller says.
   public func commandBookOf(bs : State, c : T.Command) : ?T.BookId {
@@ -1114,7 +1114,7 @@ module {
 
   /// The effective dual-authorisation policy, or null when the permission is
   /// single-authority. A `dualByDefault` permission with no policy is not
-  /// single-authority — it is unusable, which `requireUsable` reports.
+  /// single-authority; it is unusable, which `requireUsable` reports.
   public func policyFor(s : State, permission : T.PermissionId) : ?T.DualPolicy {
     Map.get(s.policies, Text.compare, permission)
   };
@@ -1140,7 +1140,7 @@ module {
   public type JournalStep = { #event : JT.Event; #existing : Nat };
 
   /// What a command does when it executes: its bank event, the bank events that follow it in the same
-  /// act (`extra`, one block each, in order — empty for every command but `createCustomer`), and its
+  /// act (`extra`, one block each, in order; empty for every command but `createCustomer`), and its
   /// journal steps. The events are committed in that order: bank event, extras, journal.
   public type Plan = { bankEvent : ?T.Event; extra : [T.Event]; journal : [JournalStep] };
 
@@ -1183,7 +1183,7 @@ module {
   };
 
   /// Plan a command: validate it against both states and return the events to
-  /// commit. Pure — nothing is changed here. `authorityIndex` is the bank block
+  /// commit. Pure; nothing is changed here. `authorityIndex` is the bank block
   /// index that authorises the command (a proposal, or an override), which every
   /// posting it produces names in its source reference.
   /// `journalCaller` is the principal the journal sees: the bank canister
@@ -1192,7 +1192,7 @@ module {
   /// poster, so it must never be passed here.
   /// The value-day floor after closed-month packing: every value day at or before
   /// `packedThroughDay` is answered from the packs, and every rule that runs in a posting's message
-  /// must see the whole of its window in the live rows — so a posting, a resolution or a batch is
+  /// must see the whole of its window in the live rows; so a posting, a resolution or a batch is
   /// refused at or below `packedThroughDay + the longest active window`. Zero when nothing is
   /// packed.
   public func valueDayFloor(bs : State) : Nat {
@@ -1206,7 +1206,7 @@ module {
 
   /// Plan a command, then hold every journal step it would write to the value-day floor. One
   /// funnel: every posting, pending, resolution and batch the bank plans passes here.
-  /// The value day a command names outright, held to the floor before anything else is planned —
+  /// The value day a command names outright, held to the floor before anything else is planned;
   /// so a value day in packed history is refused as that, whatever else the command would have
   /// been refused for. Every journal step the plan produces is held to the floor as well.
   func commandValueDay(c : T.Command) : ?Nat {
@@ -1264,7 +1264,7 @@ module {
   /// The opening of one account, the rule of `openAccount` stated once: the product's current version,
   /// its kind and currency, the term, the identifier issued behind this shard's index from `serialIndex`
   /// (the block the opening occupies), and the journal's balance limit for the account's sub-ledger.
-  /// `party` and `partyBook` are the party as it is — or, for `createCustomer`, as it will be; `taken`
+  /// `party` and `partyBook` are the party as it is; or, for `createCustomer`, as it will be; `taken`
   /// are identifiers issued earlier in the same act, which the registers do not hold yet.
   public type OpenedAccount = { opened : ProdT.ProductEvent; limit : JT.Event; identifier : Text };
   func planOpenAccount(bs : State, js : JCore.State, journalCaller : Principal, product : ProdT.ProductId, party : PT.PartyId, partyBook : T.BookId, currency : JT.Currency, termDays : ?Nat, allocationOrder : [ProdT.Component], rateOverride : ?I.Rate, serialIndex : Nat, taken : [Text]) : Result.Result<OpenedAccount, T.BankError> {
@@ -1313,7 +1313,7 @@ module {
     };
     let ?fmt = PartyCore.format(bs.party) else return #err(#PartyError({ error = #InvalidIdentifier({ identifier = ""; reason = "no account-number format is recorded" }) }));
     // The serial is the bank block index this opening will occupy, so two accounts can never receive
-    // the same identifier — the same rule the party layer issues under, behind this shard's index.
+    // the same identifier; the same rule the party layer issues under, behind this shard's index.
     let ?serial = ShardCore.serialFor(bs.shard, fmt, serialIndex) else return #err(#PartyError({ error = #InvalidIdentifier({ identifier = ""; reason = "the serial does not fit the format behind the shard index" }) }));
     switch (Iban.issue(fmt, serial)) {
       case (#err(r)) #err(#PartyError({ error = #InvalidIdentifier({ identifier = ""; reason = r }) }));
@@ -1348,7 +1348,7 @@ module {
   /// decision to `recordScreeningDecision`'s, the lifecycle to `setPartyLifecycle`'s (active needs the
   /// due-diligence documents and a screening that permits movement), the extensions to
   /// `setPartyExtension`'s, each account to `openAccount`'s and `setAccountStatus`'s. The party's id is
-  /// the index of its `#partyCreated` block — the first block this act appends, `base` — and each
+  /// the index of its `#partyCreated` block; the first block this act appends, `base`; and each
   /// account's is the index of its `#accountOpened` block, so every id is known before anything is
   /// written. One refusal refuses the whole: nothing is applied unless all of it would be.
   func planCreateCustomer(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, c : T.CreateCustomer, base : Nat) : Result.Result<Plan, T.BankError> {
@@ -1503,7 +1503,7 @@ module {
   // ─── the receiving and settling sides of an inter-shard transfer ───────────
 
   /// The receiving shard's side: from a shard principal of the rule, for an identifier this shard
-  /// holds as an active account, a posting under the transfer's own idempotency key — debit the
+  /// holds as an active account, a posting under the transfer's own idempotency key; debit the
   /// settlement account for the sending shard, credit the customer. A second delivery is
   /// `#Duplicate` with the posting already made.
   public func planReceiveShardTransfer(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, caller : Principal, fromShard : Nat, transfer : Nat, toIdentifier : Text, amount : Nat, currency : Text, valueDay : Nat, period : Text, narration : Text) : Result.Result<{ account : ProdT.AccountId; step : JournalStep }, T.BankError> {
@@ -1664,7 +1664,7 @@ module {
   };
 
   /// INV-P2: the settlement of a window is one journal batch. For every net position, one posting
-  /// between the participant's position and its settlement account — a net sender's settlement
+  /// between the participant's position and its settlement account; a net sender's settlement
   /// account is debited and its position credited, a net recipient's the reverse; a zero net posts
   /// nothing and is recorded as SETTLEMENT_NET_ZERO. The batch is prepared whole by the journal:
   /// either every posting is admitted or the first refusal names the position and nothing is.
@@ -1778,7 +1778,7 @@ module {
       };
       case (#psTransfersRecorded) {
         // the attempt is the processing: the window is PROCESSING while the batch is prepared, and
-        // FAILED — re-drivable, back through PROCESSING — when the journal refuses it
+        // FAILED; re-drivable, back through PROCESSING; when the journal refuses it
         if (win.state != #processing) {
           switch (SettlementCore.planWindowTransition(bs.settlement, st.window, #processing, "settling")) { case (#ok(ev)) record(ev); case (#err(e)) return #err(#SettlementError({ error = e })) };
         };
@@ -1972,7 +1972,7 @@ module {
   /// One received message, whatever its verdict, recorded as one block after the acts it asked for.
   /// A liquidity credit transfer (camt.050): the participant's settlement account to its position
   /// (`toPosition`: more headroom under the cap, the way a settlement's net-sender posting moves it)
-  /// or the position back to the settlement account — one posting between the two sub-ledgers.
+  /// or the position back to the settlement account; one posting between the two sub-ledgers.
   func planLiquidity(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, scheme : SeT.SchemeId, railId : Text, l : { endToEndId : Text; participant : Nat; currency : Text; amount : Nat; toPosition : Bool }) : Result.Result<JT.Event, T.BankError> {
     switch (requireFeature(bs, ProdT.FEATURE_ACCOUNT_MONEY)) { case (?e) return #err(e); case null {} };
     let (_, accts) = switch (SettlementCore.activeAccounts(bs.settlement, l.participant, l.currency)) { case (#err(e)) return #err(#SettlementError({ error = e })); case (#ok(v)) v };
@@ -2221,7 +2221,7 @@ module {
           switch (SettlementCore.planPrepare(bs.settlement, b.scheme, b.payer, q.payee, q.currency, q.amount, b.reference # "/" # q.reference, now + Nat64.fromNat(b.ttlSeconds) * 1_000_000_000, ?bulkId)) {
             case (#err(e)) List.add(failures, (i, debug_show (e)));
             case (#ok(ev)) {
-              // the item's prepare, then its reservation — the same two acts the single transfer makes
+              // the item's prepare, then its reservation; the same two acts the single transfer makes
               let r = prepareAndReserve(bs, bb, js, journalCaller, now, ev, recorder);
               switch (r.failure) { case (?reason) List.add(failures, (i, reason)); case null {} };
             };
@@ -2306,7 +2306,7 @@ module {
       switch (l.subledger) {
         case (?sub) {
           // an account or a till of this shard, one of its books' vaults in the leg's currency, a facility's or a
-          // participant's (corporate lending), or an account the same plan opens — the only sub-ledgers a shard's own postings name
+          // participant's (corporate lending), or an account the same plan opens; the only sub-ledgers a shard's own postings name
           var held = ProductCore.holdsSubledger(bs.product, sub) or FacilityCore.holdsSubledger(bs.facility, sub) or TellerCore.holdsSubledger(bs.teller, sub) or TradeCore.holdsSubledger(bs.trade, sub) or IslamicCore.holdsSubledger(bs.islamic, sub) or TreasuryCore.holdsSubledger(bs.treasury, sub) or CardCore.holdsSubledger(bs.cards, sub);
           if (not held) { for (i in introduced.vals()) { if (i == sub) held := true } };
           if (not held) { for ((book, _) in Map.entries(bs.books)) { if (sub == Till.vaultSubledger(book, l.currency)) held := true } };
@@ -2587,7 +2587,7 @@ module {
           return #err(#PartyError({ error = #InvalidIdentifier({ identifier = ""; reason = "too many identifiers for this party" }) }));
         };
         // The serial is the bank block index this command will occupy, so two
-        // accounts can never receive the same identifier — behind this shard's index, so the
+        // accounts can never receive the same identifier; behind this shard's index, so the
         // identifier routes to this shard (`ShardCore.serialFor`).
         let ?serial = ShardCore.serialFor(bs.shard, fmt, authorityIndex) else return #err(#PartyError({ error = #InvalidIdentifier({ identifier = ""; reason = "the serial does not fit the format behind the shard index" }) }));
         switch (Iban.issue(fmt, serial)) {
@@ -3707,8 +3707,8 @@ module {
           return #err(#CloseError({ error = #UnknownRun({ book = x.book; period = x.period }) }));
         };
         // The roll sits between `reconciled` and `closed`. Before `reconciled` the
-        // result is not complete — the accruals, the revaluation and the deferrals of
-        // the period are what make it so — and after `closed` the journal will not
+        // result is not complete; the accruals, the revaluation and the deferrals of
+        // the period are what make it so; and after `closed` the journal will not
         // book into the period at all, which is the hard stop this relies on rather
         // than works around.
         if (run.state != #reconciled) {
@@ -4174,7 +4174,7 @@ module {
         let ?pe = PartyCore.get(bs.party, partyBlocks(bb), f.party) else return #err(#PartyError({ error = #UnknownParty({ party = f.party }) }));
         if (pe.lifecycle != #active) return #err(#PartyError({ error = #PartyNotActive({ party = f.party; lifecycle = pe.lifecycle }) }));
         let rate : I.Rate = { numerator = f.rateBps; denominator = 10_000; negative = false };
-        // the account's id is the block the opening lands on — the height at execution, as `createCustomer`
+        // the account's id is the block the opening lands on; the height at execution, as `createCustomer`
         // numbers its accounts; the authority index is the serial's, as `openAccount` uses it
         let accountId = bs.height;
         switch (planOpenAccount(bs, js, journalCaller, f.product, f.party, pe.book, f.currency, null, [], ?rate, authorityIndex, [])) {
@@ -4463,7 +4463,7 @@ module {
         let ?hi = p.closedAtBlock else return #err(#PackingError({ error = #PeriodNotClosed({ period = x.period }) }));
         if (p.end <= bs.packing.packedThroughDay) return #err(#PackingError({ error = #PeriodAlreadyPacked({ period = x.period; packedThroughDay = bs.packing.packedThroughDay }) }));
         // the gate: the period's last day is older than every window a rule could read and than
-        // the dedup window that keeps a duplicate submission refused — by one day more, so the
+        // the dedup window that keeps a duplicate submission refused; by one day more, so the
         // business date is always above the value-day floor the pack sets
         let today = JCore.effectiveToday(js, now);
         let requiredAge = Nat.max(MonitoringCore.longestWindow(bs.monitoring), Packing.DEDUP_WINDOW_DAYS) + 1;
@@ -4471,8 +4471,8 @@ module {
         let lo = if (bs.packing.packs == 0) 0 else bs.packing.packedThroughBlock + 1;
         if (hi < lo) return #err(#PackingError({ error = #NothingToPack({ period = x.period }) }));
         // the bank's range (§18.3): from the block after the last pack's to the last bank block stamped no
-        // later than the journal block that closed the period — the close is one message, its journal block
-        // and its bank block carry one timestamp — and every proposal in it settled, every override reviewed
+        // later than the journal block that closed the period; the close is one message, its journal block
+        // and its bank block carry one timestamp; and every proposal in it settled, every override reviewed
         let ?closeBlock = jb.get(hi) else return #err(#PackingError({ error = #PeriodNotClosed({ period = x.period }) }));
         let bankLo = if (bs.packing.packs == 0) 0 else bs.packing.bankPackedThroughBlock + 1;
         let bankHi = lastBankBlockStamped(bs, bb, closeBlock.timestamp);
@@ -4738,7 +4738,7 @@ module {
             // may not open unless the batch's own feature and every feature its plan's
             // jobs would post under are past their activation height. So a batch cannot
             // post below a gate, and a partially activated deployment cannot half-run a
-            // day — it is told which feature is missing.
+            // day; it is told which feature is missing.
             switch (requireFeature(bs, ProdT.FEATURE_END_OF_DAY)) { case (?e) return #err(e); case null {} };
             for (it in items.vals()) {
               switch (Batch.featureOf(it.job)) {
@@ -4799,7 +4799,7 @@ module {
   // ═══════════════════════════════════════════════════════
   //
   // Every figure these read is the journal's. Nothing here keeps a balance, and
-  // nothing here decides what money is — they shape domain facts into postings and
+  // nothing here decides what money is; they shape domain facts into postings and
   // refuse the facts the terms do not admit.
 
   /// A money-visible feature is refused below its activation height, which
@@ -4883,7 +4883,7 @@ module {
 
   /// A day far enough in the future that a value-dated read includes everything
   /// already posted. The journal's days are day numbers from the epoch, so this is
-  /// roughly the year 27,000 — a bound, not a date anyone will reach.
+  /// roughly the year 27,000; a bound, not a date anyone will reach.
   let DAY_MAX : Nat = 9_000_000;
 
   /// The other side of a customer movement, as a leg. A till must be open, in the
@@ -5025,11 +5025,11 @@ module {
   };
 
   /// One account's accrual over `[from, to)`, on the terms of the version it was
-  /// opened under — not the product's current terms, which is what makes an
+  /// opened under; not the product's current terms, which is what makes an
   /// amendment safe.
   /// The interest of one account over [from, to): the product's terms over the value-dated balances. A window that
-  /// spans the day the account's currency was redenominated is two windows — the old-currency days valued in the old
-  /// currency and re-expressed at the ratio, the new-currency days in the new — so a capitalisation or a correction
+  /// spans the day the account's currency was redenominated is two windows; the old-currency days valued in the old
+  /// currency and re-expressed at the ratio, the new-currency days in the new; so a capitalisation or a correction
   /// across the day neither loses the old days nor reads them at zero (S4.1).
   func accountAccrual(bs : State, js : JCore.State, a : ProductCore.AccountEntry, from : ProdT.Day, to : ProdT.Day) : Result.Result<I.Signed, T.BankError> {
     switch (CloseCore.redenominationOfProduct(bs.close, a.product)) {
@@ -5309,7 +5309,7 @@ module {
 
   /// A loan's schedule re-derived from an effective day under new terms and a rate (`rescheduleLoan`, a facility's
   /// restructuring across its drawings, a floating drawing's reset). `modification` says whether this is a
-  /// modification of the contract — a restructuring, with collections and recovery's stage move and the IFRS 9 §5.4.3 figure — or a
+  /// modification of the contract; a restructuring, with collections and recovery's stage move and the IFRS 9 §5.4.3 figure; or a
   /// contractual reset, which changes the rate and the schedule and nothing else (IFRS 9 B5.4.5).
   func reschedulePlan(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, account : ProdT.AccountId, effective : Nat, terms_ : ProdT.ScheduleTerms, rate : I.Rate, modification : Bool) : Result.Result<Plan, T.BankError> {
         let ?a = ProductCore.get(bs.product, productBlocks(bb), account) else return #err(#ProductError({ error = #UnknownAccount({ account = account }) }));
@@ -5327,8 +5327,8 @@ module {
         let out = Loans.reschedule(current.rows, { effective = effective; terms = terms_; rate = rate }, terms.rounding);
         if (out.reamortised == 0) return #err(#ProductError({ error = #InvalidSchedule({ reason = "the new terms generate no instalments" }) }));
         // the exposure's stage moves to restructuring (collections and recovery), and under the policy's rule the IFRS 9 §5.4.3
-        // modification gain or loss — carrying amount against the modified flows discounted at the original
-        // rate — posts against the modification-adjustment contra of the loan
+        // modification gain or loss; carrying amount against the modified flows discounted at the original
+        // rate; posts against the modification-adjustment contra of the loan
         let extra = List.empty<T.Event>();
         var journal : [JournalStep] = [];
         switch (CollectionsCore.policy(bs.collections)) {
@@ -5367,7 +5367,7 @@ module {
         #ok({
           bankEvent = ?#product(#loanRescheduled({ account = account; version = ProductCore.scheduleCount(a) + 1; effective = effective; schedule = out.rows }));
           // the terms this reschedule gave the account, recorded so a later contractual reset re-derives from them and not
-          // from the product's template (a reset landing inside a modification kept the modification — the S4.1 case);
+          // from the product's template (a reset landing inside a modification kept the modification; the S4.1 case);
           // a reset itself records nothing here: the terms it used are the ones already recorded
           extra = if (modification) Array.concat(List.toArray(extra), [#product(#scheduleTermsSet({ account; terms = terms_; effective }))]) else List.toArray(extra); journal;
         })
@@ -5581,7 +5581,7 @@ module {
 
   /// One account's accrual over a window, exact and rounded. The window defaults to
   /// "since it was last capitalised", which is the figure a statement quotes.
-  /// What one account accrued over an arbitrary window, as the fold evaluates it — not
+  /// What one account accrued over an arbitrary window, as the fold evaluates it; not
   /// the difference of two rounded figures, which is not the same number.
   ///
   /// This is the quantity a percent-of-interest charge is a percentage of, so a customer
@@ -5768,7 +5768,7 @@ module {
 
   /// A currency's position as the close sees it: the foreign balance, what it was
   /// booked at, the rate recorded for the day asked about, and what the revaluation
-  /// would be. With no rate for that day the revaluation fields are null — which is
+  /// would be. With no rate for that day the revaluation fields are null; which is
   /// the refusal, surfaced as a read rather than as a surprise during the close.
   public func positionView(bs : State, js : JCore.State, currency : JT.Currency, asOf : ProdT.Day) : Result.Result<CT.PositionView, T.BankError> {
     let ?functional = CloseCore.functional(bs.close) else return #err(#CloseError({ error = #NoFunctionalCurrency }));
@@ -5887,7 +5887,7 @@ module {
   /// Three things happen here and nowhere else:
   ///
   ///   1. the requested date is resolved under the **product's** convention and the
-  ///      bank calendar, so the journal — whose policy is `#reject` — never shifts it;
+  ///      bank calendar, so the journal; whose policy is `#reject`; never shifts it;
   ///   2. a value date in the past is classified against the book's back-value window:
   ///      inside the free window it is admitted, in the approval band it needs a
   ///      recorded approval for that day, and beyond the band nothing admits it;
@@ -6011,7 +6011,7 @@ module {
     let days = Conv.businessDaysBetween(JCore.calendar(js), from, to);
     if (days.size() == 0) return ?"the period contains no business day";
     for (v in ProductCore.listVersions(bs.product).vals()) {
-      // Only products that accrue are expected to have posted an accrual — and only
+      // Only products that accrue are expected to have posted an accrual; and only
       // products that have an account to accrue on. A product registered but not yet
       // sold has nothing to accrue, and demanding an accrual for it would make the close
       // wait for a posting no one can make: the end-of-day plan does not shard a product
@@ -6053,9 +6053,9 @@ module {
   public func controlCount(bs : State) : Nat { controlAccounts(bs).size() };
 
   /// The first control account whose **maintained balance** differs from the sum of
-  /// its postings' legs. These are two different folds over the same log — the
+  /// its postings' legs. These are two different folds over the same log; the
   /// balance map is accumulated by `apply`, the legs are read back out of the posting
-  /// records — so an equality between them is a self-consistency proof, and it fails
+  /// records; so an equality between them is a self-consistency proof, and it fails
   /// before the period closes rather than in a break report afterwards.
   func controlDivergence(bs : State, js : JCore.State, jb : JCore.Blocks) : ?PE.ControlCheck {
     let accounts = controlAccounts(bs);
@@ -6117,7 +6117,7 @@ module {
 
   /// A cross-currency deal: four legs through the position pair, each currency
   /// balancing within itself, at the rate recorded for the day named. The rate is
-  /// read for that day alone — there is no nearest match and no carry-forward — and
+  /// read for that day alone; there is no nearest match and no carry-forward; and
   /// the amounts are checked against it so a deal cannot be booked at a rate it does
   /// not use.
   func fxDealPlan(
@@ -6459,11 +6459,11 @@ module {
   /// rather than by hoping an iteration order is stable.
   public func highestAccount(bs : State) : Nat { ProductCore.highestAccount(bs.product) };
 
-  /// What the plan is built from: the product registry **as it stood at the block that opened the run** — a
-  /// version registered at or after that block waits for the next run — the domain features active at that
+  /// What the plan is built from: the product registry **as it stood at the block that opened the run**; a
+  /// version registered at or after that block waits for the next run; the domain features active at that
   /// block, and the redenominations declared for the date. Nothing here counts rows, so nothing the day's work or
   /// the day's acts do can change the plan under a run (the adversarial audit of 13 September, finding B1; the
-  /// counts a chunk used to take on every advance — every account of every product decoded and sorted — were
+  /// counts a chunk used to take on every advance; every account of every product decoded and sorted; were
   /// finding A1). Bounded by the registry, not the customers.
   public func planInput(bs : State, book : Text, businessDate : Nat, asOfBlock : Nat, shardSize : Nat) : Batch.Input {
     let products = List.empty<{ product : Text; currency : JT.Currency; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>();
@@ -6508,7 +6508,7 @@ module {
         facilities = activeAt(ProdT.FEATURE_CREDIT); trade = activeAt(ProdT.FEATURE_CREDIT); sharia = activeAt(ProdT.FEATURE_CREDIT);
         treasury = activeAt(ProdT.FEATURE_FX); cards = activeAt(ProdT.FEATURE_ACCOUNT_MONEY);
       };
-      // declared for the date — completed or not, so the plan is the same from the run's first chunk to its last
+      // declared for the date; completed or not, so the plan is the same from the run's first chunk to its last
       redenominations = Array.map<CloseCore.RedenominationEntry, { from : JT.Currency; to : JT.Currency; products : [Text] }>(CloseCore.redenominationsDeclaredOn(bs.close, businessDate), func(e) { { from = e.redenomination.from; to = e.redenomination.to; products = e.products } });
       shardSize;
     }
@@ -6531,7 +6531,7 @@ module {
     n
   };
 
-  /// What one advance did. The run commits as it goes — see `runEndOfDayChunk` — so this
+  /// What one advance did. The run commits as it goes; see `runEndOfDayChunk`; so this
   /// is a report and not a plan the caller still has to apply.
   public type Advance = {
     completed : Bool;
@@ -6545,7 +6545,7 @@ module {
     /// success.
     resolved : [{ item : Nat; entity : Text }];
     retried : [BT.Failure];
-    /// Every bank block this advance recorded, and every journal posting it used —
+    /// Every bank block this advance recorded, and every journal posting it used;
     /// whether it made the posting or read an existing one under the same derived key.
     blocks : [Nat];
     postings : [Nat];
@@ -6557,9 +6557,9 @@ module {
   /// as the actor's own `commitBank` and `commitJournal` do, and they are called as the
   /// run proceeds rather than after it.
   ///
-  /// That is not a convenience. A job reads what earlier jobs posted — a
+  /// That is not a convenience. A job reads what earlier jobs posted; a
   /// percent-of-interest charge reads job 1's accrual, a statement cut reads the day's
-  /// movements, a provision reads the allowance already carried — so a chunk whose
+  /// movements, a provision reads the allowance already carried; so a chunk whose
   /// postings were invisible to the rest of the chunk would produce a different answer
   /// depending on where the chunk boundaries happened to fall. It would also let two
   /// postings in one chunk each pass a sub-ledger limit that together they breach, and
@@ -6625,8 +6625,8 @@ module {
   /// intended, and refuses with a typed error if they are not.
   ///
   /// The division of labour, stated so neither side is assumed: the journal refuses a key
-  /// reused with different content outright — `#IdempotencyKeyReused`, naming the block
-  /// that already holds the key — and only returns `#duplicate` when its own content hash
+  /// reused with different content outright; `#IdempotencyKeyReused`, naming the block
+  /// that already holds the key; and only returns `#duplicate` when its own content hash
   /// over the whole record matches. So the leg check here finds no mismatch that the
   /// journal lets through *today*. It stays because it is the run's own guard over the
   /// one thing the run cares about, across a module boundary, and because it does not
@@ -6674,7 +6674,7 @@ module {
 
   /// Record one failure. Never dropped: a walk stops before the entity that would take the chunk's list past
   /// `Batch.MAX_FAILURES` and hands the run the place it stopped, so the next chunk carries on with a fresh list
-  /// (the adversarial audit of 13 September, finding C1 — the cap used to drop the 513th failure and every one
+  /// (the adversarial audit of 13 September, finding C1; the cap used to drop the 513th failure and every one
   /// after it in silence, so the entities behind them were neither retried nor blocking the close).
   func fail(acc : ChunkAcc, item : Nat, job : Batch.Job, entity : Text, error : Text) {
     List.add(acc.failures, { item; job; entity; error; attempts = 1 });
@@ -6684,7 +6684,7 @@ module {
   /// Advance an open run by up to `limit` plan items.
   ///
   /// Anyone may call this. The plan was fixed when the run opened and is re-derived here
-  /// and checked against the recorded hash, so a caller cannot choose what is posted —
+  /// and checked against the recorded hash, so a caller cannot choose what is posted;
   /// only that progress happens. The postings are attributed to the canister.
   public func runEndOfDayChunk(
     bs : State, bb : Blocks,
@@ -6730,7 +6730,7 @@ module {
     //
     // A re-attempt that succeeds resolves the failure and so unblocks the period close.
     // One that fails again comes back with its attempt count raised by one; once that
-    // count reaches the limit the failure is parked — never re-attempted, and still
+    // count reaches the limit the failure is parked; never re-attempted, and still
     // blocking the close until someone resolves it. The pass reports what it posted and
     // nothing else: `examined` is the plan's coverage, not a tally of repair work.
     let acc = newAcc(recorder);
@@ -6772,7 +6772,7 @@ module {
     var done = 0;
     // An item that is a walk of its own (the treasury job) may hand back the place it stopped: the
     // chunk then ends inside that item, the cursor stays on it, and the place is recorded after the
-    // chunk's block so the next advance resumes there. Only the first item of a chunk can be resumed —
+    // chunk's block so the next advance resumes there. Only the first item of a chunk can be resumed;
     // it is the one the run's cursor names.
     var itemCursor : ?Blob = null;
     label items while (done < limit and cursor < items.size()) {
@@ -6870,7 +6870,7 @@ module {
   /// in identifier order, in the item's own half-open position range.
   /// The accounts of the item's product in the run's book, `run.shardSize` a chunk, from where the previous chunk
   /// stopped: one page of the (product, book) index, each id decoded once. An account opened after the run
-  /// (`id > maxAccount`) ends the walk — ids ascend — and one closed since is skipped. The walk also stops before
+  /// (`id > maxAccount`) ends the walk; ids ascend; and one closed since is skipped. The walk also stops before
   /// an account when the chunk's failure list is full, handing back that account's id so nothing is dropped. A
   /// retry names one account and reads it by id, never the walk.
   func walkAccounts(bs : State, bb : Blocks, run : BatchCore.RunEntry, item : Batch.PlanItem, only : ?Text, sub : ?Blob, acc : ChunkAcc, body : (ProductCore.AccountEntry) -> ()) : ?Blob {
@@ -6903,8 +6903,8 @@ module {
   /// One aggregate posting per (product, currency) for the date. Must precede anything
   /// that reads accrued interest, which is why it is first in the plan and not a matter
   /// of when the operator happened to run it.
-  /// Job 1 accrues every calendar day since the product's last accrual — the rest days and holidays between two
-  /// runs as much as the business date itself — one posting and one block per day, each block naming its calendar
+  /// Job 1 accrues every calendar day since the product's last accrual; the rest days and holidays between two
+  /// runs as much as the business date itself; one posting and one block per day, each block naming its calendar
   /// day, every posting dated on the run's business date (the journal's calendar refuses a rest-day value date, as
   /// it should: the interest of a weekend is booked on the business day that follows it). So the payable carries the
   /// whole month and a window of days has a record for each. The first run of a product accrues its own day only:
@@ -7034,7 +7034,7 @@ module {
 
   /// The instalment whose due date is the business date moves into the borrower's own
   /// receivable sub-ledger, so a repayment has something to be allocated against. The
-  /// control account's total does not change — this is a move between the aggregate
+  /// control account's total does not change; this is a move between the aggregate
   /// receivable and one borrower's share of it.
   func jobInstalment(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
@@ -7338,8 +7338,8 @@ module {
 
   // ─── job 10: monitoring ───────────────────────────────────────────────────
 
-  /// The window rules over one account for the date, as alerts. A refusal — a rule too wide for
-  /// its declared bound on this account — is a recorded failure of the item, retried by the
+  /// The window rules over one account for the date, as alerts. A refusal; a rule too wide for
+  /// its declared bound on this account; is a recorded failure of the item, retried by the
   /// book's policy and parked, so an evaluation that did not run is never mistaken for one that
   /// found nothing. An alert already open for the same finding is not opened again.
   func jobMonitoring(bs : State, acc : ChunkAcc, item : Batch.PlanItem, index : Nat, day : ProdT.Day, a : ProductCore.AccountEntry) {
@@ -7410,7 +7410,7 @@ module {
 
   /// Job 12 (corporate lending): every facility of the book not yet closed is examined. A revolver's commitment fee accrues on
   /// the undrawn amount for the day (the product's day count, or ACT/365F; the product's rounding), an operating
-  /// lease's income straight-line, a factoring facility's discount straight-line to each receivable's maturity —
+  /// lease's income straight-line, a factoring facility's discount straight-line to each receivable's maturity;
   /// each as a posting and a block only when the figure is not zero. A clean-down window that ends today is judged
   /// from the journal's balances day by day; a review due and not held is flagged once; a floating drawing at its
   /// reset day is re-priced to the fixing plus the spread when the rate moves. A retry names the one facility.
@@ -7715,7 +7715,7 @@ module {
         let sub = TradeCore.acceptanceSub(x.instrument, x.claim);
         switch (x.honour) {
           case (#sight) {
-            // paid now: to the beneficiary, from the margin then the applicant (issuing) — or from the correspondent
+            // paid now: to the beneficiary, from the margin then the applicant (issuing); or from the correspondent
             // account when we pay as the confirming or advising bank
             let sink = switch (counterpartyLeg(bs, bb, js, pol, lc.beneficiary, #credit, r.currency, h.amount, valueDate)) { case (#err(e)) return #err(e); case (#ok(l)) l };
             if (lc.role == #issuing) {
@@ -7942,7 +7942,7 @@ module {
     #ok((sr, sc))
   };
   /// The funds a card may draw on: the account's posted credits less posted and pending debits, plus the product's
-  /// overdraft (a credit card's line) — the journal's own view of availability, pendings included.
+  /// overdraft (a credit card's line); the journal's own view of availability, pendings included.
   func cardAvailable(bs : State, bb : Blocks, js : JCore.State, account : ProdT.AccountId) : Nat {
     switch (requireAccount(bs, bb, account)) {
       case (#ok((a, terms))) {
@@ -8155,7 +8155,7 @@ module {
               let plan : Plan = { bankEvent = ?#card(#authorised({ card = ?r.id; request = req; decision = #approved({ authCode = a.authCode; hold = ?orig.hold; amount = req.amount }); day = today })); extra = [#card(#holdAdjusted({ auth = o.of; from = orig.holdAmount; to = 0; hold = null; kind = kindText; day = today }))]; journal = [voided] };
               return #ok({ plan; decision = #approved({ authCode = a.authCode; hold = ?orig.hold; amount = req.amount }); scheme = world.scheme.id });
             };
-            // the authorization block is committed first, so the re-reservation lands at height + 1 of the journal — its index is the journal's next height
+            // the authorization block is committed first, so the re-reservation lands at height + 1 of the journal; its index is the journal's next height
             let (step, idx) = switch (reserve(newAmount, kindText)) { case (#err(e)) return #err(e); case (#ok(p)) p };
             // the void is the first journal step; the reservation follows it, so its index is one past the void's
             let plan : Plan = { bankEvent = ?#card(#authorised({ card = ?r.id; request = req; decision = #approved({ authCode = a.authCode; hold = ?(idx + 1); amount = req.amount }); day = today })); extra = [#card(#holdAdjusted({ auth = o.of; from = orig.holdAmount; to = newAmount; hold = ?(idx + 1); kind = kindText; day = today }))]; journal = [voided, step] };
@@ -8266,8 +8266,8 @@ module {
     ignore period;
     // no policy means no card was ever issued (an issue needs one): nothing to walk, not a failure
     if (CardCore.policy(bs.cards) == null) return null;
-    // the item is three walks — expired holds (the journal names them, 500 a chunk), the open disputes by cursor
-    // (phase 0x01), the book's active cards for the statement cycle by cursor (phase 0x02) — resumed where the
+    // the item is three walks; expired holds (the journal names them, 500 a chunk), the open disputes by cursor
+    // (phase 0x01), the book's active cards for the statement cycle by cursor (phase 0x02); resumed where the
     // previous chunk stopped
     var phase : Nat8 = 0x00;
     var cursor : ?Blob = null;
@@ -8392,7 +8392,7 @@ module {
     if (CloseCore.closedTo(bs.close, x.from) != null) return redenominationRefused(x.from # " was already redenominated");
     if (CloseCore.closedTo(bs.close, x.to) != null) return redenominationRefused(x.to # " was itself redenominated");
     for (b in listBooks(bs).vals()) { switch (BatchCore.openRunCovering(bs.batch, b.id, today)) { case (?_) return redenominationRefused("an end-of-day run for the date is open in book " # b.id); case null {} } };
-    // what else holds the currency: named, so the bank settles or migrates it first — each figure a counter the
+    // what else holds the currency: named, so the bank settles or migrates it first; each figure a counter the
     // domain's fold keeps per currency, read in constant time whatever the books hold (S4.1, the treasury review)
     let deals = TreasuryCore.openInCurrency(bs.treasury, x.from);
     if (deals > 0) return redenominationRefused(Nat.toText(deals) # " open treasury deals are in " # x.from);
@@ -8489,7 +8489,7 @@ module {
         };
       };
     };
-    // the bridge holds, in the old currency, everything converted; in the new, its counterpart — made exact here
+    // the bridge holds, in the old currency, everything converted; in the new, its counterpart; made exact here
     let bf = JCore.balance(js, rd.bridgeAccount, null, rd.from);
     let bt = JCore.balance(js, rd.bridgeAccount, null, rd.to);
     let fromCredit = bf.creditsPosted >= bf.debitsPosted;
@@ -8686,16 +8686,16 @@ module {
     }
   };
 
-  /// End-of-day job 15: for every open deal of the book, in this order — the coupon falling due, the day's accrual,
-  /// the mark against the day's curves and spot, then every leg due on or before the day — and, for each deal walked,
+  /// End-of-day job 15: for every open deal of the book, in this order; the coupon falling due, the day's accrual,
+  /// the mark against the day's curves and spot, then every leg due on or before the day; and, for each deal walked,
   /// the confirmation overdue; then the breaks that aged past the policy's threshold, each an alert. A missing rate
   /// or curve fails the deal's item and nothing else, so the period cannot close with a deal unvalued and nobody
   /// seeing it.
   ///
   /// The item is a walk of its own (S4.1, the treasury review): the deals come off the book index a page of
   /// `Batch.TREASURY_DEALS_PER_CHUNK` at a time and the open breaks off the status index a page of
-  /// `Batch.TREASURY_BREAKS_PER_CHUNK`, and a chunk that ends inside either walk hands back the place it stopped —
-  /// one phase byte (0x00 deals, 0x01 breaks) and the index cursor — which the run records and the next advance
+  /// `Batch.TREASURY_BREAKS_PER_CHUNK`, and a chunk that ends inside either walk hands back the place it stopped;
+  /// one phase byte (0x00 deals, 0x01 breaks) and the index cursor; which the run records and the next advance
   /// resumes from. A retry names one deal and works it alone, reading the row by id, never the walk.
   func jobTreasury(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
@@ -8778,7 +8778,7 @@ module {
     };
     switch (only) {
       case (?e) {
-        // a retry: the one deal named, by id — no walk
+        // a retry: the one deal named, by id; no walk
         let ?id = Nat.fromText(e) else { fail(acc, index, item.job, e, "the retry names no deal"); return null };
         switch (TreasuryCore.row(bs.treasury, id)) { case (?r) { if (TreasuryCore.isOpen(r)) workDeal(r) }; case null {} };
         return null;
@@ -8867,7 +8867,7 @@ module {
      pol.musharakahInvestment, pol.musharakahIncome, pol.mudarabahInvestment, pol.mudarabahIncome, pol.investmentLosses, pol.salamReceivable, pol.salamInventory, pol.salamIncome, pol.istisnaWip, pol.istisnaReceivable, pol.istisnaRevenue, pol.istisnaCosts,
      pol.iahEquity, pol.profitEqualisationReserve, pol.investmentRiskReserve, pol.profitPayableToHolders, pol.mudaribShareIncome, pol.profitAttributableToHolders, pol.charityPayable, pol.nostro]
   };
-  /// Whether a product's terms carry an interest component — what a Sharia product may not.
+  /// Whether a product's terms carry an interest component; what a Sharia product may not.
   func productHasInterest(bs : State, product : ProdT.ProductId) : ?Bool {
     switch (ProductCore.currentVersion(bs.product, product)) { case (?v) ?(v.terms.interest != null); case null null }
   };
@@ -9225,10 +9225,10 @@ module {
     switch (bb.get(p.openedBlock)) { case (?b) { switch (b.event) { case (#islamic(#poolOpened(x))) ?x.pool.incomeAccounts; case (_) null } }; case null null }
   };
 
-  /// End of day, job 14 (`sharia`): per open contract of the book — a Murabaha's profit recognised to the day under
+  /// End of day, job 14 (`sharia`): per open contract of the book; a Murabaha's profit recognised to the day under
   /// its method (the cumulative straight line of the proportionate method, or the instalments fallen due under the
   /// effective rate), the late-payment undertaking on an overdue instalment carried to charity (never income), an
-  /// Ijarah's rental accrued when it falls due and its asset depreciated straight-line (cumulative) — each a posting
+  /// Ijarah's rental accrued when it falls due and its asset depreciated straight-line (cumulative); each a posting
   /// and a block only when the figure is not zero.
   func jobSharia(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
@@ -9409,7 +9409,7 @@ module {
     null
   };
   /// The postings of an issue: the margin lodged from the customer's account into the margin sub-ledger, the
-  /// commission taken into unearned commission, the undertaking on the memorandum pair — one posting.
+  /// commission taken into unearned commission, the undertaking on the memorandum pair; one posting.
   func issueLegs(bs : State, bb : Blocks, js : JCore.State, pol : TrT.Policy, memo : ?Text, account : ProdT.AccountId, ccy : Text, amount : Nat, margin : Nat, commission : Nat, id : Nat, day : Nat) : Result.Result<[JT.Leg], T.BankError> {
     let legs = List.empty<JT.Leg>();
     if (margin + commission > 0) {
@@ -9451,7 +9451,7 @@ module {
     }
   };
   /// Paying a demand or a sight presentation: the margin first, the customer's account next, and what neither
-  /// covers a claim — a loan account opened under the policy's claim product, disbursed to the beneficiary, so the
+  /// covers a claim; a loan account opened under the policy's claim product, disbursed to the beneficiary, so the
   /// bank's reimbursement right ages under collections and recovery from the day it was paid.
   type PaidFrom = { fromMargin : Nat; fromAccount : Nat; claim : Nat; legs : [JT.Leg]; claimAccount : ?ProdT.AccountId; extra : [T.Event]; limitEvent : ?JT.Event };
   func payFromCustomer(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, pol : TrT.Policy, r : TradeCore.InstrumentRow, amount : Nat, sink : JT.Leg, day : Nat, authorityIndex : Nat, allowClaim : Bool) : Result.Result<PaidFrom, T.BankError> {
@@ -9526,7 +9526,7 @@ module {
   };
   /// The postings at a bill's end: at maturity the acceptor pays the face against bills discounted (and a
   /// rediscounted bill is redeemed across the correspondent account), the discount left is earned; on dishonour the
-  /// face is charged back to the customer under recourse — the discount earned in full — or written to bill losses
+  /// face is charged back to the customer under recourse; the discount earned in full; or written to bill losses
   /// without recourse, the unearned discount reducing the loss.
   func billEndLegs(bs : State, bb : Blocks, js : JCore.State, pol : TrT.Policy, r : TradeCore.InstrumentRow, b : TrT.Bill, dishonour : Bool, day : Nat) : Result.Result<[JT.Leg], T.BankError> {
     let sub = TradeCore.billSub(r.id);
@@ -9552,11 +9552,11 @@ module {
     #ok(List.toArray(legs))
   };
 
-  /// End of day, job 13 (`trade`): per open instrument of the book — the commission or discount earned to the day
+  /// End of day, job 13 (`trade`): per open instrument of the book; the commission or discount earned to the day
   /// (cumulative, straight-line from issue to expiry, so rounding never drifts), a guarantee's recorded reduction
   /// fallen due, a deferred payment or acceptance fallen due (settled as `settleAcceptance` would), a bill matured
   /// (settled as `settleBill` would), and an undertaking past its effective expiry with no claim pending (its
-  /// margin returned, its memorandum reversed, its commission earned out) — each a posting and a block only when the
+  /// margin returned, its memorandum reversed, its commission earned out); each a posting and a block only when the
   /// figure is not zero.
   func jobTrade(
     bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, now : Nat64,
@@ -9720,7 +9720,7 @@ module {
       };
     }
   };
-  /// A cheque presented: returned at once when stopped, stale or post-dated; otherwise held — the journal's own
+  /// A cheque presented: returned at once when stopped, stale or post-dated; otherwise held; the journal's own
   /// pending posting from the drawer to the till or the clearing house, expiring with the clearing window.
   func planPresentCheque(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, x : { account : ProdT.AccountId; serial : Nat; amount : Nat; payee : TeT.Payee; chequeDate : Nat; imageHash : Blob; postingDate : Nat; valueDate : Nat; period : Text; narration : Text }) : Result.Result<Plan, T.BankError> {
     let ?pol = TellerCore.policy(bs.teller) else return #err(#TellerError({ error = #NoPolicy }));
@@ -9767,7 +9767,7 @@ module {
     switch (bb.get(id)) { case (?b) { switch (b.event) { case (#facility(#facilityOpened(x))) ?x.terms; case (_) null } }; case null null }
   };
   /// What a facility had drawn on a day: the outstanding principal of every drawing it ever made, read from the
-  /// journal as of that day — a drawing since repaid still counts for the days it stood, which is what a clean-down
+  /// journal as of that day; a drawing since repaid still counts for the days it stood, which is what a clean-down
   /// window judged after the fact needs; today it reads as zero.
   public func facilityDrawnOn(bs : State, bb : Blocks, js : JCore.State, id : FaT.FacilityId, day : Nat) : Nat { facilityDrawn(bs, bb, js, id, day) };
   func facilityDrawn(bs : State, bb : Blocks, js : JCore.State, id : FaT.FacilityId, day : Nat) : Nat {
@@ -9830,7 +9830,7 @@ module {
   };
 
   /// A drawing: the aggregate limit checked against the journal, the rate from the pricing, a loan account opened
-  /// under the existing planner at that rate and activated, the disbursement posted — funded by the bank alone, or
+  /// under the existing planner at that rate and activated, the disbursement posted; funded by the bank alone, or
   /// by the syndicate's shares with the participants' parts credited to what the agent owes them; a finance
   /// lease's drawing is the asset moving into the net investment, its schedule carrying the residual as a balloon.
   func planDrawdown(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, m : T.FacilityMoney, authorityIndex : Nat, byNotice : Bool) : Result.Result<Plan, T.BankError> {
@@ -10155,7 +10155,7 @@ module {
 
   /// A maker proposes. The maker must hold the command's own permission (and
   /// `command.create` on the method, checked by the actor), the command must be
-  /// dual-authorised, and it must already validate against both states — a
+  /// dual-authorised, and it must already validate against both states; a
   /// proposal that could never execute is refused at the point it is made.
   public func prepareProposal(bs : State, bb : Blocks, js : JCore.State, jb : JCore.Blocks, journalCaller : Principal, caller : Principal, now : Nat64, command : T.Command, justification : Text) : Result.Result<ProposeOutcome, { error : T.BankError; record : Bool }> {
     let perm = commandPermissionRecord(command);
@@ -10205,7 +10205,7 @@ module {
     };
     // An awaiting proposal always carries its body: a pack drops bodies of settled proposals only.
     let ?command = e.command else Runtime.trap("BankCore: proposal " # Nat.toText(index) # " is awaiting approval without its command body");
-    // The bytes the checker is approving must still be the bytes recorded — under the encoding recorded.
+    // The bytes the checker is approving must still be the bytes recorded; under the encoding recorded.
     let ?recomputed = C.commandHashAt(e.commandEncoding, command) else return #err({ error = #CommandHashMismatch({ recorded = e.commandHash; recomputed = "" }); record = true });
     if (not MC.hashesAgree(e.commandHash, recomputed)) {
       return #err({ error = #CommandHashMismatch({ recorded = e.commandHash; recomputed }); record = true });
@@ -10330,7 +10330,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  APPLY — the only place state changes
+  //  APPLY; the only place state changes
   // ═══════════════════════════════════════════════════════
 
   public func apply(s : State, bb : Blocks, block : T.Block) {
@@ -10466,7 +10466,7 @@ module {
   };
 
   /// What executing `command` charges the maker's daily limit: the day and the totals by currency, computed
-  /// by the executor and recorded in the `#commandExecuted` block, which the fold then applies — so the
+  /// by the executor and recorded in the `#commandExecuted` block, which the fold then applies; so the
   /// fold never needs the proposal's body (§18.2). Manual entries carry their legs; a reversal's legs are
   /// the original's and are charged by the executor through `consumeTotals`.
   public func chargeOf(s : State, command : T.Command) : ?T.Charge {
@@ -10500,7 +10500,7 @@ module {
       Map.add(s.consumed, cmpPCD, (subject, ccy, day), prev + amount);
       // the limit is a per-day figure: the subject's earlier days in this currency are spent and leave the map, so it
       // holds at most one live day per (subject, currency) and never grows with the calendar (the adversarial audit of
-      // 13 September, finding α1 — the map used to keep every (subject, currency, day) ever consumed)
+      // 13 September, finding α1; the map used to keep every (subject, currency, day) ever consumed)
       let stale = List.empty<(Principal, Text, Nat)>();
       label scan for (((p, c, d), _) in Map.entriesFrom(s.consumed, cmpPCD, (subject, ccy, 0))) {
         if (not Principal.equal(p, subject) or not Text.equal(c, ccy)) break scan;
@@ -10532,11 +10532,11 @@ module {
   /// the same fingerprint have the same books, roles, grants, policies, features,
   /// proposals, overrides and consumed figures.
   // ═══════════════════════════════════════════════════════
-  //  REPORTING — the helpers the engine reads through
+  //  REPORTING; the helpers the engine reads through
   // ═══════════════════════════════════════════════════════
 
   /// The kind label the feed gives an event. One place, derived from the union itself, so a
-  /// new event cannot reach a consumer unlabelled — which is the failure a hand-maintained
+  /// new event cannot reach a consumer unlabelled; which is the failure a hand-maintained
   /// list of event names always eventually has.
   public func eventKind(e : T.Event) : Text {
     switch (e) {
@@ -10630,7 +10630,7 @@ module {
   ///   * `leadsheetOf` is the journal's own leadsheet schema, which already carries the
   ///     discipline that an account in no range is **reported** rather than bucketed;
   ///   * `subledgerRows` is one row per product account, which is what a breakdown by book,
-  ///     product or counterparty class needs — a posting in the journal carries a sub-ledger
+  ///     product or counterparty class needs; a posting in the journal carries a sub-ledger
   ///     key and not a branch, so the branch has to come from the account register.
   ///
   /// A counterparty class is a **declared** extension field on the party. Nothing is derived
@@ -10701,8 +10701,8 @@ module {
   /// The statement a `#issueStatement` records, built from the end-of-day batch cut for a camt.053 and from
   /// the live fold for the other two.
   ///
-  /// It does **not** build the camt message. The register entry is the statement's identity —
-  /// the account, the kind, the balances and the journal blocks its entries came from — and the
+  /// It does **not** build the camt message. The register entry is the statement's identity;
+  /// the account, the kind, the balances and the journal blocks its entries came from; and the
   /// message is a projection the read surface serves from the log. Keeping them apart is what
   /// lets the planner work with state alone: the camt projection derives each entry's UETR from
   /// a block hash, and a planner that has to invent one would be a planner inventing an
@@ -10849,7 +10849,7 @@ module {
     for ((f, h) in Map.entries(s.features)) { w.text(f); w.nat64(h) };
     // The proposal and override rows, raw: each is a deterministic function of the log, so two folds
     // of the same log write the same bytes, and a fold that saw a different approval or resolution
-    // writes different ones. What a row points at — the command, the maker, the checkers — is in the
+    // writes different ones. What a row points at; the command, the maker, the checkers; is in the
     // log the fingerprint is compared across, so hashing the rows is hashing that.
     w.nat(RI.size(s.proposalRows));
     fingerprintRows(w, s.proposalRows);

@@ -691,7 +691,7 @@ persistent actor ISO20022Hub {
   let connectorGuidelineProfiles = Map.empty<Text, ConnectorGuidelineProfile>();
   var complianceProfile : ComplianceProfile = ISO.defaultComplianceProfile();
   let complianceScreeningRecords = Map.empty<Nat, ComplianceScreeningRecord>();
-  // The PSEUDONYM NAMESPACE — a label, frozen for the life of this contract.
+  // The PSEUDONYM NAMESPACE; a label, frozen for the life of this contract.
   // It decides every institution user's principal; changing it orphans them.
   var memphisGate : MemphisAuth.State = MemphisAuth.initFromCid(921, "thebes-example-iso20022", 1);
 
@@ -701,7 +701,7 @@ persistent actor ISO20022Hub {
   // Passing the namespace as the audience makes every verification fail with
   // #Unauthorized, which is what this contract did before it was configurable.
   // Institutions run their own frontend, so it is set with setMemphisAudience.
-  var memphisAudience : Text = "https://memphis.mercaturaforum.com";
+  var memphisAudience : Text = "https://<thebes-gateway>";
 
   var nextPaymentId : Nat = 0;
   let payments = Map.empty<Nat, HubPayment>();
@@ -1115,7 +1115,7 @@ persistent actor ISO20022Hub {
 
   /// Set the web origin whose sessions this contract accepts.
   ///
-  /// Safe to change — unlike the namespace on the gate, it touches no identity:
+  /// Safe to change; unlike the namespace on the gate, it touches no identity:
   /// it only says where a token must have been minted. Change it when the
   /// submitting frontend moves to a new domain. It must be a bare origin
   /// (scheme + host + optional port) because Memphis compares it byte-exactly.
@@ -2250,7 +2250,7 @@ persistent actor ISO20022Hub {
 
   /// The bridge's message types and the ISO family each reads into.
   public query func mtBridgeTypes() : async [(Text, Text)] { Array.map<MtMapping, (Text, Text)>(MtBridge.mappings(), func(m) { (m.mt, m.iso) }) };
-  /// The field-to-element mapping tables the bridge implements — the same data the fixture set carries.
+  /// The field-to-element mapping tables the bridge implements; the same data the fixture set carries.
   public query func mtBridgeMappings() : async [MtMapping] { MtBridge.mappings() };
   /// A FIN message read into its record under the active guideline; `hint` names the type when block 2 is absent.
   public query func decodeMt(payload : Blob, hint : ?Text) : async MtDecode { mtDecode(guideline, payload, hint) };
@@ -2266,7 +2266,7 @@ persistent actor ISO20022Hub {
     false
   };
 
-  /// The minor units of a currency under a guideline — what the codec needs to hold an amount exactly.
+  /// The minor units of a currency under a guideline; what the codec needs to hold an amount exactly.
   func breadthMinorUnits(g : UsageGuideline) : Text -> ?Nat8 {
     func(code : Text) : ?Nat8 {
       for (c in g.currencies.vals()) { if (c.code == code) return ?Nat8.fromNat(c.fractionDigits) };
@@ -2318,7 +2318,7 @@ persistent actor ISO20022Hub {
   };
 
   /// The message read, written and read again: `#ok` is the written document when the two readings are
-  /// equal — the property the integration kit's breadth runner asserts on every fixture.
+  /// equal; the property the integration kit's breadth runner asserts on every fixture.
   public query func roundTripIsoBreadth(xml : Blob, options : BreadthEmitOptions) : async Result.Result<Text, [ValidationIssue]> {
     switch (Breadth.roundTrip(xml, breadthMinorUnits(guideline), options)) {
       case (#ok(x)) #ok(x);
@@ -3274,7 +3274,7 @@ persistent actor ISO20022Hub {
       { name = "pain001-to-pacs008-transform"; status = "implemented"; notes = "deterministic mapping into FI-to-FI credit transfer with BAH and UETR" },
       { name = "cross-border-pacs009-cover"; status = "implemented"; notes = "pacs.009 core/COV model, validators, XML export, and cover linkage checks" },
       { name = "exceptions-investigations"; status = "implemented"; notes = "camt.056 cancellation, camt.029 resolution, pacs.028 status-request, and camt.110/camt.111 case-management model and XML export" },
-      { name = "compliance-screening-hooks"; status = "implemented-playground"; notes = "deterministic AML/CFT/payment-transparency screening profile with blocked/high-risk country, BIC, name fragment, value, route, FX, and regulatory-reporting findings; C5 replay held a configured sanctioned payee on ICP Playground" },
+      { name = "compliance-screening-hooks"; status = "implemented-playground"; notes = "deterministic AML/CFT/payment-transparency screening profile with blocked/high-risk country, BIC, name fragment, value, route, FX, and regulatory-reporting findings; C5 replay held a configured sanctioned payee on the reference deployment" },
       { name = "pain002-pacs002-status-reports"; status = "implemented"; notes = "customer and bank status reports with phase validation" },
       { name = "direct-debit-forms"; status = "implemented-compact"; notes = "compact pain.008 and pacs.003 XML decode/validate/export with mandate id, sequence type, connector routing, and SEPA SDD education fixtures" },
       { name = "camt-style-reporting"; status = "implemented"; notes = "statement and notification views over hub payments" },
@@ -3284,7 +3284,7 @@ persistent actor ISO20022Hub {
       { name = "hash-chained-audit"; status = "implemented"; notes = "every audit record commits to the previous audit hash" },
       { name = "audit-merkle-root-and-proof"; status = "implemented"; notes = "queryable inclusion proof over audit record hashes" },
       { name = "audit-mmr-root"; status = "implemented"; notes = "compact Merkle Mountain Range checkpoint root over append-only audit hashes" },
-      { name = "certified-disclosure-root"; status = "implemented-playground"; notes = "IC certified_data commits to the current audit/MMR snapshot and refreshed ICRC-ME participant balance snapshots, with certificate-bearing query envelopes; C6 replay passed on ICP Playground" },
+      { name = "certified-disclosure-root"; status = "implemented-playground"; notes = "certified_data commits to the current audit/MMR snapshot and refreshed ICRC-ME participant balance snapshots, with certificate-bearing query envelopes; C6 replay passed on the reference deployment" },
       { name = "participant-directory-workflows"; status = "implemented"; notes = "BIC/LEI participant directory plus auditable correlation state for direct-debit mandate/collection/reject threads, request-to-pay request/response threads, administrative ACK/NACKs, and case-management messages" },
       { name = "pfmi-self-assessment"; status = "implemented"; notes = "PFMI principle matrix is exposed on-chain with code-enforceable verifier coverage where the hub can check the invariant and explicit institutional/external residual gates where it cannot" },
       { name = "schema-aware-xml-codec"; status = "implemented-partial"; notes = "strict compact XML subset codec: inbound/outbound pain.001, pain.008, pacs.003, pacs.008, pacs.009, cover, status, investigation/case-management, request-to-pay, administrative, and camt reporting; full ISO XSD/profile conformance remains an external oracle gate" },
@@ -3292,11 +3292,11 @@ persistent actor ISO20022Hub {
       { name = "legacy-file-parsers"; status = "implemented-partial"; notes = "native MT103 payment, MT940/MT942 statement, CSV payment, and fixed-width payment parsers for integration fixtures; full SWIFT option coverage and bank-specific CSV/fixed layouts remain profile gates" },
       { name = "connector-thebes-caller-auth"; status = "implemented"; notes = "connector policy can require the Thebes-authenticated ingress caller to equal the registered connector owner" },
       { name = "connector-memphis-session-auth"; status = "implemented"; notes = "connector policy can require a live Memphis session token and compare the derived app principal with the registered connector owner" },
-      { name = "connector-external-signature-attestation"; status = "implemented-playground"; notes = "connector policy can require a detached signature and call a verifier canister for Ed25519, MAYO-2, threshold-Schnorr, or institution-specific schemes against the canister canonical envelope hash; C5 replay verified the reference verifier and rejected a tampered envelope on ICP Playground" },
+      { name = "connector-external-signature-attestation"; status = "implemented-playground"; notes = "connector policy can require a detached signature and call a verifier canister for Ed25519, MAYO-2, threshold-Schnorr, or institution-specific schemes against the canister canonical envelope hash; C5 replay verified the reference verifier and rejected a tampered envelope on the reference deployment" },
       { name = "integration-profile-packs"; status = "implemented"; notes = "discoverable local, CBPR-shaped, legacy, SEPA, Fedwire, FedNow, and BIS CPMI public-source profile metadata with matching integration-kit fixtures where implemented" },
-      { name = "runtime-guideline-profiles"; status = "implemented-playground"; notes = "built-in and custom UsageGuideline profiles can be selected as the default, per connector, or per validation/submission call without redeploying the canister; C3 replay passed on ICP Playground" },
+      { name = "runtime-guideline-profiles"; status = "implemented-playground"; notes = "built-in and custom UsageGuideline profiles can be selected as the default, per connector, or per validation/submission call without redeploying the canister; C3 replay passed on the reference deployment" },
       { name = "settlement-liquidity-queue"; status = "implemented-local"; notes = "participant debit caps, reserved queued liquidity, FIFO/bypass queue ordering, gross dispatch rejection, and two-payment offset settlement path over ICRC-ME net transfer" },
-      { name = "operating-day-state-machine"; status = "implemented-playground"; notes = "per-currency operating-day config, settlement-window cutoff enforcement, opening balance snapshots, end-of-day camt.053 generation, and ICRC-ME balance reconciliation; C4 replay passed on ICP Playground" },
+      { name = "operating-day-state-machine"; status = "implemented-playground"; notes = "per-currency operating-day config, settlement-window cutoff enforcement, opening balance snapshots, end-of-day camt.053 generation, and ICRC-ME balance reconciliation; C4 replay passed on the reference deployment" },
       { name = "public-scheme-research"; status = "implemented"; notes = "docs/PUBLIC_SCHEME_RESEARCH.md records public scheme/form gaps and distinguishes implemented compact forms from official conformance gates" },
       { name = "phase-oracle-readiness"; status = "implemented"; notes = "machine-readable oracle phase registry plus live readiness verifiers for guideline, XML, lifecycle, cross-border, compliance, connectors, outbound, MT103, audit, and duplicate indexes" },
       { name = "checkpoint-map"; status = "implemented"; notes = "machine-readable architecture checkpoint map plus XML profile fixture registry for audit/review discipline" },
@@ -3349,7 +3349,7 @@ persistent actor ISO20022Hub {
         status = "implemented-playground";
         codeSurface = ["configureOperatingDay", "openOperatingDay", "setOperatingDayPhase", "operatingDayStatus", "runEndOfDay", "listEndOfDayRuns"];
         verifierSurface = ["operatingDayStatus", "getEndOfDayRun", "camt053Xml", "secondaryIndexHealth"];
-        currentGate = "ICP Playground C4 replay on hub xpjyl-daaaa-aaaab-qadcq-cai and ledger 2uurk-ziaaa-aaaab-qacla-cai: cutoff blocked dispatch, settlement finalized at ICRC-ME block 3, and end-of-day reconciliation matched ledger balances";
+        currentGate = "replay on the reference deployment: cutoff blocked dispatch, settlement finalized at ICRC-ME block 3, and end-of-day reconciliation matched ledger balances";
         nextGate = "long-lived canonical replay if short-lived Playground evidence is not accepted";
       },
       {
@@ -3358,7 +3358,7 @@ persistent actor ISO20022Hub {
         status = "implemented-playground";
         codeSurface = ["listGuidelineProfiles", "setDefaultGuidelineProfile", "putGuidelineProfile", "setConnectorGuidelineProfile", "validatePain001WithProfile", "validatePain001XmlWithProfile", "submitPain001WithProfile", "submitTransportEnvelope"];
         verifierSurface = ["validateDemoPain001WithProfile", "validateDemoCrossBorderPain001WithProfile", "verifyOracleReadiness", "listConnectorGuidelineProfiles"];
-        currentGate = "ICP Playground C3 replay on xpjyl-daaaa-aaaab-qadcq-cai: EG domestic accepts domestic pain.001, EG rejects cross-market pain.001, CBPR+/SEPA/Fedwire profiles accept it, and a connector binds to SEPA without changing the default";
+        currentGate = "replay on the reference deployment: EG domestic accepts domestic pain.001, EG rejects cross-market pain.001, CBPR+/SEPA/Fedwire profiles accept it, and a connector binds to SEPA without changing the default";
         nextGate = "long-lived canonical replay with connector-bound SEPA/CBPR+/Fedwire fixtures if short-lived Playground evidence is not accepted";
       },
       {
@@ -3367,7 +3367,7 @@ persistent actor ISO20022Hub {
         status = "implemented-playground";
         codeSurface = ["setComplianceProfile", "submitPain001Xml", "getPaymentComplianceReport", "listHeldPaymentViews", "releaseComplianceHold", "rejectComplianceHold", "useExternalSignatureAuth", "connectorEnvelopeSigningHash", "submitTransportEnvelope", "ReferenceSignatureVerifier.verify_connector_signature"];
         verifierSurface = ["getPaymentComplianceReport", "listHeldPaymentViews", "listTransportRecords", "verifyOracleReadiness"];
-        currentGate = "ICP Playground C5 replay on hub xpjyl-daaaa-aaaab-qadcq-cai and verifier 4ey3y-zaaaa-aaaab-qac6q-cai: payment 1 held with SANCTIONS-NAME-FRAGMENT, transport 0 accepted with a reference-sha256 detached signature, and transport 1 dead-lettered with TRANSPORT-REFERENCE-SIGNATURE-MISMATCH";
+        currentGate = "replay on the reference deployment: payment 1 held with SANCTIONS-NAME-FRAGMENT, transport 0 accepted with a reference-sha256 detached signature, and transport 1 dead-lettered with TRANSPORT-REFERENCE-SIGNATURE-MISMATCH";
         nextGate = "licensed sanctions/PEP feed, scheme/bank PKI or HSM verifier, and long-lived canonical replay if short-lived Playground evidence is not accepted";
       },
       {
@@ -3385,8 +3385,8 @@ persistent actor ISO20022Hub {
         status = "implemented-playground";
         codeSurface = ["refreshCertifiedDisclosure", "refreshCertifiedSettlementBalances", "refreshCertifiedParticipantBalance", "certifiedDisclosureCertificate", "certifiedAuditDisclosure", "certifiedParticipantBalance", "listCertifiedParticipantBalances"];
         verifierSurface = ["verifyCertifiedDisclosure", "verifyOracleReadiness"];
-        currentGate = "ICP Playground C6 replay on hub xpjyl-daaaa-aaaab-qadcq-cai and ledger mytki-xqaaa-aaaab-qabrq-cai: certified root commits to audit/MMR snapshot and two refreshed EGP balance snapshots, certificate-bearing query returned non-null certificate, verifyCertifiedDisclosure ok=true";
-        nextGate = "external certificate verification client against the IC root key and ledger-native certified balance witnesses";
+        currentGate = "replay on the reference deployment: certified root commits to audit/MMR snapshot and two refreshed EGP balance snapshots, certificate-bearing query returned non-null certificate, verifyCertifiedDisclosure ok=true";
+        nextGate = "external certificate verification client against the network root key and ledger-native certified balance witnesses";
       },
       {
         id = "participant.workflow";
@@ -4066,7 +4066,7 @@ persistent actor ISO20022Hub {
       issues := addIssue(issues, oracleIssue("CERT-ROOT-HASH", "$.certified.root.rootHash", "certified disclosure root hash must match its fields"));
     };
     if (certifiedDisclosureRootState.rootHash.size() > 32) {
-      issues := addIssue(issues, oracleIssue("CERT-ROOT-SIZE", "$.certified.root.rootHash", "IC certified_data root must be at most 32 bytes"));
+      issues := addIssue(issues, oracleIssue("CERT-ROOT-SIZE", "$.certified.root.rootHash", "certified_data root must be at most 32 bytes"));
     };
     oracleReport("certified.disclosure", issues);
   };
@@ -5208,7 +5208,7 @@ persistent actor ISO20022Hub {
       pfmi(5, "Collateral", "applicable", "institutional", "operator collateral policy", false, null, [], ["docs/PFMI_SELF_ASSESSMENT.md"], ["no native collateral eligibility/haircut engine is bundled"]),
       pfmi(6, "Margin", "not-applicable", "not-applicable", "not a CCP margining system", false, null, [], ["docs/PFMI_SELF_ASSESSMENT.md"], []),
       pfmi(7, "Liquidity risk", "applicable", "built", "settlement liquidity queue", true, ?"settlement.liquidity.queue", ["checkSettlementLiquidity", "listSettlementQueue", "secondaryIndexHealth"], ["setSettlementDebitLimit", "resolveQueuedSettlementOffset"], ["real RTGS intraday liquidity facilities are external"]),
-      pfmi(8, "Settlement finality", "applicable", "native-plus-built", "IC finalization plus hub lifecycle", true, ?"payment.lifecycle", ["verifyPaymentPhases", "verifyOracleReadiness"], ["acknowledgePacs002", "auditTip"], ["legal finality memorandum remains institutional"]),
+      pfmi(8, "Settlement finality", "applicable", "native-plus-built", "finalization plus hub lifecycle", true, ?"payment.lifecycle", ["verifyPaymentPhases", "verifyOracleReadiness"], ["acknowledgePacs002", "auditTip"], ["legal finality memorandum remains institutional"]),
       pfmi(9, "Money settlements", "applicable", "built", "ICRC-ME settlement asset", true, ?"certified.disclosure", ["verifyCertifiedDisclosure", "runEndOfDay"], ["setSettlementLedger", "refreshCertifiedSettlementBalances"], ["production central-bank money or commercial-bank money policy is external"]),
       pfmi(10, "Physical deliveries", "not-applicable", "not-applicable", "payment-message hub has no physical delivery leg", false, null, [], ["docs/PFMI_SELF_ASSESSMENT.md"], []),
       pfmi(11, "Central securities depositories", "not-applicable", "not-applicable", "not a CSD", false, null, [], ["docs/PFMI_SELF_ASSESSMENT.md"], []),
@@ -5217,7 +5217,7 @@ persistent actor ISO20022Hub {
       pfmi(14, "Segregation and portability", "not-applicable", "not-applicable", "not a CCP with client margin portability", false, null, [], ["docs/PFMI_SELF_ASSESSMENT.md"], []),
       pfmi(15, "General business risk", "applicable", "institutional", "operator finance and continuity plan", false, null, [], ["docs/PFMI_SELF_ASSESSMENT.md"], ["capital planning and wind-down evidence are external"]),
       pfmi(16, "Custody and investment risks", "applicable", "external", "settlement-asset custody and treasury policy", false, null, [], ["docs/PFMI_SELF_ASSESSMENT.md"], ["custody/investment controls depend on the deployed settlement asset and operator treasury"]),
-      pfmi(17, "Operational risk", "applicable", "native-plus-built", "IC replicated execution plus connector controls", true, ?"connector.envelope", ["verifyOracleReadiness", "secondaryIndexHealth"], ["submitTransportEnvelope", "useExternalSignatureAuth"], ["disaster recovery runbooks and incident response exercises remain operator evidence"]),
+      pfmi(17, "Operational risk", "applicable", "native-plus-built", "replicated execution plus connector controls", true, ?"connector.envelope", ["verifyOracleReadiness", "secondaryIndexHealth"], ["submitTransportEnvelope", "useExternalSignatureAuth"], ["disaster recovery runbooks and incident response exercises remain operator evidence"]),
       pfmi(18, "Access and participation requirements", "applicable", "built", "participant directory", true, ?"participant.workflow", ["verifyParticipantWorkflowCorrelation"], ["upsertParticipantDirectoryEntry", "listParticipantDirectory"], ["official CBE/EBC participant directory imports remain external"]),
       pfmi(19, "Tiered participation arrangements", "applicable", "built", "access tier and parent BIC model", true, ?"participant.workflow", ["verifyParticipantWorkflowCorrelation"], ["upsertParticipantDirectoryEntry", "seedDemoParticipantDirectory"], ["monitoring thresholds for indirect participants remain operator policy"]),
       pfmi(20, "FMI links", "applicable", "external", "connector and settlement-asset links", false, null, [], ["integrationProfilePacks", "setSettlementLedger"], ["bilateral/link agreements and link-risk assessments are external"]),

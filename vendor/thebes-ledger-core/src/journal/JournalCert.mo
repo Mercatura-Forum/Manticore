@@ -1,4 +1,4 @@
-/// JournalCert.mo — IC certified data for the journal tip.
+/// JournalCert.mo; IC certified data for the journal tip.
 ///
 /// The canister's certified data is the root hash of this tree:
 ///
@@ -15,7 +15,7 @@
 /// entry for this canister against the hash of the tree below, the mmr_root
 /// leaf inside that tree, and finally the entry's inclusion proof against that
 /// root. Unlike the token ledger's tip tree (src/ledger/CertifiedTree.mo), the
-/// MMR root is inside the certified tree — that is what makes an inclusion
+/// MMR root is inside the certified tree; that is what makes an inclusion
 /// proof verifiable without any uncertified query.
 ///
 /// Labels are ordered lexicographically inside each fork, as IC hash-tree

@@ -1,4 +1,4 @@
-/// Loans.mo — repayment allocation, arrears, delinquency and impairment figures.
+/// Loans.mo; repayment allocation, arrears, delinquency and impairment figures.
 ///
 /// Schedule generation lives in `Products.mo` (it is shared with term products);
 /// what is here is everything that happens to a loan after it is disbursed, and
@@ -21,7 +21,7 @@
 /// **Provisioning computes, it does not estimate.** Delinquency bands and the
 /// percentage against each are declared parameters supplied by the institution
 /// (IFRS 9 staging, the CBE classification bands). This module applies them. No
-/// model is fitted, inferred or hidden here — a provision a regulator cannot
+/// model is fitted, inferred or hidden here; a provision a regulator cannot
 /// recompute is a provision that cannot be defended.
 
 import Nat "mo:core/Nat";
@@ -111,8 +111,8 @@ module {
   /// function of the two running totals and never of a sequence of adjustments.
   ///
   /// **Due and overdue are not the same day.** An instalment whose due date is `asOf`
-  /// has fallen due — it is in `dueToDate`, and the end-of-day batch moves it into the
-  /// borrower's receivable — but it is not late: the borrower has that day to pay it.
+  /// has fallen due; it is in `dueToDate`, and the end-of-day batch moves it into the
+  /// borrower's receivable; but it is not late: the borrower has that day to pay it.
   /// Only instalments whose due date has passed are overdue, which is what
   /// `overdueTotal`, `instalmentsOverdue` and the delinquency band are computed from.
   ///
@@ -155,7 +155,7 @@ module {
   };
 
   /// The delinquency band an arrears position falls in.
-  /// The band the arrears age into, which is the band covering the overdue days —
+  /// The band the arrears age into, which is the band covering the overdue days;
   /// **including zero overdue days**.
   ///
   /// A performing loan is not unclassified: under IFRS 9 it sits in stage 1 and carries a
@@ -204,7 +204,7 @@ module {
   // ═══════════════════════════════════════════════════════
 
   public type WriteOff = {
-    /// Principal, interest, fees and penalties written off — the whole exposure,
+    /// Principal, interest, fees and penalties written off; the whole exposure,
     /// each from its own control account, so each balance-sheet line is relieved
     /// of its own figure and nothing is netted.
     components : Allocation;
@@ -283,10 +283,10 @@ module {
   /// (`carrying`: principal, interest, fees and penalties outstanding at the effective day) is compared with
   /// the present value of the modified contractual cash flows, discounted at the **original** contractual
   /// rate: every instalment of the new schedule due on or after the effective day contributes
-  /// `round(cashFlow × 1 / (1 + rate × fraction(effective, dueDate)))` — simple discounting per flow over the
+  /// `round(cashFlow × 1 / (1 + rate × fraction(effective, dueDate)))`; simple discounting per flow over the
   /// product's day-count convention, each flow rounded on its own under the product's rounding, so the
   /// figure is exact, bounded and identical on both sides. What had fallen due and was unpaid at the
-  /// effective day (`pastDueUnpaid`) is present-valued at par — it is due now — and the retained instalments
+  /// effective day (`pastDueUnpaid`) is present-valued at par; it is due now; and the retained instalments
   /// of the old schedule are not flows of the modification. A positive result is a loss (the modified flows
   /// are worth less than the carrying amount), a negative one a gain.
   public func modificationGainLoss(

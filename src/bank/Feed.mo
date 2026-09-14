@@ -1,4 +1,4 @@
-/// Feed.mo — the certified pull feed, and the recorded pusher.
+/// Feed.mo; the certified pull feed, and the recorded pusher.
 ///
 /// A canister cannot hold a socket open, so the primary mechanism is a **pull** feed: a
 /// consumer asks for events after a cursor and receives them together with the certified
@@ -8,7 +8,7 @@
 ///     ordering to get out of step with it;
 ///   * a response carries the first and last cursor it covers and the tip's certified root,
 ///     so a consumer that trusts nothing can check that what it received is a **contiguous
-///     prefix** of the real sequence — a splice, a reorder or a truncation is detectable
+///     prefix** of the real sequence; a splice, a reorder or a truncation is detectable
 ///     rather than invisible;
 ///   * every event names the block it reports, so a consumer that cares about one event asks
 ///     for that block's inclusion proof and verifies it alone.
@@ -31,7 +31,7 @@ import RT "ReportTypes";
 module {
 
   /// What a consumer gets back. `from` and `to` bound the slice, `tipCursor` is the highest
-  /// cursor that exists, and `digest` is a hash over the slice in order — so a consumer can
+  /// cursor that exists, and `digest` is a hash over the slice in order; so a consumer can
   /// re-derive the digest from what it received and detect a reorder even before it looks at
   /// a single event.
   public type FeedPage = {

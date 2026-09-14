@@ -1,13 +1,13 @@
-/// Monitoring.mo — evaluating the closed rule set over the aggregates.
+/// Monitoring.mo; evaluating the closed rule set over the aggregates.
 ///
 /// Pure over a context: the aggregates (`Activity`), the account's own postings (the I1 range of
 /// `PostingIndex`, sized before it is read) and each account's currency. Two entry points, one per
 /// timing:
 ///
-///   * `atPosting` — the cheap rules, in the posting's own message, from what that message knows
+///   * `atPosting`; the cheap rules, in the posting's own message, from what that message knows
 ///     and nothing else: the posting's closed reading (`Activity.Posted`), each account's dormancy
 ///     **before** the posting, and one reverse lookup for a round trip;
-///   * `atDay` — the window rules, for one account and one day, from ranges over the window.
+///   * `atDay`; the window rules, for one account and one day, from ranges over the window.
 ///
 /// Every read is bounded before it happens. A window is at most `MAX_WINDOW_DAYS` rows of A1; a
 /// structuring rule declares `maxScan` and is **refused, not run**, when the account's postings in
@@ -34,7 +34,7 @@ module {
   public type Context = {
     activity : A.State;
     /// The account's postings over `[from, to]` by value day, at most `bound` of them, and whether
-    /// there were more — the I1 range, sized first.
+    /// there were more; the I1 range, sized first.
     postingsOf : (Nat, Nat, Nat, Nat) -> { rows : [PostingRow]; exceeded : Bool };
     currencyOf : Nat -> ?Text;
   };

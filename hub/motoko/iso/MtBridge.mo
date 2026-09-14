@@ -1,4 +1,4 @@
-/// MtBridge.mo — the legacy MT bridge of the hub: thirteen SWIFT FIN message types read
+/// MtBridge.mo; the legacy MT bridge of the hub: thirteen SWIFT FIN message types read
 /// into the hub's ISO 20022 records and written back from them, each with its field-to-element mapping table
 /// exposed as data (`mappings()`) so the fixture set (`integration-kit/legacy/mt-mappings.json`) and the code
 /// are checked against each other rather than kept by hand.
@@ -54,7 +54,7 @@ module {
 
   /// What the records carry and MT does not; the caller supplies them once.
   public type Options = {
-    creationDateTime : Text;   // the records' CreDtTm — MT has no creation timestamp
+    creationDateTime : Text;   // the records' CreDtTm; MT has no creation timestamp
     settlementMethod : Text;   // the guideline's (INDA for correspondent banking, CLRG on a clearing system)
     country : Text;            // the country of a party whose address has none (the guideline's)
     versions : Text -> Text;   // message versions by family ("pain.001" → "001.09"), the guideline's
@@ -340,7 +340,7 @@ module {
     }
   };
 
-  /// A party field (50K/50H/50F/59/59F/59A): `/account` first, then the name, then address lines — option F's
+  /// A party field (50K/50H/50F/59/59F/59A): `/account` first, then the name, then address lines; option F's
   /// numbered lines (`1/`, `2/`, `3/CC/Town`) read the same way with their prefixes dropped.
   func partyOf(f : ?Field, fallbackName : Text, currency : Text, country : Text) : (ISO.PartyIdentification, ISO.CashAccount) {
     let ls = switch (f) { case (?x) lines(x.value); case null [] };

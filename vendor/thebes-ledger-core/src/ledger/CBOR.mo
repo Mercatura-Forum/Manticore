@@ -1,4 +1,4 @@
-/// CBOR.mo — CBOR encoder + decoder for ICRC-3 block encoding
+/// CBOR.mo; CBOR encoder + decoder for ICRC-3 block encoding
 ///
 /// Implements the subset of CBOR needed for IC hash trees and ICRC-3 blocks:
 ///   - Unsigned integers (major type 0)
@@ -7,7 +7,7 @@
 ///   - Text strings (major type 3)
 ///   - Arrays (major type 4)
 ///   - Maps (major type 5)
-///   - Tag 55799 (self-describe CBOR — required by ICRC-3)
+///   - Tag 55799 (self-describe CBOR; required by ICRC-3)
 ///
 /// Matches the encoding used by the Rust `ciborium` crate in the DFINITY ledger.
 
@@ -28,7 +28,7 @@ module {
   //  CBOR WRITER (append-only byte buffer)
   // ═══════════════════════════════════════════════════════
 
-  /// CBOR Writer — Pre-allocated byte buffer for minimal GC pressure.
+  /// CBOR Writer; Pre-allocated byte buffer for minimal GC pressure.
   /// Typical ICRC blocks encode to 80-250 bytes.
   public class Writer() {
     var buf : [var Nat8] = VarArray.repeat<Nat8>(0, 256);
@@ -202,7 +202,7 @@ module {
                 ?(majorType, v)
               };
             };
-          } else { null }; // indefinite/reserved — not supported
+          } else { null }; // indefinite/reserved; not supported
         };
       };
     };
@@ -437,7 +437,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  BLOCK ENCODING/DECODING (v2 — full fidelity CBOR)
+  //  BLOCK ENCODING/DECODING (v2; full fidelity CBOR)
   // ═══════════════════════════════════════════════════════
 
   public type Account = { owner : Principal; subaccount : ?Blob };

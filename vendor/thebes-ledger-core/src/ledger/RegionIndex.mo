@@ -1,4 +1,4 @@
-/// RegionIndex.mo — a sorted index in stable memory, with range scans.
+/// RegionIndex.mo; a sorted index in stable memory, with range scans.
 ///
 /// This is a **derivative work** of `RegionBTree.mo`, beside it in this directory (MIT, carried from
 /// ICRC-ME). It lives here rather than in the banking layer because the journal and the banking layer
@@ -11,7 +11,7 @@
 ///   1. **Per-index key and value widths.** The original fixes `KEY_SIZE = 62` and
 ///      `VAL_SIZE = 16`, so a 12-byte day key still costs 78 bytes an entry. Taking both widths
 ///      from a `Spec` at creation buys between two and six times on storage and takes every index
-///      in `the capacity model` from depth 5 to depth 4 at a billion keys — one fewer page
+///      in `the capacity model` from depth 5 to depth 4 at a billion keys; one fewer page
 ///      read on every lookup.
 ///   2. **Sibling-linked leaves.** A six-byte `next` pointer in the node header makes a range page
 ///      one descent plus sequential leaves, rather than one descent per leaf. That is what the
@@ -54,15 +54,15 @@ module {
 
   /// The widths of one index. Both are fixed for the life of the index, which is what makes the
   /// B-tree's order the query's order: a composite key compares byte by byte, so
-  /// `account ‖ day ‖ postingNo` sorts by account, then by day, then by posting — exactly the
+  /// `account ‖ day ‖ postingNo` sorts by account, then by day, then by posting; exactly the
   /// order an account-and-date-range query wants to read.
   public type Spec = { keyBytes : Nat; valBytes : Nat };
 
   /// A page allocator several indexes share. A Motoko `Region` reserves stable memory in 8 MiB
   /// blocks, so one region per index makes every small index cost 8 MiB before its first entry;
   /// an arena is one region whose pages are handed out to every index built in it, and a component
-  /// with forty indexes pays the 8 MiB once. Pages are never returned to the arena — an index keeps
-  /// the pages it frees on its own free list — so a page belongs to one index for ever.
+  /// with forty indexes pays the 8 MiB once. Pages are never returned to the arena; an index keeps
+  /// the pages it frees on its own free list; so a page belongs to one index for ever.
   public type Arena = {
     region : Region.Region;
     /// Pages handed out so far, which is what the region's size is derived from.
@@ -98,7 +98,7 @@ module {
     var freeCount : Nat64;
   };
 
-  /// An index in its own arena — its own region.
+  /// An index in its own arena; its own region.
   public func newState(spec : Spec) : State { newStateIn(newArena(), spec) };
 
   /// An index in a shared arena.
@@ -184,7 +184,7 @@ module {
     state.freeCount += 1;
   };
 
-  /// Give every page of the index — the tree's and its own free list's — back to the arena, so an
+  /// Give every page of the index; the tree's and its own free list's; back to the arena, so an
   /// index built in its place allocates them before any fresh page. The index is empty afterwards
   /// and must not be used again except to be released a second time, which does nothing.
   public func release(state : State) {
@@ -382,8 +382,8 @@ module {
   /// currency and class indexes. Three of our four posting indexes are append-ordered, so the
   /// difference is half their storage.
   ///
-  /// So a split that is appending at the right edge of the tree — the new key is greater than
-  /// every key in the leaf and the leaf has no successor — leaves the left leaf **full** and
+  /// So a split that is appending at the right edge of the tree; the new key is greater than
+  /// every key in the leaf and the leaf has no successor; leaves the left leaf **full** and
   /// starts the right one empty, with the new key as the separator. That is Graefe's right-edge
   /// split (*Modern B-Tree Techniques* §2.2), and it is what makes the model's fill figure true
   /// rather than aspirational.
@@ -524,7 +524,7 @@ module {
   ///
   /// `cursor` resumes a previous page: pass the `cursor` the last page returned. The walk is one
   /// descent to find the starting leaf and then the sibling chain, so the cost is the page and not
-  /// the index — which is the whole reason the index exists.
+  /// the index; which is the whole reason the index exists.
   public func range(state : State, lo : Blob, hi : Blob, cursor : ?Blob, limit : Nat) : Page {
     requireWidth(state, lo, null);
     requireWidth(state, hi, null);
@@ -592,7 +592,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  STATS — what the capacity model is measured against
+  //  STATS; what the capacity model is measured against
   // ═══════════════════════════════════════════════════════
 
   public type Stats = {
@@ -647,7 +647,7 @@ module {
   // ═══════════════════════════════════════════════════════
 
   /// Big-endian, fixed width. Every key in this component is built from these, because a key whose
-  /// bytes are big-endian sorts the same way as the number it encodes — which is what lets one
+  /// bytes are big-endian sorts the same way as the number it encodes; which is what lets one
   /// composite key serve a range query.
   public func beBytes(value : Nat, width : Nat) : [Nat8] { ByteBuf.be(value, width) };
 

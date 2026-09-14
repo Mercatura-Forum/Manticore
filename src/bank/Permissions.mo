@@ -1,4 +1,4 @@
-/// Permissions.mo — the permission catalogue.
+/// Permissions.mo; the permission catalogue.
 ///
 /// Apache Fineract carries 960 permission rows in a table. A hand-maintained
 /// catalogue drifts from the code, and the drift is invisible until someone
@@ -200,8 +200,8 @@ module {
     p("archive.child.adopt", "archive", #create, #command("adoptArchiveChild"), false, true),
     // The steps are single-authority methods, each its own ingress message, because a spawn's plan
     // is fixed when it is authorised and a step can only advance it or be refused. The two that
-    // carry caller-supplied facts — the id a create replied with, and the module hash read from the
-    // chain — are guarded like the rest and checked against what the parent already holds
+    // carry caller-supplied facts; the id a create replied with, and the module hash read from the
+    // chain; are guarded like the rest and checked against what the parent already holds
     // (`ArchiveCore.planRemember`, `planConfirm`).
     p("archive.image.upload", "archive", #update, #method("uploadArchiveImageChunk"), false, false),
     p("archive.image.reset", "archive", #delete, #method("resetArchiveImage"), false, false),
@@ -262,8 +262,8 @@ module {
     p("origination.withdraw", "origination", #update, #command("withdrawApplication"), false, false),
     // ── corporate lending (corporate lending) ──
     // Opening a facility, changing the syndicate, restructuring, blocking and closing are decisions: dual. Every
-    // act that posts — a drawing, a distribution, a rental, a remeasurement, a purchase, a collection, a
-    // dishonour, a write-off — moves money: dual by the rule. A covenant test and a review are the officer's
+    // act that posts; a drawing, a distribution, a rental, a remeasurement, a purchase, a collection, a
+    // dishonour, a write-off; moves money: dual by the rule. A covenant test and a review are the officer's
     // record: single. A rate fixing is data the pricing rests on: dual. The agent's notice arrives by a method.
     p("facility.open", "facility", #create, #command("openFacility"), false, true),
     p("facility.drawdown", "facility", #create, #command("drawdown"), true, true),
@@ -285,9 +285,9 @@ module {
     p("facility.close", "facility", #close, #command("closeFacility"), false, true),
     // ── branch and teller (branch and teller) ──
     // The policy is a decision: dual. Opening and closing a session, issuing a chequebook and stopping a cheque are
-    // the officer's record: single. Every act that posts — counted cash in or out, a till loaded or returned, cash
+    // the officer's record: single. Every act that posts; counted cash in or out, a till loaded or returned, cash
     // dispatched, received, lodged or drawn, a difference resolved, a cheque held, cleared or returned, a draft
-    // issued, paid or cancelled — moves money: dual by the rule of entitlements and maker-checker §1.3, so no teller resolves their own
+    // issued, paid or cancelled; moves money: dual by the rule of entitlements and maker-checker §1.3, so no teller resolves their own
     // difference and no one person moves cash alone.
     p("teller.policy", "teller", #update, #command("setTellerPolicy"), false, true),
     p("teller.session.open", "teller", #create, #command("openTellerSession"), false, false),
@@ -369,7 +369,7 @@ module {
     p("psia.reserve.update", "psia", #update, #command("updatePoolReserves"), false, true),
     p("psia.distribute", "psia", #update, #command("distributePool"), true, true),
     // treasury treasury: configuration and market data are dual acts of governance; the capture records a contract and moves no
-    // money — it is the trader's own act, within the entitlements' ceiling on the deal's notional, and a breach above the
+    // money; it is the trader's own act, within the entitlements' ceiling on the deal's notional, and a breach above the
     // recorded limits needs an approver named on the command; the legs that move money settle under dual control, as do
     // marks, amendments, cancellations and break resolutions; the connector records confirmations and statements alone
     p("treasury.policy", "treasury", #update, #command("setTreasuryPolicy"), false, true),
@@ -423,7 +423,7 @@ module {
     // The scheme, its participants and their prefunding are the bank's acts: dual, and prefunding is
     // money-moving. A payment's prepare, fulfil, reject and error, the windows and the bulks are the
     // scheme's flow: single-authority under the scheme principal's grant, whose own control is the
-    // message's validation and audit and the engine's cap — a person cannot make a payment here, only
+    // message's validation and audit and the engine's cap; a person cannot make a payment here, only
     // a scheme can, and the grant that makes a principal a scheme is dual.
     p("settlement.scheme.update", "settlement", #update, #command("declareScheme"), false, true),
     p("settlement.participant.create", "settlement", #create, #command("registerParticipant"), false, true),

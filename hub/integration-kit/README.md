@@ -4,15 +4,15 @@ This kit is the hands-on entry point for banks, fintechs, middleware teams, and
 legacy-file integrators.
 
 The canister carries the compact codec for the message families of the first
-table in `XML_SUPPORT_MATRIX.md`, and the schema-profile codec — the official
+table in `XML_SUPPORT_MATRIX.md`, and the schema-profile codec; the official
 ISO 20022 XSDs as generated profiles (43 families), twenty of them read into
-typed records and written back schema-valid — together with the MT bridge
+typed records and written back schema-valid; together with the MT bridge
 (13 FIN types) and the CBPR+ / HVPS+ rule sets. Every claim in the matrix has
 its runner in `scripts/` and its report in `profile-runner/`.
 
 ## Contents
 
-- `xml/valid`: XML files that decode — the compact-profile fixtures, and the
+- `xml/valid`: XML files that decode; the compact-profile fixtures, and the
   official-shape fixtures of the schema-profile codec (`breadth-manifest.json`
   names them with their xmllint verdicts).
 - `xml/invalid`: XML and replay fixtures expected to dead-letter or fail with
@@ -135,7 +135,7 @@ and the runner judges every fixture of `profile-runner/profile-map.json` against
 its expectation. The report is `profile-runner/profile-report.json`: the 117
 official-shape fixtures (schema-profile codec, CBPR+, HVPS+) all agree with
 their expectation; the 21 compact-codec fixtures of the original corpus are
-still not valid under the official XSDs, as the checkpoint records — the same
+still not valid under the official XSDs, as the checkpoint records; the same
 families are validated in the official shape through `validateIsoDocument`.
 
 The schema-profile codec, the MT bridge and the rule sets have their own
@@ -205,10 +205,9 @@ integration-kit/scripts/certified-disclosure-verify.py --canister iso20022
 The helper drives the deployed hub through `thebes-deploy --json query`, reading
 the disclosure methods' JSON twins (`certifiedAuditDisclosureJson` et al.). It
 recomputes the audit snapshot hash, balance snapshot hashes, balance Merkle root,
-and final disclosure root, and — when an IC-format certificate is present —
+and final disclosure root, and; when a certificate is present;
 checks the certificate hash-tree leaf for `certified_data`. The remaining
-signature check is deployment-specific: IC root-key/BLS for ICP replay, and a
-Thebes network proof for Thebes production.
+signature check is deployment-specific: the network root key.
 
 Refresh and verify fixture bundle hashes:
 

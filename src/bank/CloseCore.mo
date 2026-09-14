@@ -1,4 +1,4 @@
-/// CloseCore.mo — the close layer's state, which is the fold of the log.
+/// CloseCore.mo; the close layer's state, which is the fold of the log.
 ///
 /// Rates, position pairs, deferral schedules, back-value windows and approvals, the
 /// period-end runs and the books closed per period. No balance: a position is a
@@ -116,7 +116,7 @@ module {
   /// The redenomination of a currency declared and not yet carried out.
   public func pendingRedenomination(s : State, from : Text) : ?RedenominationEntry { switch (Map.get(s.redenominations, Text.compare, from)) { case (?e) { if (e.completed) null else ?e }; case null null } };
   public func pendingRedenominations(s : State) : [RedenominationEntry] { Array.filter<RedenominationEntry>(Array.map<(Text, RedenominationEntry), RedenominationEntry>(Map.toArray(s.redenominations), func((_, r)) { r }), func(e) { not e.completed }) };
-  /// The completed redenomination a product went through, if any: its day, its old currency and its ratio — what an
+  /// The completed redenomination a product went through, if any: its day, its old currency and its ratio; what an
   /// accrual window spanning the day needs to value the old-currency days.
   public func redenominationOfProduct(s : State, product : Text) : ?{ day : Nat; from : Text; to : Text; ratioNumerator : Nat; ratioDenominator : Nat } {
     var best : ?{ day : Nat; from : Text; to : Text; ratioNumerator : Nat; ratioDenominator : Nat } = null;
@@ -133,7 +133,7 @@ module {
   /// The successor of a currency closed by a redenomination, if it was.
   public func closedTo(s : State, currency : Text) : ?Text { Map.get(s.closedCurrencies, Text.compare, currency) };
   /// The bank's calendar merged with the currencies' own: a rest day or holiday of any is one of the result; the
-  /// shift policy is the bank's (`#reject` in a bank deployment — the product layer resolves, the journal refuses).
+  /// shift policy is the bank's (`#reject` in a bank deployment; the product layer resolves, the journal refuses).
   public func mergedCalendar(s : State, bank : ?JT.CalendarConfig, currencies : [Text]) : ?JT.CalendarConfig {
     var out = bank;
     for (c in currencies.vals()) {
@@ -224,7 +224,7 @@ module {
   };
 
   /// How much of a schedule has been amortised, recomputed from its own arithmetic
-  /// over the periods posted — never carried as a running total.
+  /// over the periods posted; never carried as a running total.
   public func amortised(e : ScheduleEntry) : Nat {
     var total = 0;
     var n = 1;

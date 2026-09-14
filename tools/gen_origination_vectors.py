@@ -3,7 +3,7 @@
 
 The vectors are produced with Python's `cryptography` (OpenSSL) from a fixed private scalar, so the file is
 deterministic and the Motoko verifier (`OriginationCore.verifyAssertion`) is checked against an independent
-implementation: a valid assertion over a challenge, and the refusals the contract must make — a wrong
+implementation: a valid assertion over a challenge, and the refusals the contract must make; a wrong
 challenge, a wrong origin, a wrong relying party, the user-present flag clear, a tampered signature, another
 party's key, a ceremony that is not webauthn.get.
 

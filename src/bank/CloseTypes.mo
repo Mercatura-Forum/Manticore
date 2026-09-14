@@ -1,4 +1,4 @@
-/// CloseTypes.mo — the vocabulary of value dating, foreign currency and the close.
+/// CloseTypes.mo; the vocabulary of value dating, foreign currency and the close.
 ///
 /// Everything value dating and the close records, in one place, so the bank's own event list can name it
 /// without importing the state module. The shapes follow the same rules as the rest
@@ -34,8 +34,8 @@ module {
   /// in a bucket nobody chose.
   public type Endpoint = { #account : Nat; #glAccount : JT.AccountCode };
 
-  /// A currency redenominated (S4.1): every balance in `from` re-expressed in `to` at the ratio — `newMinor =
-  /// oldMinor × ratioNumerator / ratioDenominator`, rounded half-even per balance row — through the bridge account
+  /// A currency redenominated (S4.1): every balance in `from` re-expressed in `to` at the ratio; `newMinor =
+  /// oldMinor × ratioNumerator / ratioDenominator`, rounded half-even per balance row; through the bridge account
   /// (which keeps, in `from`, the record of what was converted and, in `to`, its counterpart), the sum of the
   /// per-row rounding differences posted to the rounding account so the bridge's two sides are each other at the
   /// ratio exactly. Declared by a dual act; carried out by the end-of-day job of the day; `from` is closed to new
@@ -98,7 +98,7 @@ module {
     #periodEndRevalued : { book : BookId; period : JT.PeriodId; currencies : Nat; posted : Nat; total : Nat };
     /// The deferral step of the close, carrying what each schedule amortised. The
     /// rows are in the event because a plan commits one bank block and the fold has
-    /// to advance every schedule's cursor from it — a step that posted but recorded
+    /// to advance every schedule's cursor from it; a step that posted but recorded
     /// no rows would amortise the same period again next time.
     #periodEndDeferralsAmortised : {
       book : BookId; period : JT.PeriodId; total : Nat;

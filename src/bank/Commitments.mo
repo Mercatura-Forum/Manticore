@@ -1,9 +1,9 @@
-/// Commitments.mo — how the canister verifies data it never holds.
+/// Commitments.mo; how the canister verifies data it never holds.
 ///
 /// A commitment is `SHA-256( domain ‖ salt ‖ normalised value )`, domain-separated
 /// so a commitment for one purpose can never be replayed as a commitment for
-/// another, and salted so that a small structured space — an Egyptian national
-/// identity number is fourteen digits with a known shape — cannot be attacked by
+/// another, and salted so that a small structured space; an Egyptian national
+/// identity number is fourteen digits with a known shape; cannot be attacked by
 /// dictionary.
 ///
 /// The client submits the components; the canister recomputes and compares. A
@@ -113,7 +113,7 @@ module {
     fieldBytes(salt, name, Text.encodeUtf8(normalise(value)))
   };
 
-  /// The same commitment from bytes that are **already normalised** — which is
+  /// The same commitment from bytes that are **already normalised**; which is
   /// what a screening subject is, because the list it is checked against is
   /// sorted in normalised order. `normalise` is idempotent, so
   /// `fieldBytes(salt, n, encodeUtf8(normalise(v))) == field(salt, n, v)`; the

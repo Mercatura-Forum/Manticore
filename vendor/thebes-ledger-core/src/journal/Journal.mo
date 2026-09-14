@@ -1,4 +1,4 @@
-/// Journal.mo — the double-entry journal canister.
+/// Journal.mo; the double-entry journal canister.
 ///
 /// Composition:
 ///   JournalCore  pure admission and state (heap, persisted across upgrades)
@@ -188,7 +188,7 @@ shared (initMsg) persistent actor class Journal() = self {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  CONFIGURATION (administrator) — each returns the block index
+  //  CONFIGURATION (administrator); each returns the block index
   // ═══════════════════════════════════════════════════════
 
   type ConfigReply = Result.Result<Nat, T.ConfigError>;
@@ -242,8 +242,8 @@ shared (initMsg) persistent actor class Journal() = self {
     configReply(Core.prepareSetPosterScope(core, caller, poster, accounts), caller)
   };
 
-  /// Record a numeric balance limit for one (account, sub-ledger, currency) — an
-  /// overdraft facility or a net debit cap — or `#none` to lift the account's
+  /// Record a numeric balance limit for one (account, sub-ledger, currency); an
+  /// overdraft facility or a net debit cap; or `#none` to lift the account's
   /// constraint there. Admin only; recorded as a block.
   public shared ({ caller }) func setBalanceLimit(account : T.AccountCode, subledger : ?T.SubledgerKey, currency : T.Currency, limit : T.BalanceLimit) : async ConfigReply {
     configReply(Core.prepareSetBalanceLimit(core, caller, account, subledger, currency, limit), caller)
@@ -427,7 +427,7 @@ shared (initMsg) persistent actor class Journal() = self {
   public query func periodPostingIndices(period : T.PeriodId) : async [Nat] { Core.periodPostingIndices(core, period) };
 
   /// Trial balance recomputed from scratch by replaying every block of the
-  /// log into a fresh state — the "empty cache" path against which the
+  /// log into a fresh state; the "empty cache" path against which the
   /// materialised trial balance is compared.
   public query func recomputeTrialBalance(period : T.PeriodId) : async ?T.TrialBalance {
     let fresh = Core.replay(genesisAdmin, JLog.getRange(log, 0, JLog.length(log)));

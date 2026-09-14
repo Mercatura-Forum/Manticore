@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs every test/*.test.mo twice: compiled to WASI and executed under wasmtime
-# (Region memory available), and — for tests that need no Region — in the moc
+# (Region memory available), and, for tests that need no Region, in the moc
 # interpreter. A test passes when it exits 0; every test prints the number of
 # records it examined, and a test that prints no count is a failure.
 set -u

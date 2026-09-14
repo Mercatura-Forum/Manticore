@@ -14,7 +14,7 @@
 
 The canister enforces this profile on every request body (FspiopSchema.mo) before its own business
 rules, the way the core messaging set enforces the XSD-derived profile on every ISO 20022 message. The snippets use only
-these constructs — anything else fails the generation loudly rather than being silently dropped:
+these constructs; anything else fails the generation loudly rather than being silently dropped:
 
   schema := object(properties, required) | array(items, minItems?, maxItems?) | string(pattern?,
             enum?, minLength?, maxLength?) | integer | number | boolean | $ref | anyOf[schema] |

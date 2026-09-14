@@ -1,11 +1,11 @@
-/// FspiopCore.mo — the FSPIOP v1.1 adapter's state and its planning.
+/// FspiopCore.mo; the FSPIOP v1.1 adapter's state and its planning.
 ///
 /// State: the participant directory per rail (FSP id ↔ participant, callback endpoints per type),
 /// the account-lookup oracle (party identifier → FSP), the quotes recorded on their way through, and
 /// every FSPIOP transfer bound to its settlement transfer with the ILP condition it must be fulfilled
 /// against. All of it derived from the bank's blocks and rebuilt by replay.
 ///
-/// Planning: `handle` reads one request — method, path, headers, JSON body — validates it the way the
+/// Planning: `handle` reads one request; method, path, headers, JSON body; validates it the way the
 /// specification does (the mandatory elements, the data types' patterns, the FSPIOP headers, the
 /// content type's resource and version) and says what it is: a synchronous refusal with the error
 /// shape, a routing (a forward to the destination FSP), or an act on the settlement layer (a transfer
@@ -45,7 +45,7 @@ module {
   public type Blocks = { get : Nat -> ?FT.FspiopEvent };
 
   /// condition(32) ‖ transfer(8) ‖ state(1: 1 reserved, 2 committed, 3 aborted) ‖ the block of the
-  /// fulfilment or the abort(8) — so a status answer finds the fulfilment without scanning the log
+  /// fulfilment or the abort(8); so a status answer finds the fulfilment without scanning the log
   public let TRANSFER_ROW : Nat = 49;
   /// condition(32) ‖ transferAmount(16) ‖ answered(1)
   public let QUOTE_ROW : Nat = 49;
@@ -140,7 +140,7 @@ module {
   public type Planned = { act : Act; source : ?FT.FspId; destination : ?FT.FspId; method : Text; path : Text };
 
   /// The specification's ErrorInformation: the code and a description of at most 128 characters
-  /// (ErrorDescription maxLength) — the detail is cut, never the shape broken.
+  /// (ErrorDescription maxLength); the detail is cut, never the shape broken.
   public func errorBody(code : Text, detail : Text) : Text {
     let full = FT.errorText(code) # " - " # detail;
     let desc = if (Text.size(full) <= 128) full else { var out = ""; var k = 0; for (c in full.chars()) { if (k < 127) out #= Char.toText(c); k += 1 }; out # "…" };
@@ -239,7 +239,7 @@ module {
   };
 
   /// The endpoint type (central-ledger's `endpointType` names) a callback of this method and path is
-  /// delivered to: the resource, whether the path carries a SubId, whether it is an `/error` — the
+  /// delivered to: the resource, whether the path carries a SubId, whether it is an `/error`; the
   /// reference's own selection (account-lookup-service `getCallbackEndpointTypes`, ml-api-adapter's
   /// notification handler).
   public func endpointTypeFor(method : Text, path : Text) : Text {

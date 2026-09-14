@@ -1,17 +1,17 @@
-/// Bank.mo — the banking domain canister, with the journal embedded.
+/// Bank.mo; the banking domain canister, with the journal embedded.
 ///
 /// Composition (the same shape `src/facade/TokenLedger.mo` uses in the pinned
 /// submodule for the ICRC surface):
 ///
 ///   JCore / JLog / JCert   the double-entry journal: postings, balances,
-///                          periods, proofs — the record of what moved
+///                          periods, proofs; the record of what moved
 ///   BankCore / BankLog     the domain layer: books, roles, grants, policies,
-///                          proposals, overrides — the record of why it was
+///                          proposals, overrides; the record of why it was
 ///                          allowed to move
 ///   BankCert               one certified tree carrying both Merkle roots
 ///
 /// Every update method is validate → append → apply → certify, with no `await`
-/// anywhere on that path, so a call is atomic on the IC: it commits the authority
+/// anywhere on that path, so a call is atomic: it commits the authority
 /// block, the postings it caused and both certified roots together, or it changes
 /// nothing. That is the whole reason the domain layer embeds the journal instead
 /// of calling it: a four-eyes approval and the posting it authorises cannot end
@@ -149,7 +149,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// and nothing falls back to an implicit default at run time.
   defaultDual : ?{ eligibleRole : T.RoleId; required : Nat; ttlSeconds : Nat };
   /// The journal's calendar authority at genesis (`JournalTypes.CalendarAuthority`): `#businessDate` with the
-  /// first business date on a substrate whose clock is not wall time (Thebes), absent on the IC, where the
+  /// first business date on a substrate whose clock is not wall time (Thebes), absent where the
   /// substrate clock is consensus time and the business date travels by the roll command.
   calendar : ?{ authority : JT.CalendarAuthority; maxRollDays : Nat; businessDate : ?JT.Day };
 }) = self {
@@ -169,7 +169,7 @@ shared (initMsg) persistent actor class Bank(init : {
   ///
   /// What is and is not reproducible from the logs alone is worth stating exactly, because "derived"
   /// is often claimed more widely than it is true. I0, the headers, I1, I2 and I3 are pure functions
-  /// of the two logs: the same logs produce the same rows, byte for byte. **I4 is not** — a
+  /// of the two logs: the same logs produce the same rows, byte for byte. **I4 is not**; a
   /// counterparty class is the declared dimension and the party's recorded extension *as they stood
   /// when the posting was made*, and the two logs carry no recorded alignment between a journal
   /// block and the bank state of that moment. That is precisely why I4 is maintained in the
@@ -183,8 +183,8 @@ shared (initMsg) persistent actor class Bank(init : {
   /// arena, maintained in the posting's own message right after the indexes. Derived, like them.
   let activity : Activity.State = Activity.newState(postingIndex.arena);
   /// Closed-month packing: the packs' segments, rows and lists, in the same arena and in stores of
-  /// their own. Derived from the journal's log like the indexes; what the log says about it — which
-  /// pack is open, where the boundary is — is folded in `bank.packing`.
+  /// their own. Derived from the journal's log like the indexes; what the log says about it; which
+  /// pack is open, where the boundary is; is folded in `bank.packing`.
   let packing : Packing.State = Packing.newState(postingIndex.arena);
   /// The archive roll: a sealed pack's segments to an archive child, the journal's prefix gone.
   let roll : ArchiveRoll.State = ArchiveRoll.newState();
@@ -233,7 +233,7 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   /// How the bank reads its own proposals and overrides back: its log. The state keeps a row per
-  /// one — what happened to it — and the block is the thing itself, so nothing holds a command twice.
+  /// one; what happened to it; and the block is the thing itself, so nothing holds a command twice.
   /// A bank block's stored bytes below the log's base: the packs' (§18.3).
   func packedBankBlock(i : Nat) : ?Blob { Packing.bankBlock(packing, i) };
   /// The bank log as every reader sees it: the `StableLog`, and below its base the packs.
@@ -256,7 +256,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// A lifted compliance hold acts in the message that recorded it: a release posts the held
   /// transfer, a rejection voids it. A refusal of the act (no open window for the day, say) traps
-  /// and so refuses the release whole — a hold is never lifted with its payment left hanging.
+  /// and so refuses the release whole; a hold is never lifted with its payment left hanging.
   func paymentsOnEvent(b : T.Block) {
     switch (b.event) {
       case (#payments(#holdReleased(_)) or #payments(#holdRejected(_))) {
@@ -272,7 +272,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// A prepared transfer is reserved in the message that recorded it: the journal's two-phase
   /// posting against the payer's and the payee's positions, expiring with the transfer. The
-  /// engine's refusal — the cap, above all — is recorded as the transfer's failure, so a payment
+  /// engine's refusal; the cap, above all; is recorded as the transfer's failure, so a payment
   /// that could not be reserved is in the trail with the journal's own reason.
   func reserveOnEvent(b : T.Block) {
     switch (b.event) {
@@ -346,7 +346,7 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   /// What the index asks the bank for. `classOf` is the declared counterparty class of a product
-  /// account, built from the declared dimension and the party's recorded extension value — party
+  /// account, built from the declared dimension and the party's recorded extension value; party
   /// data the index deliberately does not hold a second copy of. `blockOf` is the journal's own log.
   func indexContext() : PIdx.Context {
     {
@@ -365,13 +365,13 @@ shared (initMsg) persistent actor class Bank(init : {
     }
   };
 
-  /// How the journal reads a posting's record back: its own log. The records are there — the log is a
-  /// Region-backed `StableLog` — so the journal's state keeps only the mutable facts about a posting,
+  /// How the journal reads a posting's record back: its own log. The records are there; the log is a
+  /// Region-backed `StableLog`; so the journal's state keeps only the mutable facts about a posting,
   /// and nothing holds a posting twice.
   func journalBlocks() : JCore.Blocks { { get = func(i : Nat) : ?JT.Block { JLog.get(journalLog, i) } } };
 
   /// The instruction meter over every journal commit: what a posting costs the contract in
-  /// instructions — the log append, the journal's fold, the indexes and the aggregates — read by
+  /// instructions; the log append, the journal's fold, the indexes and the aggregates; read by
   /// the measured runs against `the capacity model` §6. Split by what the index component
   /// added (`indexInstructions`) and the whole.
   var meterCommits : Nat = 0;
@@ -414,7 +414,7 @@ shared (initMsg) persistent actor class Bank(init : {
     let ?b = made else Runtime.trap("Bank: a commit that produced no block");
     let ?recorded = recordedOpt else Runtime.trap("Bank: a commit that recorded nothing");
     recertify();
-    // The cheap rules, in the posting's own message, and their alerts in the bank's log — citing
+    // The cheap rules, in the posting's own message, and their alerts in the bank's log; citing
     // the posting that was just written, and opened once per finding.
     if (recorded.posted != null) {
       let rules = MonitoringCore.active(bank.monitoring, #atPosting);
@@ -494,8 +494,8 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// Commit a command's effects. Called only after the command has been planned
   /// successfully in the same message.
-  /// The bank block a command's own event took, if it had one — a party's or an account's id is
-  /// that block — and the journal postings it made.
+  /// The bank block a command's own event took, if it had one; a party's or an account's id is
+  /// that block; and the journal postings it made.
   var lastExecutedEvent : ?Nat = null;
 
   func executeCommand(authority : Principal, command : T.Command, authorityIndex : Nat) : [Nat] {
@@ -661,13 +661,13 @@ shared (initMsg) persistent actor class Bank(init : {
   ///
   /// **Anyone may call this, and that is deliberate.** The plan was fixed when the run
   /// opened: it is re-derived here and checked against the hash the opening block
-  /// recorded, so an advancing caller cannot choose what is posted — only that progress
+  /// recorded, so an advancing caller cannot choose what is posted; only that progress
   /// happens. The postings are attributed to the canister, never to the caller. The
   /// reasoning is the journal's own for its expiry sweep: an open advance path means a
   /// stalled timer cannot leave a bank unable to close its books.
   public shared func advanceEndOfDay(book : T.BookId, businessDate : ProdT.Day, limit : Nat) : async Result.Result<AdvanceResult, T.BankError> {
     // The run records through these, as it goes, so every job reads what the jobs before
-    // it posted — in this very chunk as well as in earlier ones. Both append to the log
+    // it posted; in this very chunk as well as in earlier ones. Both append to the log
     // and apply to state, which is what `commitBank` and `commitJournal` do everywhere
     // else; the whole advance is one message, so a trap rolls all of it back.
     let recorder : BankCore.Recorder = {
@@ -698,7 +698,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// One bounded step of the open pack. Open to any caller for the same reason `advanceEndOfDay`
   /// is: the pack's range and phases were fixed by the dual-authorised opening, every segment has
   /// round-tripped before it is stored, and the blocks are attributed to the canister. Each step
-  /// is a bank block — a segment, an advance, the seal — so the log carries the pack's progress and
+  /// is a bank block; a segment, an advance, the seal; so the log carries the pack's progress and
   /// a restart resumes from what the engine holds.
   public shared func advancePacking(limit : Nat) : async Result.Result<PackAdvanceResult, T.BankError> {
     let ?_ = bank.packing.current else return #err(#PackingError({ error = #NotPacking }));
@@ -1060,7 +1060,7 @@ shared (initMsg) persistent actor class Bank(init : {
       };
     }
   };
-  /// The pacs.002 answering a received message — schema-valid, one TxInfAndSts per transaction.
+  /// The pacs.002 answering a received message; schema-valid, one TxInfAndSts per transaction.
   public query func statusReport(message : Nat) : async ?Text { BankCore.statusReportXml(bank, bankBlocks(), now(), message) };
   public query func statusActions() : async [(Text, Text)] { PayT.STATUS_ACTIONS };
 
@@ -1251,7 +1251,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// the cursor and walks one page, so the cost is the page and not the position.
   ///
   /// `total` is the whole population before the scope filter, so a caller can see how much it is
-  /// paging through. `withheld` is what this page's scope filter dropped, not a running total —
+  /// paging through. `withheld` is what this page's scope filter dropped, not a running total;
   /// a cursor page cannot know what earlier pages withheld without keeping state nobody asked for.
   public type CursorPage<X, C> = { rows : [X]; cursor : ?C; total : Nat; withheld : Nat; scope : ?[T.BookId] };
 
@@ -1292,7 +1292,7 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func featureActivation(feature : T.FeatureId) : async Nat64 { BankCore.featureActivation(bank, feature) };
   public query func featureActive(feature : T.FeatureId) : async Bool { BankCore.featureActive(bank, feature) };
   /// A settled proposal's command rebuilt from the events its execution recorded, and whether the rebuilt
-  /// command hashes to the hash the proposal block keeps — the rule under which a pack drops the body
+  /// command hashes to the hash the proposal block keeps; the rule under which a pack drops the body
   /// (DESIGN-bank.md §18.2). `family` is the command's, "" when the act is not one the reconstruction covers.
   public shared query ({ caller }) func reconstructProposal(index : Nat) : async Result.Result<{ command : ?T.Command; matches : Bool; family : Text }, T.BankError> {
     switch (BankCore.getProposal(bank, bankBlocks(), index)) {
@@ -1386,7 +1386,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// A party record outside the caller's books is a typed refusal. Note what the
   /// record contains: commitments, states and dates. There is no name in it to
-  /// leak, which is the point of party and KYC section 1.1 — but the scope is enforced
+  /// leak, which is the point of party and KYC section 1.1; but the scope is enforced
   /// anyway, because which customers exist in which branch is itself information.
   public shared query ({ caller }) func getParty(id : PT.PartyId) : async Result.Result<PT.PartyView, T.BankError> {
     switch (PartyCore.get(bank.party, partyBlocks(), id)) {
@@ -2042,7 +2042,7 @@ shared (initMsg) persistent actor class Bank(init : {
     }
   };
 
-  /// One camt.054 notification, naming the journal block the movement is — so the
+  /// One camt.054 notification, naming the journal block the movement is; so the
   /// notification and its proof are the same object.
   public shared query ({ caller }) func statementCamt054(account : ProdT.AccountId, period : JT.PeriodId, block : Nat) : async Result.Result<{ ref : RepT.StatementRef; xml : Text }, T.BankError> {
     switch (scopedAccount(caller, account)) {
@@ -2232,7 +2232,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// Scope. A query naming an account is a read of that account's book, and is refused outside the
   /// caller's read scope. A query **not** naming an account walks rows that are about postings rather
   /// than about one account, so there is no book to check it against: it requires an unrestricted read
-  /// scope. That is a real restriction and it is stated rather than discovered — the alternative, a
+  /// scope. That is a real restriction and it is stated rather than discovered; the alternative, a
   /// per-row book lookup, would make the page's cost depend on the chart rather than on the page.
   public shared query ({ caller }) func queryEntries(filter : Queries.Filter) : async Result.Result<Queries.Page, T.BankError> {
     runQuery(caller, filter)
@@ -2294,7 +2294,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   // ─── closed-month packing: what the packs hold ───
 
-  /// An account's packed postings over `[from, to]`, ascending — the statement rows for packed
+  /// An account's packed postings over `[from, to]`, ascending; the statement rows for packed
   /// days, exactly the fields the pack keeps per posting: the number, the value and posting days,
   /// and the account's own debits and credits. Sized from the summary rows before any list is
   /// read; refused past the bound naming the size. Days after the boundary are answered by
@@ -2331,7 +2331,7 @@ shared (initMsg) persistent actor class Bank(init : {
   };
   public query func getPack(pack : Nat) : async ?Packing.PackView { Packing.getPack(packing, pack) };
   public query func packSegments(pack : Nat) : async [Packing.Segment] { Packing.segmentsOf(packing, pack) };
-  /// A segment's bytes — what an archive is given, and what `Pack.unpack` turns back into the
+  /// A segment's bytes; what an archive is given, and what `Pack.unpack` turns back into the
   /// journal's blocks, byte for byte.
   public query func packSegmentBytes(pack : Nat, seq : Nat) : async ?Blob { Packing.segmentBytes(packing, pack, seq) };
   public query func packingStats() : async Packing.Stats { Packing.stats(packing) };
@@ -2340,7 +2340,7 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func bankPackSegmentBytes(pack : Nat, seq : Nat) : async ?Blob { Packing.bankSegmentBytes(packing, pack, seq) };
   /// Every block of a bank segment read back from the pack, decoded, its hash checked against the MMR
   /// leaf the chain committed (the proof of the packed block), and its index its own.
-  /// Every block of `lo … hi` read back — from the pack below the log's base, from the StableLog above it —
+  /// Every block of `lo … hi` read back; from the pack below the log's base, from the StableLog above it;
   /// decoded, its index its own, its parent hash its predecessor's, and its hash proved against the bank's
   /// MMR root; the dropped bodies counted. The one check behind the packed-segment and the live-range reads.
   func verifyBankRange(lo : Nat, hi : Nat, root : Blob) : { verified : Nat; dropped : Nat; fault : ?Nat } {
@@ -2375,7 +2375,7 @@ shared (initMsg) persistent actor class Bank(init : {
     ?{ blocks = sg.hi + 1 - sg.lo; verified = r.verified; bodiesDropped = r.dropped; hashOk; firstFault = r.fault }
   };
 
-  /// A range of the bank log proved against the certified root — packed or live, up to 2,000 blocks a read —
+  /// A range of the bank log proved against the certified root; packed or live, up to 2,000 blocks a read;
   /// so a log of millions of blocks is verified in pages by a reader that never decodes a block itself.
   public query func verifyBankBlocks(start : Nat, length : Nat) : async { blocks : Nat; verified : Nat; bodiesDropped : Nat; firstFault : ?Nat } {
     let height = BLog.length(bankLog);
@@ -2458,7 +2458,7 @@ shared (initMsg) persistent actor class Bank(init : {
   ///
   /// `heapBytes` is the figure that matters most: the heap is resident memory, which is why "the heap
   /// does not grow with the number of postings" matters more than it looks. `indexBytes` is the stable memory the indexes occupy, which is what
-  /// the capacity model predicts — so a measured run reads both
+  /// the capacity model predicts; so a measured run reads both
   /// here rather than inferring them from the outside.
   public query func runtimeMemory() : async {
     heapBytes : Nat;
@@ -2815,7 +2815,7 @@ shared (initMsg) persistent actor class Bank(init : {
     for (r in TradeCore.expiringBetween(bank.trade, from, to, limit).vals()) { if (BankCore.mayReadBook(readScope(caller), r.book)) List.add(out, TradeCore.view(bank.trade, r)) };
     List.toArray(out)
   };
-  /// The undertakings outstanding against a facility — what its availability is reduced by.
+  /// The undertakings outstanding against a facility; what its availability is reduced by.
   public query func tradeContingentOnFacility(facility : Nat) : async Nat { TradeCore.contingentOnFacility(bank.trade, facility) };
   /// The trade book at a glance: the policy, the counts, the contingent memoranda.
   public query func tradeStatus() : async { policy : ?TrT.Policy; status : TrT.TradeStatus } {
@@ -2986,7 +2986,7 @@ shared (initMsg) persistent actor class Bank(init : {
   };
   /// A deal's row: kind, state, counterparty, the figures posted so far, the legs settled.
   public shared query ({ caller }) func treasuryDeal(id : Nat) : async Result.Result<?TT.DealView, T.BankError> { treasuryView(caller, id) };
-  /// The terms a deal carries — from its capture block or its last amendment.
+  /// The terms a deal carries; from its capture block or its last amendment.
   public shared query ({ caller }) func treasuryDealTerms(id : Nat) : async Result.Result<?TT.DealKind, T.BankError> {
     switch (treasuryView(caller, id)) { case (#err(e)) #err(e); case (#ok(null)) #ok(null); case (#ok(?_)) { switch (TreasuryCore.row(bank.treasury, id)) { case (?r) #ok(BankCore.treasuryKindOf(bankBlocks(), r)); case null #ok(null) } } }
   };
@@ -3065,7 +3065,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// The treasury at a glance: the policy and the counts.
   public query func treasuryStatus() : async { policy : ?TT.Policy; status : TT.Status } { { policy = TreasuryCore.policy(bank.treasury); status = TreasuryCore.status(bank.treasury) } };
   /// The fold-maintained figures a book's limits read in constant time (S4.1, the treasury review): the realised P&L
-  /// of every deal plus the marks of the open ones, the open FX exposure, the open deals — what a walk of the rows
+  /// of every deal plus the marks of the open ones, the open FX exposure, the open deals; what a walk of the rows
   /// would sum, which the campaign asserts.
   public query func treasuryBookFigures(book : Text, currency : Text) : async { pnl : Int; openFxPosition : Int; openDeals : Nat; counterpartyExposure : [(Text, Int)] } {
     { pnl = TreasuryCore.aggregate(bank.treasury, "pnl|" # book # "|" # currency); openFxPosition = TreasuryCore.aggregate(bank.treasury, "pos|" # book # "|" # currency);
@@ -3074,7 +3074,7 @@ shared (initMsg) persistent actor class Bank(init : {
   // ─── cards (cards) ──────────────────────────────────────────────────────────
 
   /// An authorization from the acquirer through the connector (`card.authorize`): the request the connector
-  /// translated (ISO 8583 or cain.001 — the token, never the PAN) with its signature under the scheme's key; the
+  /// translated (ISO 8583 or cain.001; the token, never the PAN) with its signature under the scheme's key; the
   /// decision is a block either way, an approval placing the hold as the journal's pending posting. The answer
   /// carries the ISO 8583 response code and the approval code for the acquirer.
   public shared ({ caller }) func authorizeCard(request : CdT.AuthRequest, signature : Blob) : async Result.Result<{ block : Nat; decision : CdT.Decision; responseCode : Text; hold : ?Nat }, T.BankError> {
@@ -3185,7 +3185,7 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func cardProduct(id : Text) : async ?CdT.CardProduct { switch (CardCore.product(bank.cards, id)) { case (?r) BankCore.cardProductOf(bankBlocks(), r); case null null } };
   /// The cards book at a glance: the policy and the counts.
   public query func cardStatus() : async { policy : ?CdT.Policy; status : CdT.Status } { { policy = CardCore.policy(bank.cards); status = CardCore.status(bank.cards) } };
-  /// The canonical bytes the connector signs for an authorization request and a clearing batch — published so a
+  /// The canonical bytes the connector signs for an authorization request and a clearing batch; published so a
   /// connector can be built from the interface alone.
   public query func cardRequestBytes(request : CdT.AuthRequest) : async Blob { CdCan.requestBytes(request) };
   public query func cardBatchBytes(scheme : Text, batch : Blob, items : [CdT.ClearingItem]) : async Blob { CdCan.batchBytes(scheme, batch, items) };
@@ -3240,7 +3240,7 @@ shared (initMsg) persistent actor class Bank(init : {
     { policy = CollectionsCore.policy(bank.collections); counts = CollectionsCore.counts(bank.collections); stages = CollectionsCore.stageDistribution(bank.collections) }
   };
 
-  /// The suspicious-transaction report for an escalated alert — and for nothing else. Every field
+  /// The suspicious-transaction report for an escalated alert; and for nothing else. Every field
   /// is read from the alert's blocks and the postings it cites: the rule as its version said it,
   /// the account's issued identifier (never a name), each cited posting's dates, legs and the
   /// movement on the reported account. An open or cleared alert has no report.
@@ -3289,16 +3289,16 @@ shared (initMsg) persistent actor class Bank(init : {
   // that persists on this engine today; what follows the await is dropped, and the method's reply
   // is the management call's raw bytes rather than the declared record (the continuation
   // defect, `tools/spawn-proof/FINDING-async-raw-calls.md`). So a driver of these methods reads
-  // the raw reply — `create_canister` answers eight little-endian bytes, `canister_status` the
-  // 57-byte layout `ArchiveWire.parseStatusReply` decodes — and calls the next await-free step with
+  // the raw reply; `create_canister` answers eight little-endian bytes, `canister_status` the
+  // 57-byte layout `ArchiveWire.parseStatusReply` decodes; and calls the next await-free step with
   // what it read. Once the substrate delivers management replies to the continuation, the declared records come through, the
   // caller-supplied facts are read here instead, and the steps fold into one message; every
   // transition is already a pure `ArchiveCore` function, so that is the whole of the change.
 
-  /// `aaaaa-aa` — `CanisterId(0)` on this substrate. An empty callee principal is management.
+  /// `aaaaa-aa`; `CanisterId(0)` on this substrate. An empty callee principal is management.
   transient let MANAGEMENT : Principal = Principal.fromText("aaaaa-aa");
 
-  /// Every management call. Raw bytes in and out — management replies are not Candid here. `async*`
+  /// Every management call. Raw bytes in and out; management replies are not Candid here. `async*`
   /// because a nested plain `async` is the buggy shape; it is still not enough for a raw call
   /// (the primitive's wrapper is itself plain `async`), which is why nothing after an `await*` of
   /// this is relied on.
@@ -3309,7 +3309,7 @@ shared (initMsg) persistent actor class Bank(init : {
   func archiveErr<X>(e : AT.ArchiveError) : Result.Result<X, T.BankError> { #err(#ArchiveError({ error = e })) };
 
   /// Upload the pinned image, one chunk at a time. Refused before a pin exists, after the pin is
-  /// sealed, and past the pinned size — so the region can never hold more than the decision said.
+  /// sealed, and past the pinned size; so the region can never hold more than the decision said.
   public shared ({ caller }) func uploadArchiveImageChunk(chunk : Blob) : async Result.Result<{ bytes : Nat; expected : Nat }, T.BankError> {
     switch (requireMethodPermission(caller, "uploadArchiveImageChunk")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     let ?img = ArchiveCore.currentImage(bank.archive) else return archiveErr(#NoImagePinned);
@@ -3409,7 +3409,7 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   /// Step 5: record, then `update_settings` with the parent first and the configured principals
-  /// after — the engine replaces the set, so the parent lists itself to stay a controller.
+  /// after; the engine replaces the set, so the parent lists itself to stay a controller.
   public shared ({ caller }) func setArchiveChildControllers(spawn : Nat) : async Result.Result<{ spawn : Nat; cid : Nat64; controllers : [Principal]; block : Nat }, T.BankError> {
     switch (requireMethodPermission(caller, "setArchiveChildControllers")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     let plan = switch (ArchiveCore.planControllers(bank.archive, spawn, me())) { case (#err(e)) return archiveErr(e); case (#ok(p)) p };
@@ -3420,7 +3420,7 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   /// Step 6, await-free: the child is an archive of this bank. Nothing a contract can call reports a
-  /// child's controllers, so what this records is that the driver saw `update_settings` reply — the
+  /// child's controllers, so what this records is that the driver saw `update_settings` reply; the
   /// second place that substrate change closes a gap.
   public shared ({ caller }) func completeArchiveChild(spawn : Nat) : async Result.Result<{ spawn : Nat; cid : Nat64; block : Nat }, T.BankError> {
     switch (requireMethodPermission(caller, "completeArchiveChild")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
@@ -3481,7 +3481,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// Events after a cursor, with the bounds, the tip and a digest over the slice in order. A
   /// consumer that trusts nothing recomputes the digest, checks the run is contiguous from
-  /// where it asked, and verifies the tip's certificate — so a splice, a reorder or a
+  /// where it asked, and verifies the tip's certificate; so a splice, a reorder or a
   /// truncation is detectable rather than invisible.
   public query func feedPage(from : Nat, limit : Nat) : async Feed.FeedPage {
     let n = if (limit == 0 or limit > Feed.MAX_PAGE) Feed.MAX_PAGE else limit;
@@ -3548,14 +3548,14 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func bankBlockCount() : async Nat { BLog.length(bankLog) };
   public query func getBankBlock(index : Nat) : async ?T.Block { bankBlock(index) };
   public query func getBankBlocks(start : Nat, length : Nat) : async [T.Block] { BLog.getRangeWith(bankLog, packedBankBlock, start, Nat.min(length, 1000)) };
-  /// The stored bytes: the log's, or the pack's once the prefix has left — a packed proposal's body may be
+  /// The stored bytes: the log's, or the pack's once the prefix has left; a packed proposal's body may be
   /// gone (the trailer byte 0), its preimage and hash never.
   public query func getRawBankBlock(index : Nat) : async ?Blob { bankRaw(index) };
   /// Where the bank log's `StableLog` begins: blocks below it are read from the packs.
   public query func bankLogBase() : async Nat { BLog.base(bankLog) };
   public query func bankMmrRoot() : async ?Blob { BLog.mmrRoot(bankLog) };
   public query func bankProof(index : Nat) : async ?BLog.Proof { BLog.proof(bankLog, index) };
-  /// The whole chain in one query — bounded: past `MAX_CHAIN_WALK` blocks the read answers nothing checked and names
+  /// The whole chain in one query; bounded: past `MAX_CHAIN_WALK` blocks the read answers nothing checked and names
   /// `verifyBankBlocks(start, length)`, the windowed read, as the way (the audit of 13 September, finding A3).
   transient let MAX_CHAIN_WALK : Nat = 50_000;
   public query func verifyBankChain() : async { checked : Nat; fault : ?Text } {
@@ -3628,8 +3628,8 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// The posting the canister made under a derived idempotency key, if any.
   ///
-  /// Every posting the bank submits carries a key derived from what it is for — the
-  /// account, the charge, the day — so a disputed figure is found by deriving the key
+  /// Every posting the bank submits carries a key derived from what it is for; the
+  /// account, the charge, the day; so a disputed figure is found by deriving the key
   /// again rather than by searching the log. The index this returns is the block to fetch
   /// and prove; the batch's own duplicate rule reads the same index.
   public query func journalPostingByKey(key : Blob) : async ?Nat {
@@ -3649,7 +3649,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// Each of these was a read of "all of them". The chart, the balance set, a period's postings and the
   /// open pendings all grow with the book, so each now takes a cursor and a limit and each underlying
   /// accessor seeks rather than scans. What stays unpaged is what a recorded act bounds: periods,
-  /// currencies, posters, the leadsheet schema — tens of rows each, every one the result of a
+  /// currencies, posters, the leadsheet schema; tens of rows each, every one the result of a
   /// dual-authorised command, and the reason is stated rather than left to be inferred.
   public query func listAccounts(cursor : ?JT.AccountCode, limit : Nat) : async JCore.AccountPage {
     JCore.listAccountsPaged(journal, cursor, limit)
@@ -3658,7 +3658,7 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func listCurrencies() : async [JT.CurrencyInfo] { JCore.listCurrencies(journal) };
   public query func trialBalance(period : JT.PeriodId) : async ?JT.TrialBalance { JCore.trialBalance(journal, period) };
   public query func trialBalanceMapped(period : JT.PeriodId) : async ?JT.MappedTrialBalance { JCore.mappedTrialBalance(journal, period) };
-  /// The general ledger of a period. Its shape is a nest — accounts, each with its entries — so a flat
+  /// The general ledger of a period. Its shape is a nest; accounts, each with its entries; so a flat
   /// cursor would not describe it; it is bounded the way a report is bounded instead. The period's own
   /// posting count is the size, it is checked **before** the fold runs, and a period past the bound is
   /// refused naming its size and what to do about it.
@@ -3697,7 +3697,7 @@ shared (initMsg) persistent actor class Bank(init : {
     })
   };
   public query func balance(account : JT.AccountCode, subledger : ?JT.SubledgerKey, currency : JT.Currency) : async JT.Balance { JCore.balance(journal, account, subledger, currency) };
-  /// The journal's numeric limit on a balance — a participant's net debit cap is this, on its position.
+  /// The journal's numeric limit on a balance; a participant's net debit cap is this, on its position.
   public query func balanceLimit(account : JT.AccountCode, subledger : ?JT.SubledgerKey, currency : JT.Currency) : async ?JT.BalanceLimit { JCore.balanceLimit(journal, account, subledger, currency) };
   public query func accountTotal(account : JT.AccountCode, currency : JT.Currency) : async JT.Balance { JCore.accountTotal(journal, account, currency) };
   /// The sub-ledgers under one account. The read that most needed paging: the chart has thousands of
@@ -3809,10 +3809,10 @@ shared (initMsg) persistent actor class Bank(init : {
   // already populated and nothing is written again.
   if (BLog.length(bankLog) == 0) { genesis() };
 
-  // The IC clears certified data on upgrade; restore it from persisted state.
+  // The substrate clears certified data on upgrade; restore it from persisted state.
   BCert.recertify(cert);
 
-  // Proposals past their lifetime are recorded expired, never silently dropped —
+  // Proposals past their lifetime are recorded expired, never silently dropped;
   // the rule the journal applies to its own pending postings.
   ignore Timer.recurringTimer<system>(#seconds 60, func() : async () {
     let expired = BankCore.expiredProposals(bank, now(), 50);

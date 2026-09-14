@@ -1,4 +1,4 @@
-/// ArchiveTypes.mo — the archive component's recorded decisions and its spawning state machine.
+/// ArchiveTypes.mo; the archive component's recorded decisions and its spawning state machine.
 ///
 /// An archive is a contract this bank creates and installs on the Thebes substrate to hold what the
 /// journal no longer needs on the operating book. Creating a contract from a contract is a sequence
@@ -15,12 +15,12 @@
 /// So a parent that created a child and then tried to remember it in the same message would forget
 /// it. The shape that holds, proven on a live chain, is four calls:
 ///
-///   1. `createArchiveChild`   — the parent records that a create was issued, **then** sends
+///   1. `createArchiveChild`  ; the parent records that a create was issued, **then** sends
 ///                               `create_canister`; the reply carries the new id;
-///   2. `rememberArchiveChild` — await-free: the id is recorded against the spawn;
-///   3. `installArchiveChild`  — the parent records that an install was issued, then sends
+///   2. `rememberArchiveChild`; await-free: the id is recorded against the spawn;
+///   3. `installArchiveChild` ; the parent records that an install was issued, then sends
 ///                               `install_code` with the sealed image;
-///   4. `confirmArchiveChild`  — await-free: the module hash the caller read from the chain is
+///   4. `confirmArchiveChild` ; await-free: the module hash the caller read from the chain is
 ///                               compared with the **parent's own pin** of the image.
 ///
 /// Then `setArchiveChildControllers` and `completeArchiveChild`, in the same shape, so the operator
@@ -42,7 +42,7 @@
 /// can ever produce a child the parent does not know about:
 ///
 ///   * a create is refused while one is already outstanding (`#createIssued`), so a driver that lost
-///     the reply cannot make a second orphan by retrying — it recovers the id from the chain and
+///     the reply cannot make a second orphan by retrying; it recovers the id from the chain and
 ///     remembers it, or the bank records a dual-authorised judgement that the attempt made nothing;
 ///   * an install is refused for any id the parent has not remembered;
 ///   * an install can be sent again for the same id (the engine refuses a second install onto a child
@@ -75,14 +75,14 @@ module {
     /// `install_code` of `image` was sent (`attempts` times). The parent has not yet confirmed that
     /// the child holds it.
     #installIssued : { cid : Cid; image : Blob; attempts : Nat };
-    /// The child holds `image` — confirmed against the parent's pin. No controllers set yet.
+    /// The child holds `image`; confirmed against the parent's pin. No controllers set yet.
     #installed : { cid : Cid; image : Blob };
     /// `update_settings` was sent (`attempts` times) with `controllers`.
     #controllersIssued : { cid : Cid; image : Blob; controllers : [Principal]; attempts : Nat };
     /// The child is an archive contract of this bank.
     #ready : { cid : Cid; image : Blob; controllers : [Principal] };
     /// A dual-authorised judgement that the spawn produced nothing, with the reason. Only reachable
-    /// from `#authorised` and `#createIssued` — never from a state that knows an id.
+    /// from `#authorised` and `#createIssued`; never from a state that knows an id.
     #abandoned : { reason : Text };
   };
 
@@ -162,7 +162,7 @@ module {
   /// The runtime's wire cap (`node/src/runtime.rs`, `WIRE_MAX_PAYLOAD_BYTES`). The framed install
   /// travels inside one message.
   public let WIRE_MAX_PAYLOAD_BYTES : Nat = 1_800_000;
-  /// `canister_id(8) ‖ wasm_len(4)` — the install frame's overhead over the module bytes.
+  /// `canister_id(8) ‖ wasm_len(4)`; the install frame's overhead over the module bytes.
   public let INSTALL_FRAME_OVERHEAD : Nat = 12;
   /// The largest child image the parent can install in one message: the wire cap less the frame
   /// overhead. Written as a literal because a module-level `let` must be static; the relation is

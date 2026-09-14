@@ -1,13 +1,13 @@
-/// PaymentsCore.mo — the state and the planners of ISO 20022 messaging on the journal.
+/// PaymentsCore.mo; the state and the planners of ISO 20022 messaging on the journal.
 ///
 /// State: the rails, the connector keys, the message register (one fixed-width row per received
 /// message, keyed by its block; a uniqueness index on (rail, message id) and on the message hash),
 /// and the holds (transfer → the rule that held it). Everything here is derived from the bank's
 /// blocks and rebuilt by replay, like every other component's state.
 ///
-/// Planning: `planIngest` turns a received message into the acts the actor performs — the settlement
+/// Planning: `planIngest` turns a received message into the acts the actor performs; the settlement
 /// prepares a credit transfer becomes, the fulfils and rejects a status report asks for, the
-/// returns a pacs.004 opens — and the audit record that closes the message whatever the verdict.
+/// returns a pacs.004 opens; and the audit record that closes the message whatever the verdict.
 /// Nothing here touches the journal: the settlement layer does, through the same planners the
 /// single `prepareTransfer` / `fulfilTransfer` / `rejectTransfer` commands use, so a message can
 /// do nothing a command could not.
@@ -39,11 +39,11 @@ module {
 
   public type Blocks = { get : Nat -> ?PayT.PaymentsEvent };
 
-  /// family(1) ‖ verdict(1) ‖ hash(32) ‖ outcomes(4) ‖ receivedAt(8) — the facts; the event block is the record.
+  /// family(1) ‖ verdict(1) ‖ hash(32) ‖ outcomes(4) ‖ receivedAt(8); the facts; the event block is the record.
   public let MESSAGE_ROW : Nat = 46;
   public let HOLD_ROW : Nat = 48;
   /// state(1) ‖ mandate block(8) ‖ last block(8) ‖ collections(4) ‖ maxPresent(1) ‖ maxAmount(16) ‖ creditorAgent(11)
-  /// ‖ debtorAgent(11) ‖ sequence(4) ‖ currency(3) ‖ debtorAccount(34) ‖ mandateId(35) — the register row.
+  /// ‖ debtorAgent(11) ‖ sequence(4) ‖ currency(3) ‖ debtorAccount(34) ‖ mandateId(35); the register row.
   public let MANDATE_ROW : Nat = 136;
   /// state(1: 1 expected, 2 matched) ‖ notification block(8) ‖ amount(16) ‖ currency(3) ‖ transfer(8) ‖ itemId(35).
   public let EXPECT_ROW : Nat = 71;
@@ -854,7 +854,7 @@ module {
 
   /// The mandate a collection was made under: the register row whose initiating block is the authority.
   /// Collections carry the mandate id in their transfer's reference path only through the message, so the
-  /// register is scanned by block — mandates are few next to postings.
+  /// register is scanned by block; mandates are few next to postings.
   func findMandateByBlock(s : State, rail : Text, block : Nat, _uetr : Text) : ?PayT.Mandate {
     let (lo, hi) = R.fullRange(32);
     var cursor : ?Blob = null;

@@ -1,8 +1,8 @@
-// Keccak-f[1600] permutation — foundation of SHA-3 and SHAKE.
+// Keccak-f[1600] permutation; foundation of SHA-3 and SHAKE.
 // 5x5 matrix of 64-bit words, 24 rounds of theta/rho/pi/chi/iota.
 //
 // M: ported from the NIST reference. the rotation offsets and round
-//    constants are fixed — just a matter of getting the bit twiddling right.
+//    constants are fixed; just a matter of getting the bit twiddling right.
 //    motoko's Nat64 wrapping arithmetic handles the modular ops cleanly.
 
 import Nat64 "mo:core/Nat64";

@@ -1,4 +1,4 @@
-/// IsoSchema.mo — validation of a parsed message against a generated ISO 20022 profile (IsoProfiles.mo).
+/// IsoSchema.mo; validation of a parsed message against a generated ISO 20022 profile (IsoProfiles.mo).
 ///
 /// The profile is the schema's own tree: content models with cardinalities, simple types with
 /// facets. This walks an element tree against it and reports every disagreement with a stable rule
@@ -18,7 +18,7 @@
 ///   ISO-XSD-ENUM        the enumeration facet
 ///   ISO-XSD-DECIMAL     not a decimal, or totalDigits / fractionDigits / minInclusive
 ///   ISO-XSD-BOOLEAN, ISO-XSD-DATE, ISO-XSD-DATETIME, ISO-XSD-TIME, ISO-XSD-YEARMONTH  the lexical types
-///   ISO-XSD-UNENFORCED  a pattern outside the enforced regular-expression subset (Rx.mo) — reported,
+///   ISO-XSD-UNENFORCED  a pattern outside the enforced regular-expression subset (Rx.mo); reported,
 ///                       never silently passed
 ///
 /// What is enforced is exactly what the profile carries; the harness's agreement check is the claim.

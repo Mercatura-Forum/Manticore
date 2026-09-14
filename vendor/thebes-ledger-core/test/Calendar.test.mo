@@ -1,4 +1,4 @@
-// Calendar.test.mo — the journal calendar: weekday arithmetic against known dates,
+// Calendar.test.mo; the journal calendar: weekday arithmetic against known dates,
 // business-day classification with an Egyptian-style Friday/Saturday weekend and
 // holidays, and the four shift policies over every day of a year.
 

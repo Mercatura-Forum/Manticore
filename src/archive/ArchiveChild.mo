@@ -1,10 +1,10 @@
-/// ArchiveChild.mo — the archive contract a bank rolls its packed months to.
+/// ArchiveChild.mo; the archive contract a bank rolls its packed months to.
 ///
 /// What it holds is what `Packing.mo` produced: segments of packed journal blocks, each a
 /// self-contained `Pack` that unpacks byte for byte to the blocks it was made from, registered by
 /// its SHA-256. The **parent** is the only writer; anyone can read. A segment is acknowledged by
-/// calling the parent back (`acknowledgeArchivedSegment`) from the message that stored it — the
-/// parent records only what this contract itself said it holds, never what a driver claims — and
+/// calling the parent back (`acknowledgeArchivedSegment`) from the message that stored it; the
+/// parent records only what this contract itself said it holds, never what a driver claims; and
 /// the store happens **before** the call, so on an engine that drops writes made after an awaited
 /// reply nothing is lost.
 ///
@@ -13,7 +13,7 @@
 /// installer (`bind`). Either way the parent is one principal, fixed after the first segment.
 ///
 /// Reads: a segment's bytes and its row; the round trip checked here (`verifySegment`); a raw
-/// journal block by absolute index, found by the segment that covers it and unpacked — an archive
+/// journal block by absolute index, found by the segment that covers it and unpacked; an archive
 /// read is a page read of two thousand blocks, which is the price of holding a third of the bytes.
 
 import Array "mo:core/Array";
@@ -43,7 +43,7 @@ shared (initMsg) persistent actor class ArchiveChild() = self {
   let store : Store.State = Store.newState();
   /// pack(8) ‖ seq(4) → lo(8) hi(8) offset(8) bytes(4) rawBytes(8) postings(8) sha256(32)
   let segments : RI.State = RI.newStateIn(arena, { keyBytes = 12; valBytes = 76 });
-  /// hi(8) → pack(8) ‖ seq(4): which segment covers a block index — the first whose last block
+  /// hi(8) → pack(8) ‖ seq(4): which segment covers a block index; the first whose last block
   /// is at or past it
   let byBlock : RI.State = RI.newStateIn(arena, { keyBytes = 8; valBytes = 12 });
   /// leafStart(8) ‖ height(1) → hash(32): the roots of the aligned MMR subtrees of
@@ -60,7 +60,7 @@ shared (initMsg) persistent actor class ArchiveChild() = self {
 
   func parentPrincipal() : Principal { switch (parent) { case (?p) p; case null installer } };
 
-  /// Bind the parent once — for a child the operator deployed and the bank adopted. Installer only.
+  /// Bind the parent once; for a child the operator deployed and the bank adopted. Installer only.
   public shared ({ caller }) func bind(p : Principal) : async Result.Result<(), { #NotInstaller; #AlreadyBound }> {
     if (caller != installer) return #err(#NotInstaller);
     if (bound) return #err(#AlreadyBound);
@@ -176,7 +176,7 @@ shared (initMsg) persistent actor class ArchiveChild() = self {
   };
 
   /// The root of the aligned MMR subtree of `height` starting at `leafStart` (a block index), when
-  /// every block of it is held here; null otherwise — the caller then asks the archive that holds
+  /// every block of it is held here; null otherwise; the caller then asks the archive that holds
   /// the rest, or splits the subtree in two.
   public query func subtreeRoot(leafStart : Nat, height : Nat) : async ?Blob {
     subtreeRootIn(Map.empty<Nat, (Segment, [Blob])>(), leafStart, height)
@@ -246,7 +246,7 @@ shared (initMsg) persistent actor class ArchiveChild() = self {
     if (sg.lo > index) null else ?(sg, offset)
   };
 
-  /// A journal block's raw bytes by absolute index — the block an external verifier hashes.
+  /// A journal block's raw bytes by absolute index; the block an external verifier hashes.
   public query func rawBlock(index : Nat) : async ?Blob {
     let ?(sg, offset) = covering(index) else return null;
     switch (Pack.unpack(Store.read(store, offset, sg.bytes))) { case (#ok(back)) ?back[index - sg.lo].raw; case (#err(_)) null }

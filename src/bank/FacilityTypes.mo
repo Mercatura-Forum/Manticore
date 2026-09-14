@@ -1,4 +1,4 @@
-/// FacilityTypes.mo — corporate lending (corporate lending): the facility as the contract the bank and the borrower sign, of
+/// FacilityTypes.mo; corporate lending (corporate lending): the facility as the contract the bank and the borrower sign, of
 /// which a loan account is one drawing. Bilateral and revolving facilities, syndications with the bank as agent
 /// or participant, restructuring across every drawing, finance and operating leases, factoring and forfaiting,
 /// covenants, pricing as data with recorded rate fixings.
@@ -6,7 +6,7 @@
 /// A facility never holds an amount of its own: drawn is the sum of its drawings' outstanding principal read
 /// from the journal, available is limit − drawn while nothing blocks it, a participant's position is the balance
 /// of its sub-ledger, the fee, rental and discount accruals are postings the end-of-day batch makes from the
-/// recorded terms — every figure a fold, every decision a block.
+/// recorded terms; every figure a fold, every decision a block.
 
 import PT "PartyTypes";
 import ProdT "ProductTypes";

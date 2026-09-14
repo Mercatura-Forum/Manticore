@@ -1,4 +1,4 @@
-/// Returns.mo — regulatory returns as mapped data and declared arithmetic.
+/// Returns.mo; regulatory returns as mapped data and declared arithmetic.
 ///
 /// A return is a mapping from the chart of accounts to return lines, plus arithmetic over
 /// the mapped figures. Two properties make the difference between a return a regulator can
@@ -59,7 +59,7 @@ module {
   /// readings of one account are different figures: a return that shows customer deposits as a
   /// closing credit on one line and the period's movement on another is not double-counting
   /// anything, and a rule that forbade it would forbid a shape every regulator asks for. What
-  /// the rule catches is the real error — the same figure of the same account reaching two
+  /// the rule catches is the real error; the same figure of the same account reaching two
   /// lines, which is what makes a total wrong.
   public func claimsOf(t : Template) : Result.Result<Map.Map<Text, Text>, RT.ReportError> {
     let claimed = Map.empty<Text, Text>();      // (measure, account or prefix) -> line code

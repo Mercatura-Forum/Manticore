@@ -1,8 +1,8 @@
-/// ArchiveCore.mo — the archive component's folded state, and the rule for every step.
+/// ArchiveCore.mo; the archive component's folded state, and the rule for every step.
 ///
 /// Pure. Nothing here sends a message or reads the chain: each `plan*` function looks at the state
 /// the log has produced and answers with the event the step would record, or the refusal. `Bank.mo`
-/// commits the event and — for the steps that have one — sends the management call **afterwards**, so
+/// commits the event and; for the steps that have one; sends the management call **afterwards**, so
 /// the record exists whatever the call's reply does to the continuation. `apply` is the fold, run on
 /// every block at commit time and again on replay, so what a resumer sees after a crash is exactly
 /// what the log says happened.
@@ -210,7 +210,7 @@ module {
   };
 
   /// The seal: `computed` is the SHA-256 the sealer's message took over the bytes actually stored,
-  /// `bytes` their count. Both must be the pin's — a seal is the statement "what is in the region is
+  /// `bytes` their count. Both must be the pin's; a seal is the statement "what is in the region is
   /// what was decided", and it is made by the contract, not the uploader.
   public func planSeal(s : State, computed : Blob, bytes : Nat) : Result.Result<AT.ArchiveEvent, AT.ArchiveError> {
     let ?img = currentImage(s) else return #err(#NoImagePinned);
@@ -249,7 +249,7 @@ module {
   };
 
   /// Abandon a spawn that made nothing. Allowed from `#authorised` (nothing was ever sent) and from
-  /// `#createIssued` (a judgement, recorded with its reason, that the create produced no child — for
+  /// `#createIssued` (a judgement, recorded with its reason, that the create produced no child; for
   /// instance because the management call was rejected). Never from a state that knows an id.
   public func planAbandon(s : State, id : AT.SpawnId, reason : Text) : Result.Result<AT.ArchiveEvent, AT.ArchiveError> {
     let ?sp = spawn(s, id) else return #err(#UnknownSpawn({ spawn = id }));
@@ -356,8 +356,8 @@ module {
   };
 
   /// Step 5. From `#installed`, or again from `#controllersIssued`. The set sent is the parent
-  /// itself first — the engine replaces the controller set, so leaving the parent out would strip
-  /// it — then the configured principals.
+  /// itself first; the engine replaces the controller set, so leaving the parent out would strip
+  /// it; then the configured principals.
   public func planControllers(s : State, id : AT.SpawnId, self : Principal) : Result.Result<{ event : AT.ArchiveEvent; cid : AT.Cid; controllers : [Principal] }, AT.ArchiveError> {
     let ?sp = spawn(s, id) else return #err(#UnknownSpawn({ spawn = id }));
     if (s.controllers.size() == 0) return #err(#NoControllersSet);
@@ -375,7 +375,7 @@ module {
 
   /// Step 6. From `#controllersIssued`: the child becomes an archive of this bank. Nothing a contract
   /// can call reports a child's controllers (`ArchiveWire.parseStatusReply`), so this step records
-  /// that the driver saw `update_settings` reply — the second place that substrate change closes a gap.
+  /// that the driver saw `update_settings` reply; the second place that substrate change closes a gap.
   public func planComplete(s : State, id : AT.SpawnId) : Result.Result<AT.ArchiveEvent, AT.ArchiveError> {
     let ?sp = spawn(s, id) else return #err(#UnknownSpawn({ spawn = id }));
     switch (sp.status) {

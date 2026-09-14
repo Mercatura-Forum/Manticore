@@ -1,11 +1,11 @@
-/// Activity.mo — the aggregates the monitoring rules read: A1..A4 of the approved proposal's
+/// Activity.mo; the aggregates the monitoring rules read: A1..A4 of the approved proposal's
 /// cross-account addendum, maintained in the posting's own message, in stable memory.
 ///
 /// Every row here is **derived**: a pure function of the journal's posted blocks, rebuildable by
 /// replay, and never the authority for anything. What the rows are for is a bounded read. A
 /// monitoring rule of the closed set (`Monitoring.mo`) answers from a range over these rows whose
-/// cost is declared before it runs — a window of days, a bar of distinct counterparties, one
-/// reverse lookup — where a warehouse would scan the journal. The ICRC-ME indexed ledger is the
+/// cost is declared before it runs; a window of days, a bar of distinct counterparties, one
+/// reverse lookup; where a warehouse would scan the journal. The ICRC-ME indexed ledger is the
 /// base; these are the aggregates it did not have.
 ///
 /// ## What is counted
@@ -22,7 +22,7 @@
 ///   * the **edges**: from each debited counterparty to each credited counterparty, with amount
 ///     the smaller of the two totals. A counterparty is an indexed account, a general-ledger
 ///     account code (a leg with no registered sub-ledger), or an external beneficiary commitment
-///     — the third form is what a payment message will carry; nothing produces it yet, and
+///    the third form is what a payment message will carry; nothing produces it yet, and
 ///     the key space and the rules treat it like the other two. Never personal data.
 ///
 /// ## The rows
@@ -30,10 +30,10 @@
 /// | | key | value |
 /// |---|---|---|
 /// | A1 `activity` | `acct(8) ‖ day(4)` | `count(4) ‖ debits(16) ‖ credits(16) ‖ largest(16)` |
-/// | E1 `edges` | `from(33) ‖ to(33) ‖ day(4) ‖ posting(8)` | `amount(16)` — one row per posting edge, so a citation is exact |
-/// | E2 `edgesOut` | `from(33) ‖ day(4) ‖ to(33)` | `count(4) ‖ amount(16)` — distinct receivers in a window |
-/// | E3 `edgesIn` | `to(33) ‖ day(4) ‖ from(33)` | the same — distinct senders in a window |
-/// | A4 `lastActive` | `acct(8)` | `first(4) ‖ last(4) ‖ postings(8)` — dormancy |
+/// | E1 `edges` | `from(33) ‖ to(33) ‖ day(4) ‖ posting(8)` | `amount(16)`; one row per posting edge, so a citation is exact |
+/// | E2 `edgesOut` | `from(33) ‖ day(4) ‖ to(33)` | `count(4) ‖ amount(16)`; distinct receivers in a window |
+/// | E3 `edgesIn` | `to(33) ‖ day(4) ‖ from(33)` | the same; distinct senders in a window |
+/// | A4 `lastActive` | `acct(8)` | `first(4) ‖ last(4) ‖ postings(8)`; dormancy |
 ///
 /// The proposal's `acct‖cpty‖day` and `cpty‖acct‖day` are E1 and E3: E1 keeps the pair's history
 /// per posting, which is what a round trip cites; E2 and E3 put the day before the counterparty so
@@ -64,7 +64,7 @@ module {
     #account : Nat;
     #gl : JT.AccountCode;
     #external : Blob;   // a 32-byte commitment
-    /// A counterparty as its 33-byte key, for a lookup made from a key another range returned —
+    /// A counterparty as its 33-byte key, for a lookup made from a key another range returned;
     /// a general-ledger code is hashed into its key and cannot be read back.
     #key : Blob;
   };
@@ -193,7 +193,7 @@ module {
 
   // ─── state ────────────────────────────────────────────────────────────────
 
-  /// `count(4) ‖ debits(16) ‖ credits(16) ‖ largest(16) ‖ firstDay(4) ‖ lastDay(4)` — a month of an
+  /// `count(4) ‖ debits(16) ‖ credits(16) ‖ largest(16) ‖ firstDay(4) ‖ lastDay(4)`; a month of an
   /// account's activity once its days have been rolled up, keyed `acct(8) ‖ periodOrd(4)`. The
   /// first and last active days are what keeps a dormancy reading exact after the roll-up.
   public let M1_KEY : Nat = 12;
@@ -294,7 +294,7 @@ module {
   public func latestBefore(s : State, acct : Nat, day : Nat) : ?Nat {
     if (day == 0) return null;
     // the common case in one read: the account's last active day is before this one, so it is the
-    // answer — A4 holds it exactly, live or rolled up
+    // answer; A4 holds it exactly, live or rolled up
     switch (dormancy(s, acct)) {
       case (?d) { if (d.last < day) return ?d.last };
       case null return null;   // no activity at all
@@ -363,7 +363,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  REBUILD — a closed month's rows roll up and leave the live indexes
+  //  REBUILD; a closed month's rows roll up and leave the live indexes
   // ═══════════════════════════════════════════════════════
 
   public type Rebuildable = { #activity; #edges; #edgesOut; #edgesIn };
@@ -382,7 +382,7 @@ module {
   };
 
   /// The keep-or-roll-up decision. A row at or before the period's end is not kept; before it goes
-  /// it is added into the month's row, so nothing the month said is lost — only its resolution.
+  /// it is added into the month's row, so nothing the month said is lost; only its resolution.
   func rollUp(s : State, which : Rebuildable, periodEnd : Nat, periodOrd : Nat) : (Blob, Blob) -> Bool {
     func(k : Blob, v : Blob) : Bool {
       let day = dayOfKey(which, k);
@@ -452,7 +452,7 @@ module {
   public func rolledUpThrough(s : State) : Nat { s.rolledUpThrough };
 
   /// What one posting changed. `before` is, per account, the latest activity day strictly before
-  /// this posting's day — read before the posting is written, which only this message can do.
+  /// this posting's day; read before the posting is written, which only this message can do.
   public type Recorded = {
     posted : ?Posted;
     before : [(Nat, ?Nat)];

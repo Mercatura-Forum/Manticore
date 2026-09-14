@@ -1,8 +1,8 @@
-// Leadsheet.test.mo — acceptance criterion 8 on the pure mapper: every account
+// Leadsheet.test.mo; acceptance criterion 8 on the pure mapper: every account
 // falls in exactly one range of the 28-range schema; unmapped accounts are
 // reported; overlapping schemas are rejected.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region
 // (`JournalCore.postingRows`), and the moc interpreter provides no Region. The dual-engine check this
 // loses was worth having, and the loss is stated here rather than hidden: the reason the state moved
 // is that a heap map per posting makes the heap grow with the journal, which is the one thing a

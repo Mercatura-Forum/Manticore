@@ -1,4 +1,4 @@
-// BalanceLimits.test.mo — numeric balance limits and chart-of-accounts attributes.
+// BalanceLimits.test.mo; numeric balance limits and chart-of-accounts attributes.
 //
 // The two additive journal changes the product engine needs (operator decision
 // D-2), proved on the pure state machine.
@@ -7,7 +7,7 @@
 // an overdraft facility of 50,000 on one customer cannot be expressed and a net
 // debit cap cannot either. A recorded limit for one (account, sub-ledger,
 // currency) is the same rule with an allowance, checked at admission over posted
-// **and** pending amounts and over the legs a batch has already admitted — which
+// **and** pending amounts and over the legs a batch has already admitted; which
 // is what makes it engine-enforced rather than checked by a layer a second poster
 // could bypass.
 //
@@ -17,7 +17,7 @@
 // detail, manual entries allowed, no parent, so nothing already written changes
 // meaning.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region
 // (`JournalCore.postingRows`), and the moc interpreter provides no Region. The dual-engine check this
 // loses was worth having, and the loss is stated here rather than hidden: the reason the state moved
 // is that a heap map per posting makes the heap grow with the journal, which is the one thing a

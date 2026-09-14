@@ -2,7 +2,7 @@
 name = "thebes-bls-verify"
 version = "0.1.0"
 edition = "2021"
-description = "Verifies an IC BLS12-381 (MinSig) signature; used by the journal's independent proof verifier."
+description = "Verifies a BLS12-381 (MinSig) certificate signature; used by the journal's independent proof verifier."
 license = "Apache-2.0"
 
 [dependencies]

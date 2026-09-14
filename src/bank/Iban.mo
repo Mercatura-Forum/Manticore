@@ -1,4 +1,4 @@
-/// Iban.mo — account identifiers: ISO 13616 (IBAN) and ISO 9362 (BIC).
+/// Iban.mo; account identifiers: ISO 13616 (IBAN) and ISO 9362 (BIC).
 ///
 /// The hub already *validates* Egyptian IBAN shape; what a core-banking system measures
 /// and what a bank actually needs is **generation** under a declared policy. The

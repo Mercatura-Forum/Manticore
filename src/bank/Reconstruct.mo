@@ -1,19 +1,19 @@
-/// Reconstruct.mo — a settled proposal's command, rebuilt from the events its execution recorded.
+/// Reconstruct.mo; a settled proposal's command, rebuilt from the events its execution recorded.
 ///
 /// The bank-log ruling of 12 September (measure 1) lets a proposal block's command body be dropped once
-/// the act's events are in the log — but only where the command is reconstructible from those events
+/// the act's events are in the log; but only where the command is reconstructible from those events
 /// byte for byte, proven rather than asserted: the reconstruction is re-hashed and compared with the
 /// `commandHash` the proposal block keeps, and a body whose reconstruction does not hash to it is kept.
 /// This module is the reconstruction; `candidates` answers every command the events could have come
-/// from (a command can carry a default the event records expanded — an empty allocation order — so
+/// from (a command can carry a default the event records expanded; an empty allocation order; so
 /// more than one command may have produced the same events), and the caller keeps the one that hashes
 /// right, or keeps the body when none does.
 ///
 /// What is reconstructed: every command whose event is its own image (the organisation, the party layer,
 /// the product catalogue, an account's opening and status), `createCustomer` from the run of events it
 /// records, the origination steps whose block is the instruction less what the contract computed (origination and underwriting;
-/// an offer's acceptance and a signed document keep their body — the assertion is the evidence), and
-/// nothing else — a command whose effect is a journal posting and no bank event, or whose event records
+/// an offer's acceptance and a signed document keep their body; the assertion is the evidence), and
+/// nothing else; a command whose effect is a journal posting and no bank event, or whose event records
 /// a computed figure rather than the instruction, is not here, and its body is carried. The
 /// harness (`integration/bank_s28.py`) prints, per command family, how many bodies were dropped and how
 /// many carried, so the saving is a measurement.
@@ -48,7 +48,7 @@ module {
       // ── the party layer ──
       case (#party(pe)) {
         // a run beginning with a party created is an onboarding (`createCustomer`); one block alone is
-        // either that with nothing else, or `createParty` — both are offered, the hash decides
+        // either that with nothing else, or `createParty`; both are offered, the hash decides
         switch (pe) {
           case (#partyCreated(x)) {
             let bare = if (act.size() == 1) [#createParty({ kind = x.kind; salt = x.salt; identityCommit = x.identityCommit; dedupCommit = x.dedupCommit; attributes = x.attributes; book = x.book; cddLevel = x.cddLevel; riskRating = x.riskRating; pep = x.pep; reviewDue = x.reviewDue })] else [];
@@ -239,15 +239,15 @@ module {
     switch (o.maturity) { case (?m) { if (m >= o.opened) ?(m - o.opened) else null }; case null null }
   };
 
-  /// The allocation orders a recorded order could have come from: the order itself, and — when it is
-  /// the default — the empty list the command may have carried.
+  /// The allocation orders a recorded order could have come from: the order itself, and; when it is
+  /// the default; the empty list the command may have carried.
   func orders(recorded : [ProdT.Component]) : [[ProdT.Component]] {
     if (recorded == DEFAULT_ORDER) [[], recorded] else [recorded]
   };
   let DEFAULT_ORDER : [ProdT.Component] = [#penalty, #fee, #interest, #principal];
 
   /// `createCustomer` from its run: the party created, then pendingKyc, the documents, the decision,
-  /// active, the extension, and per account its opening and (when present) its activation — in the
+  /// active, the extension, and per account its opening and (when present) its activation; in the
   /// order `BankCore.planCreateCustomer` records them. Every account's allocation order doubles the
   /// candidates when it is the default; the caller keeps the one that hashes right.
   func customer(act : Act) : [T.Command] {

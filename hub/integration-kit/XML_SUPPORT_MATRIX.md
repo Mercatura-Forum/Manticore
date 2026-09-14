@@ -3,8 +3,8 @@
 The canister carries two codecs. The **compact codec** (`motoko/ISO20022Xml.mo`) reads and writes the
 twenty-two families below in a deterministic subset shape; it is what the payment flows run on. The
 **schema-profile codec** (`motoko/iso/IsoBreadth.mo` over `motoko/iso/IsoSchema.mo` and the generated
-`motoko/iso/IsoProfiles.mo`) validates a message against the official ISO 20022 XSD — all 43 families the
-canister knows, as generated profiles — before reading it, and writes its twenty families back schema-valid.
+`motoko/iso/IsoProfiles.mo`) validates a message against the official ISO 20022 XSD; all 43 families the
+canister knows, as generated profiles; before reading it, and writes its twenty families back schema-valid.
 The legacy MT bridge (`motoko/iso/MtBridge.mo`) and the CBPR+ / HVPS+ rule sets (`motoko/iso/RuleSets.mo`)
 sit on those.
 
@@ -72,9 +72,9 @@ profiles, with or without the head.001 AppHdr.
 Evidence (`integration-kit/scripts/`): `iso-breadth-fixtures.py` writes the corpus (24 valid, 25 invalid with
 rule ids) and the mops test `motoko/test/IsoBreadth.test.mo`; `iso-breadth-roundtrip.py` reads every valid
 fixture, writes it back, checks the written document with `xmllint --schema` against the official XSD, reads it
-again equal, and cross-parses it with Prowide `pw-iso20022` (23 of 24 — head.002 is an envelope Prowide has no
+again equal, and cross-parses it with Prowide `pw-iso20022` (23 of 24; head.002 is an envelope Prowide has no
 MX class for); `iso-breadth-mutations.py` judges 3,600 mutants of the valid fixtures by xmllint and by the
-canister's profile — zero disagreements (`profile-runner/breadth-mutations-report.json`).
+canister's profile; zero disagreements (`profile-runner/breadth-mutations-report.json`).
 
 ## The legacy MT bridge (13 types)
 
@@ -112,7 +112,7 @@ the sets; `validateIsoDocumentWithRuleSet` applies one explicitly.
 | `CBPRPLUS` | pacs.008, pacs.009, pacs.002, pacs.004, camt.053, camt.054, camt.056, camt.029 | 35 | Swift ISO 20022 programme pages, the CBPR+ User Handbook's published structure, PMPG papers (structured addresses, FIN X identifiers) |
 | `HVPSPLUS` | pacs.008, pacs.009, pacs.002, camt.050, camt.052, camt.053 | 20 | HVPS+ practice as RTGS operators publish it (ECB T2, Bank of England CHAPS, Fed/TCH), Swift programme pages |
 
-**Stated limitation.** The usage guidelines themselves — on SWIFT MyStandards, with their rule identifiers —
+**Stated limitation.** The usage guidelines themselves; on SWIFT MyStandards, with their rule identifiers;
 are access-controlled; this harness could not fetch them. The rule ids are the hub's; the reconciliation with
 MyStandards identifiers has not been performed and each set says so in its `reconciliation` field. Evidence:
 `usage-guideline-fixtures.py` (14 conforming, 54 violating fixtures, `motoko/test/RuleSets.test.mo`),

@@ -1,4 +1,4 @@
-/// ShardCore.mo — the shard rule's fold, the transfers' rows, and the routing arithmetic.
+/// ShardCore.mo; the shard rule's fold, the transfers' rows, and the routing arithmetic.
 ///
 /// The rule and the open transfers are bounded by acts, so they are heap maps; a transfer's
 /// history is its blocks.

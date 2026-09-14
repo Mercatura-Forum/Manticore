@@ -1,7 +1,7 @@
-/// SettlementTypes.mo — settlement: settlement on the journal.
+/// SettlementTypes.mo; settlement: settlement on the journal.
 ///
 /// A scheme's participants, their positions and the movement of money between them are postings
-/// in the bank's own book — the same Merkle-committed journal as every deposit — so a position
+/// in the bank's own book; the same Merkle-committed journal as every deposit; so a position
 /// cannot breach its net debit cap even if the code above it is wrong: the cap is the journal's
 /// numeric limit on the participant's position sub-ledger, and admission refuses the posting.
 /// A payment is the journal's two-phase posting (reserve on prepare, post on fulfil, void on
@@ -256,7 +256,7 @@ module {
   public let MAX_TRANSFER_TTL_SECONDS : Nat = 86_400;
 
   /// ISO 9362: four institution characters, two country letters, two location characters, an
-  /// optional three-character branch — the BICFI pattern of the ISO 20022 schemas.
+  /// optional three-character branch; the BICFI pattern of the ISO 20022 schemas.
   public func validBic(b : Text) : Bool {
     let cs = Text.toArray(b);
     let n = cs.size();

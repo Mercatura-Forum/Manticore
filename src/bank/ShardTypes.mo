@@ -1,6 +1,6 @@
-/// ShardTypes.mo — accounts routed across bank contracts by a declared, versioned rule.
+/// ShardTypes.mo; accounts routed across bank contracts by a declared, versioned rule.
 ///
-/// A **shard** is a whole bank contract — its own journal, its own indexes, its own accounts. The
+/// A **shard** is a whole bank contract; its own journal, its own indexes, its own accounts. The
 /// rule that says which shard an account lives on is **in the account's identifier**: the first
 /// `SHARD_DIGITS` characters of the serial are the shard index, written when the account is opened
 /// (`serial = self · 10^(width − SHARD_DIGITS) + block`), so routing a foreign identifier is
@@ -14,31 +14,31 @@
 /// it holds (a sub-ledger key the shard has not registered is an unknown account). What the bank
 /// provides instead is the **inter-shard transfer**: two postings, each atomic within its shard,
 /// joined into an exactly-once whole by a pending on the sending side, an idempotent posting on the
-/// receiving side, and the receiving shard's own acknowledgement — the saga with idempotent steps
+/// receiving side, and the receiving shard's own acknowledgement; the saga with idempotent steps
 /// (Garcia-Molina and Salem 1987; Helland, "Life beyond Distributed Transactions", 2007;
 /// TigerBeetle's two-phase transfers), not a two-phase commit, which this engine cannot make
-/// atomic across contracts (a write after an awaited reply is dropped — `ArchiveTypes.mo`).
+/// atomic across contracts (a write after an awaited reply is dropped; `ArchiveTypes.mo`).
 ///
 ///   1. `openShardTransfer` (dual, money-moving): the sending shard reserves the amount as a
-///      journal **pending** — debit the customer's sub-ledger, credit the settlement account for
-///      the receiving shard — and records the transfer with the receiving identifier;
+///      journal **pending**; debit the customer's sub-ledger, credit the settlement account for
+///      the receiving shard; and records the transfer with the receiving identifier;
 ///   2. `sendShardTransfer` (open): recorded as sent, then the call to the receiving shard is
 ///      made and not waited for;
 ///   3. `receiveShardTransfer` (the receiving shard, caller held to a shard principal of the
-///      rule): the identifier is one of its active accounts, so it **posts** — debit its
-///      settlement account for the sending shard, credit the customer — under an idempotency key
+///      rule): the identifier is one of its active accounts, so it **posts**; debit its
+///      settlement account for the sending shard, credit the customer; under an idempotency key
 ///      derived from (sending shard, transfer), so a second delivery posts nothing and is
 ///      acknowledged again; then it calls the sender back; an identifier it does not hold is
 ///      refused and the refusal is called back;
 ///   4. `acknowledgeShardTransfer` / `rejectShardTransfer` (the sending shard, caller held to the
 ///      receiving shard's principal): the pending is **posted** on acknowledgement or **voided**
-///      on refusal, once — a resolved pending refuses a second resolution.
+///      on refusal, once; a resolved pending refuses a second resolution.
 ///
 /// Under failure: a receiver that is stopped or a call that is lost leaves the pending open and
 /// the transfer sendable again; a second delivery is a duplicate and posts nothing; a second
 /// acknowledgement finds the pending resolved and changes nothing; the sending shard's blocks are
 /// written before every call. Across every shard the settlement accounts net to zero once every
-/// open transfer is settled — the oracle `bank_shard.py` reads.
+/// open transfer is settled; the oracle `bank_shard.py` reads.
 
 module {
 

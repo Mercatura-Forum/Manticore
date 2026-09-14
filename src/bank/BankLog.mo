@@ -1,4 +1,4 @@
-/// BankLog.mo — the Merkle-committed log of banking decisions.
+/// BankLog.mo; the Merkle-committed log of banking decisions.
 ///
 /// The same construction as the journal's own log (`mo:journal/JournalLog`):
 /// canonical bytes appended to a Region-backed StableLog, SHA-256 chained to the
@@ -79,7 +79,7 @@ module {
     }
   };
 
-  /// A block's stored bytes: the log's, or — below the base — what `below` answers (the packs).
+  /// A block's stored bytes: the log's, or; below the base; what `below` answers (the packs).
   public func rawBlockWith(state : State, below : Nat -> ?Blob, index : Nat) : ?Blob {
     switch (SLog.get(state.stableLog, index)) { case (?b) ?b; case null { if (index < state.count) below(index) else null } }
   };

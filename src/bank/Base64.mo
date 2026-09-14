@@ -1,4 +1,4 @@
-/// Base64.mo — RFC 4648 base64 and base64url, with and without padding, strict on decode.
+/// Base64.mo; RFC 4648 base64 and base64url, with and without padding, strict on decode.
 
 import Blob "mo:core/Blob";
 import Char "mo:core/Char";
@@ -52,7 +52,7 @@ module {
 
   public func encode(b : Blob) : Text { encodeWith(STD, b, true) };
   public func decode(t : Text) : ?Blob { decodeWith(STD, t) };
-  /// base64url without padding — FSPIOP's IlpCondition and IlpFulfilment (43 characters for 32 bytes).
+  /// base64url without padding; FSPIOP's IlpCondition and IlpFulfilment (43 characters for 32 bytes).
   public func encodeUrl(b : Blob) : Text { encodeWith(URL, b, false) };
   public func decodeUrl(t : Text) : ?Blob { decodeWith(URL, t) };
 

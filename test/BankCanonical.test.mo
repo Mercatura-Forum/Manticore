@@ -1,4 +1,4 @@
-// BankCanonical.test.mo — the command hash a checker approves.
+// BankCanonical.test.mo; the command hash a checker approves.
 //
 // `commandHash` is the hash the maker-checker path binds a proposal to: a
 // deterministic function of the command, sensitive to every field, so "the
@@ -706,7 +706,7 @@ assert (commands.size() >= 50);
 // Once a pack has dropped a proposal's body, the command comes back only while the encoding of its family
 // is byte-identical to what it was at proposal time. The first command of each reconstructible family in
 // the list above is hashed under encoding version 1 and version 2 and compared with the hex recorded here
-// on 2026-09-13 (the origination, facility, teller, trade, Islamic, treasury and card families added the same day); a drift in any family's bytes fails this test — the change must be a new version with a
+// on 2026-09-13 (the origination, facility, teller, trade, Islamic, treasury and card families added the same day); a drift in any family's bytes fails this test; the change must be a new version with a
 // new encoder, the old one kept. (`golden.py` below the test is the generator: `GOLDEN_PRINT = true`.)
 func hex(b : Blob) : Text {
   let digits = "0123456789abcdef";
@@ -828,7 +828,7 @@ for (family in Reconstruct.families().vals()) {
     goldenChecked += 1;
   };
 };
-// version 1 and version 2 differ exactly where the freeze says — createCustomer's bytes, and nowhere else;
+// version 1 and version 2 differ exactly where the freeze says; createCustomer's bytes, and nowhere else;
 // the hashes differ everywhere because the domain carries the version
 var sameAcrossVersions = 0;
 for (c in commands.vals()) {

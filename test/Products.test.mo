@@ -1,15 +1,15 @@
-// Products.test.mo — the product engine's pure arithmetic and validation.
+// Products.test.mo; the product engine's pure arithmetic and validation.
 //
 // Everything in the product engine that is a function rather than a state machine, proved on its
 // own terms before the state machine uses it:
 //
 //   * registration validates the role-to-account map against the real chart of
-//     accounts — every role requires a category, and a product whose mapping breaks
+//     accounts; every role requires a category, and a product whose mapping breaks
 //     one of them is refused with the role, the account and both categories named
 //     (criterion F1, which reproduces Fineract's per-slot rejection);
 //   * rate charts must partition the space: a gap is a balance with no rate and an
 //     overlap is two, and both are refused when the product is written;
-//   * schedule generation is exact — the principal column sums to the advance, the
+//   * schedule generation is exact; the principal column sums to the advance, the
 //     closing balance is zero, and every row opens where the previous closed, for
 //     each amortisation method, with grace and a moratorium (criterion F6);
 //   * charges compute from a declared base and refuse to compute from a missing
@@ -23,7 +23,7 @@
 //   * a till settled short posts its difference to suspense and can never absorb
 //     it, because the suspense leg is what makes the posting balance (I10).
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region, and
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region, and
 // the moc interpreter provides no Region. The dual-engine check this loses was worth having, and the
 // loss is stated rather than hidden: the reason the state moved is that a heap map per posting makes
 // the heap grow with the journal. Every test below still runs under wasmtime, the engine the chain runs.
@@ -144,7 +144,7 @@ Debug.print("count: valid products accepted = 1");
 // ─── 1. the role-to-account category check ───────────────────────────────────
 //
 // Each role requires a category. A mapping that breaks one is refused with the
-// role, the account, and both categories named — which is what makes the refusal
+// role, the account, and both categories named; which is what makes the refusal
 // actionable rather than only correct.
 
 var categoryRefusals = 0;
@@ -298,7 +298,7 @@ switch (Products.validateTerms(js, "LOAN", loan)) {
 // A header account can carry the category a role requires and still must not be
 // mapped to it: a header is a rollup and cannot carry postings. Account 9000 is an
 // asset, so it satisfies the category the allowance role requires, and it is refused
-// anyway — on being a header, not on its category.
+// anyway; on being a header, not on its category.
 switch (Products.validateTerms(js, "LOANH", {
   loan with
   roles = Array.map<T.RoleMapping, T.RoleMapping>(loanRoles, func(m) { if (m.role == #allowance) ({ role = #allowance; account = "9000" }) else m })
@@ -441,7 +441,7 @@ Debug.print("count: charges refused for rounding to zero = 1");
 let opened = jan31;
 // The window is half-open, so a fee opened on 31 January falls due on the eleven
 // month-ends from February to December and the first anniversary lands on the
-// excluded end day — which is the right answer for a window, and is stated here
+// excluded end day; which is the right answer for a window, and is stated here
 // because "twelve months" and "a year's window" are not the same count.
 let monthlyDue = Charges.dueDays(#recurring({ every = #monthly }), opened, opened + 365, opened, null, func(_) { 0 });
 Debug.print("count: monthly charge occurrences in a year = " # Nat.toText(monthlyDue.size()));
@@ -527,7 +527,7 @@ assert (orderRefusals == 4);
 let sch12 = Products.schedule(1_200_000, rate(12, 100), loanSchedule, #halfEven, start);
 let rows = sch12.rows;
 
-// Nothing due yet and nothing paid: no arrears — and the performing band, which is the
+// Nothing due yet and nothing paid: no arrears; and the performing band, which is the
 // one the product declares from day 0. A performing loan is classified, not unclassified:
 // under IFRS 9 it is stage 1 with a twelve-month expected-loss allowance, and the band is
 // what carries that rate. A product that declares no band covering zero days still gets

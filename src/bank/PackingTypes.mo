@@ -1,7 +1,7 @@
-/// PackingTypes.mo — closed-month packing as the bank records and refuses it.
+/// PackingTypes.mo; closed-month packing as the bank records and refuses it.
 ///
-/// A pack is a closed range of the journal — the blocks from the last pack's end to the block that
-/// closed a period — packed into segments that unpack byte for byte, with one summary row and one
+/// A pack is a closed range of the journal; the blocks from the last pack's end to the block that
+/// closed a period; packed into segments that unpack byte for byte, with one summary row and one
 /// delta-coded posting list per account, its per-posting index rows dropped and its daily
 /// aggregates rolled up into monthly rows. Opening one is a dual-authorised command whose gate is
 /// here (`OpenGate`); advancing one is an open method, like the end-of-day batch's. Every step is a
@@ -11,8 +11,8 @@ module {
 
   /// What the bank's log says about packing.
   public type PackingEvent = {
-    /// The pack's two ranges: the journal's blocks `lo … hi`, and — since the bank-log ruling of 12 September
-    /// (measure 2) — the bank's own blocks `bankLo … bankHi`, the last bank block stamped no later than the
+    /// The pack's two ranges: the journal's blocks `lo … hi`, and; since the bank-log ruling of 12 September
+    /// (measure 2); the bank's own blocks `bankLo … bankHi`, the last bank block stamped no later than the
     /// journal block that closed the period.
     #packOpened : { pack : Nat; period : Text; periodEnd : Nat; lo : Nat; hi : Nat; bankLo : Nat; bankHi : Nat };
     #segmentPacked : { pack : Nat; seq : Nat; lo : Nat; hi : Nat; bytes : Nat; rawBytes : Nat; postings : Nat; sha256 : Blob };

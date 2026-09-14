@@ -1,11 +1,11 @@
-/// TreasuryTypes.mo — treasury (treasury): deals as commands, positions as folds, valuation by declared curves, P&L on
+/// TreasuryTypes.mo; treasury (treasury): deals as commands, positions as folds, valuation by declared curves, P&L on
 /// the journal, nostro reconciliation as a fold over the correspondent's statements.
 ///
 /// A deal is a recorded contract on the bank log: a money-market placement or taking, an FX forward or swap
 /// (one side of every FX deal is the functional currency, as `Fx.mo` requires of every cross-currency posting),
 /// a fixed-income security with its IFRS 9 classification, a vanilla interest-rate swap, an FX option. A curve is
 /// declared data with a source hash, and a valuation is a pure function of recorded deals × recorded curves × the
-/// recorded spot rate of the day — no price is ever read live into a posting. Limits are measured over the fold
+/// recorded spot rate of the day; no price is ever read live into a posting. Limits are measured over the fold
 /// before a deal is recorded. The correspondent's statement is recorded by its hash and its entries; the
 /// reconciliation matches them against the nostro's own postings and records the breaks, aged by the end of day
 /// and cleared by a dual act.

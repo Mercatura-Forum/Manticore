@@ -1,4 +1,4 @@
-// ML-DSA-44 (FIPS 204) — exact reference implementation match.
+// ML-DSA-44 (FIPS 204); exact reference implementation match.
 // Uses signed Int32 arithmetic + Montgomery NTT throughout.
 // KAT-verifiable against NIST test vectors.
 
@@ -55,7 +55,7 @@ module {
         let seed = Array.concat<Nat8>(rho, [Nat8.fromNat(j), Nat8.fromNat(i)]);
         let stream = Keccak.shake128(seed, N * 6); // 23-bit rejection needs ~2x more bytes
         let poly = rejUniform(stream);
-        // A is sampled directly in NTT domain — do NOT apply NTT
+        // A is sampled directly in NTT domain; do NOT apply NTT
         matrix[i * L + j] := Array.fromVarArray(poly);
         j += 1;
       };
@@ -64,7 +64,7 @@ module {
     Array.fromVarArray(matrix);
   };
 
-  // FIPS 204: rejection uniform sampling — 23-bit candidates from 3 bytes.
+  // FIPS 204: rejection uniform sampling; 23-bit candidates from 3 bytes.
   func rejUniform(stream : [Nat8]) : [var Int32] {
     let poly = NTT.zeroPoly();
     var ctr : Nat = 0;
@@ -108,7 +108,7 @@ module {
     poly;
   };
 
-  // FIPS 204: polyz_unpack — 18-bit packed coefficients, 4 per 9 bytes.
+  // FIPS 204: polyz_unpack; 18-bit packed coefficients, 4 per 9 bytes.
   // coeff = GAMMA1 - (18-bit value)
   public func sampleSecretPub(seed : [Nat8], nonce : Nat8) : [var Int32] {
     sampleSecret(seed, nonce);
@@ -436,7 +436,7 @@ module {
         let hint = Array.tabulate<[Int32]>(K, func(hki : Nat) : [Int32] {
           let cs2 = NTT.pointwiseMul(chatFrozen, s2hat[hki]);
           NTT.invNtt(cs2);
-          // also need c*t0 — compute from sk.t0
+          // also need c*t0; compute from sk.t0
           let t0hat = NTT.zeroPoly();
           var ti : Nat = 0;
           while (ti < N) { t0hat[ti] := sk.t0[hki][ti]; ti += 1 };
@@ -693,7 +693,7 @@ module {
       ki += 1;
     };
 
-    // w1' = UseHint(hint, w') — apply hint to correct boundary rounding, 6-bit packed
+    // w1' = UseHint(hint, w'); apply hint to correct boundary rounding, 6-bit packed
     let w1v = Array.tabulate<[var Int32]>(K, func(ki2 : Nat) : [var Int32] {
       let poly = VarArray.repeat<Int32>(0 : Int32, N);
       var ni2 : Nat = 0;

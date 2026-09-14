@@ -1,4 +1,4 @@
-/// Camt053.mo — the journal's account statement, shaped as ISO 20022 camt.053.
+/// Camt053.mo; the journal's account statement, shaped as ISO 20022 camt.053.
 ///
 /// A camt.053 "Bank To Customer Statement" is a projection of the journal: for
 /// one account, one currency and one accounting period, the opening balance,
@@ -6,7 +6,7 @@
 /// `StatementEntry` is structurally identical to the one in the published
 /// Thebes ISO 20022 example (`thebes-example-open-banking-iso20022`,
 /// `ISO20022.mo`), so its decoder and validator accept what this module emits
-/// — that round trip is acceptance criterion 9.
+///that round trip is acceptance criterion 9.
 ///
 /// Every field is derived from committed journal data; nothing is invented:
 ///   NtryRef    "JRNL-<block index>-<n>"     n = ordinal of the leg within the statement

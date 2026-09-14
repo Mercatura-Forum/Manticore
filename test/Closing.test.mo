@@ -1,11 +1,11 @@
-// Closing.test.mo — value dating, foreign currency, deferrals and the close, as
+// Closing.test.mo; value dating, foreign currency, deferrals and the close, as
 // arithmetic and as a state machine, before the state machine uses them.
 //
 //   * V1/V2 the six value-date conventions reproduce their definitions over a full
 //     year of a fixture calendar (Friday and Saturday rest days, an Egyptian holiday
 //     list), including month-end crossings, consecutive holidays and the year
-//     boundary; and the deployment invariant — the journal's policy must be `#reject`
-//     so this is the only layer that moves a date — is checked in both directions;
+//     boundary; and the deployment invariant; the journal's policy must be `#reject`
+//     so this is the only layer that moves a date; is checked in both directions;
 //   * V6/V7/V8 FX: a revaluation is functional-currency only, the position is
 //     untouched by it, the unrealised figure is `position × rate − equivalent`
 //     exactly, a cross-currency deal balances **per currency**, and realised and
@@ -17,7 +17,7 @@
 //     re-run is a no-op, over the whole transition matrix;
 //   * the back-value window classifies a date into exactly one of three bands.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region, and
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region, and
 // the moc interpreter provides no Region. The dual-engine check this loses was worth having, and the
 // loss is stated rather than hidden: the reason the state moved is that a heap map per posting makes
 // the heap grow with the journal. Every test below still runs under wasmtime, the engine the chain runs.
@@ -158,7 +158,7 @@ assert (eff(#modifiedFollowing, day(2026, 1, 2)) == eff(#following, day(2026, 1,
 Debug.print("count: modified-following month-end crossings verified = 2");
 
 // modifiedPreceding is the mirror: 1 May 2026 is a holiday and 2 May is a Saturday,
-// so the previous business day is 30 April — inside the previous month — and the
+// so the previous business day is 30 April; inside the previous month; and the
 // convention goes forward instead
 assert (not Conv.isBusinessDay(calendar, day(2026, 5, 1)));
 assert (eff(#preceding, day(2026, 5, 1)) == day(2026, 4, 30));

@@ -1,10 +1,10 @@
-// Reporting.test.mo — the reporting layer through the real bank.
+// Reporting.test.mo; the reporting layer through the real bank.
 //
 // `ReportEngine.test.mo` proves the arithmetic against a bare journal. What needs the bank is
 // everything that reads the bank's own state, and it is the part a fixture would have hidden:
 //
 //   R-5b the sub-ledger row source: a report keyed by book, by product or by a **declared**
-//        counterparty class, built from real product accounts and real parties — including a
+//        counterparty class, built from real product accounts and real parties; including a
 //        party carrying no value for the declared field, which is keyed `unclassified` and
 //        reported rather than bucketed
 //   R-6  a statement is cut, not re-derived: the camt.053 of a recorded cut is byte-identical
@@ -16,7 +16,7 @@
 //   the registration rules: a version is immutable, a malformed definition or template never
 //   reaches a block, and a statement re-issued is the same statement with its count raised
 //
-// engine: wasi-only — the battery builds a bank, a journal and a portfolio and fingerprints
+// engine: wasi-only; the battery builds a bank, a journal and a portfolio and fingerprints
 // whole states, which does not finish in a useful time under `moc -r`, the same exemption the
 // BankCore, PartyCore, ProductEngine, PeriodEnd and EndOfDay batteries carry.
 
@@ -166,7 +166,7 @@ Debug.print("count: chart accounts opened = " # Nat.toText(chart.size()));
 //
 // The sector a return breaks deposits down by is a **declared**, non-personal label held as an
 // extension value on the party. Nothing about it is derived from personal data, which this
-// layer holds only as commitments — and a party carrying no value for the field is keyed
+// layer holds only as commitments; and a party carrying no value for the field is keyed
 // `unclassified`, which is the same discipline the leadsheet mapping has.
 ignore run(#registerSchema({
   id = "cbe";
@@ -282,7 +282,7 @@ for ((a, amount) in [(acctH1, 500_00), (acctH2, 250_00), (acctC1, 1_000_00)].val
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-5b — the sub-ledger row source, over real accounts and real parties
+//  R-5b; the sub-ledger row source, over real accounts and real parties
 // ═══════════════════════════════════════════════════════════════════════════
 
 func def(id : Text, rows : [RT.Dimension], filters : [RT.Filter], measures : [RT.Measure]) : RT.ReportDef {
@@ -338,7 +338,7 @@ assert (sav + cur == br01 + br02);
 Debug.print("count: products whose sub-ledger totals were verified = 2");
 
 // by the declared sector: household and corporate are rows, and the party with no declared
-// sector is **unresolved** — reported, never bucketed into one of the others
+// sector is **unresolved**; reported, never bucketed into one of the others
 let sectorReport = evaluate(bySector);
 Debug.print("resolved sector rows: " # Nat.toText(sectorReport.rows.size())
   # ", unresolved: " # Nat.toText(sectorReport.unresolved.size()));
@@ -350,7 +350,7 @@ assert (household == 10_000_00 + 500_00 + 20_000_00 + 250_00);
 assert (corporate == 50_000_00 + 1_000_00);
 assert (Text.equal(sectorReport.unresolved[0].key[0], "unclassified"));
 assert (sectorReport.unresolved[0].cells[0].amount == 3_000_00);
-// and the unresolved row is not in the resolved total, but *is* in the report's own total —
+// and the unresolved row is not in the resolved total, but *is* in the report's own total;
 // so a reader cannot lose it by reading the total, and cannot mistake it for a sector either
 assert (sectorReport.totals[0].cells[0].amount == household + corporate + 3_000_00);
 Debug.print("count: declared sectors reported, with the unclassified holding kept apart = 3");
@@ -371,7 +371,7 @@ assert (rowFor(filtered, ["BR01"]) == ?br01);
 Debug.print("count: sub-ledger reports narrowed by a filter = 1");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-6 — a statement is cut, not re-derived
+//  R-6; a statement is cut, not re-derived
 // ═══════════════════════════════════════════════════════════════════════════
 
 // The end-of-day batch records the cut. A camt.053 built from it must not move when a posting
@@ -399,7 +399,7 @@ assert (cutH1.day == CUT);
 Debug.print("the cut records opening " # Nat.toText(cutH1.openingCredits) # " and closing " # Nat.toText(cutH1.closingCredits));
 
 /// The in-heap journal log's block hash, which is what the camt projection derives a UETR
-/// from — and what it withholds a whole statement for want of.
+/// from; and what it withholds a whole statement for want of.
 func memHashOf(i : Nat) : ?Blob {
   let bs2 = JMemLog.blocks(jchain);
   if (i < bs2.size()) ?bs2[i].hash else null
@@ -445,7 +445,7 @@ assert (balanceOf(refBefore, #PRCD).credits == priorClose.credits);
 Debug.print("count: balance kinds tied to the cut and to the prior period = 3");
 
 // CLAV differs from CLBD by exactly the reservations the journal is holding. With none held,
-// the two agree — and that equality is itself the claim: an available figure that drifted from
+// the two agree; and that equality is itself the claim: an available figure that drifted from
 // the booked one with nothing reserved would be a hold table nobody reconciles.
 let live = JCore.balance(js, "2110", ?h1Entry.subledger, "EGP");
 assert (live.debitsPending == 0 and live.creditsPending == 0);
@@ -480,7 +480,7 @@ Debug.print("count: available balances differing from booked by exactly the rese
 
 // a posting value-dated into the cut day, admitted now the run is complete. The business date
 // moves forward first, because the journal refuses a posting dated after the day the bank is
-// on — which is the same rule that makes the cut a record of a day that has happened.
+// on; which is the same rule that makes the cut a record of a day that has happened.
 ignore run(#journalRollBusinessDate({ day = FEB28 }));
 let lateIndices = runPostings(#depositToAccount({
   account = acctH1; amount = 999_00; postingDate = FEB28; valueDate = CUT;
@@ -496,7 +496,7 @@ assert (balanceOf(refAfter, #ITBD).credits > balanceOf(refBefore, #ITBD).credits
 Debug.print("count: statement cuts unchanged by a posting value dated into the cut day = 1");
 
 // a camt.053 for a day whose cut was never taken is refused, rather than answered from the
-// live fold — the two are different claims and only one of them is what the customer was sent
+// live fold; the two are different claims and only one of them is what the customer was sent
 switch (Core.statementRefFor(bs, BankMemLog.reader(bchain), js, JMemLog.reader(jchain), acctH1, #camt053({ cut = CUT + 1 }), "2026-02")) {
   case (#err(e)) assert (Text.contains(debug_show (e), #text "NoStatementCut"));
   case (#ok(_)) { Debug.print("a statement was produced for a day with no cut"); assert false };
@@ -570,7 +570,7 @@ assert (notify.entryBlocks.size() > 0);
 Debug.print("count: camt.054 notifications naming their movement = 1");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-14b — a certified artefact is a recorded act
+//  R-14b; a certified artefact is a recorded act
 // ═══════════════════════════════════════════════════════════════════════════
 
 // A definition is registered as a block carrying its canonical hash, and that hash is the first
@@ -613,7 +613,7 @@ for (bad in [
 Debug.print("count: malformed definitions that never reached a block = " # Nat.toText(defRefusals));
 assert (defRefusals == 4);
 
-// a return template, likewise — and a template that maps an account twice never reaches a block
+// a return template, likewise; and a template that maps an account twice never reaches a block
 let template : RT.ReturnTemplate = {
   id = "CBE-BS"; version = 1; title = "Balance sheet return"; authority = "CBE"; currency = "EGP";
   taxonomy = ?"http://cbe.org.eg/xbrl/2026/bs";
@@ -649,7 +649,7 @@ refuse(#setStatementMap({ book = "HQ"; map = { map with cash = ["9999"] } }), "U
 refuse(#setStatementMap({ book = "HQ"; map = { map with retainedEarnings = "9999" } }), "UnknownAccount");
 Debug.print("count: statement maps set and refused = 3");
 
-// certifying a report records its content hash — which is the hash of its canonical bytes, so
+// certifying a report records its content hash; which is the hash of its canonical bytes, so
 // the artefact that leaves the building can be proven to be the report the books produced
 let evaluated = switch (Reports.evaluate(js, JMemLog.reader(jchain), registered, params, Core.reportContext(bs, BankMemLog.reader(bchain), js, registered), Core.height(bs))) {
   case (#ok(r)) r;

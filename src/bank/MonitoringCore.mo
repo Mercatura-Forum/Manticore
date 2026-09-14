@@ -1,4 +1,4 @@
-/// MonitoringCore.mo — the declared rules, folded from the bank's log.
+/// MonitoringCore.mo; the declared rules, folded from the bank's log.
 ///
 /// A rule is a recorded, dual-authorised decision. Defining one again is a new version; retiring
 /// one keeps it in the registry, inactive, so a finding that cites version 2 of a rule can always be
@@ -53,7 +53,7 @@ module {
     List.toArray(out)
   };
 
-  /// The active rules of one timing — what a posting or a day evaluates.
+  /// The active rules of one timing; what a posting or a day evaluates.
   /// The longest window any active rule reads: the least distance closed-month packing keeps
   /// between the packed boundary and the business date.
   public func longestWindow(s : State) : Nat {

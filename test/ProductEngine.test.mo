@@ -1,25 +1,25 @@
-// ProductEngine.test.mo — the product engine end to end, through the real core.
+// ProductEngine.test.mo; the product engine end to end, through the real core.
 //
 // The the product engine invariants that are properties of the *state machine* rather than of the
 // arithmetic, each driven through `planCommand` against a real embedded journal, so
 // every figure asserted here is a journal balance and not a fixture:
 //
-//   * I11 the gate is a height — every money-visible product command refuses below
+//   * I11 the gate is a height; every money-visible product command refuses below
 //     its activation height and is admitted at it, the activation is a block, and no
 //     administrator's flag activates anything;
-//   * I7 product terms are immutable under an account — an amendment is a new
+//   * I7 product terms are immutable under an account; an amendment is a new
 //     version, accounts opened under the old one still compute on the old terms, and
 //     a migration is an explicit recorded decision;
-//   * I3 rounding conserves — a capitalisation run's contra leg is the sum of the
+//   * I3 rounding conserves; a capitalisation run's contra leg is the sum of the
 //     rounded legs, the residue is reported, and no posting names a
 //     rounding-difference account (asserted by scanning every leg of every posting
 //     the run produced);
-//   * I4 zero accruals are not posted — the examined count includes them, the posted
+//   * I4 zero accruals are not posted; the examined count includes them, the posted
 //     count does not, and no zero-amount leg is ever generated;
-//   * I5 negative rates flip sides — the customer is debited and the amounts stay
+//   * I5 negative rates flip sides; the customer is debited and the amounts stay
 //     strictly positive;
 //   * I8 a header account cannot fund a posting;
-//   * I10 a till never absorbs a difference — a short drawer posts to suspense with
+//   * I10 a till never absorbs a difference; a short drawer posts to suspense with
 //     the cashier named and the drawer closes to its book position;
 //   * F3/F4 a withdrawal beyond the balance is refused by the engine, and a granted
 //     facility moves the boundary to exactly the facility and not one unit further;
@@ -27,9 +27,9 @@
 //     account, deposit, withdraw, read the accrual;
 //   * F6/F7 a loan disbursed, repaid in the declared order, taken into arrears,
 //     provisioned, written off and recovered, with every figure read back;
-//   * the fold is the log — replaying every block reproduces the state fingerprint.
+//   * the fold is the log; replaying every block reproduces the state fingerprint.
 //
-// engine: wasi-only — the battery fingerprints the whole state on every refusal,
+// engine: wasi-only; the battery fingerprints the whole state on every refusal,
 // which is quadratic in the number of blocks and does not finish in a useful time
 // under `moc -r`. That is the same reason the journal's own core battery and this
 // repository's BankCore battery are exempted, and it is stated here rather than
@@ -108,7 +108,7 @@ func execute(authority : Principal, command : T.Command, authorityIndex : Nat) :
 
 /// The authority index a command executes under. In production this is the index of
 /// the proposal or the override block that authorised it, which is unique per
-/// executed command — a proposal executes once and an override is its own block.
+/// executed command; a proposal executes once and an override is its own block.
 /// The harness reproduces that uniqueness with a counter rather than reusing the
 /// bank height, because a command that writes no bank event (a posting-only
 /// command) does not advance the height, and two such commands sharing an authority
@@ -197,7 +197,7 @@ ignore run(#addStaff({ principal_ = cashier; book = "BR01"; title = "Cashier" })
 
 // This battery value-dates postings across the whole of September to exercise the
 // accrual fold, so the branch's back-value window is declared wide enough to admit
-// them. The window itself — and what it refuses — is value dating and the close's battery.
+// them. The window itself; and what it refuses; is value dating and the close's battery.
 ignore run(#setBackValueWindow({ window = { book = "BR01"; freeDays = 30; approvedDays = 30 } }));
 ignore run(#setBackValueWindow({ window = { book = "HQ"; freeDays = 30; approvedDays = 30 } }));
 
@@ -285,7 +285,7 @@ let savings : ProdT.ProductTerms = {
 ignore run(#registerProduct({ id = "SAV"; name = "Savings"; terms = savings }));
 
 // a product cannot be registered twice, and a product whose role map breaks a
-// category is refused with the role named — the Fineract per-slot rejection
+// category is refused with the role named; the Fineract per-slot rejection
 expectErr(#registerProduct({ id = "SAV"; name = "Savings again"; terms = savings }), "ProductExists");
 expectErr(#registerProduct({
   id = "BAD"; name = "Broken";
@@ -400,7 +400,7 @@ expectErr(#openAccount({ product = "TILL"; party = alice; currency = "EGP"; term
 Debug.print("count: account openings refused = 6");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  I11 — the gate is a height
+//  I11; the gate is a height
 // ═══════════════════════════════════════════════════════════════════════════
 
 let deposit1 : T.Command = #depositToAccount({
@@ -444,7 +444,7 @@ Debug.print("count: product features activated = " # Nat.toText(activeFeatures))
 assert (activeFeatures == ProdT.featureIds().size());
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  F2 — the Fineract interest figure, through the whole path
+//  F2; the Fineract interest figure, through the whole path
 // ═══════════════════════════════════════════════════════════════════════════
 //
 // Deposit 1,000.00 on 2 September, withdraw 250.00 on 3 September, 5 % nominal on a
@@ -507,7 +507,7 @@ switch (Core.accruedInterest(bs, BankMemLog.reader(bchain), js, fineractAcct, SE
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  F3 and F4 — the engine refuses, and a facility moves the boundary
+//  F3 and F4; the engine refuses, and a facility moves the boundary
 // ═══════════════════════════════════════════════════════════════════════════
 
 // the business date moves forward to the observation day
@@ -571,7 +571,7 @@ ignore runPostings(#depositToAccount({
 }));
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  I8 — a header account cannot fund a posting
+//  I8; a header account cannot fund a posting
 // ═══════════════════════════════════════════════════════════════════════════
 
 expectErr(#depositToAccount({
@@ -647,7 +647,7 @@ expectErr(#waiveCharge({
 Debug.print("count: charge waivers verified = 2");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  I3, I4 — capitalisation conserves, and a zero accrual is not posted
+//  I3, I4; capitalisation conserves, and a zero accrual is not posted
 // ═══════════════════════════════════════════════════════════════════════════
 
 // bob's account has never been funded, so his accrual is zero and he is examined
@@ -716,7 +716,7 @@ expectErr(#capitaliseInterest({
 Debug.print("count: repeated capitalisation runs refused = 1");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  I5 — a negative rate debits the customer, and amounts stay positive
+//  I5; a negative rate debits the customer, and amounts stay positive
 // ═══════════════════════════════════════════════════════════════════════════
 
 let negAcct = run(#openAccount({ product = "NEGSAV"; party = bob; currency = "EGP"; termDays = null; allocationOrder = [] }));
@@ -736,7 +736,7 @@ switch (Core.accruedInterest(bs, BankMemLog.reader(bchain), js, negAcct, SEP10))
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  I7 — terms are immutable under an account
+//  I7; terms are immutable under an account
 // ═══════════════════════════════════════════════════════════════════════════
 
 // the rate alice's account computes on, before the amendment
@@ -784,7 +784,7 @@ switch (ProductCore.get(bs.product, Core.productBlocks(BankMemLog.reader(bchain)
 Debug.print("count: product version checks = 6");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  F6, F7 — a loan disbursed, repaid, aged, provisioned, written off, recovered
+//  F6, F7; a loan disbursed, repaid, aged, provisioned, written off, recovered
 // ═══════════════════════════════════════════════════════════════════════════
 
 let loanAcct = run(#openAccount({ product = "LOAN"; party = borrower; currency = "EGP"; termDays = null; allocationOrder = [] }));
@@ -969,7 +969,7 @@ Debug.print("count: recoveries verified = 1");
 
 // A second loan exercises the other half of the write-off split: provisioned while
 // it is merely current, so the allowance carries one per cent and the remaining
-// ninety-nine is a charge to the write-off expense. Both halves matter — an
+// ninety-nine is a charge to the write-off expense. Both halves matter; an
 // allowance that always covers the loss would hide a missing expense leg.
 let loan2 = run(#openAccount({ product = "LOAN"; party = borrower; currency = "EGP"; termDays = null; allocationOrder = [] }));
 ignore run(#setAccountStatus({ account = loan2; to = #active }));
@@ -1022,7 +1022,7 @@ assert (loan2Allowance.debits == loan2Allowance.credits);
 Debug.print("count: write-offs with a partial allowance verified = 1");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  I10 — a till never absorbs a difference
+//  I10; a till never absorbs a difference
 // ═══════════════════════════════════════════════════════════════════════════
 
 ignore run(#openTill({ till = "T01"; book = "BR01"; currency = "EGP"; holder = cashier; product = "TILL" }));
@@ -1165,7 +1165,7 @@ assert (ca1.party == carol and ca1.status == #active and ca2.party == carol and 
 assert (ca1.identifier != ca2.identifier);
 assert (PartyCore.partyCount(bs.party) == partiesBefore + 1);
 // refused whole: a missing due-diligence document, an unknown list, an unknown product, a duplicate
-// identity, a term on a savings product — nothing of the act lands, the fingerprint and height stay
+// identity, a term on a savings product; nothing of the act lands, the fingerprint and height stay
 let before = (Core.height(bs), PartyCore.partyCount(bs.party), ProductCore.accountCount(bs.product));
 expectErr(customer(10, #active, ?clearDecision, [twoDocs[0]], []), "CddIncomplete");
 expectErr(customer(10, #active, ?{ clearDecision with listVersion = "nosuch" }, twoDocs, []), "UnknownList");

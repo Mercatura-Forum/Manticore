@@ -1,7 +1,7 @@
-/// MerkleMMR.mo — Merkle Mountain Range for O(log n) inclusion proofs
+/// MerkleMMR.mo; Merkle Mountain Range for O(log n) inclusion proofs
 ///
 /// Leaf hashes and internal node hashes are stored in Region stable memory.
-/// Proof generation reads O(log n) hashes from Region — no recomputation.
+/// Proof generation reads O(log n) hashes from Region; no recomputation.
 ///
 /// Storage layout in Region:
 ///   Positions 0..N-1 map to MMR node positions (not leaf indices).
@@ -17,7 +17,7 @@
 /// the positions before the boundary leaf's own, so pruning is a prefix and whole chunks return
 /// to the pool. What is kept of the prefix, in a side index by position: the roots of the aligned
 /// subtrees that decompose the archived range (the siblings a live leaf's proof needs), and every
-/// node whose subtree holds at least `KEPT_SUBTREE_LEAVES` leaves — so a proof for an archived
+/// node whose subtree holds at least `KEPT_SUBTREE_LEAVES` leaves; so a proof for an archived
 /// leaf needs from an archive only the siblings below that height, inside the leaf's own aligned
 /// block, which the archive regenerates from the blocks it holds (`proofAbove`).
 
@@ -49,8 +49,8 @@ module {
     var peaks : [var ?Blob];
     var leafCount : Nat;
     var nodeCount : Nat;       // total MMR nodes (leaves + internals)
-    var baggedRoot : ?Blob;    // pre-computed root hash — O(1) access
-    /// `bagAbove[h]` is the fold of the peaks above height h, highest first — what the root's fold
+    var baggedRoot : ?Blob;    // pre-computed root hash; O(1) access
+    /// `bagAbove[h]` is the fold of the peaks above height h, highest first; what the root's fold
     /// has reached before it takes peak h. An append changes peaks only at and below its merge
     /// height, so the root is one hash from the fold above that height, not one per peak.
     var bagAbove : [var ?Blob];
@@ -68,7 +68,7 @@ module {
 
   public func newState() : State { newStateWith(CHUNK_NODES) };
 
-  /// A state whose chunks hold `chunkNodes` nodes — the tests use small chunks to see them cycle.
+  /// A state whose chunks hold `chunkNodes` nodes; the tests use small chunks to see them cycle.
   public func newStateWith(chunkNodes : Nat) : State {
     let keptArena = RI.newArena();
     {
@@ -212,7 +212,7 @@ module {
     state.baggedRoot := ?acc;
   };
 
-  /// The fold of every peak, highest first — what `rebagFrom` maintains incrementally; the tests
+  /// The fold of every peak, highest first; what `rebagFrom` maintains incrementally; the tests
   /// compare the two.
   public func foldPeaks(state : State) : ?Blob {
     var result : ?Blob = null;
@@ -227,7 +227,7 @@ module {
     result
   };
 
-  /// Root hash — O(1) via pre-computed bagged root.
+  /// Root hash; O(1) via pre-computed bagged root.
   public func rootHash(state : State) : ?Blob { state.baggedRoot };
 
   public func peakCount(state : State) : Nat {
@@ -298,7 +298,7 @@ module {
     let localIndex = leafIndex - treeStart;
 
     // Walk the tree bottom-up. At each level, find sibling hash.
-    // Use recursive subtree hash computation — but only read the ROOT of the sibling,
+    // Use recursive subtree hash computation; but only read the ROOT of the sibling,
     // which is already stored in Region (stored during append).
     // The root of a subtree = the last node stored in that subtree's range.
     var idx = localIndex;
@@ -439,7 +439,7 @@ module {
     if (leafIndex >= state.leafCount) return null;
     let ?t = treeOf(state, leafIndex) else return null;
     let localIndex = leafIndex - t.treeStart;
-    // below `fromHeight`: what is still here — a sibling whose subtree holds a live leaf always is
+    // below `fromHeight`: what is still here; a sibling whose subtree holds a live leaf always is
     let lower = List.empty<?Blob>();
     var li = localIndex;
     var lh = 0;
@@ -507,10 +507,10 @@ module {
       let halfLeaves = 2 ** (currentHeight - 1);
       let leftSubtreeNodes = 2 ** currentHeight - 1; // nodes in left child
       if (targetLeafStart < currentLeafStart + halfLeaves) {
-        // Go left — skip nothing, left subtree starts at pos
+        // Go left; skip nothing, left subtree starts at pos
         currentHeight -= 1;
       } else {
-        // Go right — skip left subtree + left subtree's nodes
+        // Go right; skip left subtree + left subtree's nodes
         pos += leftSubtreeNodes;
         currentLeafStart += halfLeaves;
         currentHeight -= 1;

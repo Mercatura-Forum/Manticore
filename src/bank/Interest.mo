@@ -1,4 +1,4 @@
-/// Interest.mo — accrual as a fold, and rounding that conserves.
+/// Interest.mo; accrual as a fold, and rounding that conserves.
 ///
 /// Two decisions shape this module, and both are consequences of where the journal
 /// already keeps its state.
@@ -8,7 +8,7 @@
 /// account per day: a bank with a million accounts would write hundreds of millions
 /// of blocks a year to say nothing happened. But the journal keeps **exact
 /// value-dated balances**, so accrued interest over any window is a pure function
-/// of the journal and the product's terms — which means it is also *correct after a
+/// of the journal and the product's terms; which means it is also *correct after a
 /// back-dated posting*, with no stored figure to go stale. That is the whole reason
 /// the product engine sits on this journal rather than beside a conventional one.
 ///
@@ -98,7 +98,7 @@ module {
     var cursor = from;
     while (cursor < to) {
       // The day's own fraction, which is the convention's: one over the basis for
-      // the ACT family, and the 30/360 numerator for that family — so a 31st
+      // the ACT family, and the 30/360 numerator for that family; so a 31st
       // contributes nothing under the bond basis rather than a day the convention
       // does not recognise.
       let ?f = DC.dailyFraction(conv, cursor) else return null;
@@ -179,8 +179,8 @@ module {
 
   /// Round a set of per-entity accruals and report their total.
   ///
-  /// The contra leg of the posting is `total` — the **sum of the rounded
-  /// amounts** — so the posting balances by construction. `residueNumerator over
+  /// The contra leg of the posting is `total`; the **sum of the rounded
+  /// amounts**; so the posting balances by construction. `residueNumerator over
   /// residueDenominator` is the difference between the exact sum and that total,
   /// which the caller reports per run and an acceptance criterion bounds. There is
   /// no rounding-difference account anywhere in this engine.

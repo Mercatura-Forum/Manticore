@@ -49,7 +49,7 @@ canister (`mtBridgeMappings`) and in `mt-mappings.json` here, written by
 `scripts/mt-bridge-roundtrip.py` from the canister's table so the two cannot
 drift (`--check-mappings` fails the run if they do). What an MT type does not
 carry and a record requires is a documented convention in the table's `note`
-column — never a guess in code.
+column; never a guess in code.
 
 Fixtures: `mt/*.fin` (two per type, `mt-manifest.json`). Proven by the runner
 for every fixture: MT → record → MT → record equal; record → XML → record equal

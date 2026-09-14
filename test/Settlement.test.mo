@@ -1,11 +1,11 @@
-// Settlement.test.mo — settlement on the pure state machine: the cap is the engine's, prefunding
+// Settlement.test.mo; settlement on the pure state machine: the cap is the engine's, prefunding
 // is a posting, netting conserves (INV-P1), settlement is one batch (INV-P2), and every reference
 // state is reached or named unreachable.
 //
 // What is proved, on a world of participants with position, settlement and fee accounts:
 //
 //   S-1  a transfer that would take a payer's position past its net debit cap is refused by the
-//        journal — the transfer is FAILED with the journal's own `#ExceedsCredits`, not a check of
+//        journal; the transfer is FAILED with the journal's own `#ExceedsCredits`, not a check of
 //        this layer's; 120 boundary cases including the exact cap and one minor unit past it; the
 //        alarm is a recorded event at the threshold and never a refusal;
 //   S-2  funds in and out are balanced postings; a participant's settlement balance equals the sum
@@ -17,7 +17,7 @@
 //        its limit, the whole settlement is refused, the journal fingerprint is unchanged, the window
 //        is FAILED; re-driven after the breach is cleared it settles once, and a second drive changes
 //        nothing;
-//   S-5  every window and settlement state is reached; every illegal transition is refused — the
+//   S-5  every window and settlement state is reached; every illegal transition is refused; the
 //        full matrices are enumerated and counted;
 //   S-6  the 16 transfer states against the mapping table: each reached or named unreachable; the
 //        transition matrix enumerated; expiry produces a recorded void;
@@ -26,7 +26,7 @@
 //   S-8  the 10 entry kinds are produced and the interchange fees reconcile to the fee arithmetic
 //        recomputed independently.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -85,8 +85,8 @@ var authority = 1_000_000;
 func nextAuthority() : Nat { authority += 1; authority };
 let recorder : Core.Recorder = { bank = func(ev : T.Event) : Nat { bcommit(ev) }; journal = func(ev : JT.Event) : Nat { jcommit(ev) }; monitor = Core.noMonitor };
 
-/// Plan and execute a command the way the actor does: the bank event, the journal steps, and — for a
-/// prepared transfer — the reservation in the same message.
+/// Plan and execute a command the way the actor does: the bank event, the journal steps, and; for a
+/// prepared transfer; the reservation in the same message.
 func execute(command : T.Command) : Result.Result<Nat, T.BankError> {
   switch (Core.planCommand(bs, bb(), js, jb(), bankP, clock, command, nextAuthority())) {
     case (#err(e)) #err(e);
@@ -158,7 +158,7 @@ func product(id : Text, control : Text, kind : ProdT.ProductKind, ccy : Text, ov
   } })
 };
 for (ccy in ["EGP", "USD", "EUR"].vals()) {
-  // a position may go debit up to its cap — the cap is granted per account (`grantFacility`)
+  // a position may go debit up to its cap; the cap is granted per account (`grantFacility`)
   ignore cmd(product("POS-" # ccy, "2130", #currentAccount, ccy, ?0));
   ignore cmd(product("SET-" # ccy, "2140", #currentAccount, ccy, null));
   ignore cmd(product("FEE-" # ccy, "2150", #currentAccount, ccy, null));
@@ -432,7 +432,7 @@ Debug.print("count: corrupted nettings refused = 1");
 var positionSum : Int = 0;
 for (p in pool.vals()) { positionSum += balanceOf(posOf(p, "EGP"), "2130", "EGP") };
 // positions carry the committed-but-unsettled transfers only; everything here settled, so what is left on
-// every pool position is the fees it paid — reconciled participant by participant in S-8 below
+// every pool position is the fees it paid; reconciled participant by participant in S-8 below
 ignore positionSum;
 
 // ─── S-4: atomicity under a rigged breach ──────────────────────────────────────
@@ -530,7 +530,7 @@ func driveBulk(id : Nat) : Text {
   };
   last
 };
-// a bulk with one bad item (a payee with no account in the currency — none hold JPY): partially fails, the rest stand
+// a bulk with one bad item (a payee with no account in the currency; none hold JPY): partially fails, the rest stand
 let bulk1 = cmd(#receiveBulk({ scheme = "SCHEME"; payer = parts[0].id; reference = "B1"; ttlSeconds = 600; requests = [
   { payee = parts[1].id; currency = "EGP"; amount = 10_00; reference = "a" }, { payee = parts[2].id; currency = "JPY"; amount = 10_00; reference = "b" }, { payee = parts[3].id; currency = "EGP"; amount = 30_00; reference = "c" }] }));
 refuse(#fulfilBulk({ bulk = bulk1 }), "BulkNotIn");   // not yet accepted
@@ -595,7 +595,7 @@ var present = 0;
 for (k in ["PRINCIPLE_VALUE", "INTERCHANGE_FEE", "HUB_FEE", "SETTLEMENT_NET_RECIPIENT", "SETTLEMENT_NET_SENDER", "RECORD_FUNDS_IN", "RECORD_FUNDS_OUT"].vals()) { if (Map.containsKey(kinds, Text.compare, k)) present += 1 else fail("entry kind never produced: " # k) };
 Debug.print("count: entry kinds produced as posting classes = " # Nat.toText(present));
 // SETTLEMENT_NET_ZERO is a net recorded and not posted (above); POSITION_DEPOSIT and POSITION_WITHDRAWAL are
-// the cap raised and lowered — Mojaloop's seed describes them as "used when increasing/decreasing Net Debit
+// the cap raised and lowered; Mojaloop's seed describes them as "used when increasing/decreasing Net Debit
 // Cap" — here `grantFacility` on the position, the journal's own limit event
 let capChanged = newParticipant(60, CAP);
 let capAcct = posOf(capChanged, "EGP");
@@ -624,7 +624,7 @@ while (t2 < Core.height(bs)) {
 };
 assert (interchangeSum == expectedInterchange and hubSum == expectedHub);
 // and on the positions: every pool participant's position, every window settled, holds exactly minus the
-// fees it paid as a payer — the principal netted away to the settlement account
+// fees it paid as a payer; the principal netted away to the settlement account
 func cmpPC(a : (Nat, Text), b : (Nat, Text)) : { #less; #equal; #greater } { switch (Nat.compare(a.0, b.0)) { case (#equal) Text.compare(a.1, b.1); case (o) o } };
 let feesPaid = Map.empty<(Nat, Text), Nat>();
 t2 := 0;

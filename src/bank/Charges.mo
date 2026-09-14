@@ -1,4 +1,4 @@
-/// Charges.mo — the fee and charge engine, as pure functions.
+/// Charges.mo; the fee and charge engine, as pure functions.
 ///
 /// A charge definition is (calculation, timing, amount or rate, currency, income
 /// role, waivable). Fineract's `m_charge` is the reference shape, and the
@@ -73,7 +73,7 @@ module {
   };
 
   /// The amount actually charged: exact, then rounded by the product's declared
-  /// mode. A charge that rounds to zero is **not** posted — the journal refuses a
+  /// mode. A charge that rounds to zero is **not** posted; the journal refuses a
   /// zero leg, and a posting that moves nothing is the fake-green pattern.
   public func amountOf(c : T.Charge, base : Base, mode : I.Rounding) : { #ok : { amount : Nat; exact_ : I.Signed }; #err : ChargeFault } {
     switch (exact(c, base)) {

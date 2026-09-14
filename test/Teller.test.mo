@@ -1,4 +1,4 @@
-// Teller.test.mo — the branch's counted cash, sessions, cash network, cheques and drafts as the bank records them
+// Teller.test.mo; the branch's counted cash, sessions, cash network, cheques and drafts as the bank records them
 // (branch and teller), on the pure core over a real stable-memory arena.
 //
 // What is proved:
@@ -16,7 +16,7 @@
 //   * drafts: issued once per serial, paid or cancelled once;
 //   * the fingerprint deterministic and changing.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";

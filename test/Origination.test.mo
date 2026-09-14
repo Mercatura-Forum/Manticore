@@ -1,21 +1,21 @@
-// Origination.test.mo — an application for credit as the bank records it (origination and underwriting), on the pure core over a
+// Origination.test.mo; an application for credit as the bank records it (origination and underwriting), on the pure core over a
 // real stable-memory arena.
 //
 // What is proved:
 //
 //   * the models' gates (a policy, an affordability model, a scorecard refused where malformed; a version that
 //     does not follow refused);
-//   * the affordability rules and the scorecard as pure functions over recorded facts — the same functions the
-//     Python oracle of bank_s32.py writes again — over a table of cases;
+//   * the affordability rules and the scorecard as pure functions over recorded facts; the same functions the
+//     Python oracle of bank_s32.py writes again; over a table of cases;
 //   * the WebAuthn assertion verifier against vectors from an independent implementation (Python cryptography):
-//     the valid assertion accepted, and every refusal named — wrong challenge, wrong origin, wrong relying
+//     the valid assertion accepted, and every refusal named; wrong challenge, wrong origin, wrong relying
 //     party, user not present, tampered signature, another key, an unknown credential, the wrong ceremony;
 //   * the life of an application through the planners and the fold: every act refused where its stage forbids
 //     it, the decision against the band needing a rationale, the offer bound to the approval, the documentation
 //     completing, the drawing; a prospect's application gaining its party at onboarding; decline, withdrawal,
 //     expiry; the indexes by stage, party and account; the fingerprint deterministic and changing.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";

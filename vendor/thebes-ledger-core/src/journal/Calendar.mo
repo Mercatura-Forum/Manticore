@@ -1,4 +1,4 @@
-/// Calendar.mo — working-day calendar and value-date shift policy.
+/// Calendar.mo; working-day calendar and value-date shift policy.
 ///
 /// A calendar is data: the weekly rest days (0 = Monday … 6 = Sunday, ISO
 /// 8601 weekday numbering) and a sorted list of holiday day numbers. A value

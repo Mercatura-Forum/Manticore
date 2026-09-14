@@ -1,9 +1,9 @@
-/// Queries.mo — one bounded, paged read over the posting indexes.
+/// Queries.mo; one bounded, paged read over the posting indexes.
 ///
 /// `PostingIndex` is the write side; this is the read side, and it is deliberately the **only** new
 /// read surface the component adds. Proposal §4: the engine picks the narrowest index the filter
 /// allows, applies the rest while walking it, sizes the walk first and refuses a filter wider than
-/// its bound — naming the size — rather than trapping part-way.
+/// its bound; naming the size; rather than trapping part-way.
 ///
 /// ## Why refusal and not truncation
 ///
@@ -23,8 +23,8 @@
 ///   4. otherwise → I2, the day index.
 ///
 /// Every one of those is a single range scan with a date window, because the day is the second part
-/// of all four keys. A filter the chosen index does not fix — an amount band, a status, a currency
-/// when the account index answered — is applied while walking, and the page reports how many rows it
+/// of all four keys. A filter the chosen index does not fix; an amount band, a status, a currency
+/// when the account index answered; is applied while walking, and the page reports how many rows it
 /// walked so a caller can see the selectivity it got.
 ///
 /// ## Dates are value dates
@@ -64,7 +64,7 @@ module {
     account : ?Nat;
     currency : ?JT.Currency;
     class_ : ?Text;
-    /// Inclusive value-date window. Absent means unbounded, which is usually refused by the sizing —
+    /// Inclusive value-date window. Absent means unbounded, which is usually refused by the sizing;
     /// correctly, because an unbounded window over a real journal is not a bounded read.
     from : ?JT.Day;
     to : ?JT.Day;
@@ -127,13 +127,13 @@ module {
     /// The journal's height, stamped on the page.
     height : Nat;
     /// Which account ids exist, so a filter naming an account the bank never opened is refused
-    /// rather than answered "no rows" — the two are different answers and a caller must be able to
+    /// rather than answered "no rows"; the two are different answers and a caller must be able to
     /// tell them apart.
     accountExists : Nat -> Bool;
     /// The declared class of an account, the same answer the index was written with. Needed for
     /// exactly one thing: a saturated row on the class index, whose exact magnitude is the sum over
     /// that class's legs and not over the posting's. Without it the band would be decided against
-    /// the saturated field and a bound straddling 2^64 would be answered wrongly — a case no bank
+    /// the saturated field and a bound straddling 2^64 would be answered wrongly; a case no bank
     /// reaches, which is not a reason to be wrong about it.
     classOf : Nat -> ?Text;
   };

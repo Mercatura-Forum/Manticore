@@ -1,4 +1,4 @@
-# Provenance — test-only ISO 20022 codec
+# Provenance; test-only ISO 20022 codec
 
 Copied unmodified from `github.com/Mercatura-Forum/thebes-example-open-banking-iso20022`,
 branch `main`, commit `0d8661e26fee8497be1591d55ffe175d41aa5184` (2026-08-30), path `motoko/`:

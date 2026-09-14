@@ -1,4 +1,4 @@
-/// Screening.mo — what is verifiable about a sanctions check, and what is not.
+/// Screening.mo; what is verifiable about a sanctions check, and what is not.
 ///
 /// Real screening is fuzzy: transliteration, phonetic matching, aliases, partial
 /// dates of birth. That cannot be an on-chain exact-match proof, and pretending
@@ -19,7 +19,7 @@
 /// system and its result is recorded as an attributable decision naming the
 /// screener, the list version, the list root, the match count and a commitment to
 /// the justification. What the chain then guarantees is attribution, ordering and
-/// tamper-evidence, and that the recorded consequences are enforced — a `#hit`
+/// tamper-evidence, and that the recorded consequences are enforced; a `#hit`
 /// blocks money movement. It does **not** guarantee that the fuzzy match was
 /// good. That sentence belongs in the release note and in the sales material in
 /// the same words it appears in here.
@@ -155,8 +155,8 @@ module {
 
   /// Verify that `subject` is **absent** from the committed list.
   ///
-  /// `list` is the *recorded* list — its root, count and version come from a
-  /// block, not from the prover — which is what the argument rests on. The count
+  /// `list` is the *recorded* list; its root, count and version come from a
+  /// block, not from the prover; which is what the argument rests on. The count
   /// binds the two edge shapes ("nothing sorts below the first entry", "nothing
   /// sorts above the last") and the index bounds; for a subject bracketed by two
   /// neighbours the argument is that both leaves are included under the committed

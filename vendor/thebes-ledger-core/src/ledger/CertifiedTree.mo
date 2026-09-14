@@ -1,4 +1,4 @@
-/// CertifiedTree.mo — Merkle hash tree for IC certified data
+/// CertifiedTree.mo; Merkle hash tree for IC certified data
 ///
 /// Provides verifiable query responses via the IC's BLS certification mechanism.
 /// The canister maintains a hash tree over key data (last_block_hash, total_supply).
@@ -27,7 +27,7 @@ import Sha256 "mo:sha2/Sha256";
 module {
 
   // ═══════════════════════════════════════════════════════
-  //  STABLE STATE (pure data — no closures)
+  //  STABLE STATE (pure data; no closures)
   // ═══════════════════════════════════════════════════════
 
   public type State = {

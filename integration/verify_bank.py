@@ -4,11 +4,11 @@
 The same five-step check `verify_entry.py` performs on a journal entry, applied
 to the bank log and its own subtree of the combined certified tree:
 
-  1. the certificate's BLS signature against the IC root key, through the
+  1. the certificate's BLS signature against the network root key, through the
      subnet delegation (reused from verify_entry);
   2. the canister's `certified_data` equals the hash of the returned hash tree;
   3. the tree contains the bank's MMR root under `thebes_bank/mmr_root` and the
-     journal's under `thebes_journal/mmr_root` — one certificate, both logs;
+     journal's under `thebes_journal/mmr_root`; one certificate, both logs;
   4. the block's own stored bytes hash to the hash it carries, decoded by this
      file's own reader with its own SHA-256 calls;
   5. the inclusion proof bags its peaks to the certified root.
@@ -344,7 +344,7 @@ class Reader(V.Reader):
     ACCOUNT_STATUS = ["pending", "active", "dormant", "closed"]
     COMPONENTS = ["penalty", "fee", "interest", "principal"]
     # the day-count conventions of the product engine, by the encoder's byte (the value-date conventions of the close are
-    # `VALUE_DATE_CONVENTIONS` below — the two tables carried one name until treasury, and the product decoder read the wrong one)
+    # `VALUE_DATE_CONVENTIONS` below; the two tables carried one name until treasury, and the product decoder read the wrong one)
     DAY_COUNTS = {0x01: "A001", 0x03: "A003", 0x04: "A004", 0x05: "A005",
                   0x06: "A006", 0x07: "A007", 0x0B: "A011"}
 
@@ -3121,7 +3121,7 @@ def split_trailer(raw):
 
 def command_bytes_of(raw):
     """Extract the canonical command bytes from a proposal or override block, so the command hash can be
-    recomputed from the block rather than taken from it, with the encoding version the block recorded —
+    recomputed from the block rather than taken from it, with the encoding version the block recorded;
     this is what makes 'the approved bytes execute' checkable from outside. Returns (bytes, version), or
     None for a proposal whose body a pack dropped."""
     r = Reader(raw)
@@ -3135,7 +3135,7 @@ def command_bytes_of(raw):
         start = r.p
         r.command(enc)
         return raw[start:r.p], enc
-    # a proposal: the body is the trailer behind the hash — None once a pack dropped it
+    # a proposal: the body is the trailer behind the hash; None once a pack dropped it
     r.p -= 1
     ev = r.bank_event()["commandProposed"]
     r.take(32)
@@ -3184,7 +3184,7 @@ def verify_bank_entry(raw_block, proof, tip, root_key_der, canister_id_bytes, ex
 
 def verify_journal_entry(raw_block, proof, tip, root_key_der, canister_id_bytes, expect_index=None):
     """The same check for a journal block, against the journal root inside the
-    same certificate — so one certificate proves both."""
+    same certificate; so one certificate proves both."""
     roots = certified_roots(tip, root_key_der, canister_id_bytes)
     fields, h = V.decode_block(bytes(raw_block))
     if expect_index is not None:

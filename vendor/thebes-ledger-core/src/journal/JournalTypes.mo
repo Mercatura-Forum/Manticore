@@ -1,4 +1,4 @@
-/// JournalTypes.mo — the vocabulary of the double-entry journal.
+/// JournalTypes.mo; the vocabulary of the double-entry journal.
 ///
 /// Everything the journal records is one of the `Event` variants below, and
 /// every event is one immutable block in the Merkle-committed journal log.
@@ -102,10 +102,10 @@ module {
   /// limit overrides it for that sub-ledger.
   ///
   ///   #debitsNotExceedCreditsPlus n   debits + pending <= credits + n
-  ///                                   (a deposit account overdrawn by at most n —
+  ///                                   (a deposit account overdrawn by at most n;
   ///                                   an overdraft facility of n)
   ///   #creditsNotExceedDebitsPlus n   credits + pending <= debits + n
-  ///                                   (a position that may go short by at most n —
+  ///                                   (a position that may go short by at most n;
   ///                                   a net debit cap of n)
   ///
   /// TigerBeetle has the all-or-nothing flags; the numeric form is what an
@@ -117,7 +117,7 @@ module {
   /// rollup and may not be posted to; `manualEntriesAllowed = false` refuses a
   /// posting whose source kind is a manual correction. Every account opened
   /// before this event existed reads as `#detail`, manual entries allowed, no
-  /// parent — so nothing already written changes meaning.
+  /// parent; so nothing already written changes meaning.
   public type AccountUsage = { #header; #detail };
 
   public type AccountAttributes = {
@@ -156,7 +156,7 @@ module {
     correctionOf : ?Nat;     // index of the posting this one corrects, if any
   };
 
-  /// What the journal stores — the input plus the relation resolved at admission,
+  /// What the journal stores; the input plus the relation resolved at admission,
   /// and the value date as requested when the working-day calendar moved it.
   public type PostingRecord = {
     idempotencyKey : Blob;
@@ -207,9 +207,9 @@ module {
 
   /// Where the journal's "today" comes from when no business date has been rolled, and whether a roll is
   /// measured against the substrate's clock. `#substrateClock`: the clock's day is today until a business date
-  /// is set, and a business date may not pass the clock's day — right where the substrate's time is consensus
+  /// is set, and a business date may not pass the clock's day; right where the substrate's time is consensus
   /// time (the IC). `#businessDate`: the rolled business date is the calendar and the clock is not consulted for
-  /// days — a substrate whose `Time.now()` is not wall time (Thebes: the block height in seconds) cannot be the
+  /// days; a substrate whose `Time.now()` is not wall time (Thebes: the block height in seconds) cannot be the
   /// bank's calendar; the act that sets this authority carries the first business date when none is set, so
   /// under it a business date always exists, and a roll may advance by at most `maxRollDays`.
   public type CalendarAuthority = { #substrateClock; #businessDate };

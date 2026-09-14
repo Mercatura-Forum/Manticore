@@ -1,10 +1,10 @@
-//! thebes-bls-verify — verify an Internet Computer BLS12-381 signature.
+//! thebes-bls-verify — verify a BLS12-381 certificate signature.
 //!
 //! Usage: thebes-bls-verify <signature-hex> <message-hex> <public-key-hex>
 //! Prints BLS_OK and exits 0 when the signature verifies; BLS_FAIL and exits 1
-//! otherwise. The message is the domain-separated bytes the IC signs
+//! otherwise. The message is the domain-separated bytes the network signs
 //! ("\x0dic-state-root" followed by the certificate tree's root hash); the
-//! caller assembles it. Verification is delegated to DFINITY's
+//! caller assembles it. Verification is delegated to the
 //! `ic-verify-bls-signature` crate, an implementation independent of anything
 //! in this repository.
 

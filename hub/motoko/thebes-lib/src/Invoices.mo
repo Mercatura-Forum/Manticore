@@ -1,17 +1,17 @@
-/// Invoices.mo — a reusable invoicing surface for Thebes apps.
+/// Invoices.mo; a reusable invoicing surface for Thebes apps.
 ///
 /// A PURE MODULE (no actor, no state of its own). The host actor holds one
 /// `Invoices.State` in a top-level `let` (stable under `persistent actor`,
 /// because `mo:core/Map` mutates in place) and passes it in.
 ///
 /// What you get:
-///   • create / createIssued — open an invoice from line items. Totals are
+///   • create / createIssued; open an invoice from line items. Totals are
 ///                             ALWAYS recomputed on-chain from the line items and
 ///                             tax rate; a client can never supply a total.
-///   • issue / markPaid / void — the status lifecycle, each guarded by the right
+///   • issue / markPaid / void; the status lifecycle, each guarded by the right
 ///                             party and a legal source status, each appending to
 ///                             an immutable audit trail.
-///   • get / forPrincipal / all / count — reads (page large lists with
+///   • get / forPrincipal / all / count; reads (page large lists with
 ///                             `Pagination.page`).
 ///
 /// Status lifecycle:  draft ──issue──▶ issued ──markPaid──▶ paid
@@ -22,7 +22,7 @@
 /// points (1% = 100 bps).
 ///
 /// Trust model: every mutation is keyed on the caller `Principal` the host actor
-/// passes (`msg.caller` on Thebes) — never a value from untrusted arguments. The
+/// passes (`msg.caller` on Thebes); never a value from untrusted arguments. The
 /// mutating functions return `Result`; wrap them with an `*OrTrap` method at the
 /// actor boundary so a failed guard rejects the call (never a swallowed `#err`).
 
@@ -89,7 +89,7 @@ module {
     };
   };
 
-  /// Recompute totals from the line items. The single source of truth for money —
+  /// Recompute totals from the line items. The single source of truth for money;
   /// never accept a total from a caller.
   public func computeTotals(lineItems : [LineItem], taxBps : Nat) : Totals {
     let subtotal = Array.foldLeft<LineItem, Nat>(
@@ -121,7 +121,7 @@ module {
     inv;
   };
 
-  /// Open an invoice already ISSUED — the common order-to-invoice path.
+  /// Open an invoice already ISSUED; the common order-to-invoice path.
   public func createIssued(
     s : State, now : Int, issuer : Principal, recipient : Principal,
     lineItems : [LineItem], taxBps : Nat,

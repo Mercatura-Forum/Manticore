@@ -1,4 +1,4 @@
-/// TradeTypes.mo — trade finance (trade finance): documentary credits, standbys and demand guarantees, documentary
+/// TradeTypes.mo; trade finance (trade finance): documentary credits, standbys and demand guarantees, documentary
 /// collections and bills as recorded lifecycles under the ICC rules.
 ///
 /// An instrument is an object on the bank log: the block that issued it is its identity, its terms live in that
@@ -6,7 +6,7 @@
 /// release, an expiry) is a block that names it. The fold keeps a fixed row per instrument and per claim under it
 /// (a presentation of documents under a credit, a demand under a guarantee, the presentation of a collection),
 /// the memoranda that make the contingent book readable, and the messages exchanged with the counterparty bank
-/// as hashes on the block — the message is never the truth, the block is. The rules are the ICC's: UCP 600 for
+/// as hashes on the block; the message is never the truth, the block is. The rules are the ICC's: UCP 600 for
 /// documentary credits (examination within five banking days, art. 14(b); a refusal notice stating every
 /// discrepancy once, art. 16(c); an amendment needing the beneficiary's consent, art. 10), ISP98 and URDG 758 for
 /// undertakings (the supporting statement of art. 15, examination within five business days of art. 20), URC 522
@@ -30,7 +30,7 @@ module {
     bic : Text;                           // the bank's own BIC, the sender of every outgoing message
     contingentLcs : Text;                 // documentary credits issued or confirmed, outstanding
     contingentGuarantees : Text;          // standbys and demand guarantees outstanding
-    contingentCollections : Text;         // items held for collection (no undertaking — memorandum only)
+    contingentCollections : Text;         // items held for collection (no undertaking; memorandum only)
     contingentContra : Text;              // the other side of the memoranda
     marginDeposits : Text;                // the cash margin an applicant or principal lodges, a sub-ledger per instrument (a liability)
     unearnedCommission : Text;            // commission taken at issue and not yet earned
@@ -51,7 +51,7 @@ module {
   public type Rules = { #UCP600; #ISP98; #URDG758; #URC522 };
   public func rulesText(r : Rules) : Text { switch (r) { case (#UCP600) "UCP600"; case (#ISP98) "ISP98"; case (#URDG758) "URDG758"; case (#URC522) "URC522" } };
 
-  /// A document the credit calls for and the checks the examiner performs on it — the ISBP 821 practice as data:
+  /// A document the credit calls for and the checks the examiner performs on it; the ISBP 821 practice as data:
   /// each check is an identifier from the bank's checklist (`INV-AMOUNT`, `TRANS-ONBOARD-DATE`, `INS-COVER-110`…);
   /// the examiner records every check's result and the decision must follow from them.
   public type DocumentKind = { #invoice; #transport; #insurance; #origin; #packing; #inspection; #draft; #other : Text };

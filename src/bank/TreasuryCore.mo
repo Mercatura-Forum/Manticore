@@ -1,13 +1,13 @@
-/// TreasuryCore.mo — the treasury book folded from the bank's log in stable memory (treasury): deals, securities,
+/// TreasuryCore.mo; the treasury book folded from the bank's log in stable memory (treasury): deals, securities,
 /// curves, limits, nostros, the nostro's own postings as an index over the journal, statements and breaks.
 ///
 /// Rows: one per deal (keyed by the block that captured it) with the fixed facts and the running figures the
-/// postings have made — accrued, amortised, fair-value adjustment, mark, realised, the nominal and cost left of a
+/// postings have made; accrued, amortised, fair-value adjustment, mark, realised, the nominal and cost left of a
 /// security lot, the settled legs; one per registered security; one per curve per day; one per limit; one per
 /// nostro; one per posting leg on a nostro account (the bank's side of the reconciliation, written as the journal
 /// commits); one per statement (its hash, so a statement is recorded once); one per break. The valuation arithmetic
 /// lives in `TreasuryMath.mo`; here it is applied to rows, and the postings each act needs are built as legs the
-/// bank posts — the same shape as every domain since S2.
+/// bank posts; the same shape as every domain since S2.
 ///
 /// Decisions this file makes (DESIGN §25): a deal's terms live in the block that captured (or last amended) it,
 /// and the row points at that block; positions are folds over the open rows, not stored; a security lot is its
@@ -49,7 +49,7 @@ module {
   public let NOSTRO_LEG_ROW_BYTES : Nat = 26;
   public let BREAK_ROW_BYTES : Nat = 80;
   public let STATEMENT_ROW_BYTES : Nat = 44;
-  /// Forty pillars — overnight to thirty years on a market grid — and 128 payment periods, a quarterly swap to
+  /// Forty pillars; overnight to thirty years on a market grid; and 128 payment periods, a quarterly swap to
   /// thirty-two years (S4.1, the treasury review raised both from 16 and 64).
   public let MAX_CURVE_POINTS : Nat = 40;
   public let MAX_STATEMENT_ENTRIES : Nat = 500;
@@ -213,7 +213,7 @@ module {
     /// `pnl|book|ccy` (realised of every deal of the book plus the marks and fair-value adjustments of the open ones),
     /// `cp|book|cpHash|ccy` (open notional per counterparty), `pos|book|ccy` (the open FX exposure by base currency),
     /// `iss|book|issuerHash` (the nominal held per issuer), `open|book` (open deals of the book). Every write of a deal
-    /// row passes through `putRow`, which moves each aggregate by the row's change — so they are the walk's answer,
+    /// row passes through `putRow`, which moves each aggregate by the row's change; so they are the walk's answer,
     /// which the campaign asserts on a seeded book.
     aggregates : Map.Map<Text, Int>;
     var policy : ?TT.Policy;
@@ -289,7 +289,7 @@ module {
       bump(s, "ccy|" # ccy, sign);
       if (r.secondCurrency.size() > 0 and not Text.equal(r.secondCurrency, ccy)) bump(s, "ccy|" # r.secondCurrency, sign);
     };
-    // the nominal held per issuer: a security bought, not cancelled, with nominal left — open or settled
+    // the nominal held per issuer: a security bought, not cancelled, with nominal left; open or settled
     if (r.kind == 4 and has(r.flags, F_BUY) and r.state != #cancelled and r.nominalLeft > 0) {
       switch (security(s, r.isin)) { case (?x) bump(s, "iss|" # r.book # "|" # Nat.toText(x.issuerHash), sign * r.nominalLeft); case null {} };
     };
@@ -298,7 +298,7 @@ module {
   public func aggregate(s : State, key : Text) : Int { switch (Map.get(s.aggregates, Text.compare, key)) { case (?v) v; case null 0 } };
   /// The open deals of a book, from the counter the fold keeps.
   public func openCountOf(s : State, book : Text) : Nat { let v = aggregate(s, "open|" # book); if (v < 0) 0 else Int.abs(v) };
-  /// The open deals with a leg in the currency, from the fold's counter — no walk.
+  /// The open deals with a leg in the currency, from the fold's counter; no walk.
   public func openInCurrency(s : State, ccy : Text) : Nat { let v = aggregate(s, "ccy|" # ccy); if (v < 0) 0 else Int.abs(v) };
   func putBreak(s : State, r : BreakRow) { ignore RI.put(s.breaks, R.key(r.id, 8), encodeBreak(r)) };
   func curveKey(id : Text, day : Nat) : Blob { Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(id, 32)), Blob.toArray(R.key(day, 4)))) };
@@ -350,7 +350,7 @@ module {
   /// size it found, as the index component's queries are (`#TooWide`), so no query's cost grows without a stated ceiling.
   public let MAX_WALK : Nat = 4_096;
   /// A book's deals, one page at a time: the ids in the book index's order and the cursor to continue from (S4.1, the
-  /// treasury review — the unpaged walk this replaced returned the whole book).
+  /// treasury review; the unpaged walk this replaced returned the whole book).
   public func listByBook(s : State, book : Text, cursor : ?Blob, limit : Nat) : { ids : [TT.DealId]; cursor : ?Blob } {
     let (lo, hi) = textPrefixRange(book, 32, 8);
     let page = RI.range(s.byBook, lo, hi, cursor, Nat.min(limit, MAX_PAGE));
@@ -567,7 +567,7 @@ module {
     if (bytesOf(f.pointsCurve) == 0 or bytesOf(f.discountCurve) == 0) return ?"the points and discount curves are named";
     null
   };
-  /// A settlement account: a journal account, or a registered nostro when it names a sub-ledger — the only sub-ledgers
+  /// A settlement account: a journal account, or a registered nostro when it names a sub-ledger; the only sub-ledgers
   /// a treasury leg may name besides the deal's own.
   func cashOk(s : State, c : TT.CashAccount, ccy : Text) : ?Text {
     if (bytesOf(c.account) == 0) return ?"the settlement account is named";
@@ -691,7 +691,7 @@ module {
 
   /// The open FX exposure of a deal in its base currency, from the row alone: a forward by its amount, a swap by its
   /// unsettled legs (the near leg's direction is the row's flag, the far leg's the opposite, its base amount the row's
-  /// `farBase`), an option by its amount — so the position aggregate needs no terms block.
+  /// `farBase`), an option by its amount; so the position aggregate needs no terms block.
   public func signedBase(r : DealRow) : Int {
     switch (r.kind) {
       case 2 { if (has(r.flags, F_BUY)) r.notional else -r.notional };
@@ -715,7 +715,7 @@ module {
   /// Measure every limit of the book that the new deal touches, with the new deal counted; the breaches. The measures
   /// are the fold's aggregates (counterparty exposure, open FX position, realised P&L for the stop-loss, issuer
   /// concentration) read in constant time, and the maturity index for the two that depend on the day (a tenor bucket
-  /// reads the deals maturing in its window, DV01 the deals maturing after the day) — so a capture's cost does not
+  /// reads the deals maturing in its window, DV01 the deals maturing after the day); so a capture's cost does not
   /// grow with the book (the S4.1 treasury review).
   public func measureLimits(s : State, book : Text, cp : TT.Counterparty, kind : TT.DealKind, day : Nat, terms : Nat -> ?TT.DealKind) : [(TT.Limit, Nat)] {
     ignore terms;
@@ -839,7 +839,7 @@ module {
     switch (row(s, id)) { case null #err(#UnknownDeal({ deal = id })); case (?r) { if (isOpen(r)) #ok(r) else #err(#DealNotIn({ deal = id; state = TT.dealStateText(r.state); wanted = "captured|confirmed" })) } }
   };
   /// The counterparty's confirmation against the deal: a match confirms, a difference is recorded as such and the
-  /// deal stays unconfirmed — never a match with a caveat.
+  /// deal stays unconfirmed; never a match with a caveat.
   public func planConfirm(s : State, id : TT.DealId, confirmation : Blob, f : TT.ConfirmationFields, cp : TT.Counterparty, kind : TT.DealKind, day : Nat) : Res<TT.TreasuryEvent> {
     let r = switch (rowOpen(s, id)) { case (#err(e)) return #err(e); case (#ok(r)) r };
     if (has(r.flags, F_CONFIRMED)) return #err(#DealNotIn({ deal = id; state = "confirmed"; wanted = "captured" }));
@@ -1356,8 +1356,8 @@ module {
     #ok({ ev = #breakResolved({ breakId = id; resolution; corrected = correction != null; day }); legs = List.toArray(ls); extras = [] })
   };
   /// The open breaks from a cursor over the status index, one page: what the end-of-day job walks chunk by chunk
-  /// (S4.1, the treasury review — the whole-index walk this replaced ran inside one message).
-  /// One page of the breaks — open ones, or every one — of one nostro or of all, off the status index from a cursor;
+  /// (S4.1, the treasury review; the whole-index walk this replaced ran inside one message).
+  /// One page of the breaks; open ones, or every one; of one nostro or of all, off the status index from a cursor;
   /// `limit` bounds the index entries examined, so a page filtered to one nostro may be short.
   public func breaksFrom(s : State, nostroId : ?Text, includeResolved : Bool, cursor : ?Blob, limit : Nat) : { rows : [BreakRow]; cursor : ?Blob } {
     let h : ?Nat = switch (nostroId) { case (?n) { switch (nostro(s, n)) { case (?nr) ?nr.accountHash; case null return { rows = []; cursor = null } } }; case null null };
@@ -1417,7 +1417,7 @@ module {
     ignore RI.put(s.byMaturity, maturityKey(r.book, r.maturity, r.id), Blob.fromArray([1]));
   };
   func maturityKey(book : Text, maturity : Nat, id : Nat) : Blob { Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Array.concat<Nat8>(Blob.toArray(R.key(maturity, 4)), Blob.toArray(R.key(id, 8))))) };
-  /// The open deals of a book maturing in [from, to] (inclusive), by the maturity index — bounded by the window's content.
+  /// The open deals of a book maturing in [from, to] (inclusive), by the maturity index; bounded by the window's content.
   public func openMaturingIn(s : State, book : Text, from : Nat, to : Nat) : [DealRow] {
     if (to < from) return [];
     let lo = Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Array.concat<Nat8>(Blob.toArray(R.key(from, 4)), Array.repeat<Nat8>(0, 8))));
@@ -1575,7 +1575,7 @@ module {
       ageDays = if (day > b.valueDay) day - b.valueDay else 0; resolved = b.resolved; block = b.id }
   };
   public func nostroIdOfHash(s : State, h : Nat) : Text { switch (nostroOfAccount(s, h)) { case (?n) n.id; case null "" } };
-  /// Positions of a book: open deals aggregated by kind × instrument × currency — the nominal signed from the bank's
+  /// Positions of a book: open deals aggregated by kind × instrument × currency; the nominal signed from the bank's
   /// side, the carrying amount booked, the mark.
   /// Positions of a book, bounded: null when the book's open deals exceed `MAX_WALK` (the caller refuses with the size).
   public func positions(s : State, book : Text, terms : Nat -> ?TT.DealKind) : ?[TT.PositionView] {

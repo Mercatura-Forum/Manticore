@@ -6,7 +6,7 @@ duplicated, renamed or swapped with its neighbour; a text emptied, lengthened pa
 an amount, a date, a BIC, a boolean; an attribute added or its currency lower-cased) and each mutant is judged
 twice: by `xmllint --schema` against the official XSD and by the canister's generated profile
 (`motoko/iso/IsoProfiles.mo` under `motoko/iso/IsoSchema.mo`, run in the Motoko interpreter from the same
-source the canister is built from). The claim is zero disagreements — measured, not asserted. A business
+source the canister is built from). The claim is zero disagreements; measured, not asserted. A business
 file's payloads are judged against their own schemas on both sides, the way the canister reads them.
 
 Writes `integration-kit/profile-runner/breadth-mutations-report.json`.

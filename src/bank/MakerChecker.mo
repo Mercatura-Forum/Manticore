@@ -1,4 +1,4 @@
-/// MakerChecker.mo — the four-eyes lifecycle, as pure functions.
+/// MakerChecker.mo; the four-eyes lifecycle, as pure functions.
 ///
 /// The hole in the obvious implementation is that the checker approves a stored
 /// *row*. If anything can alter that row between proposal and approval, the
@@ -18,8 +18,8 @@
 ///
 /// ## Where a proposal lives
 ///
-/// The heap holds nothing per proposal. Everything a proposal *is* — the command, its hash, the
-/// maker, the policy it was proposed under, the justification — is in its `#commandProposed` block;
+/// The heap holds nothing per proposal. Everything a proposal *is*; the command, its hash, the
+/// maker, the policy it was proposed under, the justification; is in its `#commandProposed` block;
 /// everything that *happens* to it is a later block (`#commandApproved`, `#commandExecuted`,
 /// `#commandRejected`, `#commandExpired`). The fold keeps one fixed-width **row** per proposal in
 /// stable memory (`ProposalRow`: the expiry, the status with the block that resolved it, and the
@@ -117,7 +117,7 @@ module {
   };
 
   /// What the fold keeps per override: the block that executed it and the block that reviewed it,
-  /// 0 meaning not yet — block 0 is the genesis administrator record and can be neither.
+  /// 0 meaning not yet; block 0 is the genesis administrator record and can be neither.
   public type OverrideRow = { executedAt : Nat; reviewedAt : Nat };
 
   public let OVERRIDE_ROW_BYTES : Nat = 16;

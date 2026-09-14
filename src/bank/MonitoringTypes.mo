@@ -1,8 +1,8 @@
-/// MonitoringTypes.mo — the closed rule set, as declared data.
+/// MonitoringTypes.mo; the closed rule set, as declared data.
 ///
 /// A monitoring rule is not an expression: there is no language to write one in. It is one of the
 /// eight types below with its fixed parameters, declared under dual authorisation, versioned, and
-/// recorded in a block — like a report definition. Every type has a declared cost bound, and the
+/// recorded in a block; like a report definition. Every type has a declared cost bound, and the
 /// evaluation sizes that bound before it reads (`Monitoring.mo`). The set is the addendum's,
 /// grounded in FATF's red-flag typologies (structuring, round-tripping, pass-through, dormancy),
 /// Egypt's Law 80 of 2002 and EMLCU reporting, 31 U.S.C. §5324 and the Wolfsberg monitoring
@@ -22,7 +22,7 @@ module {
     /// At least `count` postings on the account within `windowDays`.
     #velocity : { count : Nat; windowDays : Nat };
     /// At least `count` postings whose account movement lies in
-    /// `[threshold × (100 − bandPercent) / 100, threshold)` within `windowDays` — amounts kept
+    /// `[threshold × (100 − bandPercent) / 100, threshold)` within `windowDays`; amounts kept
     /// just under a reporting threshold. Reads the account's postings of the window, so it
     /// declares the most it will read (`maxScan`) and is refused, not run, past it.
     #structuring : { threshold : Nat; bandPercent : Nat; count : Nat; windowDays : Nat; maxScan : Nat };
@@ -83,7 +83,7 @@ module {
     #WindowPacked : { rule : RuleId; windowStart : Nat; rolledUpThrough : Nat };
   };
 
-  /// The days a rule reads back from the day it is evaluated on — what closed-month packing
+  /// The days a rule reads back from the day it is evaluated on; what closed-month packing
   /// must leave live. Zero for the rules that read nothing but the posting and the account's
   /// exact latest activity (which the monthly rows keep).
   public func windowOf(spec : RuleSpec) : Nat {

@@ -1,11 +1,11 @@
-// PartyPrimitives.test.mo — commitments and account identifiers.
+// PartyPrimitives.test.mo; commitments and account identifiers.
 //
 // Two of the three pure pieces party and KYC rests on, proved before the state machine uses
 // them:
 //
 //   * a commitment is deterministic, salted, domain-separated, and sensitive to
 //     every component; normalisation is the same in every caller and idempotent;
-//   * IBAN generation and validation are one code path — every issued identifier
+//   * IBAN generation and validation are one code path; every issued identifier
 //     validates, the published ISO 13616 vectors pass, and corruptions are refused.
 //
 // The third piece, the screening proofs, is test/Screening.test.mo: it is
@@ -72,7 +72,7 @@ assert (C.field(s1, "n", "Mohamed Ahmed") == C.field(s1, "n", "  mohamed   ahmed
 Debug.print("count: normalisation cases = 7");
 
 // the deduplication commitment is the same for two parties, by design, and the
-// party commitment is not — the trade this module states rather than hides
+// party commitment is not; the trade this module states rather than hides
 let institution = salt(9);
 assert (C.dedup(institution, "nationalId", "29801011234567") == C.dedup(institution, "nationalId", "29801011234567"));
 assert (C.field(s1, "nationalId", "29801011234567") != C.field(s2, "nationalId", "29801011234567"));

@@ -1,4 +1,4 @@
-/// PeriodEnd.mo — the close as a recorded state machine.
+/// PeriodEnd.mo; the close as a recorded state machine.
 ///
 /// Period end is an ordered sequence whose steps must not run out of order or twice,
 /// and "the operator remembered the order" is not a control. So the bank log carries
@@ -22,7 +22,7 @@
 /// check is an equality between a general-ledger balance and the sum of its
 /// sub-ledger balances, and both are folds over the same Merkle-committed log. There
 /// is no second database to agree with, so it is a self-consistency proof rather than
-/// a reconciliation — and when it fails it fails *before* the period closes, not in a
+/// a reconciliation; and when it fails it fails *before* the period closes, not in a
 /// break report afterwards.
 
 import Nat "mo:core/Nat";
@@ -82,7 +82,7 @@ module {
   public type Transition = { #allowed; #idempotent; #outOfOrder : { from : State; to : State; requires : State } };
 
   /// May the run move from `from` to `to`? Re-running a transition already made is
-  /// `#idempotent` — the caller records nothing and posts nothing — and anything else
+  /// `#idempotent`; the caller records nothing and posts nothing; and anything else
   /// out of order is refused with the state it requires named.
   public func transition(from : State, to : State) : Transition {
     if (rank(to) <= rank(from)) return #idempotent;

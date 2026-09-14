@@ -1,11 +1,11 @@
-/// Archive.mo — Read-only archive canister for overflow blocks
+/// Archive.mo; Read-only archive canister for overflow blocks
 ///
 /// When the main ledger's block log exceeds a threshold, it spawns
 /// an Archive canister and moves old blocks there. The archive is
-/// a simple read-only store — it only accepts blocks from the ledger principal.
+/// a simple read-only store; it only accepts blocks from the ledger principal.
 ///
 /// Architecture:
-///   - StableLog-backed (Region) — same as main ledger
+///   - StableLog-backed (Region); same as main ledger
 ///   - Only the parent ledger can append blocks
 ///   - Exposes get_blocks query for external tools
 ///   - ICRC-3 compatible: icrc3_get_blocks returns Value (decoded CBOR)
@@ -77,7 +77,7 @@ shared(initMsg) persistent actor class Archive(ledgerPrincipal : Principal) {
     };
   };
 
-  /// ICRC-3 compatible block access — returns decoded Value types.
+  /// ICRC-3 compatible block access; returns decoded Value types.
   /// This function serves as the callback for icrc3_get_transactions.
   public query func icrc3_get_blocks(args : [{ start : Nat; length : Nat }]) : async {
     blocks : [T.Block];

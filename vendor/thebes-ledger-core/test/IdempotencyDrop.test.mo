@@ -1,14 +1,14 @@
-// IdempotencyDrop.test.mo — the idempotency keys of a packed range dropped, in chunks, while the
+// IdempotencyDrop.test.mo; the idempotency keys of a packed range dropped, in chunks, while the
 // journal keeps refusing duplicates.
 //
 // What is proved: after the drop, a key of a posting at or below the boundary no longer refuses
-// (the bank's dedup window has passed — a resubmission is a new posting), a key of a posting above
+// (the bank's dedup window has passed; a resubmission is a new posting), a key of a posting above
 // it still refuses with the original index, a key of a pending still **open** at the boundary
 // still refuses whatever its index, and keys registered while the rebuild ran are kept; a drop
 // through a boundary already dropped is a no-op; the count after the drop is the number of kept
 // keys.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -121,7 +121,7 @@ Debug.print("count: keys at or below the boundary that no longer refuse = " # Na
 Debug.print("count: keys above the boundary still refusing = " # Nat.toText(aboveKept));
 Debug.print("count: keys of open pendings at or below the boundary still refusing = " # Nat.toText(openKept));
 Debug.print("count: keys registered during the rebuild still refusing = " # Nat.toText(List.size(during)));
-// the count is the kept keys plus those registered during the rebuild — and the `refusedWith`
+// the count is the kept keys plus those registered during the rebuild; and the `refusedWith`
 // calls above that were accepted registered nothing (a prepare writes no state)
 assert (Core.idempotencyCount(s) == expectedKept + List.size(during));
 Debug.print("count: keys after the drop = " # Nat.toText(Core.idempotencyCount(s)));

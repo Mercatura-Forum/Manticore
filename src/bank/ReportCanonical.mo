@@ -1,4 +1,4 @@
-/// ReportCanonical.mo — the canonical bytes of the reporting vocabulary.
+/// ReportCanonical.mo; the canonical bytes of the reporting vocabulary.
 ///
 /// Tag per variant, additive for ever, and a decoder that reads what it knows. The
 /// definitions and templates a report's identity is built from are encoded here, so the hash

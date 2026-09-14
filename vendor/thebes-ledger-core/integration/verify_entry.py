@@ -1,8 +1,8 @@
 """Independent verifier for a journal entry.
 
 This module trusts nothing the canister says. Given the raw bytes of a block,
-its inclusion proof, and the tip certificate, it establishes — with its own
-implementations, sharing no code with the canister — that:
+its inclusion proof, and the tip certificate, it establishes; with its own
+implementations, sharing no code with the canister; that:
 
   1. the certificate is signed by the IC root key (via the subnet delegation),
      checked with DFINITY's ic-verify-bls-signature crate (integration/bls-verify);
@@ -380,7 +380,7 @@ def block_hash(preimage):
 
 def decode_block(raw):
     """Decode raw block bytes; verify the embedded hash; return (fields, hash).
-    Any malformed input — truncated, bad tag, bad UTF-8, non-minimal number —
+    Any malformed input; truncated, bad tag, bad UTF-8, non-minimal number;
     is a verification failure (AssertionError), never a crash."""
     try:
         return _decode_block(raw)
@@ -393,7 +393,7 @@ def _decode_block(raw):
     # Versions this verifier reads. Version 3 is the calendar vocabulary; version 4
     # adds the banking tags from 0x2C. The version byte is inside the hashed preimage,
     # so a block written by an earlier build keeps its hash and must stay
-    # verifiable — which is why this is a set and not an equality.
+    # verifiable; which is why this is a set and not an equality.
     version = r.byte()
     assert version in SUPPORTED_BLOCK_VERSIONS, f"block version {version}"
     index = r.nat()

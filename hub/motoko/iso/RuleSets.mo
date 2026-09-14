@@ -1,16 +1,16 @@
-/// RuleSets.mo — market-practice rule sets as data: CBPR+ (Swift cross-border payments and
+/// RuleSets.mo; market-practice rule sets as data: CBPR+ (Swift cross-border payments and
 /// reporting) and HVPS+ (high-value payment systems) over the official-shape messages the schema profile admits.
 ///
 /// A rule set is a list of rules; a rule is a stable id, the families it applies to, one check from a closed
 /// vocabulary (`Check`), and the public basis the rule was taken from. `evaluate` walks the parsed message
 /// (the vendored parser's element tree, after the official schema passed) and answers the disagreements under
-/// the `usageGuideline` tier with the rule's own id — what a usage guideline adds on top of the base XSD.
+/// the `usageGuideline` tier with the rule's own id; what a usage guideline adds on top of the base XSD.
 ///
 /// What this is and is not. The rule content is drawn from the public descriptions of the two guidelines:
 /// Swift's ISO 20022 programme pages and the CBPR+ User Handbook's published structure, the Payments Market
 /// Practice Group's papers (structured addresses, UETR, charges), and the HVPS+ practice as the RTGS operators
 /// publish it in their own ISO 20022 specifications (ECB T2, Bank of England CHAPS, Fed/TCH). The guidelines
-/// themselves — the MyStandards usage guidelines with their rule identifiers — are access-controlled: this
+/// themselves; the MyStandards usage guidelines with their rule identifiers; are access-controlled: this
 /// harness could not fetch them (login-gated; swift.com refuses the programmatic fetch), so the rule ids here
 /// are the hub's, each carrying its basis, and `reconciliation` on each set states that the identifier-by-
 /// identifier comparison with MyStandards has not been performed. The counts `implemented` prints are of the
@@ -28,8 +28,8 @@ module {
 
   public type Issue = { rule : Text; path : Text; detail : Text };
 
-  /// The closed check vocabulary. (The UETR's RFC 4122 v4 shape is the base schema's own pattern — the
-  /// schema tier refuses it — so it is not a guideline rule here.) Paths are element paths under the message root (the `Document`'s one
+  /// The closed check vocabulary. (The UETR's RFC 4122 v4 shape is the base schema's own pattern; the
+  /// schema tier refuses it; so it is not a guideline rule here.) Paths are element paths under the message root (the `Document`'s one
   /// child), every repetition of every segment included: `CdtTrfTxInf/PmtId/UETR` names the UETR of each
   /// transaction.
   public type Check = {

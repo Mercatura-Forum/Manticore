@@ -1,10 +1,10 @@
-/// ArchiveImage.mo — the child image, in stable memory.
+/// ArchiveImage.mo; the child image, in stable memory.
 ///
 /// The rule: "The operator uploads the child wasm into the parent's stable memory once, in chunks,
 /// pinned by SHA-256, and the parent installs from there; do not embed it in the parent's own wasm."
 /// This is that store. It lives beside the bank's folded state rather than in it, like the posting
-/// indexes, because it is bytes rather than a decision: the decision — which hash an archive child
-/// runs — is the pin in `ArchiveCore`, recorded in a block, and this region is only where the bytes
+/// indexes, because it is bytes rather than a decision: the decision; which hash an archive child
+/// runs; is the pin in `ArchiveCore`, recorded in a block, and this region is only where the bytes
 /// that must hash to it are kept.
 ///
 /// Nothing here is trusted on the uploader's word. `hash` is computed over what was actually stored,

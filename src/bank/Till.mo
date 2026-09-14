@@ -1,7 +1,7 @@
-/// Till.mo — cashier drawers, and why a difference can never be absorbed.
+/// Till.mo; cashier drawers, and why a difference can never be absorbed.
 ///
 /// A till is a cash account with a constraint: it is an asset sub-ledger under the
-/// vault's control account, held by one named cashier, and it may not go credit —
+/// vault's control account, held by one named cashier, and it may not go credit;
 /// a drawer cannot hold negative cash. That constraint is the journal's own numeric
 /// balance limit on the till's triple, so it is enforced at admission and not by
 /// this module.
@@ -96,7 +96,7 @@ module {
 
   /// Cash moving from the vault to a cashier's drawer, and back. Both directions
   /// are postings between two sub-ledgers of the same control account, so the
-  /// bank's total cash does not change when a drawer is loaded — which is the
+  /// bank's total cash does not change when a drawer is loaded; which is the
   /// check a branch reconciliation actually runs.
   public func allocationLegs(
     control : JT.AccountCode,

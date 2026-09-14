@@ -1,11 +1,11 @@
-/// BloomFilter.mo — Time-windowed Bloom filter for O(1) transaction deduplication
+/// BloomFilter.mo; Time-windowed Bloom filter for O(1) transaction deduplication
 ///
 /// Replaces O(log n) Map lookup for the 99%+ case where a timestamp
 /// is NOT a duplicate. False positives fall through to the Map for
 /// exact checking. False negatives are impossible.
 ///
 /// Design: Two filters (current + previous window), swapped on expiry.
-/// No per-element pruning needed — just clear the old filter.
+/// No per-element pruning needed; just clear the old filter.
 ///
 /// Parameters for 10K elements, 1% false positive rate:
 ///   m = 95,851 bits (~12 KB)

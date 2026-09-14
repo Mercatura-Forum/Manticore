@@ -1,4 +1,4 @@
-/// DayCount.mo — day-count fractions, as exact rationals.
+/// DayCount.mo; day-count fractions, as exact rationals.
 ///
 /// Day counts are where two correct-looking implementations disagree by money, so
 /// nothing here is a floating-point number. A fraction is returned as a rational
@@ -15,14 +15,14 @@
 ///
 /// Two shapes of question, and they are not interchangeable:
 ///
-///   * `fraction(convention, from, to)` — the fraction for a *period*, which is
+///   * `fraction(convention, from, to)`; the fraction for a *period*, which is
 ///     what a loan instalment or a term deposit uses;
-///   * `dailyDenominator(convention, day)` — the denominator of **one day**, which
+///   * `dailyDenominator(convention, day)`; the denominator of **one day**, which
 ///     is what a daily-balance accrual uses. The 30/360 family accrues each calendar
-///     day at 1/360 (1/365 for 30/365) — the market's daily reading of a 360-day
+///     day at 1/360 (1/365 for 30/365); the market's daily reading of a 360-day
 ///     year, which is not the period fraction (a 31-day month accrues 31/360 by the
 ///     day and 30/360 by the period; `test/DayCountInterest.test.mo` records the
-///     choice) — and ACT/ACT (ICMA) alone has no single day, its unit being the
+///     choice); and ACT/ACT (ICMA) alone has no single day, its unit being the
 ///     coupon period: a product asking for a daily-balance accrual under it is
 ///     refused at registration rather than silently given ACT/365.
 ///
@@ -116,7 +116,7 @@ module {
   };
 
   /// The fraction of a year between two dates, inclusive of `from` and exclusive
-  /// of `to` — the convention every day-count definition uses, so a period that
+  /// of `to`; the convention every day-count definition uses, so a period that
   /// ends where the next begins counts each day once.
   public func fraction(c : Convention, from : CivilDate.Day, to : CivilDate.Day) : Fraction {
     if (to <= from) return { numerator = 0; denominator = 1 };
@@ -144,7 +144,7 @@ module {
       case (#a001_ActActIcma({ couponsPerYear })) {
         // ICMA Rule 251: the period's actual days over (coupons per year × the
         // days in the coupon period the dates sit in). With `from`/`to` being the
-        // coupon period itself — the usual case — this is exactly 1/couponsPerYear.
+        // coupon period itself; the usual case; this is exactly 1/couponsPerYear.
         let f = if (couponsPerYear == 0) 1 else couponsPerYear;
         { numerator = days; denominator = f * days }
       };

@@ -1,11 +1,11 @@
-/// TellerCore.mo — the branch's counted cash, sessions, cash network, cheques and drafts, folded from the bank's log
+/// TellerCore.mo; the branch's counted cash, sessions, cash network, cheques and drafts, folded from the bank's log
 /// in stable memory (branch and teller).
 ///
 /// Rows: a teller session (keyed by the block that opened it) with the till's open session indexed by till; the
 /// denomination position of every till and every vault (till ‖ face → count, book ‖ currency ‖ face → count),
 /// written by the fold from the counts every cash act carries; the cash movements in transit; a customer's
 /// chequebooks (account ‖ first serial → last) and the cheques that left the unused state (account ‖ serial → state,
-/// amount, hold); the bank's drafts. The amounts are the journal's; this layer keeps what the journal does not —
+/// amount, hold); the bank's drafts. The amounts are the journal's; this layer keeps what the journal does not;
 /// the composition of the cash, who was at the drawer, and where each instrument is in its life. The planners
 /// refuse an act the count cannot support (a payment in notes the drawer does not hold) and decide a presented
 /// cheque's fate from the recorded dates and state; the postings are `BankCore`'s.

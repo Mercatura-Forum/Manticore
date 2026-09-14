@@ -1,15 +1,15 @@
-/// TreasuryMath.mo — the valuation arithmetic of the treasury domain (treasury) as pure functions over recorded data,
+/// TreasuryMath.mo; the valuation arithmetic of the treasury domain (treasury) as pure functions over recorded data,
 /// written so that a Python twin reproduces every figure to the minor unit.
 ///
 /// Two number systems, each chosen for what it values:
 ///
-/// * **Exact rationals** (`Q`) for everything linear in the inputs — discount factors by simple compounding,
+/// * **Exact rationals** (`Q`) for everything linear in the inputs; discount factors by simple compounding,
 ///   linear interpolation on a curve, the mark of a forward, the fixed and projected legs of a swap, a bond's
 ///   price, accrued coupon and constant-yield amortisation. Each result is a ratio of integers rounded half-even
 ///   exactly once, at the end, so the contract and the twin agree because they compute the same rational.
 /// * **Deterministic fixed point** (`Fixed`, 18 decimals) for the Garman–Kohlhagen option price, whose exp, ln,
 ///   square root and normal distribution are irrational. Every operation is integer arithmetic with truncation
-///   toward zero, every series has a fixed number of terms, and the normal CDF is Abramowitz–Stegun 26.2.17 —
+///   toward zero, every series has a fixed number of terms, and the normal CDF is Abramowitz–Stegun 26.2.17;
 ///   so two implementations that follow the same steps produce the same integer, and the twin's agreement is
 ///   bit-for-bit rather than "within tolerance". The approximation's error against the true normal CDF is below
 ///   7.5 × 10⁻⁸, stated in the design; what the battery proves is that the contract computed the stated model.
@@ -17,7 +17,7 @@
 /// Conventions stated once: an FX rate in **micro** is quote minor units per base minor unit × 10⁶ (48.123456
 /// EGP per USD with two decimals each is 48_123_456); a zero rate or a volatility in **basis points**; a bond
 /// price in micro per 100 of face (101.25 is 101_250_000); a tenor in days; a discount factor by simple
-/// compounding ACT/360 — `1 / (1 + r · t / 360)`; the option's time in years ACT/365.
+/// compounding ACT/360; `1 / (1 + r · t / 360)`; the option's time in years ACT/365.
 
 import Array "mo:core/Array";
 import Int "mo:core/Int";
@@ -67,14 +67,14 @@ module {
   public func ofFraction(f : DC.Fraction) : Q { q(f.numerator, f.denominator) };
   public func ofSigned(s : I.Signed) : Q { q(if (s.negative) -s.numerator else s.numerator, s.denominator) };
 
-  /// Round half to even on the signed value — the same rule as `Interest.round(#halfEven)` applied to the
+  /// Round half to even on the signed value; the same rule as `Interest.round(#halfEven)` applied to the
   /// magnitude with the sign restored, which is symmetric and so agrees with Python's `round(Fraction)`.
   public func roundHalfEven(a : Q) : Int {
     let mag : Nat = Int.abs(a.n);
     let r = I.round({ numerator = mag; denominator = a.d; negative = false }, #halfEven);
     if (a.n < 0) -r.amount else r.amount
   };
-  /// The rational as a Nat when non-negative, else zero — for figures the model proves are non-negative.
+  /// The rational as a Nat when non-negative, else zero; for figures the model proves are non-negative.
   public func roundNat(a : Q) : Nat { let r = roundHalfEven(a); if (r < 0) 0 else Int.abs(r) };
 
   // ═══════════════════════════════════════════════════════
@@ -237,7 +237,7 @@ module {
   };
 
   /// The yield in millionths per annum (10⁻⁶ of 1) that prices the bond at its dirty cost: bisection over
-  /// [0, 2_000_000) — up to 200 % — for the smallest `y` whose present value does not exceed the dirty cost;
+  /// [0, 2_000_000); up to 200 %; for the smallest `y` whose present value does not exceed the dirty cost;
   /// forty halvings, as the Murabaha's implicit rate. Deterministic: the twin runs the same bisection.
   public func effectiveYieldMillionths(face : Nat, periods : [Coupon], conv : DC.Convention, couponsPerYear : Nat, settlement : Nat, dirtyCost : Nat) : Nat {
     var lo = 0; var hi = 2_000_000; var iter = 0;
@@ -282,7 +282,7 @@ module {
     out
   };
   // The coupon accrued before settlement in the stub period is the period's coupon scaled by the convention's
-  // fraction from the period start to settlement over the period's own fraction — the same ratio the accrued
+  // fraction from the period start to settlement over the period's own fraction; the same ratio the accrued
   // coupon uses, so `couponPart + accruedBefore = amount` up to the rounding that closes on the last period.
   func accruedBefore(p : Coupon, conv : DC.Convention, settlement : Nat) : Nat {
     let whole = ofFraction(DC.fraction(conv, p.start, p.end));
@@ -374,7 +374,7 @@ module {
   let LN2 : Int = 693_147_180_559_945_309;          // ln 2
   let INV_SQRT_2PI : Int = 398_942_280_401_432_678; // 1 / √(2π)
 
-  /// Truncating multiply and divide — Motoko's `Int` division truncates toward zero, and the twin does the same
+  /// Truncating multiply and divide; Motoko's `Int` division truncates toward zero, and the twin does the same
   /// explicitly, because Python's `//` floors.
   public func fmul(a : Int, b : Int) : Int { (a * b) / ONE };
   public func fdiv(a : Int, b : Int) : Int { if (b == 0) 0 else (a * ONE) / b };
@@ -433,7 +433,7 @@ module {
     if (x < 0) ONE - upper else upper
   };
 
-  /// Garman–Kohlhagen: the value in quote minor units of an option on `baseAmount` base minor units — spot and
+  /// Garman–Kohlhagen: the value in quote minor units of an option on `baseAmount` base minor units; spot and
   /// strike in micro, rates in bps treated as continuously compounded, volatility in bps, time in days ACT/365.
   /// `C = S e^{−r_f T} N(d₁) − K e^{−r_d T} N(d₂)`, `P = K e^{−r_d T} N(−d₂) − S e^{−r_f T} N(−d₁)`. At or past
   /// expiry the intrinsic value. The result is truncated to whole minor units.

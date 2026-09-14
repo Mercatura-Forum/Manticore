@@ -1,4 +1,4 @@
-// JournalLog.test.mo — criterion 7 on the Region-backed log: every block gets an
+// JournalLog.test.mo; criterion 7 on the Region-backed log: every block gets an
 // inclusion proof that verifies against the MMR root, a tampered hash fails,
 // the hash chain walks clean, and the certified tip tree is deterministic.
 // Needs Region memory: runs under WASI only.

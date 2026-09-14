@@ -1,21 +1,19 @@
+# Deployment manifest. Replace every placeholder with your own network before deploying;
+# the values are yours, not this repository's.
 [project]
 name = "manticore-iso20022-hub"
 default_network = "wan"
-chain_id = 2026
+chain_id = 0                       # your network's chain id
 
 [networks.wan]
-gateway = "https://memphis.mercaturaforum.com"
-validators = [
-    "https://memphis.mercaturaforum.com/deploy-api/v0",
-    "https://memphis.mercaturaforum.com/deploy-api/v1",
-    "https://memphis.mercaturaforum.com/deploy-api/v2",
-    "https://memphis.mercaturaforum.com/deploy-api/v3",
-]
-boundary = "https://memphis.mercaturaforum.com"
+# one entry per validator of the network you deploy to
+validators = ["https://<validator>/deploy-api"]
+boundary = "https://<thebes-gateway>"
 routing = "smart"
 
 [canisters.iso20022]
 type = "backend-motoko"
-cid = "auto"
+cid = "auto"                      # or the id of the contract you deploy onto
+identity = "<your-identity>"
 wasm = "build/iso20022.wasm"
 build = 'cd motoko && mops install >/dev/null 2>&1 && mkdir -p ../build && MOC="$(ls "$HOME/.cache/mops/moc/1.4.1/moc" "$HOME/Library/Caches/mops/moc/1.4.1/moc" 2>/dev/null | head -1)" && "$MOC" $(mops sources) -o ../build/iso20022.wasm main.mo'

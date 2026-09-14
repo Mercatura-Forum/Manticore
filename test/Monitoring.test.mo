@@ -1,4 +1,4 @@
-// Monitoring.test.mo — the aggregates and the closed rule set against a brute-force oracle.
+// Monitoring.test.mo; the aggregates and the closed rule set against a brute-force oracle.
 //
 // The addendum's acceptance: "for random journals and every rule type, the incremental alerts equal
 // a brute-force recomputation over the whole journal: same alerts, same cited postings." Here the
@@ -6,7 +6,7 @@
 // of it, written separately from the code it checks:
 //
 //   * every A1, E1, E2, E3 and A4 row maintained posting by posting equals the row recomputed from
-//     the final journal, byte for byte, in both directions — no extra row, no missing row;
+//     the final journal, byte for byte, in both directions; no extra row, no missing row;
 //   * the cheap rules evaluated in each posting's own message (large cash, dormant then active,
 //     round trip) produce the same findings, with the same cited postings, as a brute-force replay
 //     that keeps its own history;
@@ -19,7 +19,7 @@
 // Pendings are part of the stream: a pending counts nothing until it resolves, counts at the
 // resolved day when it does, and never counts when voided.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -243,7 +243,7 @@ Debug.print("count: pendings voided and never aggregated = " # Nat.toText(voided
 assert (A.stats(act).postings == postedOutright + resolved);
 
 // ═══════════════════════════════════════════════════════════════════
-//  THE ORACLE — the aggregates, recomputed from the final journal
+//  THE ORACLE; the aggregates, recomputed from the final journal
 // ═══════════════════════════════════════════════════════════════════
 
 // Every posted reading, in block order (a resolution counts at its resolving block's position).
@@ -269,7 +269,7 @@ func ck(c : A.Counterparty) : [Nat8] { Blob.toArray(A.cptyKey(c)) };
 
 // A1
 let a1 = Map.empty<Blob, { var count : Nat; var dr : Nat; var cr : Nat; var largest : Nat }>();
-// A4 — folded in block order, with the same previous-day rule
+// A4; folded in block order, with the same previous-day rule
 let a4 = Map.empty<Nat, { var first : Nat; var last : Nat; var postings : Nat }>();
 // E1 / E2 / E3
 let e1 = Map.empty<Blob, Nat>();
@@ -322,7 +322,7 @@ compare("A4", A.dump(act.lastActive, 8), func(k) {
 assert (Map.size(e1) > 100 and Map.size(a1) > 100);
 
 // ═══════════════════════════════════════════════════════════════════
-//  THE ORACLE — the cheap rules, by definition, with their own history
+//  THE ORACLE; the cheap rules, by definition, with their own history
 // ═══════════════════════════════════════════════════════════════════
 
 let bruteCheap = List.empty<Key>();
@@ -404,10 +404,10 @@ Debug.print("count: round-trip findings = " # Nat.toText(tripN));
 assert (cashN > 0 and dormantN > 0 and tripN > 0);
 
 // ═══════════════════════════════════════════════════════════════════
-//  THE ORACLE — the window rules, per (account, day)
+//  THE ORACLE; the window rules, per (account, day)
 // ═══════════════════════════════════════════════════════════════════
 
-// the account's postings by (day, posting), live ones — the I1 order
+// the account's postings by (day, posting), live ones; the I1 order
 type PR = { posting : Nat; day : Nat; dr : Nat; cr : Nat };
 let byAccount = Map.empty<Nat, List.List<PR>>();
 for (p in List.values(postedAll)) {
@@ -522,7 +522,7 @@ Debug.print("count: aggregate stable-memory bytes = " # Nat.toText(st.bytes));
 Debug.print("count: edges aggregated = " # Nat.toText(st.edges));
 
 // ═══════════════════════════════════════════════════════════════════
-//  NEGATIVE CONTROLS — planted series, caught inside the window and not outside it
+//  NEGATIVE CONTROLS; planted series, caught inside the window and not outside it
 // ═══════════════════════════════════════════════════════════════════
 //
 // The addendum's acceptance: "a planted structuring series, a round trip and a pass-through are
@@ -582,14 +582,14 @@ let ruleBands = ruleOf("bands");          // 3 in [400_000, 500_000) within 10 d
 let ruleTrip = ruleOf("trip");            // returned within 6 days, ≥ 200_000
 let rulePass = ruleOf("pass");            // 7 days, both sides ≥ 900_000, min ≥ 60% of max
 let D = 21_000;
-// structuring: three band postings on days D, D+4, D+9 (inside 10) — caught on D+9
+// structuring: three band postings on days D, D+4, D+9 (inside 10); caught on D+9
 ignore plant(D, 0, 900, 450_000, "deposit"); ignore plant(D + 4, 0, 900, 450_000, "deposit"); ignore plant(D + 9, 0, 900, 450_000, "deposit");
 switch (M.evaluateWindow(mctx2, ruleBands, P1, D + 9)) { case (#ok(?f)) assert (f.postings.size() == 3); case (_) fail("the planted structuring series was not caught") };
 // the same three spread over eleven days: D+10 .. D+20 sees only two of them
 ignore plant(D + 10, 0, 900, 450_000, "deposit"); ignore plant(D + 15, 0, 900, 450_000, "deposit"); ignore plant(D + 20, 0, 900, 450_000, "deposit");
 // at D+20 the window [D+11, D+20] holds D+15 and D+20 only
 switch (M.evaluateWindow(mctx2, ruleBands, P1, D + 20)) { case (#ok(null)) {}; case (_) fail("a series spread outside the window was caught") };
-// round trip: P1 -> P2 on day E, P2 -> P1 on day E+6 — caught at the return
+// round trip: P1 -> P2 on day E, P2 -> P1 on day E+6; caught at the return
 let E = 21_100;
 ignore plant(E, 900, 901, 300_000, "transfer");
 ignore plant(E + 6, 901, 900, 300_000, "transfer");
@@ -600,7 +600,7 @@ let F = 21_200;
 ignore plant(F, 900, 901, 300_000, "transfer");
 ignore plant(F + 7, 901, 900, 300_000, "transfer");
 assert (M.atPosting(mctx2, [ruleTrip], lastRecorded).size() == 0);
-// pass-through: 1,000,000 in on day G, 900,000 out on G+6 — caught at G+6
+// pass-through: 1,000,000 in on day G, 900,000 out on G+6; caught at G+6
 let G = 21_300;
 ignore plant(G, 0, 900, 1_000_000, "deposit");
 ignore plant(G + 6, 900, 0, 900_000, "withdrawal");

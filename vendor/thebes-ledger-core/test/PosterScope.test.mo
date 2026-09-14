@@ -1,4 +1,4 @@
-// PosterScope.test.mo — account-scoped posters (proposal entitlements and maker-checker section 1.5).
+// PosterScope.test.mo; account-scoped posters (proposal entitlements and maker-checker section 1.5).
 //
 // The journal's poster set was a flat list: any poster could post to any
 // account. A recorded scope turns "only this principal posts to these control
@@ -11,7 +11,7 @@
 // every leg is inside it; the refusal changes nothing; the scope is part of the
 // state fingerprint and survives replay; and every configuration error is typed.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region
 // (`JournalCore.postingRows`), and the moc interpreter provides no Region. The dual-engine check this
 // loses was worth having, and the loss is stated here rather than hidden: the reason the state moved
 // is that a heap map per posting makes the heap grow with the journal, which is the one thing a

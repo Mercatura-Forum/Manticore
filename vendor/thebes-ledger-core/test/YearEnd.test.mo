@@ -1,8 +1,8 @@
-// YearEnd.test.mo — the journal calendar year-end roll on the pure core: after the roll every
+// YearEnd.test.mo; the journal calendar year-end roll on the pure core: after the roll every
 // income and expense account has zero cumulative balance per currency, retained
 // earnings moved by the net, the roll is idempotent, and a fresh year starts clean.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region
 // (`JournalCore.postingRows`), and the moc interpreter provides no Region. The dual-engine check this
 // loses was worth having, and the loss is stated here rather than hidden: the reason the state moved
 // is that a heap map per posting makes the heap grow with the journal, which is the one thing a

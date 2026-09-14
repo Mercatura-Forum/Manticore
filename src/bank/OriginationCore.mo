@@ -1,11 +1,11 @@
-/// OriginationCore.mo — the applications for credit, folded from the bank's log, in stable memory (origination and underwriting).
+/// OriginationCore.mo; the applications for credit, folded from the bank's log, in stable memory (origination and underwriting).
 ///
 /// One 220-byte row per application keyed by its id (the block index that opened it); an index by stage
 /// (stage ‖ application → 0) for the pipeline, by party (party ‖ application → stage) for a customer's
 /// applications, by account (account → application) so a loan carries its application for ever; the
 /// conditions of an approval (application ‖ condition key → met) and the parties' passkeys (party ‖
-/// credential key → SubjectPublicKeyInfo). Rows are written by the fold only. The evaluations — the
-/// affordability rules, the scorecard, the WebAuthn assertion — are pure functions over recorded data, so the
+/// credential key → SubjectPublicKeyInfo). Rows are written by the fold only. The evaluations; the
+/// affordability rules, the scorecard, the WebAuthn assertion; are pure functions over recorded data, so the
 /// Python oracle of `bank_s32.py` is the same function written twice and the same signature verified twice.
 
 import Array "mo:core/Array";
@@ -37,7 +37,7 @@ module {
   ///  ‖ openedDay(4) ‖ openedBlock(8) ‖ lastBlock(8) ‖ income(8) ‖ obligations(8) ‖ instalment(8) ‖ dependants(2)
   ///  ‖ verdict(1) ‖ bureauScore(4) ‖ bureauFlags(2) ‖ points(4) ‖ band(1) ‖ decision(1) ‖ approvedAmount(8)
   ///  ‖ approvedTermDays(4) ‖ approvedRateBps(4) ‖ offerHash(32) ‖ offerExpiresAt(4) ‖ documents(2)
-  ///  ‖ conditions(2) ‖ conditionsMet(2) ‖ account(8)` — 220 bytes.
+  ///  ‖ conditions(2) ‖ conditionsMet(2) ‖ account(8)`; 220 bytes.
   /// flags: hasParty=1, hasFacts=2, hasVerdict=4, bureauRequested=8, hasBureau=16, hasScore=32, hasDecision=64,
   /// hasOffer=128; flags2: agreementRecorded=1, hasAccount=2.
   public type Row = {
@@ -806,7 +806,7 @@ module {
     switch (RI.get(s.byAccount, R.key(account, 8))) { case (?v) ?R.getNat(Blob.toArray(v), 0, 8); case null null }
   };
 
-  /// The conditions of an approval with whether each is met — read from the index under the approval's
+  /// The conditions of an approval with whether each is met; read from the index under the approval's
   /// own list, so the names are the block's.
   public func conditionsOf(s : State, id : OT.ApplicationId, names : [Text]) : [(Text, Bool)] {
     Array.map<Text, (Text, Bool)>(names, func(c) { (c, switch (RI.get(s.conditions, conditionKey(id, c))) { case (?v) Blob.toArray(v)[0] == 1; case null false }) })
@@ -816,7 +816,7 @@ module {
     { applications = s.applications; fulfilled = s.fulfilled; declined = s.declined; withdrawn = s.withdrawn; expired = s.expired; passkeys = s.passkeyCount }
   };
 
-  /// Applications per stage, walked — the pipeline figure, bounded by the rows.
+  /// Applications per stage, walked; the pipeline figure, bounded by the rows.
   public func stageDistribution(s : State) : [(Text, Nat)] {
     let counts = VarArray.repeat<Nat>(0, OT.STAGES);
     let (lo, hi) = R.fullRange(8);

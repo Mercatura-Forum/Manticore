@@ -1,10 +1,10 @@
-// BatchPlan.test.mo — the end-of-day plan, as arithmetic.
+// BatchPlan.test.mo; the end-of-day plan, as arithmetic.
 //
 // The plan is what makes the batch safe to chunk, so it is proved on its own terms
 // before any of it is run:
 //
 //   * the same inputs always give the same plan, and the plan's hash is a function of
-//     the plan alone — which is what lets a chunk re-derive it and check that the work
+//     the plan alone; which is what lets a chunk re-derive it and check that the work
 //     it is about to do is the work the opening block declared;
 //   * the jobs come out in their declared order, because they have real dependencies: a
 //     percent-of-interest charge reads job 1's accrual, a band reads job 3's result, a
@@ -12,12 +12,12 @@
 //   * **the shard size changes nothing in the plan**: since the audit of 13 September (finding A1) an item
 //     is a walk of one product's accounts (or one book's instructions, offers, facilities, instruments,
 //     contracts, deals or cards) and the shard size is the page a chunk takes, so the plan and its hash
-//     are identical at sizes 1, 7 and 1,000 and no count of rows is an input — nothing that happens during
+//     are identical at sizes 1, 7 and 1,000 and no count of rows is an input; nothing that happens during
 //     a run can change the plan under it (finding B1);
 //   * a standing instruction's recurrence is computable from its record alone;
 //   * the retry policy and the run-state vocabulary say what they mean.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region, and
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region, and
 // the moc interpreter provides no Region. The dual-engine check this loses was worth having, and the
 // loss is stated rather than hidden: the reason the state moved is that a heap map per posting makes
 // the heap grow with the journal. Every test below still runs under wasmtime, the engine the chain runs.
@@ -95,7 +95,7 @@ Debug.print("count: single-field plan mutations that changed the hash = " # Nat.
 // ─── 2. the jobs come out in their declared order ────────────────────────────
 
 // the jobs are a total order of ranks with no gaps, and each has a name; the rank is the job's name in every
-// encoding, the position its place in the day — they differ for the redenomination alone, which is first
+// encoding, the position its place in the day; they differ for the redenomination alone, which is first
 var rank = 1;
 for (j in Batch.jobs().vals()) {
   assert (Batch.jobRank(j) == rank);

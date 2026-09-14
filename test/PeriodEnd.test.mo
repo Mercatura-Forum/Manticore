@@ -1,9 +1,9 @@
-// PeriodEnd.test.mo — the close end to end, through the real core.
+// PeriodEnd.test.mo; the close end to end, through the real core.
 //
 // The value dating and the close criteria that are properties of the state machine rather than of the
 // arithmetic, each driven through `planCommand` against a real embedded journal:
 //
-//   V1  one shifting layer — the journal's policy is `#reject`, every product
+//   V1  one shifting layer; the journal's policy is `#reject`, every product
 //       convention resolves the date in the bank layer, and **no posting the bank
 //       submits was ever shifted by the journal** (`valueDateRequested` is null on
 //       every one of them); a deployment whose journal policy is not `#reject`
@@ -25,7 +25,7 @@
 //       every re-run is a no-op
 //   V12 a book closed for a period refuses a posting through the bank
 //
-// engine: wasi-only — the battery fingerprints the whole state on every refusal,
+// engine: wasi-only; the battery fingerprints the whole state on every refusal,
 // which is quadratic in the number of blocks and does not finish in a useful time
 // under `moc -r`. That is the same reason the journal's own core battery and this
 // repository's BankCore, PartyCore and ProductEngine batteries are exempted, and it
@@ -321,7 +321,7 @@ Debug.print("count: postings whose value date this layer resolved = 1");
 let businessDays = Conv.businessDaysBetween(?calConfig, JAN1, JAN31);
 Debug.print("count: business days in the period = " # Nat.toText(businessDays.size()));
 
-/// Roll the business date forward to `d`, which the journal permits only forwards —
+/// Roll the business date forward to `d`, which the journal permits only forwards;
 /// rolling to the day it already is is refused, so the guard is here rather than in
 /// the journal.
 func rollTo(d : JT.Day) {
@@ -447,7 +447,7 @@ switch (JCore.postingView(js, JMemLog.reader(jchain), adjustment[0])) {
 // The re-run is a duplicate and posts nothing further: the same correction, sent
 // again, lands on the posting it already made. Re-sending it with *different*
 // content under the same derived key is a conflict rather than a duplicate, and the
-// journal refuses that — which is the behaviour that makes the key meaningful.
+// journal refuses that; which is the behaviour that makes the key meaningful.
 let rerun = runPostings(#adjustAccrual({
   product = "SAV"; currency = "EGP"; from = JAN1; to = today;
   causedBy = approved[0]; postingDate = today; period = "2026-01"; narration = "back-value correction";
@@ -620,7 +620,7 @@ expectNoOp(#recordClosingRates({ book = "HQ"; period = "2026-01" }));
 switch (CloseCore.getRun(bs.close, "HQ", "2026-01")) { case (?r) assert (r.state == #ratesRecorded); case null assert false };
 
 // V5: the accrual cut-off. The business date has not reached the closing date
-// yet — it is the day after the last accrual we posted — so either the roll or a
+// yet; it is the day after the last accrual we posted; so either the roll or a
 // missing day blocks the close, and the refusal says which.
 switch (Core.planCommand(bs, BankMemLog.reader(bchain), js, JMemLog.reader(jchain), bankP, clock, #markAccrualComplete({ book = "HQ"; period = "2026-01" }), nextAuthority())) {
   case (#err(e)) {
@@ -632,7 +632,7 @@ switch (Core.planCommand(bs, BankMemLog.reader(bchain), js, JMemLog.reader(jchai
 };
 
 // roll to the closing date: now the business date is no longer the obstacle, and the
-// missing accrual days are — which the refusal names one at a time
+// missing accrual days are; which the refusal names one at a time
 rollTo(day(2026, 1, 29));
 expectErr(#markAccrualComplete({ book = "HQ"; period = "2026-01" }), "AccrualIncomplete");
 Debug.print("count: closes refused for a missing accrual day = 1");
@@ -696,7 +696,7 @@ switch (CloseCore.getSchedule(bs.close, unearned.id)) {
 expectNoOp(#amortisePeriodDeferrals({ book = "HQ"; period = "2026-01"; postingDate = today; narration = "again" }));
 Debug.print("count: deferral amortisations verified = 1");
 
-// V10: the control-account check, which is two folds over the same log — the
+// V10: the control-account check, which is two folds over the same log; the
 // maintained balance map on one side and the postings' own legs on the other.
 let check = Core.controlCheck(bs, js, JMemLog.reader(jchain));
 Debug.print("count: control accounts checked = " # Nat.toText(check.accounts));
@@ -704,7 +704,7 @@ assert (check.accounts > 0);
 assert (check.divergence == null);
 
 // A deliberately injected divergence must block the close. The injection reaches
-// into the journal's maintained balance map directly — which nothing in production
+// into the journal's maintained balance map directly; which nothing in production
 // can do, and which is exactly why the check exists: it catches a balance that no
 // posting explains.
 var target : ?{ var drPosted : Nat; var crPosted : Nat; var drPending : Nat; var crPending : Nat } = null;
@@ -749,7 +749,7 @@ Debug.print("count: reconciliations verified = 1");
 // ─── the fiscal year's result closes to retained earnings ────────────────────
 //
 // Between `reconciled` and `closed`: after the period's accruals, revaluations and
-// deferrals are in, and before the journal seals the period — because the journal
+// deferrals are in, and before the journal seals the period; because the journal
 // refuses to book a roll into a closed period, which is the hard stop this relies on
 // rather than works around.
 expectErr(#rollYearEnd({ book = "HQ"; period = "2026-01"; retainedEarnings = "2110"; narration = "not equity" }), "YearEndError");
@@ -769,7 +769,7 @@ switch (JCore.postingView(js, JMemLog.reader(jchain), rollPostings[0])) {
   case null assert false;
 };
 // every income and expense account is at zero afterwards, and retained earnings
-// carries the net — the journal calendar behaviour, reached through the bank's own ordering
+// carries the net; the journal calendar behaviour, reached through the bank's own ordering
 var rolledToZero = 0;
 for (code in ["4100", "4410", "5100", "5300"].vals()) {
   let b = JCore.accountTotal(js, code, "EGP");

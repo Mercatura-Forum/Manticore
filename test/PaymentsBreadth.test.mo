@@ -1,30 +1,30 @@
-// PaymentsBreadth.test.mo — the declared the extended target list target list on the pure state machine: the
+// PaymentsBreadth.test.mo; the declared the extended target list target list on the pure state machine: the
 // 22 families added to the seven of the core messaging set, each read, acted on and recorded.
 //
 // The world of Payments.test.mo (a rail over the settlement scheme, six participants by BIC), then:
 //
 //   F-4  every family of the declared list has its official schema in the profile and a family of its
 //        own; the bank's emitted camt.052, pain.012, camt.025 and admi.007 validate under their profiles
-//   the mandate cycle — pain.009 initiates (PENDING), the bank's dual decision activates or rejects (the
+//   the mandate cycle; pain.009 initiates (PENDING), the bank's dual decision activates or rejects (the
 //        pain.012 derived), pain.010 amends, pain.011 cancels, a pain.012 read reports; pacs.003
 //        collections under an ACTIVE mandate are reserved (the mandate's agents, account, maximum,
 //        sequence enforced), counted, FNAL and OOFF completing it
-//   FI direct debit — pacs.010 pulls only under the debtor's dual debit authority, within its maximum,
+//   FI direct debit; pacs.010 pulls only under the debtor's dual debit authority, within its maximum,
 //        not after revocation
-//   reversals — pacs.007 and pain.007 reverse a committed payment as a transfer of its own, linked to the
+//   reversals; pacs.007 and pain.007 reverse a committed payment as a transfer of its own, linked to the
 //        original's posting and posted in the message; the original untouched
-//   the multilateral settlement request — pacs.029 on a CLOSED window opens its settlement; the
+//   the multilateral settlement request; pacs.029 on a CLOSED window opens its settlement; the
 //        movements are judged against the computed nets when netting completes: equal nets settle, a
 //        wrong request aborts with the first difference on record
-//   cash management — camt.060 recorded and answered (camt.052 / camt.053 of the account), camt.057
+//   cash management; camt.060 recorded and answered (camt.052 / camt.053 of the account), camt.057
 //        expected receipts matched by the payment that arrives, camt.050 liquidity moved between the
 //        settlement account and the position (the camt.025 receipt derived)
-//   exceptions and investigations — camt.026/027/028/087 recorded against their payment
-//   administration — admi.006 and admi.017 recorded (the admi.007 acknowledgement derived)
-//   the business file — head.002 with its payloads, each ingested as a message of its own
+//   exceptions and investigations; camt.026/027/028/087 recorded against their payment
+//   administration; admi.006 and admi.017 recorded (the admi.007 acknowledgement derived)
+//   the business file; head.002 with its payloads, each ingested as a message of its own
 //   P-4  every message one block; replay to an identical fingerprint
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -89,8 +89,8 @@ var authority = 1_000_000;
 func nextAuthority() : Nat { authority += 1; authority };
 let recorder : Core.Recorder = { bank = func(ev : T.Event) : Nat { bcommit(ev) }; journal = func(ev : JT.Event) : Nat { jcommit(ev) }; monitor = Core.noMonitor };
 
-/// Plan and execute a command the way the actor does: the bank event, the journal steps, and — for a
-/// prepared transfer — the reservation in the same message.
+/// Plan and execute a command the way the actor does: the bank event, the journal steps, and; for a
+/// prepared transfer; the reservation in the same message.
 func execute(command : T.Command) : Result.Result<Nat, T.BankError> {
   switch (Core.planCommand(bs, bb(), js, jb(), bankP, clock, command, nextAuthority())) {
     case (#err(e)) #err(e);
@@ -162,7 +162,7 @@ func product(id : Text, control : Text, kind : ProdT.ProductKind, ccy : Text, ov
   } })
 };
 for (ccy in ["EGP", "USD", "EUR"].vals()) {
-  // a position may go debit up to its cap — the cap is granted per account (`grantFacility`)
+  // a position may go debit up to its cap; the cap is granted per account (`grantFacility`)
   ignore cmd(product("POS-" # ccy, "2130", #currentAccount, ccy, ?0));
   ignore cmd(product("SET-" # ccy, "2140", #currentAccount, ccy, null));
   ignore cmd(product("FEE-" # ccy, "2150", #currentAccount, ccy, null));
@@ -537,7 +537,7 @@ func bicOfId(id : Nat) : Text { let ?x = SC.participant(bs.settlement, id) else 
 let nets1 = netsOfWindow(w1);
 let moves1 = Array.map<(Nat, Text, Int), (Text, Text, Nat, Bool)>(Array.filter<(Nat, Text, Int)>(nets1, func((_, _, v)) { v != 0 }), func((p, c, v)) { (bicOfId(p), c, Int.abs(v), v > 0) });
 assert (moves1.size() >= 2);
-// a wrong request first: one amount off by a cent — the settlement opens, netting judges it, the settlement aborts
+// a wrong request first: one amount off by a cent; the settlement opens, netting judges it, the settlement aborts
 let wrong = Array.tabulate<(Text, Text, Nat, Bool)>(moves1.size(), func(i) { let (b, c, a, d) = moves1[i]; if (i == 0) (b, c, a + 1, d) else (b, c, a, d) });
 let rBad = ingest(pacs029(Nat.toText(w1), wrong));
 let sidBad = switch (outcomeOf(rBad, "settlementRequested")) { case (#settlementRequested(q)) { assert (q.window == w1 and q.movements.size() == moves1.size()); q.settlement }; case (_) 0 };

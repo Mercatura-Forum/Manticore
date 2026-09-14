@@ -1,13 +1,13 @@
-/// CardTypes.mo — cards (cards): issuance, authorization as a hold on the journal, clearing and settlement as postings,
+/// CardTypes.mo; cards (cards): issuance, authorization as a hold on the journal, clearing and settlement as postings,
 /// disputes as lifecycles, the PAN never in the contract.
 ///
 /// The boundary, stated first (PCI DSS scope): no PAN, no track data, no CVV, no PIN and no key of the card ever
-/// enters the contract, a block, a row or a log. The contract knows a card by a **token** — an identifier the bank's
-/// token vault minted, whose mapping to the PAN lives in that PCI-scoped system — and it keeps only the token's
+/// enters the contract, a block, a row or a log. The contract knows a card by a **token**; an identifier the bank's
+/// token vault minted, whose mapping to the PAN lives in that PCI-scoped system; and it keeps only the token's
 /// digest as a key. What arrives from the scheme is the authorization request with the token and the *results* of
 /// the HSM's checks (`cryptogramValid`, `pinVerified`), signed by the connector whose key the scheme record carries;
-/// what the contract answers is a decision, and every decision is a block. Scheme rules — interchange, floor limits,
-/// dispute time limits by reason code — are recorded data with their source named, never constants in code.
+/// what the contract answers is a decision, and every decision is a block. Scheme rules; interchange, floor limits,
+/// dispute time limits by reason code; are recorded data with their source named, never constants in code.
 
 import PT "PartyTypes";
 import ProdT "ProductTypes";
@@ -37,7 +37,7 @@ module {
     stanReplayDays : Nat;              // a (acquirer, STAN, RRN) seen within this many days is a duplicate
   };
 
-  /// Interchange by merchant-category range, the floor limit, and the dispute clock per reason code — the scheme's
+  /// Interchange by merchant-category range, the floor limit, and the dispute clock per reason code; the scheme's
   /// public rule summary is the source, named.
   public type InterchangeBand = { mccFrom : Mcc; mccTo : Mcc; bps : Nat; fixed : Nat };
   public type ReasonRule = { code : Text; description : Text; chargebackDays : Nat; representmentDays : Nat; preArbitrationDays : Nat };

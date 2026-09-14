@@ -1,4 +1,4 @@
-/// BankCanonical.mo — the byte encoding of the bank log, and of a command.
+/// BankCanonical.mo; the byte encoding of the bank log, and of a command.
 ///
 /// Two things are encoded here, for two reasons.
 ///
@@ -72,7 +72,7 @@ module {
   /// The command encoding in force for new proposals. The encoders are **frozen per version** (the review of
   /// 12 September): once a pack has dropped a proposal's body, the command is recoverable only while the
   /// encoding of its family is byte-identical to what it was at proposal time, so a change to any existing
-  /// family's bytes is a new version with a new encoder function, the old one kept — the rule the block
+  /// family's bytes is a new version with a new encoder function, the old one kept; the rule the block
   /// decoder already follows. A new family (a new tag) may join the current version: it changes no existing
   /// family's bytes. Version 1 is the encoding of every command before 2026-09-13; version 2 appends
   /// `application : ?Nat` to `createCustomer` (the origination link of origination and underwriting) and is otherwise version 1.
@@ -361,7 +361,7 @@ module {
     ?{ cash; retainedEarnings = re; investing; financing; monetary }
   };
 
-  /// The current encoding of a command — what a new proposal hashes and carries.
+  /// The current encoding of a command; what a new proposal hashes and carries.
   public func writeCommand(w : C.Writer, c : T.Command) { ignore writeCommandAt(COMMAND_ENCODING, w, c) };
 
   /// A command's bytes under a recorded encoding version. False when the version is not one this build
@@ -378,7 +378,7 @@ module {
     }
   };
 
-  /// The one body both versions share: `withApplication` is the only difference between them — version 2
+  /// The one body both versions share: `withApplication` is the only difference between them; version 2
   /// writes `createCustomer`'s `application` after the accounts. FROZEN for every family listed as of
   /// 2026-09-13 (the golden vectors in test/BankCanonical.test.mo fail the build the moment a family's
   /// bytes drift); a change to an existing family's bytes is version 3, written as a new function.
@@ -2856,13 +2856,13 @@ module {
     h
   };
 
-  /// The hash under a recorded version — what a reconstruction is compared with, and what a body's check
+  /// The hash under a recorded version; what a reconstruction is compared with, and what a body's check
   /// at approval uses; null when the version is unknown or cannot represent the command.
   public func commandHashAt(version : Nat8, c : T.Command) : ?Blob {
     switch (commandBytesAt(version, c)) { case (?b) ?sha256Domain(commandDomain(version), Blob.toArray(b)); case null null }
   };
 
-  /// A command's canonical bytes under a version — the preimage of `commandHashAt`.
+  /// A command's canonical bytes under a version; the preimage of `commandHashAt`.
   public func commandBytesAt(version : Nat8, c : T.Command) : ?Blob {
     let w = C.Writer();
     if (not writeCommandAt(version, w, c)) return null;
@@ -2892,7 +2892,7 @@ module {
     { bytes = w.toBlob(); hash }
   };
 
-  /// A stored block's bytes without its trailer — the preimage and the hash — for a packer that drops a
+  /// A stored block's bytes without its trailer; the preimage and the hash; for a packer that drops a
   /// proposal's body, and the trailer on its own.
   public func splitTrailer(bytes : Blob) : ?{ head : Blob; trailer : Blob } {
     let data = Blob.toArray(bytes);

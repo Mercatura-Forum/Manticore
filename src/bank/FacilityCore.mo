@@ -1,12 +1,12 @@
-/// FacilityCore.mo — the facilities of corporate lending, folded from the bank's log, in stable memory (corporate lending).
+/// FacilityCore.mo; the facilities of corporate lending, folded from the bank's log, in stable memory (corporate lending).
 ///
 /// One 304-byte row per facility keyed by the block that opened it; indexes by party and by stage; the drawings
 /// (facility ‖ account → open) and the drawing's facility (account → facility); the syndicate's shares
 /// (facility ‖ participant → bps); the receivables of a factoring facility (facility ‖ ref key → row); the
 /// covenants' last result (facility ‖ covenant key → status); the recorded rate fixings (index key ‖ day → bps).
-/// Rows are written by the fold only. The arithmetic the postings rest on — a syndicate's allocation of an amount
+/// Rows are written by the fold only. The arithmetic the postings rest on; a syndicate's allocation of an amount
 /// by shares with the residue to the bank, the straight line of a rental or a discount over its term, the
-/// clean-down judgement, a covenant's test — is pure here, so the Python oracle of `bank_s33.py` is the same
+/// clean-down judgement, a covenant's test; is pure here, so the Python oracle of `bank_s33.py` is the same
 /// function written twice. What is a journal figure (drawn, available, a participant's position) is read from
 /// the journal by `BankCore`, never kept here. The agent's key of a participant facility lives in the opening
 /// block (it is too long for a row); the planner that needs it reads the block.
@@ -69,7 +69,7 @@ module {
   let MAX_PAGE : Nat = 500;
 
   /// `ref(32) ‖ face(8) ‖ due(4) ‖ status(1) ‖ advance(8) ‖ discount(8) ‖ retention(8) ‖ recognised(8) ‖ purchased(4)
-  ///  ‖ pad(3)` — 84 bytes; status 0 open, 1 collected, 2 dishonoured, 3 written off.
+  ///  ‖ pad(3)`; 84 bytes; status 0 open, 1 collected, 2 dishonoured, 3 written off.
   public type ReceivableStatus = { #open; #collected; #dishonoured; #writtenOff };
   public type ReceivableRow = {
     ref : Blob; face : Nat; due : Nat; status : ReceivableStatus;
@@ -226,7 +226,7 @@ module {
     let next = cur + delta;
     if (next <= 0) ignore Map.delete(s.openByBook, Text.compare, book) else Map.add(s.openByBook, Text.compare, book, Int.abs(next));
   };
-  /// The open facilities of a book, from the fold's counter: what the end-of-day plan asks — no walk (S4.1).
+  /// The open facilities of a book, from the fold's counter: what the end-of-day plan asks; no walk (S4.1).
   public func openCountInBook(s : State, book : Text) : Nat { switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 } };
   func stageOpen(st : FT.Stage) : Bool { st == #open or st == #blocked };
   func putRow(s : State, id : FT.FacilityId, r : Row, block : Nat) {
@@ -672,7 +672,7 @@ module {
     for ((k, _) in page.entries.vals()) { let id = R.getNat(Blob.toArray(k), 1, 8); switch (row(s, id)) { case (?r) { if (r.stage == stage) List.add(out, id) }; case null {} } };
     { ids = List.toArray(out); cursor = page.cursor }
   };
-  /// Every facility not yet closed whose currency is `ccy` — the guard a redenomination reads.
+  /// Every facility not yet closed whose currency is `ccy`; the guard a redenomination reads.
   /// The open (or blocked) facilities in a currency by a walk of the stage index: the unit tests hold it equal to
   /// the fold's counter above; the bank reads the counter.
   public func openInCurrencyWalked(s : State, ccy : Text) : Nat {
@@ -688,7 +688,7 @@ module {
     };
     n
   };
-  /// Every facility of a book not yet closed — what the batch walks; bounded by the rows.
+  /// Every facility of a book not yet closed; what the batch walks; bounded by the rows.
   func bookKey(book : Text, id : Nat) : Blob { Blob.fromArray(Array.concat<Nat8>(Blob.toArray(R.textKey(book, 32)), Blob.toArray(R.key(id, 8)))) };
   public func bookCursor(book : Text, id : Nat) : Blob { bookKey(book, id) };
   /// The open facilities of a book, one page off the book index from a cursor (`bookCursor(book, id)` to resume at an id):

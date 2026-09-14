@@ -1,4 +1,4 @@
-/// PqSchemes.mo — the post-quantum connector signature schemes of the payments rails.
+/// PqSchemes.mo; the post-quantum connector signature schemes of the payments rails.
 ///
 /// A rail declares the scheme its connectors sign with; a connector registers its public key per
 /// BIC (dual); a received message on such a rail carries a signature over its exact bytes, checked

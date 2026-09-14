@@ -1,4 +1,4 @@
-/// PostingIndex.mo — the four posting indexes of `the capacity model`, in stable memory,
+/// PostingIndex.mo; the four posting indexes of `the capacity model`, in stable memory,
 /// maintained in the posting's own message.
 ///
 /// The proposal (the index design) asks for four access paths
@@ -14,34 +14,34 @@
 /// walking the log, and a place to keep the small mutable facts about it that a query must filter
 /// on. So:
 ///
-///   * **`headers`** — one fixed-width row per posting, keyed by its posting number (which is its
+///   * **`headers`**; one fixed-width row per posting, keyed by its posting number (which is its
 ///     journal block index). It holds the effective dates, the primary currency, the leg count,
 ///     the status and the period: exactly the fields a query filters on, so a page of results
 ///     costs one header read a row and never a block decode. The mutable fields are overwritten in
 ///     place by `put`, which is why the status of a pending that later posts or voids needs no
 ///     second row.
-///   * **`byLedger` (I0)** — sub-ledger key → account id. A journal leg names a chart code and a
+///   * **`byLedger` (I0)**; sub-ledger key → account id. A journal leg names a chart code and a
 ///     32-byte sub-ledger key; every per-account key in this component is the **product account
 ///     id**, because that is what `the capacity model` §2 sized. This is the one lookup that
 ///     turns the first into the second, and it is registered when the account is opened, so it can
 ///     never lag either.
-///   * **`byAccount` (I1)** — `acctId ‖ valueDay ‖ postingNo`. One account's entries in any date
+///   * **`byAccount` (I1)**; `acctId ‖ valueDay ‖ postingNo`. One account's entries in any date
 ///     range, as a single range scan. One row per (posting, account): a posting with two legs on
 ///     the same account is one statement line, which is also what keeps the key at the sized 20
 ///     bytes rather than needing a leg ordinal.
-///   * **`byDay` (I2)** — `valueDay ‖ postingNo`. The day's movements, for the end-of-day batch and
+///   * **`byDay` (I2)**; `valueDay ‖ postingNo`. The day's movements, for the end-of-day batch and
 ///     the CBE daily returns.
-///   * **`byCurrency` (I3)** — `currencyOrdinal ‖ valueDay ‖ postingNo`, one row per (posting,
+///   * **`byCurrency` (I3)**; `currencyOrdinal ‖ valueDay ‖ postingNo`, one row per (posting,
 ///     currency), so a four-leg FX deal appears under both of its currencies.
-///   * **`byClass` (I4)** — `classOrdinal ‖ valueDay ‖ postingNo`, one row per (posting, declared
+///   * **`byClass` (I4)**; `classOrdinal ‖ valueDay ‖ postingNo`, one row per (posting, declared
 ///     class). A class is a **declared** extension label; no personal data enters a key.
 ///
 /// ## Three decisions that are easy to get wrong, so they are stated
 ///
 /// **1. A pending that resolves to a different value date.** `#pending` indexes the posting under
 /// the date the record asked for. `#post` may resolve it to another date (a calendar shift, or a
-/// later business date). Rather than delete the first rows — `RegionIndex` has no single-key
-/// delete, by design — the resolution writes rows at the new value day and the header's `valueDay`
+/// later business date). Rather than delete the first rows; `RegionIndex` has no single-key
+/// delete, by design; the resolution writes rows at the new value day and the header's `valueDay`
 /// becomes the effective one. A row whose key's value day does not equal its header's value day is
 /// **stale** and every reader drops it. That is exact, append-only, and needs no extra bit.
 ///
@@ -53,8 +53,8 @@
 /// ever post. Refusing the posting is not an option: the journal has already accepted it.
 ///
 /// **3. Ordinals.** Currencies, declared classes and periods are named by `Text` and indexed by a
-/// four-byte registration ordinal. All three sets are bounded — a few dozen currencies, a few dozen
-/// classes, a few hundred periods over a bank's life — so the ordinal tables stay on the heap
+/// four-byte registration ordinal. All three sets are bounded; a few dozen currencies, a few dozen
+/// classes, a few hundred periods over a bank's life; so the ordinal tables stay on the heap
 /// without touching criterion 3 ("heap flat"), which is about the number of postings and accounts.
 /// An ordinal is assigned on first sight and never reused, so a key's meaning is fixed for ever.
 
@@ -74,7 +74,7 @@ import RB "mo:ledger/RegionRebuild";
 module {
 
   // ═══════════════════════════════════════════════════════
-  //  WIDTHS — every one of these is a row in the capacity model §2
+  //  WIDTHS; every one of these is a row in the capacity model §2
   // ═══════════════════════════════════════════════════════
 
   /// `postingNo(8)` → a 24-byte header. Entry 32 bytes, 255 to a leaf.
@@ -141,7 +141,7 @@ module {
     var byCurrency : RI.State;
     var byClass : RI.State;
     /// The rebuild in progress, if any: which index, its job, the highest packed posting and the
-    /// packed period's last day — see `keepLive` for which rows leave.
+    /// packed period's last day; see `keepLive` for which rows leave.
     var rebuild : ?{ which : Rebuildable; job : RB.Job; hiPacked : Nat; periodEnd : Nat };
     /// Bounded name→ordinal tables. See decision 3 in the header.
     currencyOrd : Map.Map<Text, Nat>;
@@ -397,7 +397,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  I0 — SUB-LEDGER KEY TO ACCOUNT ID
+  //  I0; SUB-LEDGER KEY TO ACCOUNT ID
   // ═══════════════════════════════════════════════════════
 
   /// Register an account's sub-ledger key. Called when the account is opened, in the same message,
@@ -466,15 +466,15 @@ module {
 
   /// What the bank must tell the index about a posting that the index cannot work out for itself.
   ///
-  /// `classOf` is the declared counterparty class of a product account — party data the index
+  /// `classOf` is the declared counterparty class of a product account; party data the index
   /// deliberately does not hold, so it is asked for rather than stored twice.
   ///
   /// `blockOf` reads a block back from the journal's log. It is needed for exactly one case: a
   /// pending that resolves to a different value date has to write its account rows at the new day,
   /// and which accounts those are is a fact about the **record**, not about the header. Reading the
   /// record back and recomputing is how the resolution is guaranteed to agree with the original
-  /// indexing, because both run the same pure `sumsOf` over the same bytes. The alternative — a
-  /// fifth index from posting to account — would cost seventeen bytes for every (posting, account)
+  /// indexing, because both run the same pure `sumsOf` over the same bytes. The alternative; a
+  /// fifth index from posting to account; would cost seventeen bytes for every (posting, account)
   /// pair to avoid one log read on a path that only a calendar shift reaches.
   public type Context = {
     classOf : Nat -> ?Text;
@@ -723,8 +723,8 @@ module {
   /// The movements are recomputed from the pending's own record, read back out of the journal's log,
   /// by the same `sumsOf` that indexed it in the first place. Two consequences, and both are the
   /// reason it is done this way rather than by copying rows: the resolution cannot disagree with the
-  /// original indexing about what the posting moved, and the account rows — whose account ids are
-  /// nowhere in the fixed-width header — are recovered exactly.
+  /// original indexing about what the posting moved, and the account rows; whose account ids are
+  /// nowhere in the fixed-width header; are recovered exactly.
   ///
   /// The rows at the old day are left in place and become stale; `isLive` is what every reader uses
   /// to drop them, and `superseded` counts them so the effect is reportable rather than assumed.
@@ -744,7 +744,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  REBUILD — closed-month packing leaves a month's rows out
+  //  REBUILD; closed-month packing leaves a month's rows out
   // ═══════════════════════════════════════════════════════
 
   public type Rebuildable = { #headers; #byAccount; #byDay; #byCurrency; #byClass };
@@ -768,15 +768,15 @@ module {
     v
   };
 
-  /// Which rows stay live across a pack. The reads honour a **day** boundary — every value day at
-  /// or before the packed period's end is answered from the packs, every later day from here — so
+  /// Which rows stay live across a pack. The reads honour a **day** boundary; every value day at
+  /// or before the packed period's end is answered from the packs, every later day from here; so
   /// a row leaves exactly when its posting is in the packed block range **and** its value day is
   /// at or before the period's end. A posting in the range whose value day is later (an early
   /// posting of the next period, made before the close) keeps its rows; so does a pending still
   /// unresolved at the pack, whose resolution has not happened yet and will land here.
   ///
   /// The headers are rebuilt first and decide; the four movement indexes keep a row exactly when
-  /// its posting still has a header — one lookup per examined row of a packed posting, none for a
+  /// its posting still has a header; one lookup per examined row of a packed posting, none for a
   /// live one.
   func keepLive(s : State, which : Rebuildable, hiPacked : Nat, periodEnd : Nat) : (Blob, Blob) -> Bool {
     func(k : Blob, v : Blob) : Bool {

@@ -1,9 +1,9 @@
-// NTT — exact match to CRYSTALS-Dilithium reference implementation.
+// NTT; exact match to CRYSTALS-Dilithium reference implementation.
 // Uses Montgomery arithmetic with signed 32-bit representation.
 // q = 8380417, MONT = 2^32 mod q = 4193792 (reference uses -4186625 = q - 4193792)
 //
 // A: this has to match the reference byte-for-byte or the KAT vectors won't pass.
-//    every single zeta, every reduction, every butterfly — exact match to
+//    every single zeta, every reduction, every butterfly; exact match to
 //    pq-crystals/dilithium/ref/ntt.c
 
 import Nat "mo:core/Nat";
@@ -58,7 +58,7 @@ module {
   // Montgomery reduction using Nat32 wrapping arithmetic (much faster)
   // Input: a is at most ~2^46 (product of two values < q^2)
   func montgomeryReduce(a : Int) : Int32 {
-    // t = (int32)(a) * QINV — wrapping multiplication, take low 32 bits
+    // t = (int32)(a) * QINV; wrapping multiplication, take low 32 bits
     // Use Nat32 wrapping for the low bits
     let aLow32 = Nat32.fromNat(Int.abs(if (a >= 0) a % 4294967296 else (4294967296 - (Int.abs(a) % 4294967296)) % 4294967296));
     let t32 = aLow32 *% Nat32.fromNat(Int.abs(Int32.toInt(QINV)));
@@ -70,7 +70,7 @@ module {
     Int32.fromInt(r);
   };
 
-  /// Forward NTT (Cooley-Tukey) — exact reference match
+  /// Forward NTT (Cooley-Tukey); exact reference match
   public func ntt(a : [var Int32]) {
     var len : Nat = 128;
     var k : Nat = 1;
@@ -92,7 +92,7 @@ module {
     };
   };
 
-  /// Inverse NTT (Gentleman-Sande) — exact reference match
+  /// Inverse NTT (Gentleman-Sande); exact reference match
   public func invNtt(a : [var Int32]) {
     let f : Int32 = 41978; // mont^2 / 256
     var len : Nat = 1;

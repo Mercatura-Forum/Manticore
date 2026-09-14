@@ -1,4 +1,4 @@
-/// ProductTypes.mo — the product engine's vocabulary.
+/// ProductTypes.mo; the product engine's vocabulary.
 ///
 /// A product is a named, **versioned** composition of property groups: interest,
 /// charges, limits, schedule, accounting and tax. That decomposition is Temenos
@@ -10,8 +10,8 @@
 /// unanswerable.
 ///
 /// An account is not a new object with a number in it. It is a **sub-ledger key
-/// under a general-ledger control account** — the shape the token ledger proved for token
-/// holders — so every balance is a journal balance and there is nothing to
+/// under a general-ledger control account**; the shape the token ledger proved for token
+/// holders; so every balance is a journal balance and there is nothing to
 /// reconcile.
 
 
@@ -35,7 +35,7 @@ module {
 
   /// The posting roles a product maps to accounts. Registration validates that
   /// each mapped account exists, is active and has the **category the role
-  /// requires** — the check Fineract performs per slot and refuses the product
+  /// requires**; the check Fineract performs per slot and refuses the product
   /// without (behaviour 6: two rejections observed before acceptance).
   public type Role = {
     #principal;              // the customer's own balance: liability for a deposit, asset for a loan
@@ -175,10 +175,10 @@ module {
   /// product declares which one it is sold under rather than inheriting whichever
   /// the implementation happened to choose:
   ///
-  ///   * `#anniversary` — the boundary is the same day of the month as the opening
+  ///   * `#anniversary`; the boundary is the same day of the month as the opening
   ///     day (clamped at a short month end). The term runs from the opening date, so
   ///     this is the natural convention for a term deposit.
-  ///   * `#calendar` — the boundary is the first of each calendar month, so a deposit
+  ///   * `#calendar`; the boundary is the first of each calendar month, so a deposit
   ///     opened mid-month has a short first period. This is the convention Apache
   ///     Fineract's monthly compounding uses, and declaring it reproduces Fineract's
   ///     figure exactly (criterion F8).
@@ -188,7 +188,7 @@ module {
 
   /// A rate band: the rate that applies while the balance (or the term, for a
   /// deposit) falls in `[from, to)`. Bands must partition the space, which
-  /// registration checks — a gap is a balance with no rate.
+  /// registration checks; a gap is a balance with no rate.
   public type RateBand = { from : Nat; to : ?Nat; rate : I.Rate };
 
   public type RateChart = { bands : [RateBand]; by : { #balance; #termDays } };
@@ -310,7 +310,7 @@ module {
     accounting : Accounting;
     /// Withholding tax on interest credited, as a rate and a liability role.
     withholdingTax : ?I.Rate;
-    /// The rounding mode for **every** monetary rounding this product performs —
+    /// The rounding mode for **every** monetary rounding this product performs;
     /// interest, charges, provisions, schedules. One declared mode per product, so
     /// two figures in the same statement can never have been rounded differently.
     rounding : I.Rounding;
@@ -410,7 +410,7 @@ module {
     /// account stays bound to the version it was opened under.
     #productAmended : { id : ProductId; version : ProductVersion; supersedes : ProductVersion; name : Text; terms : ProductTerms };
     #productClosedToNewAccounts : { id : ProductId; version : ProductVersion };
-    /// A redenomination (S4.1): the one amendment that changes the currency — a new version whose terms are the
+    /// A redenomination (S4.1): the one amendment that changes the currency; a new version whose terms are the
     /// old ones in the new currency, with the accrual evidence of the old currency carried to the new.
     #productRedenominated : { id : ProductId; version : ProductVersion; supersedes : ProductVersion; from : JT.Currency; to : JT.Currency; terms : ProductTerms };
     /// An account re-expressed in the new currency and bound to the redenominated version.
@@ -562,13 +562,13 @@ module {
   /// labelled, because conflating them is how a statement and a teller screen come
   /// to disagree:
   ///
-  ///   * `net` / `overdrawn` are **value-dated as at `asOf`** — the balance interest
+  ///   * `net` / `overdrawn` are **value-dated as at `asOf`**; the balance interest
   ///     is computed on and the figure a statement for that date shows;
   ///   * `postedNet` / `postedOverdrawn` are over everything posted whatever its
   ///     value date;
   ///   * `available` is what the **engine will still admit now**: the posted
   ///     position less amounts already reserved, plus the facility. It has no as-of
-  ///     notion because admission has none — the journal checks a limit against
+  ///     notion because admission has none; the journal checks a limit against
   ///     everything posted and pending at the moment the posting arrives.
   public type BalanceView = {
     account : AccountId;
@@ -616,7 +616,7 @@ module {
 
   /// A quote for a term deposit: the rate the term resolves to from the product's
   /// own chart, and the figure the deposit matures at. A branch quotes this before
-  /// the account exists, so it is a read on the product rather than on an account —
+  /// the account exists, so it is a read on the product rather than on an account;
   /// and it is the figure a depositor checks with a calculator.
   public type DepositQuoteView = {
     product : ProductId;
@@ -654,8 +654,8 @@ module {
 
   /// Every money-visible behaviour of the product engine sits behind one of these
   /// feature gates, each defaulting to `ACTIVATION_OFF`. Below its gate a feature
-  /// refuses; configuration — registering a product, opening an account, opening a
-  /// till — is not gated, because it moves no money.
+  /// refuses; configuration; registering a product, opening an account, opening a
+  /// till; is not gated, because it moves no money.
   public let FEATURE_ACCOUNT_MONEY : Text = "product.account.money";
   public let FEATURE_INTEREST : Text = "product.interest";
   public let FEATURE_CHARGES : Text = "product.charges";

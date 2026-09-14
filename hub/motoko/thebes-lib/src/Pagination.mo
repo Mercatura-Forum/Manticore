@@ -1,10 +1,10 @@
-/// Pagination.mo — bounded, offset-cursor paging over an ordered array.
+/// Pagination.mo; bounded, offset-cursor paging over an ordered array.
 ///
 /// The storage law says every unbounded collection must be paginated. This is
 /// the shared helper: callers materialize an ordered slice (e.g.
 /// `Iter.toArray(Map.entries(map))`, which `mo:core/Map` returns in key order)
 /// and hand it here with an `offset` + `limit`. Returns the page plus the next
-/// offset (`null` when exhausted) and the total count — everything a UI needs
+/// offset (`null` when exhausted) and the total count; everything a UI needs
 /// to render "showing X–Y of N" and a "load more" cursor.
 ///
 /// Offsets are stable for append-mostly logs read newest-last; for mutate-heavy

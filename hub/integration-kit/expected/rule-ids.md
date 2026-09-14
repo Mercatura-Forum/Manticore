@@ -37,7 +37,7 @@
 
 | Fixture or situation | Expected rule id |
 | --- | --- |
-| `xml/invalid/*` of `xml/breadth-manifest.json` (tier `schema`) | `ISO-XSD-ROOT`, `ISO-XSD-UNEXPECTED`, `ISO-XSD-MISSING`, `ISO-XSD-LENGTH`, `ISO-XSD-PATTERN`, `ISO-XSD-ENUM`, `ISO-XSD-BOOLEAN`, `XML-UNSAFE-DECL` — the manifest names each fixture's |
+| `xml/invalid/*` of `xml/breadth-manifest.json` (tier `schema`) | `ISO-XSD-ROOT`, `ISO-XSD-UNEXPECTED`, `ISO-XSD-MISSING`, `ISO-XSD-LENGTH`, `ISO-XSD-PATTERN`, `ISO-XSD-ENUM`, `ISO-XSD-BOOLEAN`, `XML-UNSAFE-DECL`; the manifest names each fixture's |
 | the same manifest, tier `business` | `ISO-BIZ-COUNT`, `ISO-BIZ-AMOUNT`, `ISO-BIZ-CURRENCY`, `ISO-BIZ-UETR-REQUIRED`, `ISO-BIZ-AGENT-BIC`, `ISO-BIZ-REQUIRED` |
 | a record a writer cannot place in its family's shape (`encodeIsoBreadth`) | `ISO-BIZ-REQUIRED`, `ISO-BIZ-CURRENCY`, `ISO-BIZ-FAMILY` |
 | a written document that does not read back equal (`roundTripIsoBreadth`) | `ROUNDTRIP-EQUALITY`, `ROUNDTRIP-<rule>` |

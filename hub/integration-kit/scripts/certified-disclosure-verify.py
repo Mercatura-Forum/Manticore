@@ -5,8 +5,8 @@ Drives the deployed hub through the Thebes CLI (`thebes-deploy query`). The
 canister exposes JSON twins of the certified-disclosure methods
 (`certifiedAuditDisclosureJson`, `certifiedDisclosureCertificateJson`,
 `listCertifiedParticipantBalancesJson`, `verifyCertifiedDisclosureJson`) that
-return their fields as a JSON string — blobs as byte arrays, optionals as
-`[]`/`[value]`, big integers as decimal strings — so every hash is recomputed
+return their fields as a JSON string; blobs as byte arrays, optionals as
+`[]`/`[value]`, big integers as decimal strings; so every hash is recomputed
 here with no Candid decoder and no external client library. The CLI's `--json`
 mode surfaces the substrate reply wrapper `{status, reply (hex), error}`; this
 script hex-decodes `reply` (canonical Candid for a single `text` return) and
@@ -488,7 +488,7 @@ def verify(args: argparse.Namespace) -> dict[str, Any]:
         "networkCertificateSignatureVerified": False,
         "networkCertificateSignatureNote": (
             "Deployment-network certificate/quorum signature validation is not implemented by this helper. "
-            "For IC-compatible ICP deployments this means IC root-key/BLS validation; "
+            ""
             "for Thebes production this means the Thebes network root or quorum proof."
         ),
         "checks": [check.__dict__ for check in checks],
@@ -530,7 +530,7 @@ def main() -> int:
             print(f"- {marker} {check['name']}{suffix}")
         print(
             "note: deployment-network certificate/quorum signature validation remains an operator hardening item "
-            "(IC root-key/BLS for ICP, Thebes network proof for Thebes production)."
+            "(the network root key)."
         )
     return 0 if result["ok"] else 1
 

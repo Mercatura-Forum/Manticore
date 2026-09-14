@@ -1,4 +1,4 @@
-/// ProductCore.mo — the product engine's state, which holds no money.
+/// ProductCore.mo; the product engine's state, which holds no money.
 ///
 /// Shaped exactly like `PartyCore`: every field is the fold of the bank log, `apply`
 /// is the only place state changes, and `fingerprintInto` digests it so "the
@@ -7,7 +7,7 @@
 /// What is here: products and their versions, accounts and the version each was
 /// opened under, loan schedules and their revisions, the running allowance per
 /// loan, tills and who holds them. What is deliberately **not** here: any balance.
-/// Principal outstanding, interest receivable, fees, penalties, cash in a drawer —
+/// Principal outstanding, interest receivable, fees, penalties, cash in a drawer;
 /// every one of those is a journal balance read through `Posting`, so there is
 /// nothing to reconcile and nothing to go stale when a posting is back-dated.
 ///
@@ -23,8 +23,8 @@
 /// nothing per account: the fold keeps one fixed-width **row** per account in stable memory
 /// (`AccountRow`: status, version, the block that closed it, pointers to the blocks that granted
 /// its facility, set its provision and disbursed it, the count of its schedule versions, and the
-/// ordinals a scan filters on), and stable indexes for what a row cannot hold — the schedule
-/// versions and the charges applied and waived, each an index entry pointing at its block — and
+/// ordinals a scan filters on), and stable indexes for what a row cannot hold; the schedule
+/// versions and the charges applied and waived, each an index entry pointing at its block; and
 /// for the lookups (identifier, party, product). An `AccountEntry` is rebuilt from the row and its
 /// blocks when a planner or a reader needs one. The last capitalisation day is not stored per
 /// account at all: a capitalisation run is one event per product and currency, so the per-account
@@ -118,7 +118,7 @@ module {
 
   /// `status(1) ‖ version(4) ‖ closedAt(8) ‖ facilityBlock(8) ‖ provisionBlock(8) ‖ disbursedBlock(8)
   /// ‖ writtenOff(1) ‖ scheduleCount(4) ‖ productOrd(4) ‖ currencyOrd(4) ‖ bookOrd(4) ‖ party(8) ‖
-  /// opened(4) ‖ rateBlock(8)` — 74 bytes. A pointer of 0 means "never": block 0 is the genesis administrator
+  /// opened(4) ‖ rateBlock(8)`; 74 bytes. A pointer of 0 means "never": block 0 is the genesis administrator
   /// record and can be none of these.
   public type AccountRow = {
     status : T.AccountStatus;
@@ -141,7 +141,7 @@ module {
   public let ACCOUNT_ROW_BYTES : Nat = 74;
 
   /// `status(1) ‖ allocated(16) ‖ returned(16) ‖ settlements(4) ‖ diffTag(1) ‖ diffAmount(16) ‖
-  /// openedAt(8) ‖ currencyOrd(4) ‖ bookOrd(4)` — 70 bytes. The running sums are folds of many
+  /// openedAt(8) ‖ currencyOrd(4) ‖ bookOrd(4)`; 70 bytes. The running sums are folds of many
   /// events, so the row carries them; the currency and book are what a command's scoping asks for
   /// before anything else, so the row carries their ordinals.
   public type TillRow = {
@@ -168,7 +168,7 @@ module {
     accountRows : RI.State;            // account(8) -> AccountRow
     accountsByIdentifier : RI.State;   // identifier(64) -> account(8)
     /// subledger(32) -> account or till block(8): every sub-ledger key this shard holds. A posting
-    /// naming any other sub-ledger is refused — a shard admits only what it holds.
+    /// naming any other sub-ledger is refused; a shard admits only what it holds.
     subledgers : RI.State;
     accountsByParty : RI.State;        // party(8) ‖ account(8) -> 0
     accountsByProduct : RI.State;      // productOrd(4) ‖ account(8) -> 0
@@ -385,7 +385,7 @@ module {
   public func exists(s : State, id : T.AccountId) : Bool { accountRow(s, id) != null };
 
   /// The day interest was last capitalised for an account: its opening, or the latest run for its
-  /// product and currency that happened after it was opened — which is what the per-account cursor
+  /// product and currency that happened after it was opened; which is what the per-account cursor
   /// used to record, event by event.
   func lastCapitalisedOf(s : State, product : Text, currency : Text, openedAtBlock : Nat, opened : Nat) : Nat {
     var last = opened;
@@ -558,7 +558,7 @@ module {
     rangeIds(s.accountsByParty, lo, hi, 8)
   };
 
-  /// The account ids of a product, ascending — a range over the product index, no block read.
+  /// The account ids of a product, ascending; a range over the product index, no block read.
   public func accountIdsOfProduct(s : State, product : T.ProductId) : [T.AccountId] {
     let ?ord = Map.get(s.productOrdinals, Text.compare, product) else return [];
     let (lo, hi) = R.prefixRange(ord, 4, 8);
@@ -575,7 +575,7 @@ module {
   public func accountsOfProduct(s : State, bb : Blocks, product : T.ProductId) : [AccountEntry] {
     Array.map<Nat, AccountEntry>(accountIdsOfProduct(s, product), func(id) { mustGet(s, bb, id) })
   };
-  /// One page of the ids of a product's accounts in a book, ascending, from an account id (inclusive) — what the
+  /// One page of the ids of a product's accounts in a book, ascending, from an account id (inclusive); what the
   /// end-of-day walks a chunk at a time (the adversarial audit of 13 September, finding A1). `next` is the id to resume at.
   public func accountIdsOfProductInBookFrom(s : State, product : T.ProductId, book : Text, from : ?T.AccountId, limit : Nat) : { ids : [T.AccountId]; next : ?T.AccountId } {
     let ?p = Map.get(s.productOrdinals, Text.compare, product) else return { ids = []; next = null };

@@ -1,4 +1,4 @@
-// ReportEngine.test.mo — the report engine, the primary statements, the returns and the
+// ReportEngine.test.mo; the report engine, the primary statements, the returns and the
 // feed, over a real journal.
 //
 // The reporting criteria that are properties of the arithmetic rather than of the bank's wiring.
@@ -11,8 +11,8 @@
 //        independent-implementation half of R-1 is an external ledger seeing the same population.
 //   R-2  the balance-sheet identity is **asserted**, not presented: it holds for every period,
 //        and the refusal is shown to work by calling the check with figures that do not add up
-//   R-3  the IAS 21 translation posts nothing — the journal fingerprint is identical across it
-//        — shows the translation difference as its own line, and its components reconcile to
+//   R-3  the IAS 21 translation posts nothing; the journal fingerprint is identical across it
+//       shows the translation difference as its own line, and its components reconcile to
 //        the native view exactly
 //   R-4  determinism in (definition hash, parameters, journal height): 50 triples evaluated
 //        twice are byte-identical, a closed period's report is unchanged by later activity in
@@ -32,7 +32,7 @@
 // `#product`, `#counterpartyClass`) are proved in `Reporting.test.mo` against real product
 // accounts rather than against a fixture here.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region, and
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region, and
 // the moc interpreter provides no Region. The dual-engine check this loses was worth having, and the
 // loss is stated rather than hidden: the reason the state moved is that a heap map per posting makes
 // the heap grow with the journal. Every test below still runs under wasmtime, the engine the chain runs.
@@ -196,7 +196,7 @@ Debug.print("count: postings in the fixture population = " # Nat.toText(posted))
 assert (posted >= 500);
 Debug.print("count: journal blocks = " # Nat.toText(JCore.height(js)));
 
-// the context: the journal's own leadsheet lookup, and no sub-ledger rows — the dimensions
+// the context: the journal's own leadsheet lookup, and no sub-ledger rows; the dimensions
 // that read those are the bank's and are proved in `Reporting.test.mo`
 let ctx : Reports.Context = {
   leadsheetOf = func(code : JT.AccountCode) : ?Text {
@@ -212,7 +212,7 @@ let ctx : Reports.Context = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-5 — the engine has no expression surface, and a slice has a bound
+//  R-5; the engine has no expression surface, and a slice has a bound
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Twelve definitions covering every dimension the chart source offers, every measure, every
@@ -302,7 +302,7 @@ for (bad in [
 Debug.print("count: malformed report definitions refused = " # Nat.toText(defRefusals));
 assert (defRefusals == 12);
 
-// a definition keyed by both a chart dimension and a sub-ledger one is refused, naming both —
+// a definition keyed by both a chart dimension and a sub-ledger one is refused, naming both;
 // a posting carries a sub-ledger key and not a branch, so one report cannot be keyed by both
 switch (Reports.validateDef(def("MIXED", [#leadsheet, #book], [], [#closingBalance], #byRowKey, #minorUnits, 10))) {
   case (?#MixedRowSources(d)) {
@@ -315,11 +315,11 @@ switch (Reports.validateDef(def("MIXED", [#leadsheet, #book], [], [#closingBalan
 Debug.print("count: definitions refused for mixing row sources = 1");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-4 — determinism in (definition hash, parameters, journal height)
+//  R-4; determinism in (definition hash, parameters, journal height)
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Fifty triples: twelve definitions over five periods, minus the combinations the fixture
-// leaves empty. Each evaluated twice must be byte-identical — which is what makes "two parties
+// leaves empty. Each evaluated twice must be byte-identical; which is what makes "two parties
 // who disagree about a figure resolve it by recomputing" a true statement rather than a hope.
 var triples = 0;
 let firstPass = List.empty<(Text, Blob)>();
@@ -382,7 +382,7 @@ assert (movedRows > 0);
 Debug.print("count: open-period rows that did move = " # Nat.toText(movedRows));
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-1 and R-2 — the primary statements, and the identity asserted
+//  R-1 and R-2; the primary statements, and the identity asserted
 // ═══════════════════════════════════════════════════════════════════════════
 
 let map : RT.StatementMap = {
@@ -429,7 +429,7 @@ Debug.print("count: primary statements that reconciled or balanced = " # Nat.toT
 assert (statementsChecked == periods.size() * 3);
 
 // The refusal works. The journal enforces debits = credits per currency at admission, so a
-// balance sheet built from it cannot fail the identity — which means the only sound way to
+// balance sheet built from it cannot fail the identity; which means the only sound way to
 // show the refusal is to call the check with figures that do not add up.
 assert (not Reports.balanceSheetIdentity(100, 60, 30, 5));
 assert (Reports.balanceSheetIdentity(100, 60, 30, 10));
@@ -454,7 +454,7 @@ Debug.print("count: cash-flow statements that reconciled to the cash accounts = 
 assert (cashChecked == periods.size());
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-3 — the IAS 21 translation posts nothing
+//  R-3; the IAS 21 translation posts nothing
 // ═══════════════════════════════════════════════════════════════════════════
 
 // 48.25 EGP to the dollar at the close, 47.00 at the historic date: two different rates, so a
@@ -565,7 +565,7 @@ switch (Reports.translate(egp, "EGP", day(2026, 12, 31), day(2026, 1, 1), map, r
 Debug.print("count: functional views of the functional currency = 1");
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-9 and R-10 — a return reports what it cannot map, and its arithmetic is declared
+//  R-9 and R-10; a return reports what it cannot map, and its arithmetic is declared
 // ═══════════════════════════════════════════════════════════════════════════
 
 func rate(n : Nat, d : Nat) : { numerator : Nat; denominator : Nat } { { numerator = n; denominator = d } };
@@ -587,7 +587,7 @@ func measurableOf(values : [RT.ReturnValue], code : Text) : Bool {
 };
 
 /// An account's closing balance on its normal side, recomputed here from the journal's trial
-/// balance rather than taken from the engine — so the return's figures are checked against an
+/// balance rather than taken from the engine; so the return's figures are checked against an
 /// arithmetic written separately from the one that produced them.
 func closingOf(pid : Text, code : Text) : Int {
   let ?tb = JCore.trialBalance(js, pid) else { Debug.print("no trial balance for " # pid); assert false; loop {} };
@@ -803,7 +803,7 @@ Debug.print("count: declared zero-denominator behaviours verified = " # Nat.toTe
 assert (zeroBehaviours == 3);
 
 // a template whose lines all map something has nothing to report as unmapped, and is **not**
-// flagged — so the flag means what it says
+// flagged; so the flag means what it says
 let complete : RT.ReturnTemplate = {
   template with
   id = "COMPLETE";
@@ -823,7 +823,7 @@ switch (ReturnsM.evaluate(js, complete, "HQ", "2026-Q4")) {
     assert (r.unmappedTotal == 0);
     assert (not r.flagged);
     // a return covering every account has debits equal to credits, because the trial balance
-    // does — which is the one figure a regulator can check without any of our arithmetic
+    // does; which is the one figure a regulator can check without any of our arithmetic
     assert (valueOf(r.values, "DR") > 0);
     assert (valueOf(r.values, "DR") == valueOf(r.values, "CR"));
     assert (valueOf(r.values, "NET") == 0);
@@ -894,13 +894,13 @@ assert (Text.contains(normalised.json, #text "\"proof_basis\": \"journal-mmr\"")
 Debug.print("count: normalised trial-balance lines carrying a proof basis = " # Nat.toText(normalised.lines));
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  R-15 — the feed is verifiable and gapless
+//  R-15; the feed is verifiable and gapless
 // ═══════════════════════════════════════════════════════════════════════════
 
 // A consumer asks for events after a cursor and gets back the bounds, the tip and a digest
 // over the slice **in order**. The checks below are the consumer's own: recompute the digest,
 // confirm the run starts where it asked and is contiguous. A page that passes them is a page
-// nobody spliced, reordered or truncated — which is strictly more than a webhook can offer,
+// nobody spliced, reordered or truncated; which is strictly more than a webhook can offer,
 // because a webhook's recipient has nothing to check.
 func feedEvent(cursor : Nat, kind : Text) : RT.FeedEvent {
   { cursor; block = cursor; kind; book = ?"HQ" }
@@ -990,7 +990,7 @@ Debug.print("count: tampered feed pages detected = " # Nat.toText(tampersDetecte
 assert (tampersDetected == tamperTrials);
 assert (tampersDetected >= 50);
 
-// an empty page is legitimate — a caught-up consumer gets one — and is accepted only when its
+// an empty page is legitimate; a caught-up consumer gets one; and is accepted only when its
 // bounds say so
 let empty : FeedM.FeedPage = {
   events = []; from = 200; to = 200; tipCursor = 200; caughtUp = true;

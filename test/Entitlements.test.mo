@@ -1,4 +1,4 @@
-// Entitlements.test.mo — scope is evaluated against the operation's own data.
+// Entitlements.test.mo; scope is evaluated against the operation's own data.
 //
 // The property worth proving adversarially is that a caller cannot get past a
 // ceiling by splitting an amount across legs, by naming a currency the grant
@@ -7,7 +7,7 @@
 // may permit the operation; the failure reported when none does must be the
 // specific one, never a generic "no grant".
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region, and
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region, and
 // the moc interpreter provides no Region. The dual-engine check this loses was worth having, and the
 // loss is stated rather than hidden: the reason the state moved is that a heap map per posting makes
 // the heap grow with the journal. Every test below still runs under wasmtime, the engine the chain runs.
@@ -109,8 +109,8 @@ switch (E.evaluate([teller], op(?"BR01", [("EGP", 5_000_00)]), func(_) { 195_000
 Debug.print("count: ceiling and daily-limit boundary checks = 3");
 
 // ─── splitting an amount across legs does not evade the ceiling ─────────────
-// 128 legs of 400.00 EGP each on the debit side total 51,200.00 — over the
-// 50,000.00 ceiling — while every individual leg is far below it.
+// 128 legs of 400.00 EGP each on the debit side total 51,200.00; over the
+// 50,000.00 ceiling; while every individual leg is far below it.
 var many : [JT.Leg] = [];
 
 let build = func() : [JT.Leg] {

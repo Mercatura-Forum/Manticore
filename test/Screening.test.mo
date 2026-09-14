@@ -1,4 +1,4 @@
-// Screening.test.mo — absence from a committed list is provable.
+// Screening.test.mo; absence from a committed list is provable.
 //
 // The verifiable half of party and KYC's screening design: a sorted Merkle commitment over a
 // normalised list, inclusion proofs for every entry, non-membership by adjacency in
@@ -6,7 +6,7 @@
 // reported as membership rather than as a failed proof, and every way of tampering
 // with a proof refused.
 //
-// engine: wasi-only — seven hundred Merkle proofs over a 500-leaf tree, each with
+// engine: wasi-only; seven hundred Merkle proofs over a 500-leaf tree, each with
 // dozens of SHA-256 calls. Under `moc -r` it does not finish in a useful time (the
 // run was killed after four minutes with its output frozen), the same reason the
 // journal's own core battery is exempted for being quadratic in the interpreter.
@@ -59,7 +59,7 @@ var below = 0; var between = 0; var above = 0;
 var m = 0;
 while (m < 200) {
   // A mix on purpose: below the first entry, above the last, and strictly
-  // between two neighbours — the three shapes the proof must handle.
+  // between two neighbours; the three shapes the proof must handle.
   let subject = if (m % 10 == 0) entry("AAA ABSENT " # Nat.toText(m))
     else if (m % 10 == 1) entry("ZZZ ABSENT " # Nat.toText(m))
     else entry("LISTED PERSON " # Nat.toText(1000 + m) # "A");
@@ -146,7 +146,7 @@ switch (base.lower, base.upper) {
     // *larger* than the real one is not a soundness hole and is not asserted to
     // be refused: the entry count comes from the recorded list, not from the
     // prover, and for a bracketed subject the argument rests on the two leaves
-    // being included under the committed root and adjacent — which they still
+    // being included under the committed root and adjacent; which they still
     // are. The count binds the two edge shapes, "nothing below the first" and
     // "nothing above the last", and the index bounds.)
     switch (S.verifyNonMembership(subj, base, { list with count = u.index })) {

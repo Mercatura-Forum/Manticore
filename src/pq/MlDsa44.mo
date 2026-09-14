@@ -1,14 +1,14 @@
-/// MlDsa44.mo — ML-DSA-44 signature verification per FIPS 204 (August 2024), over the byte encodings
+/// MlDsa44.mo; ML-DSA-44 signature verification per FIPS 204 (August 2024), over the byte encodings
 /// of the standard: a 1,312-byte public key, a 2,420-byte signature, the context string, and the
 /// message.
 ///
 /// The arithmetic (number-theoretic transform, Montgomery reduction, rejection sampling of the
 /// matrix, decomposition and hints) is the Thebes Core Team's pure-Motoko ML-DSA implementation
 /// (`MlDsaRef.mo`, `MlDsaNtt.mo`, `MlDsaKeccak.mo`, whose key generation matches pq-crystals
-/// byte for byte); what this module adds is the standard's outer layer that implementation lacks —
+/// byte for byte); what this module adds is the standard's outer layer that implementation lacks;
 /// pkDecode / sigDecode (Algorithms 23, 27; 10-bit, 18-bit and hint packings), tr = H(pk),
 /// μ = H(tr ‖ 0x00 ‖ |ctx| ‖ ctx ‖ M) with the domain separation of ML-DSA.Verify (Algorithm 3),
-/// the spec's SampleInBall with rejection (Algorithm 29) and w1Encode (Algorithm 28) — so that a
+/// the spec's SampleInBall with rejection (Algorithm 29) and w1Encode (Algorithm 28); so that a
 /// signature produced by any conforming implementation verifies here. The proof is the NIST
 /// known-answer file: `test/MlDsa44.test.mo` verifies the reference KAT vectors and refuses each
 /// one mutated.

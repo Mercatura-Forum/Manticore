@@ -1,4 +1,4 @@
-/// PartyTypes.mo — the party / CIF and KYC vocabulary.
+/// PartyTypes.mo; the party / CIF and KYC vocabulary.
 ///
 /// The design rule this file exists to enforce is stated before the types:
 ///
@@ -107,7 +107,7 @@ module {
   };
 
   /// The attested fuzzy pass. The chain guarantees attribution and
-  /// tamper-evidence, not that the matching was good — a distinction that
+  /// tamper-evidence, not that the matching was good; a distinction that
   /// belongs in the record, not only in a design note.
   public type ScreeningDecision = {
     party : PartyId;

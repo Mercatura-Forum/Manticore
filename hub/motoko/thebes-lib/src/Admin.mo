@@ -1,4 +1,4 @@
-/// Admin.mo — the STANDARD admin surface every Thebes app embeds.
+/// Admin.mo; the STANDARD admin surface every Thebes app embeds.
 ///
 /// This is a PURE MODULE, not an actor. It owns no state itself; instead the
 /// host actor holds a single `Admin.State` value in a top-level `var` (which is
@@ -8,18 +8,18 @@
 /// reused and unit-checked.
 ///
 /// What you get:
-///   • Owner claim/transfer  — first-caller-claims, then owner-only transfer.
-///   • Admins set            — owner adds/removes admins; admins are a privilege
+///   • Owner claim/transfer ; first-caller-claims, then owner-only transfer.
+///   • Admins set           ; owner adds/removes admins; admins are a privilege
 ///                             tier below the owner.
-///   • isOwner / isAdmin     — boolean checks (admin tier INCLUDES the owner).
-///   • requireOwner / requireAdmin — guards that Runtime.trap on failure; call
+///   • isOwner / isAdmin    ; boolean checks (admin tier INCLUDES the owner).
+///   • requireOwner / requireAdmin; guards that Runtime.trap on failure; call
 ///                             them at the TOP of a privileged method.
-///   • paused flag + requireNotPaused — an emergency stop. Owner/admin can flip
+///   • paused flag + requireNotPaused; an emergency stop. Owner/admin can flip
 ///                             `paused`; guarded methods refuse while paused.
 ///
 /// Trust model: authority is keyed on the caller `Principal`. The host actor
 /// must pass `msg.caller` (the ingress sender on Thebes) as the `caller`
-/// argument — never a value derived from untrusted call arguments.
+/// argument; never a value derived from untrusted call arguments.
 ///
 /// mo:core conventions used here: `Set` with an explicit comparator
 /// (`Principal.compare`), `Set.add` (overwrites, returns void), `.values()`.
@@ -32,7 +32,7 @@ import Iter "mo:core/Iter";
 module {
 
   /// The admin state the host actor holds in a stable var.
-  /// `owner = null` means "unclaimed" — the first caller of claim() takes it.
+  /// `owner = null` means "unclaimed"; the first caller of claim() takes it.
   public type State = {
     var owner : ?Principal;
     var admins : Set.Set<Principal>;
@@ -52,7 +52,7 @@ module {
   // ── Ownership ─────────────────────────────────────────────────────────────
 
   /// First-caller-claims. Returns true if `caller` just became owner; false if
-  /// the owner was already set (claim is a no-op once claimed — transfer is the
+  /// the owner was already set (claim is a no-op once claimed; transfer is the
   /// only way to change owner after that).
   public func claimOwner(s : State, caller : Principal) : Bool {
     switch (s.owner) {
@@ -87,7 +87,7 @@ module {
   // ── Admins ──────────────────────────────────────────────────────────────--
 
   /// True iff `caller` is the owner OR a member of the admins set. The owner is
-  /// always an admin by definition — you never have to add the owner explicitly.
+  /// always an admin by definition; you never have to add the owner explicitly.
   public func isAdmin(s : State, caller : Principal) : Bool {
     if (isOwner(s, caller)) { true }
     else { Set.contains(s.admins, Principal.compare, caller) };
@@ -102,7 +102,7 @@ module {
   };
 
   /// Owner-only: revoke admin from `who`. Returns true if `caller` is the owner
-  /// (whether or not `who` was actually an admin — removal is idempotent);
+  /// (whether or not `who` was actually an admin; removal is idempotent);
   /// false if `caller` is not the owner. The owner cannot be removed this way
   /// because the owner is not stored in the admins set.
   public func removeAdmin(s : State, caller : Principal, who : Principal) : Bool {
@@ -110,7 +110,7 @@ module {
     else { ignore Set.delete(s.admins, Principal.compare, who); true };
   };
 
-  /// Snapshot of the admins set as an array (owner NOT included — query the
+  /// Snapshot of the admins set as an array (owner NOT included; query the
   /// owner separately via getOwner). Use in a `getAdmins` query method.
   public func getAdmins(s : State) : [Principal] {
     Iter.toArray(Set.values(s.admins));
@@ -120,7 +120,7 @@ module {
 
   /// Admin-or-owner: set the emergency-stop flag. Returns true on success;
   /// false if `caller` is not admin/owner. Guarded methods (see
-  /// requireNotPaused) refuse to run while paused — read-only queries are
+  /// requireNotPaused) refuse to run while paused; read-only queries are
   /// unaffected unless you choose to guard them too.
   public func setPaused(s : State, caller : Principal, value : Bool) : Bool {
     if (not isAdmin(s, caller)) { false }
@@ -132,7 +132,7 @@ module {
   // ── Guards (trap on failure) ───────────────────────────────────────────────
   // Call these at the TOP of a privileged update method. They Runtime.trap with
   // a clear message, which rejects the call and reverts all state changes made
-  // in that call — there is no partial mutation.
+  // in that call; there is no partial mutation.
 
   /// Trap unless `caller` is the owner.
   public func requireOwner(s : State, caller : Principal) {

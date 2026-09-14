@@ -1,4 +1,4 @@
-/// BackValue.mo — the correction for a back-dated posting, computed and never estimated.
+/// BackValue.mo; the correction for a back-dated posting, computed and never estimated.
 ///
 /// A posting whose value date precedes the last accrual is the hard case in retail
 /// banking, and it is the case an engine that *stores* accrued interest gets wrong:
@@ -71,7 +71,7 @@ module {
 
   /// The legs of a correction. An increase posts what the accrual would have posted;
   /// a decrease posts the reverse of it. For a deposit product the accrual is
-  /// expense against payable; for a credit product it is receivable against income —
+  /// expense against payable; for a credit product it is receivable against income;
   /// so the caller passes the same two accounts the accrual itself uses and the
   /// direction decides the sides.
   public func legs(

@@ -1,4 +1,4 @@
-/// TreasuryCanonical.mo — the canonical bytes of the treasury vocabulary (treasury): the policy, securities, curves,
+/// TreasuryCanonical.mo; the canonical bytes of the treasury vocabulary (treasury): the policy, securities, curves,
 /// limits, nostros, the deal kinds and their terms, statement entries, confirmation fields, and the events.
 /// `BankCanonical` calls these for the commands (extension tag 0xEF, second byte 0x20..) and the event (0x55).
 

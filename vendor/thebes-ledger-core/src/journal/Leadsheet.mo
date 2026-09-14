@@ -1,4 +1,4 @@
-/// Leadsheet.mo — mapping of chart-of-accounts codes to audit leadsheets.
+/// Leadsheet.mo; mapping of chart-of-accounts codes to audit leadsheets.
 ///
 /// The schema is the `account_leadsheet_map` of the audit product's
 /// `tb_schema.json`: a list of inclusive four-digit prefix ranges, each naming
@@ -93,7 +93,7 @@ module {
     null
   };
 
-  /// Number of ranges containing the prefix — used by tests to prove "exactly one".
+  /// Number of ranges containing the prefix; used by tests to prove "exactly one".
   public func countContaining(ranges : [Range], code : Text) : Nat {
     let ?p = prefix(code) else return 0;
     var n = 0;

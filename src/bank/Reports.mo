@@ -1,4 +1,4 @@
-/// Reports.mo — the report engine and the primary statements.
+/// Reports.mo; the report engine and the primary statements.
 ///
 /// Everything here **reads**. Nothing in this module posts, and nothing in it stores a
 /// figure: a report is a fold over the journal at a stated height, so a back-dated posting
@@ -277,7 +277,7 @@ module {
   /// fold with no dependencies on the layers above it.
   public type Context = {
     /// The leadsheet an account's four-digit prefix falls in, or null when it falls in
-    /// none — which is reported, never bucketed.
+    /// none; which is reported, never bucketed.
     leadsheetOf : AccountCode -> ?Text;
     /// One row per product account: its account code, currency, book, product and
     /// declared counterparty class, with the figures already folded.
@@ -653,7 +653,7 @@ module {
   };
 
   /// The bytes that are hashed into the certified tree. They cover the report's identity
-  /// — the definition hash, the parameters and **both** heights — and every row, so an
+  ///the definition hash, the parameters and **both** heights; and every row, so an
   /// artefact that leaves the building can be proven to be the report the books produced.
   public func reportBytes(r : RT.Report) : Blob {
     let w = JC.Writer();
@@ -669,7 +669,7 @@ module {
     // `atBankHeight` is deliberately **not** hashed. A report's identity is (definition hash,
     // parameters, journal height), and the definition hash already pins the arithmetic that
     // was in force. Hashing the bank height as well would mean the same report over the same
-    // journal hashed differently because something unrelated happened in the bank — so the
+    // journal hashed differently because something unrelated happened in the bank; so the
     // triple would no longer be the identity, and "recompute it and compare" would stop
     // working. It stays on the record as context: which registration a reader was looking at.
     wRows(w, r.rows);
@@ -785,7 +785,7 @@ module {
   ///
   /// It is exported so it can be tested against a deliberately unbalanced input. The journal
   /// enforces debits = credits per currency at admission, so a balance sheet built from it
-  /// cannot fail this — which means the only way to prove the refusal works is to call the
+  /// cannot fail this; which means the only way to prove the refusal works is to call the
   /// check with figures that do not add up. A check nobody can see fail is a check nobody
   /// should trust.
   public func balanceSheetIdentity(assets : Int, liabilities : Int, equity : Int, result : Int) : Bool {
@@ -870,7 +870,7 @@ module {
     // The indirect method rests on one identity: over every account of a currency, debits
     // less credits is zero. So the movement in cash is the **negation** of the movement in
     // everything else, and the sections are built from the raw figure rather than from each
-    // account's normal-side figure — applying the normal sign would flip it for every
+    // account's normal-side figure; applying the normal sign would flip it for every
     // credit-normal account and the identity would not hold. A source of cash therefore reads
     // positive: `credits − debits` for a non-cash account, which is also how a cash-flow
     // statement is conventionally presented.
@@ -926,7 +926,7 @@ module {
   /// Monetary items translate at the closing rate and non-monetary at the historic rate,
   /// and which is which is the declared `monetary` list rather than a judgement the engine
   /// makes. The difference the two rates produce is reported as **its own line** and is
-  /// never absorbed into a total — which is the whole reason this returns a balance sheet
+  /// never absorbed into a total; which is the whole reason this returns a balance sheet
   /// carrying `translationDifference` rather than quietly balanced figures.
   ///
   /// It writes nothing and posts nothing: the journal state is untouched, which the battery

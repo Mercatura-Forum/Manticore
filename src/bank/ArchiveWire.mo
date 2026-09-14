@@ -1,14 +1,14 @@
-/// ArchiveWire.mo — the raw byte shapes the Thebes management contract speaks.
+/// ArchiveWire.mo; the raw byte shapes the Thebes management contract speaks.
 ///
-/// Thebes is not the IC here. Management (`aaaaa-aa`, `CanisterId(0)`) takes raw arguments and gives
-/// raw replies — not Candid — and every shape below was verified against the engine's own decoders
+/// Management (`aaaaa-aa`, `CanisterId(0)`) takes raw arguments and gives
+/// raw replies; not Candid; and every shape below was verified against the engine's own decoders
 /// in `the substrate's management interface` and `engine.rs`, then exercised on the
 /// live chain (`tools/spawn-proof/evidence.json`). Nothing here awaits; it is pure encoding, so it is
 /// tested in the interpreter byte for byte.
 ///
 /// **The substrate uses both endiannesses for a canister id, and which one depends on whether the id
 /// is an argument or a principal.** It is the easiest thing here to get wrong and it does not fail
-/// loudly — the wrong order addresses an id nobody owns:
+/// loudly; the wrong order addresses an id nobody owns:
 ///
 /// | where the id appears | encoding | source |
 /// |---|---|---|
@@ -72,7 +72,7 @@ module {
   };
 
   /// `create_canister`'s reply: the new id as eight little-endian bytes, and nothing else. A reply
-  /// of any other length is refused rather than read — a Candid-decoding caller reads rubbish here.
+  /// of any other length is refused rather than read; a Candid-decoding caller reads rubbish here.
   public func parseCreateReply(reply : Blob) : Result.Result<AT.Cid, Text> {
     let a = Blob.toArray(reply);
     if (a.size() != 8) return #err("create_canister replied " # Nat.toText(a.size()) # " bytes, expected 8 little-endian");
@@ -80,7 +80,7 @@ module {
   };
 
   /// `install_code`'s raw argument: `canister_id(8 LE) ‖ wasm_len(4 LE) ‖ wasm ‖ init_arg`. There is
-  /// **no mode field** — the engine has none — and the init argument is **empty**: an archive child's
+  /// **no mode field**; the engine has none; and the init argument is **empty**: an archive child's
   /// `canister_init` must never write and then trap (a trap after a write in `canister_init` is
   /// fatal to every validator), so the child is given nothing to decode at install and configured afterwards by
   /// a call that can refuse cleanly.
@@ -99,7 +99,7 @@ module {
 
   /// What `canister_status` replies, decoded from the engine's own layout
   /// (`management.rs` `encode_canister_status`): `running(1) ‖ cycles(8 LE) ‖ memory(8 LE) ‖
-  /// wasm_size(8 LE) ‖ module_hash(32)` — 57 bytes, and the hash is the SHA-256 of the installed
+  /// wasm_size(8 LE) ‖ module_hash(32)`; 57 bytes, and the hash is the SHA-256 of the installed
   /// module (`wasm_module_hash`). Controllers are **not** in it; nothing a contract can call reports
   /// them, which is why `completeArchiveChild` cannot check them and says so.
   public type Status = { running : Bool; cycles : Nat; memoryBytes : Nat; wasmBytes : Nat; moduleHash : Blob };
@@ -123,7 +123,7 @@ module {
 
   /// `update_settings`' raw frame: `canister_id(8 LE) ‖ flag(1) ‖ count(4 LE) ‖ [len(1) ‖ principal]…`
   /// (`management.rs`, the raw branch beside the Candid one). The engine **replaces** the controller
-  /// set with this list — it does not add to it — so the parent must be in the list to stay a
+  /// set with this list; it does not add to it; so the parent must be in the list to stay a
   /// controller, and the caller of this function is required to have put it there.
   public func controllersFrame(cid : AT.Cid, controllers : [Principal]) : Result.Result<Blob, AT.ArchiveError> {
     if (controllers.size() == 0) return #err(#InvalidControllers({ reason = "an empty controller set would orphan the child" }));

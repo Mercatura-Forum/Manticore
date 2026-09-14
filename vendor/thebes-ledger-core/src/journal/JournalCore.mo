@@ -1,4 +1,4 @@
-/// JournalCore.mo — the pure double-entry state machine.
+/// JournalCore.mo; the pure double-entry state machine.
 ///
 /// This module holds no Region memory, performs no I/O and reads no clock:
 /// every function takes the current time as an argument and returns either an
@@ -6,9 +6,9 @@
 /// `apply`, which consumes committed blocks. That split gives three
 /// properties the journal depends on:
 ///
-///   1. Admission is exhaustive and atomic. `prepare*` validates everything —
+///   1. Admission is exhaustive and atomic. `prepare*` validates everything;
 ///      the balance invariant, period status, account status, dates, limits,
-///      authorization, idempotency — before an event exists, so a rejected
+///      authorization, idempotency; before an event exists, so a rejected
 ///      posting has touched nothing.
 ///   2. The state is a fold over the log. `replay` rebuilds an identical state
 ///      from the committed blocks alone, which is how the "independent
@@ -85,12 +85,12 @@ module {
 
   /// How the journal reads a posting's record back.
   ///
-  /// A posting's record lives in the **block log** — a Region-backed `StableLog` whose bytes
-  /// `Canonical.decodeBlock` reads back — so the journal's own state keeps only the mutable facts about
+  /// A posting's record lives in the **block log**; a Region-backed `StableLog` whose bytes
+  /// `Canonical.decodeBlock` reads back; so the journal's own state keeps only the mutable facts about
   /// a posting and reads the record through this when it needs it.
   ///
   /// Before this, `postings : Map<Nat, PostingMeta>` held the whole record a second time, on the heap.
-  /// Measured: **542 heap bytes a posting**, which is the heap growing with the journal — the one thing
+  /// Measured: **542 heap bytes a posting**, which is the heap growing with the journal; the one thing
   /// a contract's heap must not do, because the heap is resident in a validator's memory while stable
   /// memory is not. The banking layer's approved indexing proposal makes it a criterion ("the heap
   /// keeps only bounded aggregates").
@@ -134,19 +134,19 @@ module {
   let IDEM_KEY_BYTES : Nat = 32;
   let IDEM_VAL_BYTES : Nat = 41;
   /// A period's posted postings: `periodOrdinal(4) | postingNo(8)` with no value. One entry a posting,
-  /// and a period's run is contiguous because the key puts the period first — so a page is a seek plus
+  /// and a period's run is contiguous because the key puts the period first; so a page is a seek plus
   /// the page, where the heap list it replaces was a slice of an ever-growing `List`.
   let PERIOD_POSTING_KEY_BYTES : Nat = 12;
   /// Value-dated and posting-dated accumulators:
   /// `accountOrdinal(4) | currencyOrdinal(4) | subledger(64) | day(4)` -> `[debits(8)][credits(8)]`.
   ///
   /// The order of the key parts is the whole design. Putting the currency before the sub-ledger makes
-  /// both questions a contiguous run: one sub-ledger's days, and — for `subledger = null`, which asks
-  /// for an account summed across its sub-ledgers — that account and currency's whole run. Before this
+  /// both questions a contiguous run: one sub-ledger's days, and; for `subledger = null`, which asks
+  /// for an account summed across its sub-ledgers; that account and currency's whole run. Before this
   /// both reads **scanned every account-day in the book** on every call, so this is a bound on cost as
   /// much as on the heap.
   /// The sub-ledger field is the **full** `T.MAX_SUBLEDGER_BYTES`, not a digest of the key. A digest
-  /// would be narrower and would let two sub-ledgers collide, and a collision here is a wrong balance —
+  /// would be narrower and would let two sub-ledgers collide, and a collision here is a wrong balance;
   /// the one kind of wrongness this estate may not trade width for. The first run of the journal's own
   /// suite found this: a 62-byte sub-ledger key trapped against a 32-byte field.
   let DATED_KEY_BYTES : Nat = 76;
@@ -166,7 +166,7 @@ module {
 
   /// Everything the journal knows about one posting, assembled from its row and its record. Immutable:
   /// the mutable fields live in stable memory now and are changed through the setters below, not by
-  /// mutating a shared heap object — which also makes every change to a posting's state a line you can
+  /// mutating a shared heap object; which also makes every change to a posting's state a line you can
   /// find by searching for the setter.
   public type PostingMeta = {
     index : Nat;
@@ -281,7 +281,7 @@ module {
     newStateIn(admin, RI.newArena())
   };
 
-  /// A state whose indexes live in a given arena — the archive roll's shadow fold uses one arena
+  /// A state whose indexes live in a given arena; the archive roll's shadow fold uses one arena
   /// across rolls, releasing the indexes back to it when the fold is done (`releaseIndexes`).
   public func newStateIn(admin : Principal, arena : RI.Arena) : State {
     {
@@ -335,7 +335,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  POSTING ROWS — the stable-memory replacement for the heap posting map
+  //  POSTING ROWS; the stable-memory replacement for the heap posting map
   // ═══════════════════════════════════════════════════════
 
   /// The registration ordinal of a period, assigned on first sight and never reused, so a row written
@@ -484,7 +484,7 @@ module {
   /// the boundary unless it is still a pending (the roll is refused while one is, so this is the
   /// invariant's own guard); a corrector or period entry follows its posting; a dated row at or
   /// before the period's end is added into the one row at the period's end for its (account,
-  /// currency, sub-ledger) — so a balance as of any later day still sums to the same figure.
+  /// currency, sub-ledger); so a balance as of any later day still sums to the same figure.
   func keepAcrossRoll(state : State, which : Droppable, hi : Nat, periodEnd : Nat, target : RI.State) : (Blob, Blob) -> Bool {
     func(k : Blob, v : Blob) : Bool {
       let a = Blob.toArray(k);
@@ -736,7 +736,7 @@ module {
   func subBytes(sub : Blob) : [Nat8] {
     let a = Blob.toArray(sub);
     // The general-ledger-only case is the empty sub-ledger key, which pads to zeros and so sorts first
-    // within its account and currency — where a reader looking for "the account itself" expects it.
+    // within its account and currency; where a reader looking for "the account itself" expects it.
     //
     // A key wider than the journal's own bound cannot be stored, and trapping is right: admission has
     // already refused anything wider (`#SubledgerKeyInvalid`), so reaching here means state and
@@ -748,7 +748,7 @@ module {
   /// The same key from parts already computed. The two dated indexes are written for every leg, and
   /// padding the sub-ledger key to its 64 bytes twice a leg is allocation for nothing: the padded bytes
   /// and the two ordinals are the same for both. This is not micro-optimisation of a hot loop nobody
-  /// measured — it was measured, and it is per posting, for ever.
+  /// measured; it was measured, and it is per posting, for ever.
   func datedKeyFrom(acctOrd : Nat, ccyOrd : Nat, subPadded : [Nat8], day : T.Day) : Blob {
     RI.key([be(acctOrd, 4), be(ccyOrd, 4), subPadded, be(day, 4)], DATED_KEY_BYTES)
   };
@@ -769,7 +769,7 @@ module {
       };
       case null {
         // Every sub-ledger, so the run is the whole (account, currency) range and the day bound is
-        // applied while walking — the day is after the sub-ledger in the key, so it cannot bound the
+        // applied while walking; the day is after the sub-ledger in the key, so it cannot bound the
         // range itself.
         let (lo, hi) = RI.rangeEnds(prefix, DATED_KEY_BYTES);
         ?(lo, hi)
@@ -915,7 +915,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  ADMISSION — financial events
+  //  ADMISSION; financial events
   // ═══════════════════════════════════════════════════════
 
   public type Prepared = { #event : T.Event; #duplicate : Nat };
@@ -1354,7 +1354,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  ADMISSION — configuration events (administrator)
+  //  ADMISSION; configuration events (administrator)
   // ═══════════════════════════════════════════════════════
 
   func adminGate(state : State, caller : Principal) : ?T.ConfigError {
@@ -1511,7 +1511,7 @@ module {
 
   /// Restrict (or, with null, unrestrict) the accounts a poster may name in a
   /// leg. Admin only, recorded as a block. The account list must be non-empty,
-  /// free of duplicates, within the bound, and name only accounts that exist —
+  /// free of duplicates, within the bound, and name only accounts that exist;
   /// a scope naming an account that does not exist would silently refuse every
   /// posting to it.
   public func prepareSetPosterScope(state : State, caller : Principal, poster : Principal, accounts : ?T.PosterScope) : Result.Result<T.Event, T.ConfigError> {
@@ -1621,7 +1621,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  APPLY — the only place state changes
+  //  APPLY; the only place state changes
   // ═══════════════════════════════════════════════════════
 
   func bal(state : State, account : Text, sub : Blob, ccy : Text) : Bal {
@@ -1732,7 +1732,7 @@ module {
 
   // ─── dropping a closed month's keys ───────────────────────────────────────
 
-  /// A key leaves when its posting is at or below the packed boundary — unless it is a pending
+  /// A key leaves when its posting is at or below the packed boundary; unless it is a pending
   /// still open, whose resolution or void has not happened yet and whose duplicate must still be
   /// refused.
   func keepIdemAbove(state : State, hiPacked : Nat) : (Blob, Blob) -> Bool {
@@ -1785,14 +1785,14 @@ module {
 
   /// Apply a committed block. Blocks must be applied in order; the block's
   /// index must equal the current height. Any inconsistency traps, which on
-  /// the IC rolls back the whole message — a corrupt apply never half-lands.
+  /// the IC rolls back the whole message; a corrupt apply never half-lands.
   public func apply(state : State, blocks : Blocks, block : T.Block) {
     if (block.index != state.height) Runtime.trap("JournalCore: block index " # Nat.toText(block.index) # " != height " # Nat.toText(state.height));
     switch (block.event) {
       case (#posted(record)) {
         let res : T.Resolution = { postingDate = record.postingDate; valueDate = record.valueDate; valueDateRequested = record.valueDateRequested; period = record.period };
         // The record is not stored: it is in this very block, which the log has. The row holds the
-        // facts that will change — none of them yet, for an immediate posting.
+        // facts that will change; none of them yet, for an immediate posting.
         putRow(state, block.index, {
           status = STATUS_POSTED; flags = 0; reversedBy = null; expiresAt = null;
           resolvedBy = 0; resolution = null; correctors = 0;
@@ -1923,7 +1923,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  CHECKPOINTS — the derived state written into its own log
+  //  CHECKPOINTS; the derived state written into its own log
   // ═══════════════════════════════════════════════════════
 
   /// Where a chunked serialisation is: which part comes next, and the key it resumes from.
@@ -2112,7 +2112,7 @@ module {
   };
 
   /// A fold of a log whose prefix has left: the checkpoint series at blocks `first … last` restored,
-  /// then every block after `last` applied — and every block between `through` and `first` as well,
+  /// then every block after `last` applied; and every block between `through` and `first` as well,
   /// which were applied to the live state after the checkpoint's boundary. The blocks are read from
   /// `blocks`, which is also what the fold reads records back from.
   public func replayFrom(admin : Principal, blocks : Blocks, first : Nat, last : Nat, end : Nat) : State { replayFromIn(admin, RI.newArena(), blocks, first, last, end) };
@@ -2179,8 +2179,8 @@ module {
   ///
   /// The walk is a **seek**, not a scan: `Map.entriesFrom` descends to the cursor's position, so a
   /// page costs the page and not the position. The unpaged forms are kept, because several internal
-  /// callers are already bounded by something else — a report's declared `maxSlice`, a period's own
-  /// posting count — and paging those would only move the bound somewhere harder to see.
+  /// callers are already bounded by something else; a report's declared `maxSlice`, a period's own
+  /// posting count; and paging those would only move the bound somewhere harder to see.
 
   /// The page bound these reads share. A caller may ask for less; nothing gets more.
   public let MAX_PAGE : Nat = 500;
@@ -2242,7 +2242,7 @@ module {
   /// idempotency table is the journal's own duplicate-rejection index, so this is
   /// a read of something already there rather than a new structure; it exists so a
   /// caller whose keys are **derived** from the facts of an act can find the
-  /// posting that act produced — which is what makes a reversal possible without
+  /// posting that act produced; which is what makes a reversal possible without
   /// anyone storing a posting index alongside the decision that caused it.
   public func postingIndexByKey(state : State, caller : Principal, key : Blob) : ?Nat {
     switch (idemOf(state, C.idempotencyScopeKey(caller, key))) {
@@ -2387,7 +2387,7 @@ module {
     { rows = List.toArray(rows); cursor = next; total = List.size(rows) }
   };
 
-  /// L9: posted debits and credits with posting date on or before `asOf` —
+  /// L9: posted debits and credits with posting date on or before `asOf`;
   /// the balance as the books stood at the end of that day.
   /// `subledger = null` sums the account across all of its sub-ledgers.
   public func balanceAsOf(state : State, account : T.AccountCode, subledger : ?T.SubledgerKey, ccy : T.Currency, asOf : T.Day) : { debits : Nat; credits : Nat } {
@@ -2577,11 +2577,11 @@ module {
     };
     for (((a, sub, c), b) in Map.entries(state.balances)) { w.text(a); w.blob(sub); w.text(c); w.nat(b.drPosted); w.nat(b.crPosted); w.nat(b.drPending); w.nat(b.crPending) };
     for (((p, a, c), acc) in Map.entries(state.periodBalances)) { w.text(p); w.text(a); w.text(c); w.nat(acc.dr); w.nat(acc.cr) };
-    // The two dated indexes, from stable memory in key order — account, then currency, then sub-ledger,
+    // The two dated indexes, from stable memory in key order; account, then currency, then sub-ledger,
     // then day, which is the order the keys impose.
     datedInto(w, state, state.valueDatedIndex);
     datedInto(w, state, state.postingDatedIndex);
-    // The posting rows, read from stable memory in key order — which is posting order, because the key
+    // The posting rows, read from stable memory in key order; which is posting order, because the key
     // is the posting number big-endian.
     //
     // The **records** are no longer part of this fingerprint, and deliberately so. A fingerprint

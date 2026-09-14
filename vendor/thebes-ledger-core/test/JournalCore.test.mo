@@ -1,9 +1,9 @@
-// JournalCore.test.mo — the acceptance battery on the pure state machine.
+// JournalCore.test.mo; the acceptance battery on the pure state machine.
 // Criteria 1 (balance invariant), 2 (immutability), 3 (idempotency), 4 (two-phase),
 // 5 (value dating and period close), 6 (trial balance vs independent fold),
 // 8 (leadsheet mapping) and the replay half of 10 (restart), plus authorization
 // and the activation gate. Every check prints the number of records it examined.
-// engine: wasi-only — see test/run.sh.
+// engine: wasi-only; see test/run.sh.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -387,7 +387,7 @@ assert (postErr(poster, simple(SEP1 - 1, "2026-09", "1500", "2000", "EGP", 1)) =
 assert (postErr(poster, simple(TODAY + 1, "2026-09", "1500", "2000", "EGP", 1)) == #PostingDateInFuture({ postingDate = TODAY + 1; today = TODAY }));
 assert (postErr(poster, simple(SEP1, "2026-10", "1500", "2000", "EGP", 1)) == #UnknownPeriod({ period = "2026-10" }));
 assert (postErr(poster, input(key(), SEP1, SEP1 + 400, "2026-09", [leg("1500", #debit, "EGP", 1), leg("2000", #credit, "EGP", 1)])) == #ValueDateTooFar({ valueDate = SEP1 + 400; postingDate = SEP1; maxDriftDays = 366 }));
-// value date: posted 9 Sept, value-dated 10 Aug — the value-dated balance moves on 10 Aug, the period balance in September
+// value date: posted 9 Sept, value-dated 10 Aug; the value-dated balance moves on 10 Aug, the period balance in September
 let vdBefore = Core.valueDatedBalance(s, "1510", null, "USD", AUG1 + 9);
 ignore postOk(poster, input(key(), TODAY, AUG1 + 9, "2026-09", [leg("1510", #debit, "USD", 4_242), leg("2300", #credit, "USD", 4_242)]));
 assert (Core.valueDatedBalance(s, "1510", null, "USD", AUG1 + 8).debits == vdBefore.debits);
@@ -738,7 +738,7 @@ func cfg2(caller : Principal, r : { #ok : T.Event; #err : T.ConfigError }) : Nat
 };
 let thebesClock : Nat64 = 21_794_000_000_000;   // height 21,794 → 1970-01-01, day 0, as measured on a Thebes chain
 assert (Core.calendarAuthority(s2) == { authority = #substrateClock; maxRollDays = 0 });
-// the substrate clock: a 2026 date is "in the future" on a chain whose clock says 1970 — the refusal measured on the bed
+// the substrate clock: a 2026 date is "in the future" on a chain whose clock says 1970; the refusal measured on the bed
 assert (cfgErr(Core.prepareRollBusinessDate(s2, admin, thebesClock, TODAY)) == #BusinessDateInFuture({ requested = TODAY; today = 0 }));
 // the act's own gates
 assert (cfgErr(Core.prepareSetCalendarAuthority(s2, poster, #businessDate, 31, ?TODAY)) == #Unauthorized);

@@ -1,4 +1,4 @@
-/// RegionBTree.mo — B-tree in Region stable memory
+/// RegionBTree.mo; B-tree in Region stable memory
 ///
 /// A sorted key-value map stored entirely in IC Region memory. Page-aligned
 /// nodes with configurable branching factor. Supports lookup, insert, and
@@ -47,7 +47,7 @@ module {
   let CHILD_PTR : Nat = 6;          // 48-bit node offset
 
   let LEAF_CAP : Nat = 104;      // (8192 - 3) / 78
-  let INTERNAL_CAP : Nat = 120;  // (8192 - 3 - 6) / (62 + 6) — unchanged, internal nodes don't store values
+  let INTERNAL_CAP : Nat = 120;  // (8192 - 3 - 6) / (62 + 6); unchanged, internal nodes don't store values
 
   let NODE_LEAF : Nat8 = 0;
   let NODE_INTERNAL : Nat8 = 1;
@@ -159,7 +159,7 @@ module {
   // ═══════════════════════════════════════════════════════
 
   func compareKeys(a : Blob, b : Blob) : Order.Order {
-    // Fixed-size keys (62 bytes) — use Blob.compare directly (avoids array allocation)
+    // Fixed-size keys (62 bytes); use Blob.compare directly (avoids array allocation)
     Blob.compare(a, b)
   };
 

@@ -1,4 +1,4 @@
-/// RegionBalances.mo — Account balance storage in Region stable memory
+/// RegionBalances.mo; Account balance storage in Region stable memory
 ///
 /// Replaces the heap-resident Map<AccountKey, Nat> with a Region-backed B-tree.
 /// At 10M accounts, this uses ~780MB of stable memory (cheap) instead of

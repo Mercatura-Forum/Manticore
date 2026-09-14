@@ -4,7 +4,7 @@
 Drives the deployed hub end to end through the Thebes CLI (`thebes-deploy`):
 `thebes-deploy call`  submits update calls, `thebes-deploy query` runs queries.
 Method arguments are passed in Candid's textual form via `--arg`. No external
-tooling — the hub lives on Thebes.
+tooling; the hub lives on Thebes.
 """
 
 from __future__ import annotations

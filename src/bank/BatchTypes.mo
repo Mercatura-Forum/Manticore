@@ -1,4 +1,4 @@
-/// BatchTypes.mo — the end-of-day batch's vocabulary.
+/// BatchTypes.mo; the end-of-day batch's vocabulary.
 ///
 /// Every transition of a run is a block, so a claim about last night's accrual is
 /// answered with an inclusion proof rather than a log file. The chunk event carries the
@@ -89,7 +89,7 @@ module {
     #eodFailed : { book : BookId; businessDate : Day; reason : Text };
     /// What a retry pass did. A run carries its unresolved failures, and every advance
     /// re-attempts the ones whose attempt count is still below the book's declared
-    /// retry limit — and only the entity that failed, never the whole shard again.
+    /// retry limit; and only the entity that failed, never the whole shard again.
     ///
     /// `resolved` names the failures the re-attempt cleared, `failures` carries the ones
     /// that failed again with their attempt count raised by one. A failure whose

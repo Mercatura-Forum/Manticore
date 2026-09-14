@@ -1,4 +1,4 @@
-/// PartyCore.mo — the party / CIF and KYC sub-state machine.
+/// PartyCore.mo; the party / CIF and KYC sub-state machine.
 ///
 /// Owned by `BankCore.State` as one field and folded by `BankCore.apply`, so
 /// there is still exactly one log and one fold. Everything here is either a
@@ -17,7 +17,7 @@
 /// The heap holds nothing per party. A party *is* its `#partyCreated` block; what happened to it
 /// since is later blocks. The fold keeps one fixed-width **row** per party in stable memory
 /// (`PartyRow`): the lifecycle, the screening as the movement gate needs it, the review date, and
-/// pointers — block indices — to the blocks that hold the current attributes, due-diligence
+/// pointers; block indices; to the blocks that hold the current attributes, due-diligence
 /// decision and extension values; and three small stable indexes list the blocks that added each
 /// document, relationship and identifier. A `PartyEntry` is rebuilt from the row and those blocks
 /// when a reader or a planner needs one. The movement gate reads the row alone, because it runs on
@@ -94,7 +94,7 @@ module {
   /// What the fold keeps per party.
   ///
   /// `lifecycle(1) ‖ screening(tag 1, listOrd 4, at 8, matches 4) ‖ attrBlock(8) ‖ cddBlock(8) ‖
-  /// extBlock(8) ‖ reviewDue(4) ‖ bookOrd(4) ‖ docCount(2) ‖ relCount(2) ‖ idCount(2)` — 56 bytes.
+  /// extBlock(8) ‖ reviewDue(4) ‖ bookOrd(4) ‖ docCount(2) ‖ relCount(2) ‖ idCount(2)`; 56 bytes.
   /// The attribute and due-diligence pointers start as the party's own block, which carries both.
   public type PartyRow = {
     lifecycle : T.Lifecycle;
@@ -111,7 +111,7 @@ module {
 
   public let PARTY_ROW_BYTES : Nat = 56;
 
-  /// `valuationBlock(8) ‖ allocCount(4) ‖ released(1) ‖ party(8)` — 21 bytes. The valuation pointer
+  /// `valuationBlock(8) ‖ allocCount(4) ‖ released(1) ‖ party(8)`; 21 bytes. The valuation pointer
   /// starts as the registration block; the party is what a command's scoping asks for first.
   public type CollateralRow = { valuationBlock : Nat; allocCount : Nat; released : Bool; party : Nat };
 
@@ -322,8 +322,8 @@ module {
     }
   };
 
-  /// The recorded screening state, from the row and — for a cleared hit, whose reason is not in the
-  /// row — its block.
+  /// The recorded screening state, from the row and; for a cleared hit, whose reason is not in the
+  /// row; its block.
   func screeningOf(s : State, bb : Blocks, r : ScreeningRow) : T.ScreeningState {
     if (r.tag == SCREENING_UNSCREENED) return #unscreened;
     let listVersion = nameOf(s.listNames, r.listOrd);
@@ -354,7 +354,7 @@ module {
   public func getSchema(s : State, id : Text) : ?T.ExtensionSchema { Map.get(s.schemas, Text.compare, id) };
   public func exists(s : State, id : T.PartyId) : Bool { partyRow(s, id) != null };
 
-  /// The counts the planners bound: documents, relationships and identifiers — from the row.
+  /// The counts the planners bound: documents, relationships and identifiers; from the row.
   public func counts(s : State, id : T.PartyId) : ?{ documents : Nat; relationships : Nat; identifiers : Nat } {
     switch (partyRow(s, id)) { case (?r) ?{ documents = r.docCount; relationships = r.relCount; identifiers = r.idCount }; case null null }
   };
@@ -380,7 +380,7 @@ module {
   /// The recorded extension values of a party, in the order they were recorded.
   public func extensions(p : PartyEntry) : [T.ExtensionValue] { p.extensions };
 
-  /// The extension values alone, from the one block the row points at — for the index, which asks
+  /// The extension values alone, from the one block the row points at; for the index, which asks
   /// for them on every posting and needs nothing else of the party.
   public func extensionsOf(s : State, bb : Blocks, id : T.PartyId) : ?[T.ExtensionValue] {
     let ?row = partyRow(s, id) else return null;
@@ -408,7 +408,7 @@ module {
     switch (collateralRow(s, id)) { case (?r) ?r.party; case null null }
   };
 
-  /// The collateral items registered to a party, by the party index — a range, not a scan.
+  /// The collateral items registered to a party, by the party index; a range, not a scan.
   public func collateralOfParty(s : State, party : T.PartyId) : [T.CollateralId] {
     let (lo, hi) = R.prefixRange(party, 8, 8);
     let out = List.empty<T.CollateralId>();
@@ -425,7 +425,7 @@ module {
   public func reviewGraceDays(s : State) : Nat { s.reviewGraceDays };
 
   /// The effective screening state, which is the recorded one unless a newer list
-  /// has been committed since — in which case the party is stale and money stops.
+  /// has been committed since; in which case the party is stale and money stops.
   public func effectiveScreening(s : State, p : PartyEntry) : T.ScreeningState {
     switch (p.screening, s.newestList) {
       case (#clear({ listVersion; at = _ }), ?newest) {
@@ -666,7 +666,7 @@ module {
     null
   };
 
-  /// Verify a set of field commitments against the record — the check a payment's
+  /// Verify a set of field commitments against the record; the check a payment's
   /// originator block goes through, so a message can never carry originator data
   /// that disagrees with the customer file.
   public func verifyFields(p : PartyEntry, claimed : [T.FieldCommit]) : ?T.PartyError {

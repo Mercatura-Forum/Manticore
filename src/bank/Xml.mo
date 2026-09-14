@@ -1,12 +1,12 @@
-/// Xml.mo — a conforming-enough XML 1.0 parser for ISO 20022 business messages, with stable rule ids.
+/// Xml.mo; a conforming-enough XML 1.0 parser for ISO 20022 business messages, with stable rule ids.
 ///
 /// The payments component reads messages from the network; what it accepts is what this parser
-/// builds. It is a real parser — a tree of elements with their namespaces, attributes and text —
+/// builds. It is a real parser; a tree of elements with their namespaces, attributes and text;
 /// not a tag scanner, and every way a document can be malformed that matters to a conforming
 /// consumer is a refusal with a rule id the integration kit can test against:
 ///
 ///   XML-DECL-POSITION   an XML declaration anywhere but the very first bytes (after whitespace, a
-///                       comment, an element — the defect the compact codec had)
+///                       comment, an element; the defect the compact codec had)
 ///   XML-DECL-DUPLICATE  a second declaration
 ///   XML-DECL-ENCODING   a declaration naming an encoding other than UTF-8
 ///   XML-BOM-POSITION    a byte-order mark after the first byte
@@ -25,8 +25,8 @@
 ///
 /// Comments and CDATA sections are content. Whitespace between elements is dropped where an
 /// element has child elements (ISO 20022 has no mixed content); an element's `text` is exactly its
-/// character data otherwise. Two top-level elements — a Business Application Header followed by a
-/// Document, the way a SWIFT business message is carried — are accepted by `parseMessage`, which
+/// character data otherwise. Two top-level elements; a Business Application Header followed by a
+/// Document, the way a SWIFT business message is carried; are accepted by `parseMessage`, which
 /// is the one place a document with more than one root is admitted, and it says so.
 
 import Array "mo:core/Array";

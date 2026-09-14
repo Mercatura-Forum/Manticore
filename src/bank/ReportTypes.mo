@@ -1,4 +1,4 @@
-/// ReportTypes.mo — the reporting layer's vocabulary.
+/// ReportTypes.mo; the reporting layer's vocabulary.
 ///
 /// Three things in here are decisions rather than shapes, and they are stated where a
 /// reader meets them:
@@ -7,7 +7,7 @@
 ///      stored predicate, no SQL, no evaluator. A definition names row dimensions from a
 ///      fixed set, filters from three fixed operators, and measures from a fixed set of
 ///      folds the journal already computes. Apache Fineract stores SQL in a table and
-///      executes it — the right amount of flexibility for a database and the wrong thing
+///      executes it; the right amount of flexibility for a database and the wrong thing
 ///      inside a canister holding money, because a stored expression is an
 ///      arbitrary-behaviour surface and a report that can be slow can be a denial of
 ///      service.
@@ -38,10 +38,10 @@ module {
   /// What a row of a report is keyed by. Two sources of rows exist and a definition uses
   /// one of them, which `Reports.sourceOf` decides and `Reports.validateDef` enforces:
   ///
-  ///   * the **chart** source — one row per (account, currency) of the journal's trial
+  ///   * the **chart** source; one row per (account, currency) of the journal's trial
   ///     balance, which is every figure a primary statement or a regulatory return is
   ///     built from;
-  ///   * the **sub-ledger** source — one row per product account, which is what a
+  ///   * the **sub-ledger** source; one row per product account, which is what a
   ///     breakdown by book, product or counterparty class needs, because a posting in the
   ///     journal carries a sub-ledger key and not a branch.
   ///
@@ -59,7 +59,7 @@ module {
     /// and the field name. The value is an enumerated label the institution declared, not
     /// anything derived from personal data, which this layer holds only as commitments.
     /// A party carrying no value for the field is keyed `unclassified` and reported as
-    /// such — never bucketed into a default.
+    /// such; never bucketed into a default.
     #counterpartyClass : { schema : Text; field : Text };
   };
 
@@ -160,13 +160,13 @@ module {
     /// The journal height the evaluation read. Two reports that differ are explained by
     /// their heights rather than by suspicion.
     atHeight : Nat;
-    /// The bank height the evaluation read at, as context — which registration a reader was
+    /// The bank height the evaluation read at, as context; which registration a reader was
     /// looking at. It is **not** part of the report's hashed identity: that is (definition
     /// hash, parameters, journal height), and the definition hash already pins the arithmetic.
     atBankHeight : Nat;
     rows : [ReportRow];
     totals : [ReportTotals];
-    /// Rows whose dimension value could not be resolved — an account in no leadsheet, a
+    /// Rows whose dimension value could not be resolved; an account in no leadsheet, a
     /// party with no declared classification. Reported, never bucketed.
     unresolved : [ReportRow];
     /// The canonical bytes' hash, which is what is committed into the certified tree.
@@ -220,7 +220,7 @@ module {
     /// The period's result, carried as an explicit line until the year-end roll moves it
     /// into retained earnings.
     periodResult : Int;
-    /// `assets = liabilities + equity + result` — **asserted**, not presented. A balance
+    /// `assets = liabilities + equity + result`; **asserted**, not presented. A balance
     /// sheet that does not balance is refused rather than printed.
     balances : Bool;
     /// Present only in a `#functional` view, and never absorbed into a total.
@@ -242,7 +242,7 @@ module {
     netMovement : Int;
     openingCash : Int;
     closingCash : Int;
-    /// `opening + net = closing` — asserted, like the balance sheet's identity.
+    /// `opening + net = closing`; asserted, like the balance sheet's identity.
     reconciles : Bool;
     atHeight : Nat;
   };
@@ -277,7 +277,7 @@ module {
     #sumOfLines : { lines : [Text] };
     #difference : { minuend : Text; subtrahend : Text };
     #ratio : { numerator : Text; denominator : Text; scale : Nat; whenZero : ZeroDenominator };
-    /// A figure the institution declares rather than computes — a risk weight applied to
+    /// A figure the institution declares rather than computes; a risk weight applied to
     /// a line, a run-off factor, a haircut. The weight is data; the multiplication is
     /// arithmetic.
     #weighted : { line : Text; numerator : Nat; denominator : Nat };
@@ -319,7 +319,7 @@ module {
     currency : Currency;
     values : [ReturnValue];
     /// Accounts the template maps to no line at all, with their balances. A return whose
-    /// unmapped total is non-zero is **flagged on its face** — a regulator receiving that
+    /// unmapped total is non-zero is **flagged on its face**; a regulator receiving that
     /// is being told the truth; one receiving a return whose residual was swept into
     /// "other assets" is not.
     unmapped : [{ account : AccountCode; currency : Currency; amount : Int }];
@@ -364,7 +364,7 @@ module {
     currency : Currency;
     period : PeriodId;
     balances : [StatementBalance];
-    /// Per entry, the journal block it came from — so one line can be verified against
+    /// Per entry, the journal block it came from; so one line can be verified against
     /// the certified root without being given the rest of the book.
     entryBlocks : [Nat];
     issued : Nat;                     // how many times this statement has been issued
@@ -500,7 +500,7 @@ module {
 
   /// The reporting layer posts nothing, so it carries no money-visible feature gate. It
   /// does commit report hashes into the certified tree, which is a recorded act and is
-  /// gated on the same activation as the rest of the close layer would be if it posted —
+  /// gated on the same activation as the rest of the close layer would be if it posted;
   /// stated here so the absence is deliberate rather than an omission.
   public let FEATURE_REPORTING : Text = "report.certify";
 

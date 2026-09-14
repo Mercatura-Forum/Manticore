@@ -1,7 +1,7 @@
-// PartyCore.test.mo — the party / CIF and KYC state machine.
+// PartyCore.test.mo; the party / CIF and KYC state machine.
 //
 // The criterion that governs this component is K-1: **no plaintext personal data
-// in any block**. It is checked here the only way it can be — by creating a party
+// in any block**. It is checked here the only way it can be; by creating a party
 // from a fixture full of distinctive personal strings, driving it through its
 // whole life, and then decoding every block of the log to raw bytes and searching
 // for every one of those strings and for every fourteen-digit run. Zero hits, or
@@ -12,7 +12,7 @@
 // unchanged on every refusal, exact-match deduplication, identifier issuance
 // through one code path, collateral that cannot be over-allocated, extension
 // schemas that admit only what they declare, and replay equality.
-// engine: wasi-only — this battery fingerprints the whole state on every refusal.
+// engine: wasi-only; this battery fingerprints the whole state on every refusal.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -591,7 +591,7 @@ for (p in people.vals()) {
 // plus a few fragments, so a partial leak is caught too
 searchTerms := Array.concat(searchTerms, ["Mohamed", "Hassan", "29801011", "Qasr al-Nil", "Zamalek", "A12345678"]);
 
-/// The stored bytes of a bank block — the same encoding the log holds.
+/// The stored bytes of a bank block; the same encoding the log holds.
 func bankBytes(b : T.Block) : Blob {
   BC.encodeBlock(b.index, b.timestamp, b.caller, b.parentHash, b.event).bytes
 };
@@ -631,7 +631,7 @@ for (b in BankMemLog.blocks(bchain).vals()) {
   };
   // The fourteen-digit heuristic exists to catch an identity number the fixture
   // did not list. An issued account identifier also carries a long digit run and
-  // is *not* personal data (party and KYC section 1.6) — so a run is accounted for only
+  // is *not* personal data (party and KYC section 1.6); so a run is accounted for only
   // when the block is an identifier issuance and the identifier is a valid IBAN.
   // Any other block with a run is a failure.
   if (hasFourteenDigitRun(raw)) {

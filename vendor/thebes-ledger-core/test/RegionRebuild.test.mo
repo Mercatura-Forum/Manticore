@@ -1,4 +1,4 @@
-// RegionRebuild.test.mo — a RegionIndex rebuilt by generation, in chunks, while it is written to.
+// RegionRebuild.test.mo; a RegionIndex rebuilt by generation, in chunks, while it is written to.
 //
 // What is proved: the rebuilt index holds exactly the kept entries of the source at the swap,
 // including every write that landed during the rebuild (below and above the cursor); the source's
@@ -6,7 +6,7 @@
 // arena does not grow across a rebuild that keeps fewer entries; the cursor resumes across chunks
 // of uneven size; a rebuild of an empty index is a no-op that still swaps.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -38,7 +38,7 @@ let before = RI.arenaStats(arena);
 Debug.print("count: entries before the rebuild = " # Nat.toText(RI.size(idx)));
 Debug.print("count: arena pages before the rebuild = " # Nat.toText(before.pages));
 
-// keep the entries whose key is even; drop the odd ones — about half
+// keep the entries whose key is even; drop the odd ones; about half
 func keep(k : Blob, _ : Blob) : Bool { keyNat(k) % 2 == 0 };
 
 let job = RB.start(idx);

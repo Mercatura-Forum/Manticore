@@ -1,8 +1,8 @@
-// Camt053Roundtrip.test.mo — criterion 9: the journal's camt.053 projection
+// Camt053Roundtrip.test.mo; criterion 9: the journal's camt.053 projection
 // round-trips through the published ISO 20022 example's decoder (vendored,
 // unmodified, in test/oracle/iso20022). Every entry field is compared.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region
 // (`JournalCore.postingRows`), and the moc interpreter provides no Region. The dual-engine check this
 // loses was worth having, and the loss is stated here rather than hidden: the reason the state moved
 // is that a heap map per posting makes the heap grow with the journal, which is the one thing a

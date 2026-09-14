@@ -1,16 +1,16 @@
-/// IslamicCore.mo — the Sharia book folded from the bank's log in stable memory (Islamic banking): the contracts, their
+/// IslamicCore.mo; the Sharia book folded from the bank's log in stable memory (Islamic banking): the contracts, their
 /// instalment schedules, the investment-account pools and their distributions, the board approvals and the book
 /// flags.
 ///
-/// Rows: one per contract (keyed by the block that opened it) with the fixed facts — kind, stage, our party and
+/// Rows: one per contract (keyed by the block that opened it) with the fixed facts; kind, stage, our party and
 /// account, currency and book, the principal (cost, asset, capital, price advanced, contract price), the profit the
 /// contract will earn and the part recognised, what was collected, the days, the counts of instalments, units and
 /// the percentage complete, the hash of the terms; one per instalment of a Murabaha or rental of an Ijarah
 /// (contract ‖ number); one per pool and one per distribution (pool ‖ period). The arithmetic the AAOIFI standards
-/// prescribe is here as pure functions — the proportionate and effective-rate profit of a Murabaha (FAS 28), the
+/// prescribe is here as pure functions; the proportionate and effective-rate profit of a Murabaha (FAS 28), the
 /// straight-line depreciation of an Ijarah asset (FAS 32), the distribution of a Musharakah's profit by the agreed
 /// ratio and of its loss by capital (FAS 4), the percentage-of-completion revenue of an Istisna'a (FAS 10), the
-/// weighted-average distribution of a pool's income with PER and IRR (FAS 27) — so an oracle can reproduce every
+/// weighted-average distribution of a pool's income with PER and IRR (FAS 27); so an oracle can reproduce every
 /// figure from the standard's text.
 
 import Array "mo:core/Array";
@@ -202,8 +202,8 @@ module {
 
   /// Equal instalments of a deferred price over `n` periods from `start` (FAS 28: the selling price is cost plus
   /// markup, payable by instalments); the rounding remainder falls on the last. Each instalment's profit part is
-  /// the markup allocated by the method: proportionate — equal per instalment (FAS 28 ¶20, the allocation over the
-  /// credit period in proportion to the periods); effective rate — the interest column of the annuity schedule at
+  /// the markup allocated by the method: proportionate; equal per instalment (FAS 28 ¶20, the allocation over the
+  /// credit period in proportion to the periods); effective rate; the interest column of the annuity schedule at
   /// the implicit rate that makes the markup the total, found by bisection on the rate (FAS 28's effective profit
   /// rate method).
   public func murabahaSchedule(cost : Nat, markup : Nat, n : Nat, every : ProdT.Period, start : Nat, method : IT.ProfitMethod) : [(Nat, Nat, Nat, Nat)] {
@@ -451,7 +451,7 @@ module {
     #ok(#rebateGranted({ contract = id; amount; reason; day = today }))
   };
   /// The late-payment amount an overdue instalment carries to charity: the undertaking's per-annum rate on the
-  /// overdue amount over the days late (never income — Sharia Standard 8/5/6).
+  /// overdue amount over the days late (never income; Sharia Standard 8/5/6).
   public func lateCharity(inst : InstalmentRow, bps : Nat, today : Nat) : Nat {
     if (today <= inst.dueDate or inst.paid) return inst.charity;
     Nat.max(inst.charity, inst.amount * bps * (today - inst.dueDate) / (10_000 * 365))
@@ -638,7 +638,7 @@ module {
     let next = cur + delta;
     if (next <= 0) ignore Map.delete(s.openByBook, Text.compare, book) else Map.add(s.openByBook, Text.compare, book, Int.abs(next));
   };
-  /// The open contracts of a book, from the fold's counter: what the end-of-day plan asks — no walk (S4.1).
+  /// The open contracts of a book, from the fold's counter: what the end-of-day plan asks; no walk (S4.1).
   public func openCountInBook(s : State, book : Text) : Nat { switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 } };
   func moveStage(s : State, r : ContractRow, to : IT.Stage, block : Nat) : ContractRow {
     let wasOpen = isOpen(r);
@@ -683,7 +683,7 @@ module {
             var n = 0;
             for ((d, a) in x.schedule.vals()) {
               n += 1;
-              // the profit part per instalment: proportionate — equal parts; effective — from the schedule the planner produced;
+              // the profit part per instalment: proportionate; equal parts; effective; from the schedule the planner produced;
               // the event carries amounts only, so the parts are re-derived under the method from the row's figures
               putInstalment(s, { contract = x.contract; number = n; dueDate = d; amount = a; principal = 0; profit = 0; paid = false; charity = 0 });
             };
@@ -809,7 +809,7 @@ module {
     for ((k, _) in page.entries.vals()) { let id = R.getNat(Blob.toArray(k), 1, 8); switch (row(s, id)) { case (?r) { if (r.stage == stage) List.add(out, id) }; case null {} } };
     { ids = List.toArray(out); cursor = page.cursor }
   };
-  /// Every open contract — what the batch walks.
+  /// Every open contract; what the batch walks.
   public func openAll(s : State) : [ContractRow] {
     let out = List.empty<ContractRow>();
     for (st in [#opened, #acquired, #sold, #running, #delivered].vals()) {

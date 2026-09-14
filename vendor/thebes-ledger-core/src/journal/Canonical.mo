@@ -1,4 +1,4 @@
-/// Canonical.mo — deterministic byte encoding and hashing of journal blocks.
+/// Canonical.mo; deterministic byte encoding and hashing of journal blocks.
 ///
 /// The encoding is the contract between the canister and any party that wants
 /// to verify an entry without trusting the canister: the verifier re-encodes

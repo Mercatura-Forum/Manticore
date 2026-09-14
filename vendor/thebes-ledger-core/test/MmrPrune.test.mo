@@ -1,13 +1,13 @@
-// MmrPrune.test.mo — the MMR pruned below an archived boundary, its proofs still whole.
+// MmrPrune.test.mo; the MMR pruned below an archived boundary, its proofs still whole.
 //
 // What is proved: after pruning through a boundary, every live leaf's proof still verifies against
 // the same root; an archived leaf has no whole proof here (null, never a wrong one) but its upper
-// part (`proofAbove`) joined to the lower siblings recomputed from the archived leaf hashes — what an
-// archive regenerates — verifies; a second and third prune keep this true; chunks that held only
+// part (`proofAbove`) joined to the lower siblings recomputed from the archived leaf hashes; what an
+// archive regenerates; verifies; a second and third prune keep this true; chunks that held only
 // pruned nodes return to the pool and later appends reuse them; the kept index stays small (the
 // frontier and the subtrees of KEPT_HEIGHT or more); a proof of a tampered leaf fails.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -48,8 +48,8 @@ Debug.print("count: proofs verified before any prune = " # Nat.toText(ok));
 let s0 = MMR.stats(m);
 Debug.print("count: chunks before the prune = " # Nat.toText(s0.chunks));
 
-/// The lower siblings of an archived leaf, recomputed from the leaf hashes below `upTo` — what an
-/// archive does from the blocks it holds — for the aligned subtree of `height` the leaf lies in.
+/// The lower siblings of an archived leaf, recomputed from the leaf hashes below `upTo`; what an
+/// archive does from the blocks it holds; for the aligned subtree of `height` the leaf lies in.
 func subtreeRoot(leafStart : Nat, height : Nat) : Blob {
   if (height == 0) { switch (List.get(leaves, leafStart)) { case (?h) h; case null { assert false; "" : Blob } } }
   else hashNode(subtreeRoot(leafStart, height - 1), subtreeRoot(leafStart + 2 ** (height - 1), height - 1))

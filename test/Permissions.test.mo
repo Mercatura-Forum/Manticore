@@ -1,10 +1,10 @@
-// Permissions.test.mo — the catalogue is total over the command vocabulary.
+// Permissions.test.mo; the catalogue is total over the command vocabulary.
 //
 // `tools/permission_audit.py` checks the catalogue against the built Candid
 // interface. This checks it from inside the language: one value of every
 // `Command` variant is walked, every one resolves to a permission, identifiers
 // are unique, and the money-moving-implies-dual rule holds. The two checks
-// overlap on purpose — one would catch a table edit, the other a new variant.
+// overlap on purpose; one would catch a table edit, the other a new variant.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -535,10 +535,10 @@ for ((m, reason) in P.openMethods().vals()) {
 Debug.print("count: deliberately open methods with a stated reason = " # Nat.toText(opens));
 // Twelve, and only twelve: the proposal expiry sweep, the three advances (end of day, packing,
 // archive roll), the archive's acknowledgement, the four steps of an inter-shard transfer after
-// its dual-authorised opening, the reservation expiry sweep, and the settlement and bulk advances. All are paths where the caller chooses nothing — expiry
+// its dual-authorised opening, the reservation expiry sweep, and the settlement and bulk advances. All are paths where the caller chooses nothing; expiry
 // is a fact of the clock, an advance can only execute the plan the opening block already
 // fixed, and the acknowledgements and the receive are held to the declared counterpart's
-// principal and to the act's own key or hash — and the advances would leave a bank stuck
+// principal and to the act's own key or hash; and the advances would leave a bank stuck
 // behind a stalled timer if they were guarded.
 assert (opens == 12);
 var openNames = "";

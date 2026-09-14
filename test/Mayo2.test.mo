@@ -1,10 +1,10 @@
-// Mayo2.test.mo — MAYO-2 verification against the pq-mayo consensus vectors, through the scheme adapter.
+// Mayo2.test.mo; MAYO-2 verification against the pq-mayo consensus vectors, through the scheme adapter.
 //
 // What is proved: each real vector (compact public key, message, signature from the pq-mayo
 // reference) verifies under `PqSchemes.verifyMayo2`; a bit flipped in the message, in the signature
 // vector, in the salt or in the public key is refused; a wrong-length key or signature is refused.
 //
-// engine: wasi-only — one verification expands a 4,912-byte compact key into 101 KB.
+// engine: wasi-only; one verification expands a 4,912-byte compact key into 101 KB.
 
 import Debug "mo:core/Debug";
 import Array "mo:core/Array";

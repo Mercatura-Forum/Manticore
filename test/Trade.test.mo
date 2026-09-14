@@ -1,6 +1,6 @@
-/// Trade.test.mo — trade finance trade finance: the ICC gates in the planners, the fold, the messages.
+/// Trade.test.mo; trade finance trade finance: the ICC gates in the planners, the fold, the messages.
 ///
-/// What is proved here (no journal, no canister — the pure layer):
+/// What is proved here (no journal, no canister; the pure layer):
 ///   1. the policy and terms gates: rules, expiry, presentation period, incoterms, tolerance, BICs, reductions;
 ///   2. a documentary credit's life: issue, a presentation within the period, an examination within five banking
 ///      days (the sixth day refused, art. 14(b)), a refusal that must name every failed check once (art. 16(c)),
@@ -194,7 +194,7 @@ switch (Core.planPayDemand(s, gt, 2, day0 + 15)) { case (#ok(c)) { if (c.amount 
 ignore apply(#demandPaid({ instrument = gt; claim = 2; amount = 30_000_00; fromMargin = 8_000_00; fromAccount = 22_000_00; claimAccount = null; day = day0 + 15 }));
 let ?rg = Core.row(s, gt) else { fail("no row"); loop {} };
 if (rg.utilised != 30_000_00 or rg.margin != 0 or Core.status(s).contingentGuarantees != 50_000_00) fail("after the demand was paid");
-// the recorded reductions: on day0 + 30 to 60,000 — the utilised 30,000 leaves 30,000 outstanding
+// the recorded reductions: on day0 + 30 to 60,000; the utilised 30,000 leaves 30,000 outstanding
 switch (Core.reductionDue(g0, rg, day0 + 29)) { case null {}; case (?x) fail("a reduction due early: " # Nat.toText(x)) };
 switch (Core.reductionDue(g0, rg, day0 + 30)) { case (?60_000_00) {}; case (x) fail("the first reduction: " # debug_show x) };
 ignore act(Core.planReduce(s, gt, 60_000_00, day0 + 30));

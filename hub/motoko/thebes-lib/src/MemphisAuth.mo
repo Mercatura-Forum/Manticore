@@ -1,11 +1,11 @@
-/// MemphisAuth.mo — the STANDARD Memphis identity integration for Thebes apps.
+/// MemphisAuth.mo; the STANDARD Memphis identity integration for Thebes apps.
 ///
 /// ════════════════════════════════════════════════════════════════════════════
 /// THE IDENTITY MODEL
 /// ════════════════════════════════════════════════════════════════════════════
 ///
 /// On Thebes today, for an ingress call, `msg.caller` is the SENDER principal of
-/// the request — i.e. whatever key signed the envelope (an agent key, a wallet,
+/// the request; i.e. whatever key signed the envelope (an agent key, a wallet,
 /// a delegation). It is authenticated by the boundary, but it is NOT a Memphis
 /// identity. Memphis (cid 921) is a separate identity contract that gives each
 /// user a STABLE, PER-APP, PSEUDONYMOUS principal:
@@ -13,7 +13,7 @@
 ///   • `derive_principal_for(anchor_id, origin, version)` -> a 29-byte principal
 ///     that is deterministic for (this anchor, this app-origin, this version).
 ///     The same human is the same principal in YOUR app every time, and a
-///     DIFFERENT principal in some other app — unlinkable across apps.
+///     DIFFERENT principal in some other app; unlinkable across apps.
 ///
 ///   • A user proves they currently control that anchor by holding a SESSION
 ///     TOKEN (32 opaque bytes) obtained from register/authenticate. Your app
@@ -41,7 +41,7 @@
 ///   2. Client sends that token to YOUR contract as a normal call argument.
 ///   3. YOUR contract calls `whoami_scoped_u(token, audience)` (inter-contract,
 ///      replicated) to verify the token is real, unexpired, AND was minted for
-///      your web origin — learning the `anchor_id`.
+///      your web origin; learning the `anchor_id`.
 ///   4. YOUR contract calls `derive_principal_for(anchor_id, origin, version)`
 ///      to get the user's stable per-app principal, and keys app state on THAT.
 ///   5. Optionally cache (anchor_id, expires_ns) keyed by token to avoid a
@@ -49,15 +49,15 @@
 ///
 /// Why an inter-contract call and not a local check? Because only Memphis can
 /// attest that a token is live and maps to an anchor. There is no local secret
-/// your contract could use to verify a Memphis token offline — so verification
+/// your contract could use to verify a Memphis token offline; so verification
 /// MUST be a call to Memphis.
 ///
 /// ════════════════════════════════════════════════════════════════════════════
-/// BREAKING CHANGE — TOKENS ARE NOW BOUND TO YOUR ORIGIN
+/// BREAKING CHANGE; TOKENS ARE NOW BOUND TO YOUR ORIGIN
 /// ════════════════════════════════════════════════════════════════════════════
 /// Earlier versions of this module called `whoami(token)`, which resolves a
 /// token at ANY origin. That made a token you were handed usable by you at
-/// every other Thebes app, as that user — the confused-deputy problem. This
+/// every other Thebes app, as that user; the confused-deputy problem. This
 /// version calls `whoami_scoped_u(token, audience)` instead, and Memphis
 /// refuses a token minted for someone else.
 ///
@@ -67,7 +67,7 @@
 ///     bug. Clients must obtain a scoped token for your origin.
 ///
 ///   • Verification now needs an AUDIENCE, and it is security-critical. It is
-///     the WEB ORIGIN your app is served from — the thing Memphis compares
+///     the WEB ORIGIN your app is served from; the thing Memphis compares
 ///     against, byte-exactly, so a trailing slash, port or case difference is
 ///     a mismatch.
 ///
@@ -78,8 +78,8 @@
 ///
 ///     The audience is a PER-CALL ARGUMENT to `verifyWithAudience`, not a field
 ///     of `State`. That is deliberate and you should copy the pattern: adding a
-///     field to a stable record hits M0170 (incompatible stable variable) —
-///     `?Text` does not help, Motoko rejects an added record field either way —
+///     field to a stable record hits M0170 (incompatible stable variable);
+///     `?Text` does not help, Motoko rejects an added record field either way;
 ///     and marking the holding variable `transient` to dodge it hits M0169 (a
 ///     stable variable cannot be implicitly discarded). Both walls exist for a
 ///     value that never needed to persist. Compile-time config belongs in an
@@ -102,7 +102,7 @@
 ///     (mirrored for completeness; this module no longer calls it)
 ///
 /// ⚠️ BOTH METHODS THIS MODULE CALLS ARE THE `_u` (UPDATE) FORMS, AND THAT IS
-/// NOT OPTIONAL. Memphis exports each of them twice — a `query` for the browser
+/// NOT OPTIONAL. Memphis exports each of them twice; a `query` for the browser
 /// to poll cheaply, and a `_u` update with the identical body for contracts.
 /// A contract-to-contract `await` on a Thebes `query` export does not deliver a
 /// reply: the substrate's replicated-query fallback has no inter-contract reply
@@ -148,7 +148,7 @@ module {
   };
 
   /// Mirror of memphis.did `WhoAmIResult`. `anchor_id` is the 32-byte
-  /// anchor_id_hash (NEVER the raw anchor — INV-MEM-6).
+  /// anchor_id_hash (NEVER the raw anchor; INV-MEM-6).
   public type WhoAmIResult = {
     anchor_id : Blob;
     session_expires_ns : Nat64;
@@ -156,7 +156,7 @@ module {
   };
 
   /// The subset of the Memphis service this module calls. THIS is the
-  /// binding-point type — if 921's upgraded interface differs, the actor
+  /// binding-point type; if 921's upgraded interface differs, the actor
   /// reference below will fail to typecheck against the live contract and the
   /// call will trap. That is by design: no silent drift.
   ///
@@ -173,7 +173,7 @@ module {
   // ── The verified identity this module hands back to the app ────────────────
 
   /// What a successful session verification yields. `principal` is the user's
-  /// STABLE per-app principal (derived for this app's origin) — key your app
+  /// STABLE per-app principal (derived for this app's origin); key your app
   /// state on this. `anchorId` is the Memphis anchor_id_hash. `expiresNs` is the
   /// session expiry from Memphis.
   public type Identity = {
@@ -196,9 +196,9 @@ module {
   /// the client used when it derived its principal (typically your contract's
   /// public URL/origin and a version integer you bump on identity-scheme breaks).
   public type State = {
-    memphis : Principal; // cid 921 (or test id) — the Memphis contract
+    memphis : Principal; // cid 921 (or test id); the Memphis contract
     // PSEUDONYM NAMESPACE. Feeds derive_principal_for, so it decides your
-    // users' principals. It is an arbitrary stable label — often a URL, but
+    // users' principals. It is an arbitrary stable label; often a URL, but
     // "my-app" is equally valid. NEVER change it on a live app: every user's
     // principal would change with it and their data would be orphaned.
     origin : Text;
@@ -210,8 +210,8 @@ module {
 
   /// Build a gate whose pseudonym namespace and audience are the SAME string.
   /// Correct only when your namespace already IS the web origin your app is
-  /// served from (e.g. both "https://my-app.com"). If they differ — and they do
-  /// whenever the namespace is a label like "my-app" — call
+  /// served from (e.g. both "https://my-app.com"). If they differ; and they do
+  /// whenever the namespace is a label like "my-app"; call
   /// `verifyWithAudience` and pass your URL, or every verification will fail
   /// with #Unauthorized.
   public func init(memphis : Principal, origin : Text, version : Nat64) : State {
@@ -230,7 +230,7 @@ module {
 
   /// The Thebes substrate addresses contracts by numeric id; a cross-contract
   /// callee principal MUST be exactly the 8 big-endian bytes of that id
-  /// (any other length is rejected). This builds that principal — apps
+  /// (any other length is rejected). This builds that principal; apps
   /// never deal with the encoding themselves.
   public func principalOfCid(cid : Nat64) : Principal {
     let n = Nat64.toNat(cid);
@@ -256,7 +256,7 @@ module {
     actor (Principal.toText(s.memphis)) : Memphis;
   };
 
-  // ── Cache helpers (real logic — not stubs) ─────────────────────────────────
+  // ── Cache helpers (real logic; not stubs) ─────────────────────────────────
 
   /// Look up a still-valid cached identity for `token`, given the current time
   /// in nanoseconds. Returns null if absent or if the cached session has expired
@@ -278,14 +278,14 @@ module {
   ///
   /// Correct ONLY when your pseudonym namespace is literally the web origin
   /// your app is served from. If it is a label like "my-app", this always
-  /// fails with #Unauthorized — use `verifyWithAudience` and pass the URL.
+  /// fails with #Unauthorized; use `verifyWithAudience` and pass the URL.
   ///
   /// ⚠️ `async*`, not `async`, and you MUST call it with `await*`. A module-level
   /// `async` helper that awaits another contract loses the caller's
   /// continuation: the engine replies with the INNER awaited value instead of
   /// your handler's own return, and post-await state mutations are dropped. The
   /// symptom is a client-side Candid decode error naming a field your method
-  /// never declared — it is decoding this module's Result, not yours.
+  /// never declared; it is decoding this module's Result, not yours.
   public func verify(s : State, token : Blob) : async* Result.Result<Identity, AuthError> {
     await* verifyWithAudience(s, token, s.origin);
   };
@@ -299,17 +299,17 @@ module {
   ///      `#Memphis(err)`. On `Ok`, check the returned `session_expires_ns` is
   ///      in the future (defensive: Memphis already enforces this, but we
   ///      re-check locally so a clock-skew/replay window cannot slip through)
-  ///      — else `#Expired`.
+  ///     else `#Expired`.
   ///   3. Call Memphis `derive_principal_for_u(anchor_id, origin, version)` to
   ///      get the stable per-app principal. On `Err`, surface `#Memphis(err)`.
   ///   4. Cache (token -> Identity) keyed by token and return the Identity.
   ///
   /// Cost: two inter-contract calls on a cache miss, zero on a cache hit.
   ///
-  /// ⚠️ `async*` — call it with `await*`. See `verify` above for what breaks
+  /// ⚠️ `async*`; call it with `await*`. See `verify` above for what breaks
   /// if this is a plain `async`.
   public func verifyWithAudience(s : State, token : Blob, audience : Text) : async* Result.Result<Identity, AuthError> {
-    // Time.now() is nanoseconds-since-epoch as an Int (always positive on IC);
+    // Time.now() is nanoseconds-since-epoch as an Int (always positive);
     // Memphis expiries are Nat64, so we compare in the Nat64 domain.
     let nowNs : Nat64 = Nat64.fromNat(Int.toNat(Time.now()));
 
@@ -331,7 +331,7 @@ module {
     if (who.session_expires_ns <= nowNs) { return #err(#Expired) };
 
     // Step 3: derive the user's stable principal for THIS app. Note `s.origin`
-    // (the pseudonym namespace), NOT `audience` — mixing these up rotates every
+    // (the pseudonym namespace), NOT `audience`; mixing these up rotates every
     // user's principal and orphans their data.
     let principalBytes = switch (await m.derive_principal_for_u(who.anchor_id, s.origin, s.version)) {
       case (#Err(e)) { return #err(#Memphis(e)) };
@@ -350,7 +350,7 @@ module {
   };
 
   /// Forget a cached token locally (e.g. after the user signs out). Idempotent.
-  /// Note: this only drops the LOCAL cache entry — to truly end the session the
+  /// Note: this only drops the LOCAL cache entry; to truly end the session the
   /// client must call Memphis `end_session(token)`; this app cannot do that on
   /// the user's behalf because end_session is caller-scoped on Memphis.
   public func forget(s : State, token : Blob) {

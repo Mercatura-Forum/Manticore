@@ -1,9 +1,9 @@
-/// Cards.test.mo — cards cards: the decision engine, the lifecycles and the fold, without a journal.
+/// Cards.test.mo; cards cards: the decision engine, the lifecycles and the fold, without a journal.
 ///
 /// What is proved here (the pure layer):
 ///   1. configuration: the policy, a scheme whose rules name their source (a scheme without a source refused), a product
 ///      whose controls bound the cardholder's, controls outside the bounds refused;
-///   2. issuance: a card by its token digest (the token itself is kept nowhere — the fold's rows carry only the digest),
+///   2. issuance: a card by its token digest (the token itself is kept nowhere; the fold's rows carry only the digest),
 ///      the same token twice refused, activation, block and unblock, a replacement that closes the old card, controls set;
 ///   3. the decision engine, in its stated order: an unknown token, a duplicate reference, an inactive card, an expired
 ///      card, an invalid cryptogram, a failed PIN, a currency mismatch, an MCC denied, a channel denied, an international

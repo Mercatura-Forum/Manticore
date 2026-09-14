@@ -1,4 +1,4 @@
-/// Entitlements.mo — scope evaluation, as a pure function of the operation.
+/// Entitlements.mo; scope evaluation, as a pure function of the operation.
 ///
 /// A grant is (subject, role, scope). A role is a set of permission
 /// identifiers. A scope narrows a grant along the dimensions a bank actually

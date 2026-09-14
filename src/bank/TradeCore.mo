@@ -1,10 +1,10 @@
-/// TradeCore.mo — the trade book folded from the bank's log in stable memory (trade finance): instruments, the claims
+/// TradeCore.mo; the trade book folded from the bank's log in stable memory (trade finance): instruments, the claims
 /// under them, the messages exchanged, and the contingent memoranda.
 ///
 /// Rows: one per instrument (keyed by the block that issued, advised, registered or discounted it) with the fixed
-/// facts — kind, state, rules, role, party and account, the counterparty's hash and bank, face and utilised,
+/// facts; kind, state, rules, role, party and account, the counterparty's hash and bank, face and utilised,
 /// issue day and expiry, margin and commission figures, the hash of the terms in the block; one per claim under an
-/// instrument (instrument ‖ ordinal): a presentation of documents, a demand, a collection presented — with its
+/// instrument (instrument ‖ ordinal): a presentation of documents, a demand, a collection presented; with its
 /// presentation day, the examination deadline counted in banking days from the journal's calendar, the checks
 /// recorded and how many failed, how it was honoured and when it fell due; one per message (instrument ‖ ordinal)
 /// holding the kind, the direction and the hash. Indexes by party, by state, by expiry (what the batch sweeps),
@@ -430,7 +430,7 @@ module {
   };
 
   /// The examination: within the deadline; the checks recorded are exactly the credit's checklist (every
-  /// document's every check, once); the decision follows from them — complying only when none failed, a refusal
+  /// document's every check, once); the decision follows from them; complying only when none failed, a refusal
   /// naming each failed check once and what is done with the documents (art. 16(c)).
   public func planExamine(s : State, id : TrT.InstrumentId, seq : TrT.ClaimSeq, checklist : [(TrT.DocumentKind, Text)], checks : [TrT.CheckResult], decision : TrT.Decision, today : Nat) : Result.Result<TrT.TradeEvent, TrT.TradeError> {
     let r = switch (require(s, id)) { case (#err(e)) return #err(e); case (#ok(r)) r };
@@ -560,8 +560,8 @@ module {
     #ok(#demandRecorded({ instrument = id; claim = r.claims + 1; demand; amount; supportingStatement; presentedOn; deadline; day = today }))
   };
 
-  /// A complying demand is paid (art. 20(b)); the figures — what the margin covers, what the principal's account
-  /// pays, what becomes a claim — are `BankCore`'s from the balances; this gate says the payment may be made.
+  /// A complying demand is paid (art. 20(b)); the figures; what the margin covers, what the principal's account
+  /// pays, what becomes a claim; are `BankCore`'s from the balances; this gate says the payment may be made.
   public func planPayDemand(s : State, id : TrT.InstrumentId, seq : TrT.ClaimSeq, today : Nat) : Result.Result<ClaimRow, TrT.TradeError> {
     let r = switch (require(s, id)) { case (#err(e)) return #err(e); case (#ok(r)) r };
     switch (requireKind(r, 2)) { case (?e) return #err(e); case null {} };
@@ -589,7 +589,7 @@ module {
     #ok(#guaranteeReleased({ instrument = id; reason; marginReleased = r.margin; day = today }))
   };
 
-  /// The instruments whose effective expiry has passed by `day` with no claim pending — what the batch expires.
+  /// The instruments whose effective expiry has passed by `day` with no claim pending; what the batch expires.
   public func expiredBy(s : State, calendar : ?JT.CalendarConfig, day : Nat) : [InstrumentRow] {
     let out = List.empty<InstrumentRow>();
     let seen = List.empty<Nat>();   // an amended instrument is indexed under every expiry it has had
@@ -763,7 +763,7 @@ module {
     let next = cur + delta;
     if (next <= 0) ignore Map.delete(s.openByBook, Text.compare, book) else Map.add(s.openByBook, Text.compare, book, Int.abs(next));
   };
-  /// The open instruments of a book, from the fold's counter: what the end-of-day plan asks — no walk (S4.1).
+  /// The open instruments of a book, from the fold's counter: what the end-of-day plan asks; no walk (S4.1).
   public func openCountInBook(s : State, book : Text) : Nat { switch (Map.get(s.openByBook, Text.compare, book)) { case (?v) v; case null 0 } };
   func moveState(s : State, r : InstrumentRow, to : TrT.InstrumentState, block : Nat) : InstrumentRow {
     let wasOpen = isOpen(r);
@@ -1047,7 +1047,7 @@ module {
     };
     List.toArray(out)
   };
-  /// Every open instrument — what the batch walks for commissions, discounts, reductions and maturities.
+  /// Every open instrument; what the batch walks for commissions, discounts, reductions and maturities.
   public func openAll(s : State) : [InstrumentRow] {
     let out = List.empty<InstrumentRow>();
     for (st in [#issued, #advised, #confirmed, #accepted, #rediscounted].vals()) {
@@ -1074,7 +1074,7 @@ module {
     { ids = List.toArray(out); cursor = page.cursor }
   };
   public func openInBook(s : State, book : Text) : [InstrumentRow] { Array.filter<InstrumentRow>(openAll(s), func(r) { Text.equal(r.book, book) }) };
-  /// The undertakings outstanding against a facility — what reduces its availability (corporate lending).
+  /// The undertakings outstanding against a facility; what reduces its availability (corporate lending).
   public func contingentOnFacility(s : State, facility : Nat) : Nat {
     var sum = 0;
     let (lo, hi) = R.prefixRange(facility, 8, 8);

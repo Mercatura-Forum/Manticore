@@ -1,10 +1,10 @@
-/// CardMessages.mo — the cards domain's ISO 20022 documents (cards): the acquirer's authorization request as
+/// CardMessages.mo; the cards domain's ISO 20022 documents (cards): the acquirer's authorization request as
 /// cain.001.001.04 parsed into the request the decision engine reads (the token in place of the PAN, the HSM's
 /// verdicts as verification results), and the issuer's response as cain.002.001.04 rendered from the decision with
 /// the ISO 8583 response code and the approval code. ISO 8583 itself is the connector's dialect: the battery's
 /// Python translator renders and reads it against jPOS's packagers, and feeds the contract what cain carries.
 ///
-/// The PAN boundary holds here too: `Card/PAN` is refused when present — a request must carry `Tkn/PmtTkn`.
+/// The PAN boundary holds here too: `Card/PAN` is refused when present; a request must carry `Tkn/PmtTkn`.
 
 import Array "mo:core/Array";
 import Char "mo:core/Char";
@@ -24,7 +24,7 @@ import TM "TreasuryMessages";
 
 module {
 
-  /// ISO 4217 numeric codes for the currencies the bank deals in, with their minor units — the standard's own
+  /// ISO 4217 numeric codes for the currencies the bank deals in, with their minor units; the standard's own
   /// table (ISO 4217:2015, list one), not a rule of the bank's; a code outside it passes through as text and the
   /// decision engine declines the currency mismatch.
   public let ISO4217 : [(Text, Text, Nat8)] = [
@@ -120,7 +120,7 @@ module {
     func n(x : Text) : Nat { let s = clip(x, 2); if (isDigits(s)) digitsToNat(s) else 0 };
     n(parts[0]) * 3600 + n(parts[1]) * 60 + n(parts[2])
   };
-  /// The merchant as a digest of its acceptor id and name — never the name itself in a block.
+  /// The merchant as a digest of its acceptor id and name; never the name itself in a block.
   public func merchantHashOf(id : Text, name : Text) : Blob { Sha256.fromBlob(#sha256, Text.encodeUtf8(id # "|" # name)) };
   func authIdOfCode(code : Text) : ?Nat {
     if (code.size() != 6) return null;

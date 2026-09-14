@@ -1,4 +1,4 @@
-/// IsoBreadth.mo — the extended ISO 20022 target list: the twenty families added to the compact profile, each read from the tree the
+/// IsoBreadth.mo; the extended ISO 20022 target list: the twenty families added to the compact profile, each read from the tree the
 /// vendored parser (Xml.mo) produced and the official schema profile (IsoSchema.mo over IsoProfiles.mo) validated
 /// into a typed record, and the ones the hub answers with written schema-valid.
 ///
@@ -132,7 +132,7 @@ module {
   public type Balance = { code : Text; amount : Amount; credit : Bool; date : Text };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // Reading: the declared target list — reversals, direct debits, the mandate cycle, the multilateral
+  // Reading: the declared target list; reversals, direct debits, the mandate cycle, the multilateral
   // settlement request, cash management and liquidity, the exceptions-and-investigations set, system
   // administration, the business file header.
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -159,7 +159,7 @@ module {
     }
   };
 
-  /// pacs.003.001.08 — FIToFICstmrDrctDbt: the ACH's customer direct-debit collections.
+  /// pacs.003.001.08; FIToFICstmrDrctDbt: the ACH's customer direct-debit collections.
   public func readPacs003(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<DirectDebitMessage, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "FIToFICstmrDrctDbt") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/FIToFICstmrDrctDbt"; detail = "missing" }]);
@@ -190,7 +190,7 @@ module {
     #ok({ family = "pacs.003"; messageId; creationDateTime; declaredCount; transactions = List.toArray(txs) })
   };
 
-  /// pacs.010.001.04 — FIDrctDbt: an institution (the creditor, itself the participant paid) debiting
+  /// pacs.010.001.04; FIDrctDbt: an institution (the creditor, itself the participant paid) debiting
   /// other institutions; the debtor institution is the participant that pays.
   public func readPacs010(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<DirectDebitMessage, [Issue]> {
     let issues = List.empty<Issue>();
@@ -237,7 +237,7 @@ module {
     switch (Xml.path(e, names)) { case (?_) ?readAmount(e, names, path, minorUnitsOf, issues); case null null }
   };
 
-  /// pacs.007.001.10 — PmtRvsl.
+  /// pacs.007.001.10; PmtRvsl.
   public func readPacs007(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<Reversal, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "FIToFIPmtRvsl") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/FIToFIPmtRvsl"; detail = "missing" }]);
@@ -258,7 +258,7 @@ module {
     #ok({ family = "pacs.007"; messageId; creationDateTime; declaredCount; originalMessageId = t(body, ["OrgnlGrpInf", "OrgnlMsgId"]); originalMessageName = t(body, ["OrgnlGrpInf", "OrgnlMsgNmId"]); groupReasonCode = gcode; groupReasonProprietary = gprtry; items = List.toArray(items) })
   };
 
-  /// pain.007.001.10 — CstmrPmtRvsl: the customer's reversal of collections it initiated, one TxInf
+  /// pain.007.001.10; CstmrPmtRvsl: the customer's reversal of collections it initiated, one TxInf
   /// per original transaction under each original payment information block.
   public func readPain007(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<Reversal, [Issue]> {
     let issues = List.empty<Issue>();
@@ -285,7 +285,7 @@ module {
     #ok({ family = "pain.007"; messageId; creationDateTime; declaredCount; originalMessageId = t(body, ["OrgnlGrpInf", "OrgnlMsgId"]); originalMessageName = t(body, ["OrgnlGrpInf", "OrgnlMsgNmId"]); groupReasonCode = gcode; groupReasonProprietary = gprtry; items = List.toArray(items) })
   };
 
-  /// pacs.029.001.02 — MulSttlmReq: the scheme operator's settlement request, one instruction per
+  /// pacs.029.001.02; MulSttlmReq: the scheme operator's settlement request, one instruction per
   /// settlement cycle with the movement of every participant.
   public type SettlementRequestItem = { instructionId : Text; cycle : ?Text; declaredMovements : ?Nat; movements : [Movement] };
   public type SettlementRequest = { messageId : Text; creationDateTime : Text; declaredCount : Nat; items : [SettlementRequestItem] };
@@ -335,7 +335,7 @@ module {
     { mandateId; requestId = t(m, ["MndtReqId"]); sequence; maxAmount; creditorAgent; debtorAgent; debtorAccount; firstCollection = t(m, ["Ocrncs", "FrstColltnDt"]); finalCollection = t(m, ["Ocrncs", "FnlColltnDt"]) }
   };
 
-  /// pain.009.001.07 — MndtInitnReq.
+  /// pain.009.001.07; MndtInitnReq.
   public func readPain009(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<MandateMessage, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "MndtInitnReq") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/MndtInitnReq"; detail = "missing" }]);
@@ -360,7 +360,7 @@ module {
 
   public type MandateAmendmentItem = { originalMandateId : Text; mandate : MandateItem; reason : Text };
   public type MandateAmendment = { messageId : Text; creationDateTime : Text; items : [MandateAmendmentItem] };
-  /// pain.010.001.07 — MndtAmdmntReq.
+  /// pain.010.001.07; MndtAmdmntReq.
   public func readPain010(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<MandateAmendment, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "MndtAmdmntReq") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/MndtAmdmntReq"; detail = "missing" }]);
@@ -380,7 +380,7 @@ module {
 
   public type MandateCancellationItem = { originalMandateId : Text; reason : Text };
   public type MandateCancellation = { messageId : Text; creationDateTime : Text; items : [MandateCancellationItem] };
-  /// pain.011.001.07 — MndtCxlReq.
+  /// pain.011.001.07; MndtCxlReq.
   public func readPain011(doc : Xml.Element) : Result.Result<MandateCancellation, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "MndtCxlReq") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/MndtCxlReq"; detail = "missing" }]);
@@ -399,7 +399,7 @@ module {
 
   public type MandateAcceptanceItem = { originalMandateId : Text; accepted : Bool; reason : ?Text };
   public type MandateAcceptance = { messageId : Text; creationDateTime : Text; items : [MandateAcceptanceItem] };
-  /// pain.012.001.07 — MndtAccptncRpt (read when another bank reports on a mandate this bank holds).
+  /// pain.012.001.07; MndtAccptncRpt (read when another bank reports on a mandate this bank holds).
   public func readPain012(doc : Xml.Element) : Result.Result<MandateAcceptance, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "MndtAccptncRpt") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/MndtAccptncRpt"; detail = "missing" }]);
@@ -422,7 +422,7 @@ module {
 
   public type ReportingRequestItem = { id : ?Text; requestedMessage : Text; accountId : ?Text; ownerBic : ?Text; fromDate : ?Text; toDate : ?Text };
   public type ReportingRequest = { messageId : Text; creationDateTime : Text; items : [ReportingRequestItem] };
-  /// camt.060.001.05 — AcctRptgReq.
+  /// camt.060.001.05; AcctRptgReq.
   public func readCamt060(doc : Xml.Element) : Result.Result<ReportingRequest, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "AcctRptgReq") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/AcctRptgReq"; detail = "missing" }]);
@@ -441,7 +441,7 @@ module {
 
   public type NotificationItem = { id : Text; endToEndId : ?Text; uetr : ?Text; amount : Amount; accountId : ?Text; debtorAgent : ?Text; expectedValueDate : ?Text };
   public type NotificationToReceive = { messageId : Text; creationDateTime : Text; notificationId : Text; accountId : ?Text; items : [NotificationItem] };
-  /// camt.057.001.06 — NtfctnToRcv.
+  /// camt.057.001.06; NtfctnToRcv.
   public func readCamt057(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<NotificationToReceive, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "NtfctnToRcv") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/NtfctnToRcv"; detail = "missing" }]);
@@ -461,7 +461,7 @@ module {
   };
 
   public type LiquidityTransfer = { messageId : Text; creationDateTime : ?Text; endToEndId : Text; instructionId : ?Text; creditorBic : ?Text; creditorAccount : ?Text; debtorBic : ?Text; debtorAccount : ?Text; amount : Amount; settlementDate : ?Text };
-  /// camt.050.001.05 — LqdtyCdtTrf. The amount carries its currency on this rail (`AmtWthCcy`).
+  /// camt.050.001.05; LqdtyCdtTrf. The amount carries its currency on this rail (`AmtWthCcy`).
   public func readCamt050(doc : Xml.Element, minorUnitsOf : Text -> ?Nat8) : Result.Result<LiquidityTransfer, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "LqdtyCdtTrf") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/LqdtyCdtTrf"; detail = "missing" }]);
@@ -489,7 +489,7 @@ module {
     modifiedAmount : ?Amount;
   };
   /// camt.026 (unable to apply), camt.027 (claim non-receipt), camt.028 (additional payment
-  /// information), camt.087 (request to modify payment): one shape — the assignment, the case, the
+  /// information), camt.087 (request to modify payment): one shape; the assignment, the case, the
   /// underlying transaction by UETR or end-to-end id.
   public func readInvestigation(doc : Xml.Element, family : Text, minorUnitsOf : Text -> ?Nat8) : Result.Result<Investigation, [Issue]> {
     let issues = List.empty<Issue>();
@@ -518,7 +518,7 @@ module {
 
   public type ResendCriteria = { businessDate : ?Text; sequenceNumber : ?Text; originalMessageName : ?Text; fileReference : ?Text; recipientBic : ?Text };
   public type ResendRequest = { messageId : Text; creationDateTime : ?Text; originalQueryId : ?Text; criteria : [ResendCriteria] };
-  /// admi.006.001.01 — RsndReq.
+  /// admi.006.001.01; RsndReq.
   public func readAdmi006(doc : Xml.Element) : Result.Result<ResendRequest, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "RsndReq") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/RsndReq"; detail = "missing" }]);
@@ -532,7 +532,7 @@ module {
   };
 
   public type ProcessingRequest = { messageId : Text; session : ?Text; requestType : Text; requesterBic : ?Text; additional : [Text] };
-  /// admi.017.001.01 — PrcgReq.
+  /// admi.017.001.01; PrcgReq.
   public func readAdmi017(doc : Xml.Element) : Result.Result<ProcessingRequest, [Issue]> {
     let issues = List.empty<Issue>();
     let ?body = Xml.child(doc, "PrcgReq") else return #err([{ rule = "ISO-BIZ-REQUIRED"; path = "/Document/PrcgReq"; detail = "missing" }]);
@@ -545,7 +545,7 @@ module {
   };
 
   public type FileHeader = { payloadId : Text; creationDateTime : Text; payloadType : Text; declaredDocuments : ?Nat; possibleDuplicate : Bool; payloads : [Xml.Element] };
-  /// head.002.001.01 — Xchg, the business file header: the payload description and the payloads,
+  /// head.002.001.01; Xchg, the business file header: the payload description and the payloads,
   /// each one element (an AppHdr, or a Document).
   public func readHead002(xchg : Xml.Element) : Result.Result<FileHeader, [Issue]> {
     let issues = List.empty<Issue>();
@@ -563,7 +563,7 @@ module {
 
   // ─── the report and the receipt (families the hub also reads) ───
 
-  /// camt.052.001.08 — BkToCstmrAcctRpt: one report over one account — balances and booked entries,
+  /// camt.052.001.08; BkToCstmrAcctRpt: one report over one account; balances and booked entries,
   /// the period as the schema's `FrToDt` (date-times), the request it answers in `OrgnlBizQry`.
   public type AccountReport = {
     messageId : Text; creationDateTime : Text; reportId : Text; originalQuery : ?(Text, Text);
@@ -618,7 +618,7 @@ module {
     #ok({ messageId; creationDateTime; reportId; originalQuery; accountId; currency = t(rpt, ["Acct", "Ccy"]); fromDateTime = t(rpt, ["FrToDt", "FrDtTm"]); toDateTime = t(rpt, ["FrToDt", "ToDtTm"]); balances = List.toArray(bals); entries = List.toArray(entries) })
   };
 
-  /// camt.025.001.05 — Rct: a receipt for one or more messages, each with the handling status.
+  /// camt.025.001.05; Rct: a receipt for one or more messages, each with the handling status.
   public type ReceiptDetail = { originalMessageId : Text; originalMessageName : ?Text; statusCode : ?Text; description : ?Text };
   public type Receipt = { messageId : Text; creationDateTime : ?Text; details : [ReceiptDetail] };
 
@@ -641,7 +641,7 @@ module {
   // ═══════════════════════════════════════════════════════════════════════════════
   // Writing. Each emitter takes the record its reader produces and writes the family's official shape:
   // the schema's required elements in the schema's order, the record's optional fields where present.
-  // What the record cannot supply and the schema requires is refused, not defaulted — an emitter answers
+  // What the record cannot supply and the schema requires is refused, not defaulted; an emitter answers
   // `#err` with the same `ISO-BIZ-…` rule ids the readers use, so a caller sees the missing field by name.
   // The integration kit's runner shows every emitted document valid under `xmllint --schema` and equal
   // to its record after a second read.
@@ -810,7 +810,7 @@ module {
     }
   };
 
-  /// pacs.029.001.02 — MulSttlmReq. The schema asks two movements or more of every request.
+  /// pacs.029.001.02; MulSttlmReq. The schema asks two movements or more of every request.
   public func settlementRequestXml(r : SettlementRequest, minorUnitsOf : Text -> ?Nat8, settlementMethod : ?Text) : Emitted {
     let issues = List.empty<Issue>();
     if (r.declaredCount != r.items.size()) List.add(issues, { rule = "ISO-BIZ-COUNT"; path = "/GrpHdr/NbOfSttlmReqs"; detail = "NbOfSttlmReqs says " # Nat.toText(r.declaredCount) # ", the record carries " # Nat.toText(r.items.size()) });
@@ -853,7 +853,7 @@ module {
     "    <GrpHdr>\n" # el(6, "MsgId", clip(messageId, 35)) # el(6, "CreDtTm", creationDateTime) # partyEl(6, "InitgPty", initiatingParty) # "    </GrpHdr>\n"
   };
 
-  /// pain.009.001.07 — MndtInitnReq.
+  /// pain.009.001.07; MndtInitnReq.
   public func mandateInitiationXml(r : MandateMessage, minorUnitsOf : Text -> ?Nat8, initiatingParty : ?Text, creditorName : ?Text, debtorName : ?Text) : Emitted {
     let issues = List.empty<Issue>();
     if (r.mandates.size() == 0) List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/MndtInitnReq/Mndt"; detail = "an initiation carries at least one mandate" });
@@ -873,7 +873,7 @@ module {
     sp(indent) # "<" # wrapper # ">" # (if (withRsn) "<Rsn>" # choice # "</Rsn>" else choice) # "</" # wrapper # ">\n"
   };
 
-  /// pain.010.001.07 — MndtAmdmntReq.
+  /// pain.010.001.07; MndtAmdmntReq.
   public func mandateAmendmentXml(r : MandateAmendment, minorUnitsOf : Text -> ?Nat8, initiatingParty : ?Text) : Emitted {
     let issues = List.empty<Issue>();
     if (r.items.size() == 0) List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/MndtAmdmntReq/UndrlygAmdmntDtls"; detail = "an amendment carries at least one mandate" });
@@ -889,7 +889,7 @@ module {
     finish(document(ns("pain.010.001.07"), "  <MndtAmdmntReq>\n" # groupHeader(r.messageId, r.creationDateTime, initiatingParty) # body # "  </MndtAmdmntReq>\n"), issues)
   };
 
-  /// pain.011.001.07 — MndtCxlReq.
+  /// pain.011.001.07; MndtCxlReq.
   public func mandateCancellationXml(r : MandateCancellation, initiatingParty : ?Text) : Emitted {
     let issues = List.empty<Issue>();
     if (r.items.size() == 0) List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/MndtCxlReq/UndrlygCxlDtls"; detail = "a cancellation names at least one mandate" });
@@ -903,7 +903,7 @@ module {
     finish(document(ns("pain.011.001.07"), "  <MndtCxlReq>\n" # groupHeader(r.messageId, r.creationDateTime, initiatingParty) # body # "  </MndtCxlReq>\n"), issues)
   };
 
-  /// pain.012.001.07 — MndtAccptncRpt, one acceptance detail per item; `originalMessage` names the
+  /// pain.012.001.07; MndtAccptncRpt, one acceptance detail per item; `originalMessage` names the
   /// request answered (id, message name) when known.
   public func mandateAcceptanceXml(r : MandateAcceptance, initiatingParty : ?Text, originalMessage : ?(Text, Text)) : Emitted {
     let issues = List.empty<Issue>();
@@ -919,7 +919,7 @@ module {
     finish(document(ns("pain.012.001.07"), "  <MndtAccptncRpt>\n" # groupHeader(r.messageId, r.creationDateTime, initiatingParty) # body # "  </MndtAccptncRpt>\n"), issues)
   };
 
-  /// camt.060.001.05 — AcctRptgReq. The schema requires the account owner: an agent BIC here.
+  /// camt.060.001.05; AcctRptgReq. The schema requires the account owner: an agent BIC here.
   public func reportingRequestXml(r : ReportingRequest) : Emitted {
     let issues = List.empty<Issue>();
     if (r.items.size() == 0) List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/AcctRptgReq/RptgReq"; detail = "a reporting request asks for at least one report" });
@@ -939,7 +939,7 @@ module {
     finish(document(ns("camt.060.001.05"), "  <AcctRptgReq>\n    <GrpHdr>\n" # el(6, "MsgId", clip(r.messageId, 35)) # el(6, "CreDtTm", r.creationDateTime) # "    </GrpHdr>\n" # body # "  </AcctRptgReq>\n"), issues)
   };
 
-  /// camt.057.001.06 — NtfctnToRcv.
+  /// camt.057.001.06; NtfctnToRcv.
   public func notificationToReceiveXml(r : NotificationToReceive, minorUnitsOf : Text -> ?Nat8) : Emitted {
     let issues = List.empty<Issue>();
     if (r.items.size() == 0) List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/NtfctnToRcv/Ntfctn/Itm"; detail = "a notification carries at least one item" });
@@ -954,7 +954,7 @@ module {
     finish(document(ns("camt.057.001.06"), "  <NtfctnToRcv>\n    <GrpHdr>\n" # el(6, "MsgId", clip(r.messageId, 35)) # el(6, "CreDtTm", r.creationDateTime) # "    </GrpHdr>\n    <Ntfctn>\n" # el(6, "Id", clip(r.notificationId, 35)) # accountOpt(6, "Acct", r.accountId) # body # "    </Ntfctn>\n  </NtfctnToRcv>\n"), issues)
   };
 
-  /// camt.050.001.05 — LqdtyCdtTrf, the amount with its currency (`AmtWthCcy`).
+  /// camt.050.001.05; LqdtyCdtTrf, the amount with its currency (`AmtWthCcy`).
   public func liquidityTransferXml(r : LiquidityTransfer, minorUnitsOf : Text -> ?Nat8) : Emitted {
     let issues = List.empty<Issue>();
     let p = "/Document/LqdtyCdtTrf/LqdtyCdtTrf";
@@ -969,7 +969,7 @@ module {
 
   /// camt.026 / 027 / 028 / 087 by `r.family`: the assignment, the case, the underlying interbank
   /// transaction (the schema requires its original amount and settlement date), and the family's own
-  /// part — camt.026's justification, camt.028's information, camt.087's modification.
+  /// part; camt.026's justification, camt.028's information, camt.087's modification.
   public func investigationXml(r : Investigation, minorUnitsOf : Text -> ?Nat8) : Emitted {
     let issues = List.empty<Issue>();
     let (family, rootName) = switch (r.family) {
@@ -1002,7 +1002,7 @@ module {
     finish(document(ns(family), body), issues)
   };
 
-  /// admi.006.001.01 — RsndReq. The schema requires each criterion's recipient: an AnyBIC here.
+  /// admi.006.001.01; RsndReq. The schema requires each criterion's recipient: an AnyBIC here.
   public func resendRequestXml(r : ResendRequest) : Emitted {
     let issues = List.empty<Issue>();
     if (r.criteria.size() == 0) List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/RsndReq/RsndSchCrit"; detail = "a resend request carries at least one search criterion" });
@@ -1018,7 +1018,7 @@ module {
     finish(document(ns("admi.006.001.01"), "  <RsndReq>\n" # hdr # body # "  </RsndReq>\n"), issues)
   };
 
-  /// admi.017.001.01 — PrcgReq.
+  /// admi.017.001.01; PrcgReq.
   public func processingRequestXml(r : ProcessingRequest) : Emitted {
     let issues = List.empty<Issue>();
     if (r.requestType == "") List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/PrcgReq/Req/Tp"; detail = "a processing request says what it asks for" });
@@ -1029,7 +1029,7 @@ module {
     finish(document(ns("admi.017.001.01"), body), issues)
   };
 
-  /// head.002.001.01 — Xchg: the payload description and the payloads, each serialized as it was read.
+  /// head.002.001.01; Xchg: the payload description and the payloads, each serialized as it was read.
   public func fileHeaderXml(r : FileHeader) : Emitted {
     let issues = List.empty<Issue>();
     switch (r.declaredDocuments) { case (?d) { if (d != r.payloads.size()) List.add(issues, { rule = "ISO-BIZ-COUNT"; path = "/Xchg/PyldDesc/ApplSpcfcs/TtlNbOfDocs"; detail = "TtlNbOfDocs says " # Nat.toText(d) # ", the file carries " # Nat.toText(r.payloads.size()) }) }; case null {} };
@@ -1075,7 +1075,7 @@ module {
     # sp(indent) # "</Bal>\n"
   };
 
-  /// camt.052.001.08 — BkToCstmrAcctRpt.
+  /// camt.052.001.08; BkToCstmrAcctRpt.
   public func accountReportXml(r : AccountReport, minorUnitsOf : Text -> ?Nat8) : Emitted {
     let issues = List.empty<Issue>();
     let p = "/Document/BkToCstmrAcctRpt/Rpt";
@@ -1094,7 +1094,7 @@ module {
       # el(6, "Id", clip(r.reportId, 35)) # el(6, "CreDtTm", r.creationDateTime) # period # accountEl(6, "Acct", r.accountId, r.currency) # bals # body # "    </Rpt>\n  </BkToCstmrAcctRpt>\n"), issues)
   };
 
-  /// camt.025.001.05 — Rct.
+  /// camt.025.001.05; Rct.
   public func receiptXml(r : Receipt) : Emitted {
     let issues = List.empty<Issue>();
     if (r.details.size() == 0) List.add(issues, { rule = "ISO-BIZ-REQUIRED"; path = "/Document/Rct/RctDtls"; detail = "a receipt names at least one message" });
@@ -1108,7 +1108,7 @@ module {
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // The message as a whole: parse, identify the family by namespace, validate against the official
-  // schema profile, read the business content; and back — write the record, and read it again.
+  // schema profile, read the business content; and back; write the record, and read it again.
   // ═══════════════════════════════════════════════════════════════════════════════
 
   /// The typed content of one message of the target list.
@@ -1132,7 +1132,7 @@ module {
   };
 
   /// What a reading of the bytes established: the family (by the root's namespace, "unknown" when it
-  /// is not one this module carries), the schema's verdict, and — when the schema passed — the business
+  /// is not one this module carries), the schema's verdict, and; when the schema passed; the business
   /// reading. The schema tier and the business tier never mix: a message the schema refuses is not read.
   public type Decoded = { family : Text; schemaIssues : [Issue]; message : Result.Result<Message, [Issue]> };
 
@@ -1168,7 +1168,7 @@ module {
   };
 
   /// The bytes of one message: the root element (a `Document`, or head.002's `Xchg`) validated against
-  /// its official schema — a business file's payloads each against their own — then read.
+  /// its official schema; a business file's payloads each against their own; then read.
   public func decode(bytes : Blob, minorUnitsOf : Text -> ?Nat8) : Decoded {
     let root = switch (Xml.parseMessage(bytes)) {
       case (#err(e)) return { family = "unknown"; schemaIssues = [{ rule = e.rule; path = "$xml@" # Nat.toText(e.offset); detail = e.detail }]; message = #err([]) };

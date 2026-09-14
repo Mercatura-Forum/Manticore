@@ -1,4 +1,4 @@
-/// SettlementCore.mo — the fold and the planners of settlement: schemes, participants, transfers,
+/// SettlementCore.mo; the fold and the planners of settlement: schemes, participants, transfers,
 /// windows, settlements and bulks, on the bank's book.
 ///
 /// Shape rule, as everywhere in this layer: the block is the record, a fixed-width row carries the
@@ -31,10 +31,10 @@ module {
 
   public type Blocks = { get : Nat -> ?ST.SettlementEvent };
 
-  /// `state(1) ‖ payer(8) ‖ payee(8) ‖ amount(16) ‖ ccyOrd(2) ‖ schemeOrd(2) ‖ reservation(8) ‖ posting(8) ‖ window(8) ‖ bulk(8) ‖ expiresAt(8) ‖ lastBlock(8)` — 85 bytes.
+  /// `state(1) ‖ payer(8) ‖ payee(8) ‖ amount(16) ‖ ccyOrd(2) ‖ schemeOrd(2) ‖ reservation(8) ‖ posting(8) ‖ window(8) ‖ bulk(8) ‖ expiresAt(8) ‖ lastBlock(8)`; 85 bytes.
   /// Zero for "none" in the optional block fields: block 0 is the bank's genesis and never a payment's.
   public let TRANSFER_ROW : Nat = 85;
-  /// `state(1) ‖ processing(1) ‖ payer(8) ‖ items(4) ‖ prepared(4) ‖ done(4) ‖ failures(4) ‖ lastBlock(8)` — 34 bytes.
+  /// `state(1) ‖ processing(1) ‖ payer(8) ‖ items(4) ‖ prepared(4) ‖ done(4) ‖ failures(4) ‖ lastBlock(8)`; 34 bytes.
   public let BULK_ROW : Nat = 34;
 
   public type State = {
@@ -341,7 +341,7 @@ module {
        reservation = if (r.reservation == 0) null else ?r.reservation; posting = if (r.posting == 0) null else ?r.posting; window = if (r.window == 0) null else ?r.window; bulk = if (r.bulk == 0) null else ?r.bulk; expiresAt = r.expiresAt }
   };
 
-  /// Reserved transfers whose deadline has passed, oldest first — what the expiry sweep voids.
+  /// Reserved transfers whose deadline has passed, oldest first; what the expiry sweep voids.
   /// Bounded by a walk of the rows from a cursor; a deployment with a million open reservations
   /// walks them a page at a time.
   public func expiredTransfers(s : State, now : Nat64, cursor : ?Nat, limit : Nat) : { ids : [Nat]; next : ?Nat } {

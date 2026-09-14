@@ -1,4 +1,4 @@
-/// TokenLedger.mo — the ICRC-1/2/3/10 token ledger as a consumer of the journal.
+/// TokenLedger.mo; the ICRC-1/2/3/10 token ledger as a consumer of the journal.
 ///
 /// Derived from the canonical ICRC-ME `IndexedLedger.mo` (src/ledger/, MIT; the
 /// derivation is `docs/patches/tokenledger-vs-indexedledger.diff`) by embedding
@@ -14,8 +14,8 @@
 /// ICRC account is a holder sub-ledger under control account 2110, the minting
 /// account is the issuance account 3900, and a transfer is a balanced posting
 /// (debit payer amount+fee, credit payee, credit fee collector or issuance).
-/// Holders are migrated lazily — the first time an account is touched above
-/// the gate its region balance becomes an opening posting — so activation is
+/// Holders are migrated lazily; the first time an account is touched above
+/// the gate its region balance becomes an opening posting; so activation is
 /// one recorded act with no bulk migration. The ICRC-3 block log continues
 /// unchanged as the presentation layer; each balance-moving ICRC-3 block above
 /// the gate maps to exactly one journal block (a zero-value, zero-fee movement
@@ -62,7 +62,7 @@ import Text "mo:core/Text";
 shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
   // ═══════════════════════════════════════════════════════
-  //  CORE STATE — stable records (survive upgrades)
+  //  CORE STATE; stable records (survive upgrades)
   // ═══════════════════════════════════════════════════════
 
   let maxSupply = switch (args.max_supply) { case (?m) m; case null Bal.DEFAULT_MAX_SUPPLY };
@@ -97,11 +97,11 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   let mintingAccount : T.Account = args.minting_account;
   let maxMemoLength : Nat = switch (args.max_memo_length) { case (?m) m; case null 256 };
 
-  // Fee collector (optional — fees go to pool if null)
+  // Fee collector (optional; fees go to pool if null)
   var feeCollector : ?T.Account = null;
 
   // ═══════════════════════════════════════════════════════
-  //  ARCHIVE REGISTRY — Offload old blocks to child canisters
+  //  ARCHIVE REGISTRY; Offload old blocks to child canisters
   //
   //  When the main StableLog exceeds archiveBlockThreshold blocks,
   //  a new Archive canister is spawned and old blocks are migrated.
@@ -117,10 +117,10 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   var localBlockOffset : Nat = 0;               // first block index still in local StableLog
 
   // ═══════════════════════════════════════════════════════
-  //  CIRCUIT BREAKER — Cycle Drain Protection
+  //  CIRCUIT BREAKER; Cycle Drain Protection
   //
   //  Freezes ALL writes when cycle balance drops below threshold.
-  //  Reads (queries) stay alive — balances, blocks, proofs all accessible.
+  //  Reads (queries) stay alive; balances, blocks, proofs all accessible.
   //  State is fully preserved. Resume automatically when topped off.
   //
   //  Cost of this check: ~200 instructions (one Cycles.balance() call).
@@ -202,7 +202,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  INIT — Process initial balances (first install only)
+  //  INIT; Process initial balances (first install only)
   // ═══════════════════════════════════════════════════════
 
   func initBalances() {
@@ -235,7 +235,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   type DedupEntry = { blockIndex : Nat; timestamp : Nat64 };
   var recentTxEntries = Map.empty<Blob, DedupEntry>();
   var dedupMapSize : Nat = 0;
-  let DEDUP_MAP_CAP : Nat = 500_000; // hard ceiling — emergency eviction if exceeded
+  let DEDUP_MAP_CAP : Nat = 500_000; // hard ceiling; emergency eviction if exceeded
 
   // Adaptive pruning: scales with map size. Emergency eviction at hard cap.
   var dedupPruneCounter : Nat = 0;
@@ -268,7 +268,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   };
 
   /// The deduplication check: the window and the drift first, then the key against what the ledger has RECORDED.
-  /// Nothing is written here — a transfer refused after this check (allowance, funds, supply, the journal's gate)
+  /// Nothing is written here; a transfer refused after this check (allowance, funds, supply, the journal's gate)
   /// must leave no trace, or its own retry with the same `created_at_time` would be answered `#Duplicate` pointing
   /// at a block that never held it (ICRC-1: the ledger must not deduplicate a transfer that was rejected). The key
   /// comes back with `#ok` and is recorded by `recordDedup` once the block is appended, with that block's index.
@@ -337,7 +337,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
 
   // ═══════════════════════════════════════════════════════
-  //  JOURNAL FACADE — helpers (no `await` anywhere in this block)
+  //  JOURNAL FACADE; helpers (no `await` anywhere in this block)
   // ═══════════════════════════════════════════════════════
 
   let HOLDERS : Text = "2110";     // control account: holder balances (liability, credit, no overdraft)
@@ -473,7 +473,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   /// index, or null when there are no legs (a zero-value, zero-fee movement).
   /// A journal duplicate is a refusal: the ICRC dedup window runs first, so a
   /// duplicate here means an ICRC block would be appended for a posting that
-  /// moved nothing in the authoritative record — that is never allowed to succeed.
+  /// moved nothing in the authoritative record; that is never allowed to succeed.
   func journalPost(legs : [JT.Leg], kind : Text, id : Text, key : Blob) : Result.Result<?Nat, JT.PostError> {
     if (legs.size() == 0) return #ok(null);
     let day = today();
@@ -626,7 +626,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
     if (journalActive()) return journalTransfer(caller, from, to, null, amount, fee, transferArgs.memo, transferArgs.created_at_time, dedup);
 
-    // Burn — enforce min_burn_amount
+    // Burn; enforce min_burn_amount
     if (isMintingAccount(to)) {
       if (amount == 0) return #Err(#BadBurn({ min_burn_amount = 1 }));
       switch (Bal.burn(balState, from, amount + fee)) {
@@ -993,7 +993,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  INDEX QUERIES (index-ng compatible — THE INNOVATION)
+  //  INDEX QUERIES (index-ng compatible; THE INNOVATION)
   // ═══════════════════════════════════════════════════════
 
   public query func get_account_transactions(args : T.GetAccountTransactionsArgs) : async T.GetAccountTransactionsResult {
@@ -1229,7 +1229,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  MERKLE MOUNTAIN RANGE — O(log n) inclusion proofs
+  //  MERKLE MOUNTAIN RANGE; O(log n) inclusion proofs
   // ═══════════════════════════════════════════════════════
 
   /// Get the MMR root hash (commitment over all blocks)
@@ -1275,7 +1275,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
 
   // ═══════════════════════════════════════════════════════
-  //  JOURNAL FACADE — activation, two-phase transfers, queries
+  //  JOURNAL FACADE; activation, two-phase transfers, queries
   // ═══════════════════════════════════════════════════════
 
   /// Activation height, keyed on the ICRC-3 block height. Default 2^64-1 (off).
@@ -1542,16 +1542,16 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   };
 
   // Init at end to avoid forward references.
-  // Only run on first install — state persists across upgrades.
+  // Only run on first install; state persists across upgrades.
   if (BLog.length(blockState) == 0) {
     initBalances();
   };
 
-  // IC resets CertifiedData on upgrade — recertify from persisted state
+  // IC resets CertifiedData on upgrade; recertify from persisted state
   certifyCurrent();
 
   // ═══════════════════════════════════════════════════════
-  //  MAINTENANCE TIMER — prune expired allowances every 60s
+  //  MAINTENANCE TIMER; prune expired allowances every 60s
   // ═══════════════════════════════════════════════════════
 
   ignore Timer.recurringTimer<system>(#seconds 60, func() : async () {

@@ -1,11 +1,11 @@
-/// PaymentsTypes.mo — ISO 20022 messaging on the journal: the types.
+/// PaymentsTypes.mo; ISO 20022 messaging on the journal: the types.
 ///
 /// A **rail** is where messages arrive from: it names the settlement scheme the messages settle
 /// in (settlement), the life of a reservation a credit transfer opens, the compliance rules that
 /// hold a payment, and the signature scheme its connectors sign with. A **message** is one
 /// received business message: parsed (Xml.mo), validated against the schema-derived profile of
 /// its family (IsoSchema.mo), read into the one shape the bank acts on (IsoMessages.mo), and
-/// recorded — accepted, refused or held — as one block with the hash of its bytes, whatever the
+/// recorded; accepted, refused or held; as one block with the hash of its bytes, whatever the
 /// verdict (P-4: no posting without a validated message, no message without its audit record).
 ///
 /// The money moves through the settlement layer and nowhere else: a pacs.008 / pacs.009 credit
@@ -84,7 +84,7 @@ module {
     #rejected : { uetr : Text; transfer : Nat; reason : Text };
     /// A status that moves no money (ACTC, PDNG, ACSP …), recorded against the transfer.
     #acknowledged : { uetr : Text; transfer : Nat; status : Text };
-    /// A return: the new transfer, payee to payer, linked to the original's posting — reserved and,
+    /// A return: the new transfer, payee to payer, linked to the original's posting; reserved and,
     /// a return being an instruction and not a proposal, posted in the same message (`committed`).
     #returned : { uetr : Text; original : Nat; transfer : Nat; reserved : Bool; committed : Bool };
     /// A transaction refused, with the rule and the reason.

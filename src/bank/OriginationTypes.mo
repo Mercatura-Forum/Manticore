@@ -1,13 +1,13 @@
-/// OriginationTypes.mo — an application for credit, from the ask to the drawing, every step a block (origination and underwriting).
+/// OriginationTypes.mo; an application for credit, from the ask to the drawing, every step a block (origination and underwriting).
 ///
 /// An application is an object on the bank log: opened for a party (an existing customer) or for a prospect
-/// (no party yet — the onboarding that fulfils it names the application and becomes its party), it moves
+/// (no party yet; the onboarding that fulfils it names the application and becomes its party), it moves
 /// through capture, affordability, the bureau, scoring, underwriting, the offer and its acceptance,
 /// documentation, and the drawing. Nothing in it decides in the dark: the affordability rules and the
 /// scorecard are recorded data with versions and every evaluation names the version it used; the bureau's
 /// report is a payload signed by a registered bureau key whose body stays off the chain and whose hash is on
-/// it; the applicant's acceptance is a WebAuthn assertion — a P-256 signature over the offer's hash as the
-/// challenge — verified in the contract against the passkey the party registered; the credit decision is
+/// it; the applicant's acceptance is a WebAuthn assertion; a P-256 signature over the offer's hash as the
+/// challenge; verified in the contract against the passkey the party registered; the credit decision is
 /// four eyes; the amounts are the only figures in blocks and every identity is a commitment. Facts
 /// about the applicant are amounts (income, obligations) and commitments; no name, no identifier, no document
 /// content ever enters a block.

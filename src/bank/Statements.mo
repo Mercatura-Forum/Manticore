@@ -1,4 +1,4 @@
-/// Statements.mo — account statements as ISO 20022 messages.
+/// Statements.mo; account statements as ISO 20022 messages.
 ///
 /// The journal already projects one account, currency and period into the camt.053 shape
 /// and round-trips it against the **deployed** published ISO 20022 example. Three things
@@ -18,7 +18,7 @@
 ///   3. **Every entry names the journal block it came from**, so one line of a statement can
 ///      be verified against the certified root without being given the rest of the book.
 ///
-/// camt.052 is the intraday report of the same account from the live fold — no cut, because
+/// camt.052 is the intraday report of the same account from the live fold; no cut, because
 /// an intraday report is a snapshot and says so. camt.054 is one notification per movement.
 
 import Nat "mo:core/Nat";
@@ -55,7 +55,7 @@ module {
   func net(debits : Nat, credits : Nat) : Int { debits - credits : Int };
 
   /// The balances a camt.053 states for one account and currency. The cut supplies `OPBD`
-  /// and `CLBD` — a record, so they do not move — while `PRCD` is the prior period's close
+  /// and `CLBD`; a record, so they do not move; while `PRCD` is the prior period's close
   /// and `CLAV` is the live available figure, which is the booked figure less what the
   /// journal is holding in reservations.
   public func statementBalances(
@@ -185,7 +185,7 @@ module {
     out
   };
 
-  /// camt.053 — the statement of a cut day. `balances` carries all five kinds.
+  /// camt.053; the statement of a cut day. `balances` carries all five kinds.
   public func camt053Xml(
     s : JCamt.Statement,
     balances : [RT.StatementBalance],
@@ -218,7 +218,7 @@ module {
     # "</Document>\n"
   };
 
-  /// camt.052 — the intraday account report. The same projection with no cut behind it, and
+  /// camt.052; the intraday account report. The same projection with no cut behind it, and
   /// it says so: the balances are `ITBD` and `CLAV`, never `CLBD`, because an intraday
   /// report has no closing figure to state.
   public func camt052Xml(
@@ -256,7 +256,7 @@ module {
     # "</Document>\n"
   };
 
-  /// camt.054 — one debit or credit notification. Emitted per movement, naming the journal
+  /// camt.054; one debit or credit notification. Emitted per movement, naming the journal
   /// block the movement is, so the notification and its proof are the same object.
   public func camt054Xml(
     account : JT.AccountCode,

@@ -342,7 +342,7 @@ module {
         };
         case null "";
       };
-      // the declaration first, then the header, then the document — a declaration after the
+      // the declaration first, then the header, then the document; a declaration after the
       // header is what a conforming parser refuses (and this codec now refuses too)
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
       # header

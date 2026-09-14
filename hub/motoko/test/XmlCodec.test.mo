@@ -211,7 +211,7 @@ switch (Xml.decodeCamt053(Text.encodeUtf8(camt053Xml))) {
   case (#err(_)) { assert false };
 };
 
-// An XML declaration anywhere but the very start is refused, as a conforming parser refuses it — the
+// An XML declaration anywhere but the very start is refused, as a conforming parser refuses it; the
 // defect the pacs.003 fixture carried (a declaration after the AppHdr) and its relatives.
 let declAfterHeader = Text.encodeUtf8("<AppHdr xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.02\"><Fr><FIId><FinInstnId><BICFI>DEUTDEFF</BICFI></FinInstnId></FIId></Fr></AppHdr>\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" # xml);
 switch (Xml.decodePain001(declAfterHeader)) {

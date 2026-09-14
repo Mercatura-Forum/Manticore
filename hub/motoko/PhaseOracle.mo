@@ -216,8 +216,8 @@ module {
         status = "implemented-playground";
         verifier = "verifyCertifiedDisclosure";
         oracleSources = [
-          standard("ic-certified-data", "Internet Computer certified data", "https://internetcomputer.org/docs/building-apps/network-features/data-certification/certified-data"),
-          openSource("icrc3", "ICRC-3 certified transaction log pattern", "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3"),
+          standard("ic-certified-data", "certified data", "https://<reference>"),
+          openSource("icrc3", "ICRC-3 certified transaction log pattern", "https://<reference>"),
         ];
         implementedChecks = ["certified_data 32-byte root", "audit/MMR snapshot hash", "participant balance snapshot Merkle root", "certificate-bearing query envelope"];
         evidenceMethods = ["refreshCertifiedDisclosure", "refreshCertifiedSettlementBalances", "certifiedDisclosureCertificate", "certifiedAuditDisclosure", "certifiedParticipantBalance", "verifyCertifiedDisclosure"];

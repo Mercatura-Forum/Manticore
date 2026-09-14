@@ -114,7 +114,7 @@ def main():
                 _, name, why = l.split(" ", 2)
                 emit[name] = ("ERR", why)
         report = {"fixtures": [], "summary": {}}
-        prowide_jobs = []   # (emitted document path, report row, fixture) — Prowide runs once over all of them
+        prowide_jobs = []   # (emitted document path, report row, fixture); Prowide runs once over all of them
         ok_all = True
         counts = {"valid": 0, "valid_ok": 0, "invalid": 0, "invalid_ok": 0, "xmllint_emitted_valid": 0, "prowide_parsed": 0, "prowide_checked": 0}
         for f, kind in fixtures:

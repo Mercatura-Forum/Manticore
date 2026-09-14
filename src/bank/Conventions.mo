@@ -1,4 +1,4 @@
-/// Conventions.mo — product value-date conventions, and the one place a date moves.
+/// Conventions.mo; product value-date conventions, and the one place a date moves.
 ///
 /// The journal can shift a non-business value date according to a journal-wide
 /// policy and record what was asked for. A product layer also has value-date
@@ -23,7 +23,7 @@
 ///
 /// The conventions are the money-market set. `modifiedFollowing` is the one worth
 /// knowing: the next business day unless that crosses into the next month, in which
-/// case the previous business day — ISDA's definition and what every money-market
+/// case the previous business day; ISDA's definition and what every money-market
 /// desk means by it.
 
 import Nat "mo:core/Nat";
@@ -68,7 +68,7 @@ module {
 
   /// The deployment invariant: the journal's own policy must be `#reject`, so that
   /// this layer is the only thing that moves a date. A journal with no calendar at
-  /// all also satisfies it — it shifts nothing — and that is stated rather than
+  /// all also satisfies it; it shifts nothing; and that is stated rather than
   /// assumed, because "no calendar" and "a calendar that rejects" are the same
   /// thing for this invariant and different things for the date arithmetic.
   public func requiresRejectPolicy(calendar : ?JT.CalendarConfig) : ?Text {

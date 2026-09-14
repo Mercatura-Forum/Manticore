@@ -1,10 +1,10 @@
-// Fspiop.test.mo — FSPIOP v1.1 interoperability on the settlement layer, on the pure
+// Fspiop.test.mo; FSPIOP v1.1 interoperability on the settlement layer, on the pure
 // state machine.
 //
 // The world of Settlement.test.mo with a rail and four participants named by FSP ids; then requests
 // through `BankCore.handleFspiop`:
 //
-//   F-1  the implemented operations answer with the specification's status and shapes — 202 for an
+//   F-1  the implemented operations answer with the specification's status and shapes; 202 for an
 //        accepted asynchronous request, 200 for a callback, the error object with its code otherwise;
 //        the ILP condition is the SHA-256 of the fulfilment, vector-checked against an independent
 //        computation; the correct fulfilment posts the transfer (COMMITTED to the payer), a wrong one
@@ -14,7 +14,7 @@
 //        declared dual, recorded; a callback names the registered URL
 //   P-4  every request is one block with its hash, status and error code
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -82,8 +82,8 @@ var authority = 1_000_000;
 func nextAuthority() : Nat { authority += 1; authority };
 let recorder : Core.Recorder = { bank = func(ev : T.Event) : Nat { bcommit(ev) }; journal = func(ev : JT.Event) : Nat { jcommit(ev) }; monitor = Core.noMonitor };
 
-/// Plan and execute a command the way the actor does: the bank event, the journal steps, and — for a
-/// prepared transfer — the reservation in the same message.
+/// Plan and execute a command the way the actor does: the bank event, the journal steps, and; for a
+/// prepared transfer; the reservation in the same message.
 func execute(command : T.Command) : Result.Result<Nat, T.BankError> {
   switch (Core.planCommand(bs, bb(), js, jb(), bankP, clock, command, nextAuthority())) {
     case (#err(e)) #err(e);
@@ -155,7 +155,7 @@ func product(id : Text, control : Text, kind : ProdT.ProductKind, ccy : Text, ov
   } })
 };
 for (ccy in ["EGP", "USD", "EUR"].vals()) {
-  // a position may go debit up to its cap — the cap is granted per account (`grantFacility`)
+  // a position may go debit up to its cap; the cap is granted per account (`grantFacility`)
   ignore cmd(product("POS-" # ccy, "2130", #currentAccount, ccy, ?0));
   ignore cmd(product("SET-" # ccy, "2140", #currentAccount, ccy, null));
   ignore cmd(product("FEE-" # ccy, "2150", #currentAccount, ccy, null));

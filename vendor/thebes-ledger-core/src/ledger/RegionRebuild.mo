@@ -1,16 +1,16 @@
-/// RegionRebuild.mo — replacing a `RegionIndex` by a copy that leaves some entries out, in chunks,
+/// RegionRebuild.mo; replacing a `RegionIndex` by a copy that leaves some entries out, in chunks,
 /// while the index stays in use.
 ///
 /// A `RegionIndex` cannot delete an entry, by design: a page belongs to an index for ever and the
-/// tree never rebalances. What closed-month packing needs is the other thing — an index with a
-/// whole month's rows gone and their pages reusable — and that is a **rebuild by generation**: a
+/// tree never rebalances. What closed-month packing needs is the other thing; an index with a
+/// whole month's rows gone and their pages reusable; and that is a **rebuild by generation**: a
 /// new index in the same arena, every kept entry copied into it in key order, then the old index
 /// released so its pages feed the arena's free list, which the new index and every later one
 /// allocate from before any fresh page. The copy is chunked, resumable from its cursor, and the
 /// old index keeps serving reads until the swap.
 ///
-/// Writes that land while a rebuild is in progress go to the old index, and — when their key is at
-/// or below the cursor, so the copy has already passed them — to the new one as well
+/// Writes that land while a rebuild is in progress go to the old index, and; when their key is at
+/// or below the cursor, so the copy has already passed them; to the new one as well
 /// (`mirror`). A key above the cursor is copied when the cursor reaches it. So the new index holds
 /// exactly the kept entries the old one holds at the moment of the swap, whatever arrived in
 /// between; `test/RegionRebuild.test.mo` writes during the rebuild and checks that.

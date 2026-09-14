@@ -5,7 +5,7 @@ XSD's own tree as tools/iso20022/profile_gen.py wrote it), not from a hand-writt
 Every required particle is emitted once; a choice takes its first branch; a simple value is the first enumeration,
 else a string that satisfies the pattern, else the shortest value the length facets allow, else a decimal, date,
 time or boolean of the base type. The point is not a meaningful message but a message the official schema accepts
-from nothing but the schema — which `xmllint --schema` then confirms. Optional particles can be forced in by name
+from nothing but the schema; which `xmllint --schema` then confirms. Optional particles can be forced in by name
 (`--with`) so a battery can exercise the elements it cares about, and the generated tree can be edited by a caller
 before serialising (`instance()` returns nested dicts/lists).
 

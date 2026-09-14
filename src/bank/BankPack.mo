@@ -1,10 +1,10 @@
-/// BankPack.mo — a closed range of bank blocks as one segment: every block's stored bytes kept whole
+/// BankPack.mo; a closed range of bank blocks as one segment: every block's stored bytes kept whole
 /// except the trailer a settled proposal may lose, with a table of offsets so one block is one read.
 ///
 /// The bank-log ruling of 12 September (measure 2) packs the bank log by closed month in the journal's
 /// `packStores` shape: segments in a pooled store, sealed under a hash, rolled to an archive later. The
-/// bank's blocks are not postings — there are no columns to dictionary-code, and a party, an account
-/// or a settled proposal is read by its block index on every operation that touches it — so a bank
+/// bank's blocks are not postings; there are no columns to dictionary-code, and a party, an account
+/// or a settled proposal is read by its block index on every operation that touches it; so a bank
 /// segment keeps each block's bytes as the log stored them (the preimage and its hash: the chain and
 /// the MMR are over these) and drops only what §18.2 lets it drop: the trailer body of an executed
 /// proposal whose reconstruction hashes to the kept hash, replaced by the empty-trailer byte, which is
@@ -66,7 +66,7 @@ module {
     };
     let arr = List.toArray(out);
     let bytes = Blob.fromArray(arr);
-    // the check: every block reads back as the bytes it was given to keep — over the one array, so the
+    // the check: every block reads back as the bytes it was given to keep; over the one array, so the
     // check of a segment of 2,000 blocks allocates the segment once, not once per block
     var i = 0;
     while (i < entries.size()) {
@@ -98,7 +98,7 @@ module {
 
   /// Where a block's bytes lie inside a segment, so a store can serve one block without reading the
   /// segment: from the segment's first bytes (header and offsets table) and its total size, the
-  /// block's offset and length — the distance to the next offset, or to the end for the last block.
+  /// block's offset and length; the distance to the next offset, or to the end for the last block.
   public func locate(headerAndOffsets : Blob, segmentBytes : Nat, index : Nat) : ?{ offset : Nat; length : Nat } { locateIn(Blob.toArray(headerAndOffsets), segmentBytes, index) };
   func locateIn(a : [Nat8], segmentBytes : Nat, index : Nat) : ?{ offset : Nat; length : Nat } {
     let ?h = headerIn(a) else return null;

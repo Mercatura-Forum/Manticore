@@ -1,4 +1,4 @@
-/// BatchCore.mo — the batch's state, which is the fold of the log.
+/// BatchCore.mo; the batch's state, which is the fold of the log.
 ///
 /// Runs and their cursors, standing instructions, the latest statement cut per account,
 /// and the retry policy per book. The plan itself is not stored: it is a pure function
@@ -53,7 +53,7 @@ module {
     /// (book, business date) -> the run. Keyed on the date, which is what makes the
     /// date exclusion a map lookup rather than a scan.
     runs : Map.Map<(Text, Nat), RunEntry>;
-    /// the runs not yet completed or failed — what a posting's date gate and a configuration act consult, so neither
+    /// the runs not yet completed or failed; what a posting's date gate and a configuration act consult, so neither
     /// scans every run the bank ever made (the adversarial audit of 13 September, finding α3)
     openRuns : Map.Map<(Text, Nat), ()>;
     /// per book, the business dates of its runs in descending order of opening, newest first, at most the two latest:
@@ -175,7 +175,7 @@ module {
   };
 
   /// The failures still worth re-attempting: those whose attempt count has not reached
-  /// the book's declared limit. A failure at the limit is parked — it is never
+  /// the book's declared limit. A failure at the limit is parked; it is never
   /// re-attempted and it still blocks the close.
   public func retryable(s : State, r : RunEntry) : [T.Failure] {
     let limit = retryLimit(s, r.book);

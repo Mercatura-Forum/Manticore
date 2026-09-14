@@ -1,4 +1,4 @@
-/// Deferrals.mo — unearned income and prepaid expense, amortised on a schedule.
+/// Deferrals.mo; unearned income and prepaid expense, amortised on a schedule.
 ///
 /// A deferral is the mirror image of an accrual: money received or paid for a period
 /// that has not yet elapsed. Unearned income sits in a liability until it is earned;
@@ -10,7 +10,7 @@
 /// The arithmetic is deliberately the simplest thing that closes to zero: the
 /// amount is divided over the periods and the **final period absorbs the residue**,
 /// so the column sums to the amount advanced and the closing balance is zero. That
-/// is the same discipline the loan schedule uses, for the same reason — a deferral
+/// is the same discipline the loan schedule uses, for the same reason; a deferral
 /// that does not close to zero is a balance nobody can explain at the next audit.
 
 import Nat "mo:core/Nat";

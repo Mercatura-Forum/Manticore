@@ -1,11 +1,11 @@
-// MlDsa44.test.mo — ML-DSA-44 verification against the NIST known-answer vectors.
+// MlDsa44.test.mo; ML-DSA-44 verification against the NIST known-answer vectors.
 //
 // What is proved: each KAT signature (pk, ctx, msg, σ from the reference implementation's answer
 // file) verifies under `MlDsa44.verify`; the same signature is refused when one byte of the
 // signature, one byte of the message, the context or one byte of the public key is changed, and
 // when its hint encoding is malformed (a non-increasing hint index) or its length is wrong.
 //
-// engine: wasi-only — a verification is a few hundred million instructions.
+// engine: wasi-only; a verification is a few hundred million instructions.
 
 import Debug "mo:core/Debug";
 import Array "mo:core/Array";

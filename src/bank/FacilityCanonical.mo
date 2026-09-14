@@ -1,4 +1,4 @@
-/// FacilityCanonical.mo — the canonical bytes of the corporate-lending vocabulary (corporate lending): terms and kinds,
+/// FacilityCanonical.mo; the canonical bytes of the corporate-lending vocabulary (corporate lending): terms and kinds,
 /// covenants, pricing, receivables, the agent's notice, the restructuring terms, and the events. `BankCanonical`
 /// calls these for the commands and the event; the agent's notice bytes are what the agent signs.
 

@@ -1,4 +1,4 @@
-// BlockVersion.test.mo — a version-3 block stream stays readable and replays to
+// BlockVersion.test.mo; a version-3 block stream stays readable and replays to
 // the same state under the version-4 decoder (operator decision D-2).
 //
 // Adding the banking event tags made the written version 4. The decoder previously
@@ -14,7 +14,7 @@
 //      means exactly what it meant.
 // Every unsupported version is refused.
 //
-// engine: wasi-only — the journal core now keeps its per-posting state in a stable-memory Region
+// engine: wasi-only; the journal core now keeps its per-posting state in a stable-memory Region
 // (`JournalCore.postingRows`), and the moc interpreter provides no Region. The dual-engine check this
 // loses was worth having, and the loss is stated here rather than hidden: the reason the state moved
 // is that a heap map per posting makes the heap grow with the journal, which is the one thing a

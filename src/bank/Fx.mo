@@ -1,4 +1,4 @@
-/// Fx.mo — foreign currency, inside the journal's per-currency invariant.
+/// Fx.mo; foreign currency, inside the journal's per-currency invariant.
 ///
 /// The journal balances **per currency** and never converts: a two-leg USD/EGP
 /// posting is `#Unbalanced`, and the correct form is four legs through a position
@@ -7,8 +7,8 @@
 ///
 /// For each foreign currency C the books carry a pair:
 ///
-///   * the **position** in C — how much of C the bank is long or short;
-///   * the **position equivalent** in the functional currency — what that position
+///   * the **position** in C; how much of C the bank is long or short;
+///   * the **position equivalent** in the functional currency; what that position
 ///     was booked at.
 ///
 /// Every cross-currency movement posts four legs: the two business legs plus the
@@ -19,14 +19,14 @@
 /// and the difference is posted **entirely in the functional currency**: the
 /// unrealised gain or loss against the position-equivalent account. No leg in
 /// currency C is written, so the per-currency invariant is untouched and the
-/// foreign-currency position is not disturbed by a revaluation — which is the
+/// foreign-currency position is not disturbed by a revaluation; which is the
 /// property that keeps the next deal's arithmetic correct.
 ///
 /// A rate is declared data, recorded as a bank event. The engine never fetches a
 /// rate, never interpolates one, and never reuses an earlier day's silently: a
 /// revaluation for a currency with no rate recorded for the closing date is a typed
-/// refusal. IAS 21 is the authority for what is revalued — monetary items at the
-/// closing rate — and whether an account is monetary is declared, not guessed.
+/// refusal. IAS 21 is the authority for what is revalued; monetary items at the
+/// closing rate; and whether an account is monetary is declared, not guessed.
 
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
@@ -167,7 +167,7 @@ module {
 
   /// A cross-currency deal: `sellAmount` of `sell` leaves, `buyAmount` of `buy`
   /// arrives, at the recorded rate. Both currencies balance on their own, because
-  /// each is closed through its position pair — which is the journal's invariant and
+  /// each is closed through its position pair; which is the journal's invariant and
   /// also the reason a deal and a revaluation can never disagree about what a
   /// position is worth.
   public type Deal = {
@@ -195,7 +195,7 @@ module {
   ///
   /// so USD balances within itself, EGP balances within itself, and the pair's two
   /// balances offset exactly at the deal rate. At a new rate their imbalance is the
-  /// unrealised result, which is what `revalue` computes and posts — in the
+  /// unrealised result, which is what `revalue` computes and posts; in the
   /// functional currency only, leaving the position untouched.
   ///
   /// Getting these four directions wrong still balances per currency, which is why
@@ -229,7 +229,7 @@ module {
     }
   };
 
-  /// Each currency's legs must sum to zero on their own — that is the journal's
+  /// Each currency's legs must sum to zero on their own; that is the journal's
   /// invariant, and a four-leg deal satisfies it only if the pair is used correctly.
   /// This proves it per currency rather than leaving it to a careful reading, and the
   /// battery calls it on every generated deal.
@@ -254,7 +254,7 @@ module {
   };
 
   /// The functional-currency amount a deal's foreign leg is worth at a rate, exact
-  /// and then rounded — the figure a quote states and the posting uses.
+  /// and then rounded; the figure a quote states and the posting uses.
   public func convert(amount : Nat, r : Rate, rounding : I.Rounding) : { amount : Nat; exact_ : I.Signed } {
     let exact = equivalentOf(amount, r);
     { amount = (I.round(exact, rounding)).amount; exact_ = exact }
@@ -262,7 +262,7 @@ module {
 
   /// Closing a position realises the difference between what it was booked at and
   /// what it is sold for. The arithmetic is the revaluation's, at the deal rate
-  /// rather than the closing rate, and it posts through the same pair — which is why
+  /// rather than the closing rate, and it posts through the same pair; which is why
   /// realised and unrealised cannot double-count: the unrealised balance is relieved
   /// by the same movement that recognises the realised one.
   public type Realisation = {

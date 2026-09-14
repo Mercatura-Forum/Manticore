@@ -1,4 +1,4 @@
-/// IndexTypes.mo — the declared configuration of the posting indexes.
+/// IndexTypes.mo; the declared configuration of the posting indexes.
 ///
 /// `PostingIndex.mo` holds the indexes themselves, in stable memory, derived from the log. This
 /// module holds the part of the index that is a **recorded decision** rather than a derivation: a
@@ -8,8 +8,8 @@
 ///
 /// There is one such decision in this step, and it is the counterparty-class index (I4).
 ///
-/// A declared class is a value of a **party extension** — a (schema, field) pair registered with
-/// `registerSchema` — and a party can carry many. The index keys on one of them, and which one is
+/// A declared class is a value of a **party extension**; a (schema, field) pair registered with
+/// `registerSchema`; and a party can carry many. The index keys on one of them, and which one is
 /// this declaration. Three properties follow from how the label is built
 /// (`schema.field=value`, in `labelOf`):
 ///
@@ -17,8 +17,8 @@
 ///     declared dimension starts new ordinals and leaves every row written under the old one
 ///     meaning what it meant;
 ///   * a reader can say what a class row *is* from the label alone, with no second lookup;
-///   * no personal data enters a key, because an extension value is a declared classification —
-///     a sector, a residency band, a size tier — and this estate holds identity only as
+///   * no personal data enters a key, because an extension value is a declared classification;
+///     a sector, a residency band, a size tier; and this estate holds identity only as
 ///     commitments.
 ///
 /// Until a dimension is declared the class index has no rows. That is not an absence of behaviour:

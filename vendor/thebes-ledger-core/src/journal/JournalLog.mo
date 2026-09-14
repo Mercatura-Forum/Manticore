@@ -1,9 +1,9 @@
-/// JournalLog.mo — the Merkle-committed journal log.
+/// JournalLog.mo; the Merkle-committed journal log.
 ///
 /// Every journal event becomes one block: canonical bytes (Canonical.mo)
 /// appended to a Region-backed StableLog, SHA-256 chained to its parent, and
-/// committed as a leaf of a Merkle Mountain Range. The three primitives —
-/// StableLog, MerkleMMR and the leaf/node domain separation — are the ones the
+/// committed as a leaf of a Merkle Mountain Range. The three primitives;
+/// StableLog, MerkleMMR and the leaf/node domain separation; are the ones the
 /// canonical ICRC-ME ledger already uses for its token block log (`src/ledger/`),
 /// so a journal entry carries the same kind of O(log n) inclusion proof as a
 /// token transfer. Nothing here is ever rewritten: the log has append and read,

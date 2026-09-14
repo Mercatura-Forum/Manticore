@@ -1,11 +1,11 @@
 """Independent verifier for a journal entry.
 
 This module trusts nothing the canister says. Given the raw bytes of a block,
-its inclusion proof, and the tip certificate, it establishes — with its own
-implementations, sharing no code with the canister — that:
+its inclusion proof, and the tip certificate, it establishes; with its own
+implementations, sharing no code with the canister; that:
 
-  1. the certificate is signed by the IC root key (via the subnet delegation),
-     checked with DFINITY's ic-verify-bls-signature crate (integration/bls-verify);
+  1. the certificate is signed by the network root key (via the delegation),
+     checked with the BLS verifier (integration/bls-verify);
   2. the certificate commits to the canister's certified_data;
   3. that certified_data is the root hash of the returned hash tree;
   4. the hash tree contains the journal's MMR root under thebes_journal/mmr_root;
@@ -13,7 +13,7 @@ implementations, sharing no code with the canister — that:
      the block hash embedded at their end, and decode to the claimed fields;
   6. the Merkle Mountain Range proof links that block hash to the MMR root.
 
-References: IC Interface Specification, "Certification" (hash tree, domain
+References: the certification format (hash tree, domain
 separators, certificate CBOR, delegation); Merkle Mountain Ranges (Peter Todd,
 opentimestamps), with the peak-bagging order defined in
 src/journal/JournalProof.mo.
@@ -25,7 +25,7 @@ import subprocess
 import cbor2
 
 
-# ─── IC hash tree ────────────────────────────────────────────────────────────
+# ─── hash tree ────────────────────────────────────────────────────────────
 
 def _domain(label, *parts):
     h = hashlib.sha256()
@@ -87,7 +87,7 @@ def _extract_der_key(der):
 
 def _signed_message(tree):
     """The bytes the subnet signs: domain_sep("ic-state-root") || root hash of the
-    tree, where domain_sep(s) = byte(len(s)) || s (IC spec, "Certificate")."""
+    tree, where domain_sep(s) = byte(len(s)) || s (the certificate format)."""
     return bytes([len(b"ic-state-root")]) + b"ic-state-root" + hash_tree(tree)
 
 
@@ -380,7 +380,7 @@ def block_hash(preimage):
 
 def decode_block(raw):
     """Decode raw block bytes; verify the embedded hash; return (fields, hash).
-    Any malformed input — truncated, bad tag, bad UTF-8, non-minimal number —
+    Any malformed input; truncated, bad tag, bad UTF-8, non-minimal number;
     is a verification failure (AssertionError), never a crash."""
     try:
         return _decode_block(raw)
@@ -393,7 +393,7 @@ def _decode_block(raw):
     # Versions this verifier reads. Version 3 is the calendar vocabulary; version 4
     # adds the banking tags from 0x2C. The version byte is inside the hashed preimage,
     # so a block written by an earlier build keeps its hash and must stay
-    # verifiable — which is why this is a set and not an equality.
+    # verifiable; which is why this is a set and not an equality.
     version = r.byte()
     assert version in SUPPORTED_BLOCK_VERSIONS, f"block version {version}"
     index = r.nat()

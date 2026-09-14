@@ -1,16 +1,16 @@
-/// Filings.mo — what leaves the building.
+/// Filings.mo; what leaves the building.
 ///
 /// Five output shapes, all deterministic in (what they report, the journal height) and all
 /// certified by their content hash:
 ///
-///   * **XBRL 2.1 with Dimensions** — the instance a regulator's taxonomy expects, with the
+///   * **XBRL 2.1 with Dimensions**; the instance a regulator's taxonomy expects, with the
 ///     template's own line bindings as the element names and a declared context;
-///   * **SDMX-ML 2.1** — the statistical return shape a central bank asks for instead;
-///   * **OECD SAF-T** general-ledger entries — what a tax authority ingests, and the natural
+///   * **SDMX-ML 2.1**; the statistical return shape a central bank asks for instead;
+///   * **OECD SAF-T** general-ledger entries; what a tax authority ingests, and the natural
 ///     companion to Egypt's ETA e-invoicing;
-///   * **AICPA Audit Data Standards** general ledger and trial balance — the shape an audit
+///   * **AICPA Audit Data Standards** general ledger and trial balance; the shape an audit
 ///     firm's analytics expects;
-///   * **the audit product's normalised trial balance** — and this is the one that matters.
+///   * **the audit product's normalised trial balance**; and this is the one that matters.
 ///
 /// The last one is the concrete join between the banking product and the audit product. That
 /// contract already carries the fields `lines_with_proof` and `evidence_grade`, and today
@@ -68,7 +68,7 @@ module {
   ///
   /// The element name of each fact is the **binding** the template declared, so the filing's
   /// shape is data and not code. A line with no binding is not filed silently: it is omitted
-  /// from the instance and counted, and the caller is told how many — because an instance
+  /// from the instance and counted, and the caller is told how many; because an instance
   /// that quietly drops a line a regulator asked for is worse than one that is short.
   ///
   /// The context is a single duration context over the period, with the reporting entity's
@@ -117,8 +117,8 @@ module {
       switch (v.binding) {
         case null unbound += 1;
         case (?b) {
-          // An unmeasurable line — a ratio whose denominator was zero and whose declared
-          // behaviour is `reportUnmeasurable` — is filed with `xsi:nil`, which is what XBRL
+          // An unmeasurable line; a ratio whose denominator was zero and whose declared
+          // behaviour is `reportUnmeasurable`; is filed with `xsi:nil`, which is what XBRL
           // has for "this fact does not exist", rather than as a zero that reads as a
           // measurement.
           if (v.measurable) {
@@ -415,8 +415,8 @@ module {
   /// The audit product's normalised trial balance, with every line naming the journal blocks
   /// it folds over.
   ///
-  /// The caller adds the inclusion proofs and the certified root — it has the log and the
-  /// replica's certificate, and this module has neither — so what is emitted here is the
+  /// The caller adds the inclusion proofs and the certified root; it has the log and the
+  /// replica's certificate, and this module has neither; so what is emitted here is the
   /// part the books are authoritative for: the figures, the basis of each line, and the
   /// grade. `evidence_grade` is `proven` only when every line carries its basis; anything
   /// less is `representation`, which is the grade every import of this contract has today

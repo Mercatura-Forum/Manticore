@@ -1,10 +1,10 @@
-// PostingIndex.test.mo — the four posting indexes against a brute-force oracle.
+// PostingIndex.test.mo; the four posting indexes against a brute-force oracle.
 //
 // `RegionIndex.test.mo` proves the B-tree. This proves the **meaning** put into it: that the rows
 // `indexBlock` writes for a stream of journal blocks are exactly the rows a straightforward fold
 // over the same blocks says they should be.
 //
-// The oracle is that fold, written independently in the heap — a sorted association list per index,
+// The oracle is that fold, written independently in the heap; a sorted association list per index,
 // built by walking the blocks and summing legs. It shares no code with `PostingIndex` beyond the
 // journal's own types, which is the point: two implementations of the same statement, compared.
 //
@@ -12,8 +12,8 @@
 //
 //   * **I0** registers a sub-ledger key once, answers `accountOf` for every registered key, refuses
 //     a second registration with a different id, and accepts an identical re-registration;
-//   * **the headers** match the oracle field by field — dates, primary currency, leg count, account
-//     rows, status, flags, period — for postings, pendings, resolutions and voids;
+//   * **the headers** match the oracle field by field; dates, primary currency, leg count, account
+//     rows, status, flags, period; for postings, pendings, resolutions and voids;
 //   * **I1, I2, I3 and I4** hold exactly the oracle's rows, in key order, with the oracle's
 //     movements: full-range scans are compared entry by entry, so a missing row, an extra row and a
 //     wrong movement are all caught;
@@ -29,7 +29,7 @@
 //   * **the capacity model's leaf capacities** for the header store, I0 and I1..I4 are what this
 //     module's widths produce.
 //
-// engine: wasi-only — a Region is stable memory, which the interpreter does not provide.
+// engine: wasi-only; a Region is stable memory, which the interpreter does not provide.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";
@@ -56,7 +56,7 @@ func next() : Nat32 {
   seed
 };
 // The **high** sixteen bits, not the low ones. A linear congruential generator modulo 2^32 has
-// low-order bits with very short periods — with these parameters `next() % 4` has period four — so
+// low-order bits with very short periods; with these parameters `next() % 4` has period four; so
 // `below(4)` was returning a fixed cycle and one whole arm of this test (a posting in two
 // currencies) never ran. The output said so: "multi-currency postings = 0". Using the top bits
 // removes it.
@@ -80,7 +80,7 @@ let DAY_BASE = 20_300;
 let DAY_SPAN = 60;
 
 // A 32-byte sub-ledger key per account. The index is in the first two bytes, so two accounts can
-// never share a key however many there are — a wrap-around collision in a test fixture would make
+// never share a key however many there are; a wrap-around collision in a test fixture would make
 // the test prove the wrong thing.
 func subledgerFor(i : Nat) : Blob {
   Blob.fromArray(Array.tabulate<Nat8>(32, func(j) {
@@ -227,7 +227,7 @@ let ctx : PIdx.Context = {
 };
 
 // Declare the currencies first, so their ordinals are registration order and not first-posting
-// order — the same thing the bank does with `#currencyRegistered`.
+// order; the same thing the bank does with `#currencyRegistered`.
 for (c in CURRENCIES.vals()) {
   ignore PIdx.indexBlock(idx, emit(#currencyRegistered({ code = c; minorUnits = 2 })), ctx);
 };
@@ -291,7 +291,7 @@ Debug.print("count: resolutions that moved the value day = " # Nat.toText(movedD
 Debug.print("count: pendings voided = " # Nat.toText(List.size(voided)));
 
 // ═══════════════════════════════════════════════════════════════════
-//  THE ORACLE — the same fold, written separately
+//  THE ORACLE; the same fold, written separately
 // ═══════════════════════════════════════════════════════════════════
 
 type Mv = { var dr : Nat; var cr : Nat };
@@ -342,7 +342,7 @@ func oPerOrd(c : Text) : Nat {
 };
 
 // Set, not add: `writeRows` uses `put`, which overwrites. A resolution re-indexes the same posting,
-// so an oracle that accumulated would disagree with the index by exactly a factor of two — which is
+// so an oracle that accumulated would disagree with the index by exactly a factor of two; which is
 // the bug this comment exists to stop coming back.
 func setRow(m : Map.Map<Blob, Mv>, k : Blob, dr : Nat, cr : Nat) {
   switch (Map.get(m, Blob.compare, k)) {

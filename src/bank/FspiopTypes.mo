@@ -1,11 +1,11 @@
-/// FspiopTypes.mo — FSPIOP (Mojaloop Open API for FSP Interoperability, v1.1) on the settlement layer
+/// FspiopTypes.mo; FSPIOP (Mojaloop Open API for FSP Interoperability, v1.1) on the settlement layer
 ///: the types.
 ///
 /// The adapter is not a second core. A rail's participants are named by their FSP ids; a
 /// `POST /transfers` is a settlement transfer prepared with the `transferId` as its reference and
 /// reserved in the same message (§14.2), carrying the ILP `condition`; the payee's
 /// `PUT /transfers/{ID}` with the `fulfilment` posts it once SHA-256(fulfilment) equals the
-/// condition — prepare/fulfil is reserve/post, the cryptography the one check. Quotes, parties and
+/// condition; prepare/fulfil is reserve/post, the cryptography the one check. Quotes, parties and
 /// transaction requests are the scheme's routing: validated, recorded, and forwarded to the
 /// destination FSP as callbacks the relay delivers; the participant directory (K6) and the callback
 /// endpoints (the reference's 58 endpoint types, `ENDPOINT_TYPES`) are recorded configuration.

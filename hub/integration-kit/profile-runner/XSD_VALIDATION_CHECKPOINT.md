@@ -82,7 +82,7 @@ integration-kit/scripts/deployed-replay.py \
 Use `--dry-run` first to inspect the exact `thebes-deploy call`/`query` commands
 without submitting updates.
 
-## Addendum — 2026-09-12
+## Addendum; 2026-09-12
 
 The schema directory now holds `43` ISO base schema files (the original 22 plus
 `head.001.001.02` and the twenty families of the schema-profile codec). The runner
@@ -94,8 +94,8 @@ business file rooted at `Xchg` is validated whole.
   schema-profile codec, `68` of the CBPR+ / HVPS+ rule sets).
 - As expected: `121`. The `21` that are not are the compact-codec fixtures of
   the original corpus, unchanged since the first run above.
-- The schema-profile codec's own evidence — every written document valid under
+- The schema-profile codec's own evidence; every written document valid under
   xmllint, 3,600 mutants with zero disagreements between xmllint and the
-  canister's profile, Prowide cross-parses — is in `breadth-report.json`,
+  canister's profile, Prowide cross-parses; is in `breadth-report.json`,
   `breadth-mutations-report.json`; the MT bridge's in `mt-bridge-report.json`;
   the rule sets' in `usage-guideline-report.json`.

@@ -1,4 +1,4 @@
-/// Pack.mo — a closed range of journal blocks, re-encoded column-wise, and unpacked to the exact
+/// Pack.mo; a closed range of journal blocks, re-encoded column-wise, and unpacked to the exact
 /// original bytes.
 ///
 /// The packing rule: "a closed month's postings are re-encoded
@@ -10,7 +10,7 @@
 /// is what an archive serves and what a Merkle proof indexes. Every block in the range is packed,
 /// posting or not: a posting record goes through the columns below; any other event is stored as
 /// its canonical event bytes, which are short and rare (a business-date roll a day, a period open
-/// or close a month). Nothing hashed is dropped — the idempotency key, the narration, every leg —
+/// or close a month). Nothing hashed is dropped; the idempotency key, the narration, every leg;
 /// because the block's hash covers them and the archived block must stay provable against the
 /// certified MMR root. What a closed month drops is the **index state** built from these blocks
 /// (`Packing.mo`), not the blocks.
@@ -19,9 +19,9 @@
 ///
 /// `pack` takes the raw stored bytes of every block beside its decoded form, encodes, **unpacks
 /// its own output and compares byte for byte with the raw bytes before returning**. A pack that
-/// would not round-trip is refused with the block that broke it. The hash chain is not stored —
+/// would not round-trip is refused with the block that broke it. The hash chain is not stored;
 /// each block's hash is recomputed on unpack from its content and the previous hash, and the
-/// first block's parent hash is the one field carried whole — so a pack that unpacks to the same
+/// first block's parent hash is the one field carried whole; so a pack that unpacks to the same
 /// bytes has also re-derived every hash the MMR committed to.
 ///
 /// ## The codec
@@ -32,7 +32,7 @@
 /// ```
 /// "TBPK" ‖ version(1) ‖ lo ‖ count ‖ firstParentHash(optBlob)
 /// ‖ dictionaries: accounts, currencies, narrations, sourceKinds, sourceIds, periods, subledgers,
-///                 callers                     — each: n ‖ n × (len ‖ bytes), in first-use order
+///                 callers                    ; each: n ‖ n × (len ‖ bytes), in first-use order
 /// ‖ per block, in order:
 ///     blockVersion(1) ‖ Δtimestamp(zigzag) ‖ caller(dict) ‖ kind(1)
 ///     kind 0 posted / 1 pending: idempotencyKey(32 raw) ‖ ΔpostingDate(zigzag, from the previous
@@ -163,7 +163,7 @@ module {
     lo : Nat;
     count : Nat;
     bytes : Blob;
-    /// The raw bytes of every block in the range, summed — what the pack replaces.
+    /// The raw bytes of every block in the range, summed; what the pack replaces.
     rawBytes : Nat;
   };
 
@@ -410,7 +410,7 @@ module {
   };
 
   /// What a packed account's list holds per posting: enough for an account statement over a packed
-  /// month without the posting's block — the number, the value and posting days, and the account's
+  /// month without the posting's block; the number, the value and posting days, and the account's
   /// own debits and credits in it. Delta-coded: the number as a gap, the days as zigzag deltas.
   public type AccountEntry = { posting : Nat; valueDay : Nat; postingDay : Nat; debits : Nat; credits : Nat };
 

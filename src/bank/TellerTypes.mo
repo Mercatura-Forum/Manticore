@@ -1,9 +1,9 @@
-/// TellerTypes.mo — branch and teller (branch and teller): cash as counted objects, the vault and the cash network, and the paper
+/// TellerTypes.mo; branch and teller (branch and teller): cash as counted objects, the vault and the cash network, and the paper
 /// instruments a branch handles.
 ///
 /// A teller's drawer is already a till (the product engine, `Till.mo`): a journal sub-ledger that never absorbs a difference.
-/// What this layer adds is the count — every cash act carries the denominations tendered, paid or moved, and the
-/// fold keeps a per-till and per-vault denomination position the vault teller reconciles against — the teller
+/// What this layer adds is the count; every cash act carries the denominations tendered, paid or moved, and the
+/// fold keeps a per-till and per-vault denomination position the vault teller reconciles against; the teller
 /// session (opened with a count against the book, closed with a count, the difference a recorded fact a supervisor
 /// resolves, never the teller), the cash network (vault to till and back, branch to branch through cash in transit
 /// confirmed by the receiving branch, vault to the central bank and back), and cheques and drafts with a

@@ -1,4 +1,4 @@
-/// BTreeIndex.mo — B-tree backed account transaction index
+/// BTreeIndex.mo; B-tree backed account transaction index
 ///
 /// Combines RegionBTree (sorted lookup) with CompactIndex-style block chains
 /// (variable-length tx storage). The B-tree replaces the hash table for account
@@ -112,7 +112,7 @@ module {
     var i = 0; while (i < 4) { count := count * 256 + Nat8.toNat(b[i]); i += 1 };
     var head : Nat = 0;
     i := 4; while (i < 10) { head := head * 256 + Nat8.toNat(b[i]); i += 1 };
-    // Tail pointer — backwards compatible: if blob is only 10 bytes, tail = head
+    // Tail pointer; backwards compatible: if blob is only 10 bytes, tail = head
     var tail : Nat = 0;
     if (b.size() >= 16) {
       i := 10; while (i < 16) { tail := tail * 256 + Nat8.toNat(b[i]); i += 1 };
@@ -182,7 +182,7 @@ module {
           };
           case (?existingVal) {
             let (count, head, tail) = decodeValue(existingVal);
-            // O(1) tail access — no chain walk needed
+            // O(1) tail access; no chain walk needed
             let block = tail;
             let capCode = Nat8.toNat(Region.loadNat8(state.blockRegion, block + 7));
             var newTail = tail;
@@ -298,7 +298,7 @@ module {
       else if (i <= 29) { if (i - 1 < pArr.size()) pArr[i - 1] else 0 }
       else 0
     }));
-    // Use B-tree prefix scan — O(k log n) instead of O(n)
+    // Use B-tree prefix scan; O(k log n) instead of O(n)
     let entries = BTree.prefixScan(state.btree, prefix, maxResults);
     let results = List.empty<Blob>();
     for ((key, _) in entries.vals()) {

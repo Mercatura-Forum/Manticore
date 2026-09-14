@@ -1,4 +1,4 @@
-/// TradeMessages.mo — the messages a trade instrument exchanges (trade finance), rendered from the recorded state and read
+/// TradeMessages.mo; the messages a trade instrument exchanges (trade finance), rendered from the recorded state and read
 /// back into terms: SWIFT FIN MT of the 7-series (700 issue, 707 amendment, 750 advice of discrepancy, 752
 /// authorisation to pay, 754 advice of payment / acceptance / negotiation, 760 undertaking, 765 demand, 767
 /// amendment of an undertaking, 768 acknowledgement, 769 reduction or release, 799 free format) and the ISO 20022
@@ -93,7 +93,7 @@ module {
     else #other(Text.trim(Text.trimStart(line, #char '+'), #char ' '))
   };
   func copiesOfLine(line : Text) : Nat {
-    // "... IN 3 ORIGINALS" — the number before ORIGINAL / COPIES
+    // "... IN 3 ORIGINALS"; the number before ORIGINAL / COPIES
     let words = Iter.toArray(Text.split(upper(line), #char ' '));
     var i = 0;
     while (i + 1 < words.size()) {
@@ -166,7 +166,7 @@ module {
     fin(bic, receiver, 707, List.toArray(fields))
   };
 
-  /// MT 750: the advice of discrepancy — each discrepancy on its own line of field 77J (art. 16(c)(ii)).
+  /// MT 750: the advice of discrepancy; each discrepancy on its own line of field 77J (art. 16(c)(ii)).
   public func mt750(bic : Text, receiver : Text, reference : Text, currency : Text, minorUnits : Nat8, amount : Nat, discrepancies : [Text], disposal : TrT.Disposal) : Text {
     let disp = switch (disposal) { case (#held) "HOLD"; case (#returned) "RETURN"; case (#heldPendingWaiver) "HOLD"; case (#actingOnInstructions) "PREVINST" };
     fin(bic, receiver, 750, [":20:" # clip(reference, 16), ":21:" # clip(reference, 16), ":32B:" # currency # finAmount(amount, minorUnits),

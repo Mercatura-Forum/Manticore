@@ -1,4 +1,4 @@
-// Facility.test.mo — corporate lending's facilities as the bank records them (corporate lending), on the pure core over a real
+// Facility.test.mo; corporate lending's facilities as the bank records them (corporate lending), on the pure core over a real
 // stable-memory arena.
 //
 // What is proved:
@@ -15,7 +15,7 @@
 //     the rate fixings and the fixing in force on a day, the review flag; the distribution and the counts; the
 //     fingerprint deterministic and changing.
 //
-// engine: wasi-only — Regions.
+// engine: wasi-only; Regions.
 
 import Debug "mo:core/Debug";
 import Nat "mo:core/Nat";

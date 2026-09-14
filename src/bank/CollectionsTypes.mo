@@ -1,13 +1,13 @@
-/// CollectionsTypes.mo — the life of a troubled exposure, as the bank records it (collections and recovery).
+/// CollectionsTypes.mo; the life of a troubled exposure, as the bank records it (collections and recovery).
 ///
 /// A lending exposure is in one stage at a time: current → overdue → delinquent → default → collections →
-/// restructuring → write-off → recovery → closed. The *computed* transitions are the end-of-day batch's — days
-/// past due read from the schedule and the postings (`Loans.arrears`), never from a stored counter — and the
+/// restructuring → write-off → recovery → closed. The *computed* transitions are the end-of-day batch's; days
+/// past due read from the schedule and the postings (`Loans.arrears`), never from a stored counter; and the
 /// *decided* ones are commands under maker-checker: unlikely to pay (Basel BCBS d403's qualitative default),
 /// a collector's actions and the borrower's promises, the assignment, the closing of a recovery. Restructuring,
 /// write-off and recovery are the product engine's acts (`rescheduleLoan`, `writeOffLoan`, `recordRecovery`)
-/// and move the stage as they are folded. The policy — the day thresholds, the stage from which interest is
-/// held in suspense rather than income, whether a modification gain or loss is recognised at restructuring — is
+/// and move the stage as they are folded. The policy; the day thresholds, the stage from which interest is
+/// held in suspense rather than income, whether a modification gain or loss is recognised at restructuring; is
 /// recorded data, set by a dual act, and every derivation names the figures it used.
 
 import Text "mo:core/Text";

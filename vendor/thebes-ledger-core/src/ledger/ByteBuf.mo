@@ -1,8 +1,8 @@
-/// ByteBuf.mo — a growable byte buffer on a mutable array.
+/// ByteBuf.mo; a growable byte buffer on a mutable array.
 ///
 /// Every row, key and block in this family is built byte by byte, and the measured runs found the
 /// building to be the cost of a posting: a `List<Nat8>` boxes and chunks, and `List.toArray` then
-/// `Blob.fromArray` copy twice — 53,000 instructions for a 250-byte block, 13,000 for an 8-byte
+/// `Blob.fromArray` copy twice; 53,000 instructions for a 250-byte block, 13,000 for an 8-byte
 /// big-endian number. This buffer is a `[var Nat8]` that doubles, and `toBlob` is one copy.
 
 import Blob "mo:core/Blob";
@@ -77,7 +77,7 @@ module {
     public func toArray() : [Nat8] { Blob.toArray(toBlob()) };
   };
 
-  /// Big-endian, fixed width, as an immutable array — the key parts every index is built from.
+  /// Big-endian, fixed width, as an immutable array; the key parts every index is built from.
   public func be(value : Nat, width : Nat) : [Nat8] {
     let b = ByteBuf(width);
     b.addBE(value, width);
