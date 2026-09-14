@@ -362,15 +362,10 @@ module {
 
   // ─── fingerprint ──────────────────────────────────────────────────────────
 
-  func fingerprintRows(w : C.Writer, idx : RI.State, width : Nat) {
-    let (lo, hi) = R.fullRange(width);
-    var cursor : ?Blob = null;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : C.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
 
   public func fingerprintInto(w : C.Writer, s : State) {
     switch (s.policy) {
@@ -378,8 +373,8 @@ module {
       case (?p) { w.byte(1); w.nat(p.delinquentDpd); w.nat(p.defaultDpd); w.byte(CT.stageCode(p.suspendInterestFrom)); w.bool(p.recogniseModificationLoss) };
     };
     w.nat(s.exposures); w.nat(s.transitions); w.nat(s.actions); w.nat(s.promises); w.nat(s.promisesKept); w.nat(s.promisesBroken);
-    fingerprintRows(w, s.rows, 8);
-    fingerprintRows(w, s.byStage, 9);
-    fingerprintRows(w, s.byCollector, 16);
+    fingerprintRows(w, s.rows);
+    fingerprintRows(w, s.byStage);
+    fingerprintRows(w, s.byCollector);
   };
 }

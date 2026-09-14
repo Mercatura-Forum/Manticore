@@ -786,29 +786,6 @@ module {
     ignore putDroppable(state, which, k, RI.key([be(d0 + dr, 8), be(c0 + cr, 8)], DATED_VAL_BYTES));
   };
 
-  /// One dated index into the state fingerprint, in key order. The keys carry ordinals, so the codes
-  /// they stand for are written out: a fingerprint that depended on the order ordinals happened to be
-  /// assigned in would make two states that hold the same balances look different.
-  func datedInto(w : C.Writer, state : State, index : RI.State) {
-    w.nat(RI.size(index));
-    let (lo, hi) = RI.rangeEnds([], DATED_KEY_BYTES);
-    var cursor : ?Blob = null;
-    label walk loop {
-      let page = RI.range(index, lo, hi, cursor, 256);
-      for ((k, v) in page.entries.vals()) {
-        let a = Blob.toArray(k);
-        let b = Blob.toArray(v);
-        w.text(accountOfOrdinal(state, beNat(a, 0, 4)));
-        w.blob(Blob.fromArray(Array.tabulate<Nat8>(T.MAX_SUBLEDGER_BYTES, func(i) { a[DATED_SUB_OFFSET + i] })));
-        w.nat(beNat(a, 4, 4));
-        w.nat(beNat(a, DATED_DAY_OFFSET, 4));
-        w.nat(beNat(b, 0, 8));
-        w.nat(beNat(b, 8, 8));
-      };
-      switch (page.cursor) { case (?c) { cursor := ?c }; case null break walk };
-    };
-  };
-
   /// Sum one of the dated indexes over a balance question. `subledger = null` walks the account's whole
   /// run and filters the day while walking; a named sub-ledger's run is bounded by the key itself.
   func datedSum(state : State, index : RI.State, account : T.AccountCode, subledger : ?T.SubledgerKey, ccy : T.Currency, asOf : T.Day) : { debits : Nat; credits : Nat } {
@@ -2117,6 +2094,41 @@ module {
   /// `blocks`, which is also what the fold reads records back from.
   public func replayFrom(admin : Principal, blocks : Blocks, first : Nat, last : Nat, end : Nat) : State { replayFromIn(admin, RI.newArena(), blocks, first, last, end) };
 
+  /// The layout of the derived state: every fixed-width row, key width and index this module keeps in Regions. A
+  /// contract records the layout its state was written with and, on an upgrade to code with another, rebuilds the state
+  /// from the log rather than reading old bytes as new rows (the bank's S4.10). Raised on any such change.
+  public let LAYOUT_VERSION : Nat = 1;
+
+  /// The first step of a rebuild that can be resumed: the state restored from the checkpoint series (the log's packed
+  /// prefix) and the index of the first block to fold after it. The caller folds from there with `apply`, a chunk at a
+  /// time, to the log's end. Without a series the state is fresh and the fold starts at block 0.
+  public func rebuildStart(admin : Principal, arena : RI.Arena, blocks : Blocks, series : ?{ first : Nat; last : Nat }) : { state : State; next : Nat } {
+    switch (series) {
+      case (?cp) {
+        let parts = List.empty<T.CheckpointPart>();
+        var through = 0;
+        var seq = 0;
+        var i = cp.first;
+        while (i <= cp.last) {
+          let ?b = blocks.get(i) else Runtime.trap("JournalCore: checkpoint block " # Nat.toText(i) # " is not in the log");
+          switch (b.event) {
+            case (#checkpoint(c)) {
+              if (i == cp.first) through := c.through;
+              if (c.through != through or c.seq != seq) Runtime.trap("JournalCore: a checkpoint series out of order at block " # Nat.toText(i));
+              List.add(parts, c.part);
+              seq += 1;
+            };
+            case (_) {};
+          };
+          i += 1;
+        };
+        if (List.size(parts) == 0) Runtime.trap("JournalCore: no checkpoint parts between " # Nat.toText(cp.first) # " and " # Nat.toText(cp.last));
+        { state = restoreIn(admin, arena, through, List.toArray(parts)); next = through + 1 }
+      };
+      case null ({ state = newStateIn(admin, arena); next = 0 });
+    }
+  };
+
   public func replayFromIn(admin : Principal, arena : RI.Arena, blocks : Blocks, first : Nat, last : Nat, end : Nat) : State {
     // the series' parts, in order; other blocks between them (postings that landed while the
     // series was being written) are applied below like every block after the boundary
@@ -2577,51 +2589,23 @@ module {
     };
     for (((a, sub, c), b) in Map.entries(state.balances)) { w.text(a); w.blob(sub); w.text(c); w.nat(b.drPosted); w.nat(b.crPosted); w.nat(b.drPending); w.nat(b.crPending) };
     for (((p, a, c), acc) in Map.entries(state.periodBalances)) { w.text(p); w.text(a); w.text(c); w.nat(acc.dr); w.nat(acc.cr) };
-    // The two dated indexes, from stable memory in key order; account, then currency, then sub-ledger,
-    // then day, which is the order the keys impose.
-    datedInto(w, state, state.valueDatedIndex);
-    datedInto(w, state, state.postingDatedIndex);
-    // The posting rows, read from stable memory in key order; which is posting order, because the key
-    // is the posting number big-endian.
+    // The indexes in stable memory; the two dated indexes, the period index, the posting rows, the
+    // correctors, the duplicate-rejection index; each enter as its row digest (`RegionIndex`
+    // improvement 5: the sum of the rows' hashes, maintained at every `put`) with its size, not as a
+    // walk of its rows: the walk was O(postings), and exceeded one message at a fifty-thousand-deal
+    // book. Two states holding the same rows write the same words; a row that differs in one byte
+    // moves its index's word.
     //
     // The **records** are no longer part of this fingerprint, and deliberately so. A fingerprint
     // answers "did a replay produce the same derived state"; a record is not derived state, it is the
     // log, and the log is already covered twice over by the block hash chain and by the MMR root the
     // contract certifies. Writing it here was a second copy of a thing already proven, and an O(n)
     // read of every record to prove it.
+    for (idx in [state.valueDatedIndex, state.postingDatedIndex, state.periodPostingIndex, state.postingRows, state.correctors, state.idempotencyIndex].vals()) {
+      w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx));
+    };
     w.nat(state.postingRowCount);
-    let (rowLo, rowHi) = RI.rangeEnds([], POSTING_KEY_BYTES);
-    var rowCursor : ?Blob = null;
-    label rows loop {
-      let page = RI.range(state.postingRows, rowLo, rowHi, rowCursor, 256);
-      for ((k, v) in page.entries.vals()) {
-        let index = beNat(Blob.toArray(k), 0, POSTING_KEY_BYTES);
-        let row = decodeRow(state, v);
-        w.nat(index); w.nat64(row.timestamp); w.principal(row.caller);
-        switch (statusOfRow(state, row)) {
-          case (#posted) w.byte(0);
-          case (#pending(x)) { w.byte(1); w.optNat64(x.expiresAt) };
-          case (#postedFromPending(x)) { w.byte(2); w.nat(x.by); w.resolution(x.resolution) };
-          case (#voided(x)) { w.byte(3); w.nat(x.by); w.voidReason(x.reason) };
-        };
-        w.optNat(row.reversedBy);
-        w.len16(row.correctors);
-        for (i in correctorsOf(state, index, row.correctors).vals()) { w.nat(i) };
-      };
-      switch (page.cursor) { case (?c) { rowCursor := ?c }; case null break rows };
-    };
-    // The duplicate-rejection index, read from stable memory in key order.
     w.nat(state.idempotencyCount);
-    let (idemLo, idemHi) = RI.rangeEnds([], IDEM_KEY_BYTES);
-    var idemCursor : ?Blob = null;
-    label idem loop {
-      let page = RI.range(state.idempotencyIndex, idemLo, idemHi, idemCursor, 256);
-      for ((k, v) in page.entries.vals()) {
-        let e = decodeIdem(v);
-        w.blobRaw(k); w.nat(e.index); w.blobRaw(e.contentHash); w.bool(e.kind == #immediate);
-      };
-      switch (page.cursor) { case (?c) { idemCursor := ?c }; case null break idem };
-    };
     w.len16(state.leadsheet.size());
     for (r in state.leadsheet.vals()) { w.range(r) };
     w.optNat(state.businessDate);

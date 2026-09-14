@@ -876,15 +876,10 @@ module {
   //  FINGERPRINT
   // ═══════════════════════════════════════════════════════
 
-  func fingerprintRows(w : JC.Writer, idx : RI.State, width : Nat) {
-    let (lo, hi) = R.fullRange(width);
-    var cursor : ?Blob = null;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : JC.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
 
   public func fingerprintInto(w : JC.Writer, s : State) {
     w.nat(Map.size(s.versions));
@@ -906,17 +901,17 @@ module {
     };
     // the rows and indexes, raw: each is a deterministic function of the log
     w.nat(RI.size(s.accountRows));
-    fingerprintRows(w, s.accountRows, 8);
-    fingerprintRows(w, s.accountsByIdentifier, IDENTIFIER_KEY_BYTES);
-    fingerprintRows(w, s.subledgers, 32);
-    fingerprintRows(w, s.accountsByParty, 16);
-    fingerprintRows(w, s.accountsByProduct, 12); fingerprintRows(w, s.accountsByProductBook, 16);
+    fingerprintRows(w, s.accountRows);
+    fingerprintRows(w, s.accountsByIdentifier);
+    fingerprintRows(w, s.subledgers);
+    fingerprintRows(w, s.accountsByParty);
+    fingerprintRows(w, s.accountsByProduct); fingerprintRows(w, s.accountsByProductBook);
     w.nat(Map.size(s.openByProductBook)); for (((p, b), n) in Map.entries(s.openByProductBook)) { w.nat(p); w.nat(b); w.nat(n) };
-    fingerprintRows(w, s.schedules, 12);
-    fingerprintRows(w, s.chargesApplied, CHARGE_KEY_BYTES);
-    fingerprintRows(w, s.chargesWaived, CHARGE_KEY_BYTES);
+    fingerprintRows(w, s.schedules);
+    fingerprintRows(w, s.chargesApplied);
+    fingerprintRows(w, s.chargesWaived);
     w.nat(RI.size(s.tillRows));
-    fingerprintRows(w, s.tillRows, TILL_KEY_BYTES);
+    fingerprintRows(w, s.tillRows);
     for (n in List.values(s.productNames)) w.text(n);
     for (n in List.values(s.currencyNames)) w.text(n);
     for (n in List.values(s.bookNames)) w.text(n);

@@ -24,7 +24,9 @@ payments over ISO 20022 and Mojaloop. Written in Motoko. Apache 2.0.
   SWIFT FIN message types bridged, Mojaloop FSPIOP settlement.
 - **Bounded, paged, upgrade-safe.** Posting indexes in stable memory over a
   B-tree, cursor-paged reads, closed months packed and archived, in-place
-  upgrades that keep state.
+  upgrades that keep state; and, when the code's layout of the derived state
+  changes, rebuild it from the log in chunks rather than read old bytes as new
+  rows.
 
 | | |
 |---|---|
@@ -141,8 +143,7 @@ tools/           build-time gates (the permission audit and its negative control
                  schema and profile generators, post-quantum references
 vendor/          thebes-ledger-core: the double-entry journal and the ledger
                  family this layer builds on (see NOTICE)
-hub/             the ISO 20022 hub (its own README, docs, tests and kit)
-docs/            the architecture overview
+hub/             the ISO 20022 hub (its own README, tests and kit)
 ```
 
 ## Building and testing
@@ -164,8 +165,11 @@ upgrade keeps its state.
 
 ## Design
 
-`docs/ARCHITECTURE.md` describes the block-log-and-fold model, the maker-checker
-rule, where each kind of state lives, and how the layers are proven.
+The block-log-and-fold model, the maker-checker rule and where each kind of state
+lives are stated where they are used: the module headers of `src/bank/` (`Bank.mo`
+for the actor and its lifecycle, `BankCore.mo` for admission, the fold and the
+views, `BankLog.mo` and `BankCert.mo` for the chained log and its certification,
+one `*Core.mo` per domain) and the headers of the tests that prove each of them.
 
 ## Contributing
 

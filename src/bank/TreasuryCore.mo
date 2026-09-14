@@ -1608,17 +1608,10 @@ module {
 
   // ─── fingerprint ──────────────────────────────────────────────────────────
 
-  func fingerprintRows(w : C.Writer, idx : RI.State, keyWidth : Nat) {
-    let (lo, hi) = R.fullRange(keyWidth);
-    var cursor : ?Blob = null;
-    var n = 0;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blob(k); w.blob(v); n += 1 };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-    w.nat(n);
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : C.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
   public func fingerprintInto(w : C.Writer, s : State) {
     switch (s.policy) {
       case null w.byte(0);
@@ -1628,8 +1621,8 @@ module {
     w.bool(s.realisedTotal < 0); w.nat(Int.abs(s.realisedTotal)); w.bool(s.markTotal < 0); w.nat(Int.abs(s.markTotal));
     w.nat(Map.size(s.aggregates));
     for ((k, v) in Map.entries(s.aggregates)) { w.text(k); w.bool(v < 0); w.nat(Int.abs(v)) };
-    fingerprintRows(w, s.deals, 8); fingerprintRows(w, s.securities, 12); fingerprintRows(w, s.curves, 36); fingerprintRows(w, s.limits, 49); fingerprintRows(w, s.buckets, 40);
-    fingerprintRows(w, s.nostros, 32); fingerprintRows(w, s.nostroByAccount, 8); fingerprintRows(w, s.nostroLegs, 20); fingerprintRows(w, s.legByPosting, 16); fingerprintRows(w, s.statements, 32); fingerprintRows(w, s.breaks, 8);
-    fingerprintRows(w, s.byBook, 40); fingerprintRows(w, s.byState, 9); fingerprintRows(w, s.byCounterparty, 16); fingerprintRows(w, s.byIsin, 20); fingerprintRows(w, s.breaksByStatus, 9); fingerprintRows(w, s.subledgers, 32);
+    fingerprintRows(w, s.deals); fingerprintRows(w, s.securities); fingerprintRows(w, s.curves); fingerprintRows(w, s.limits); fingerprintRows(w, s.buckets);
+    fingerprintRows(w, s.nostros); fingerprintRows(w, s.nostroByAccount); fingerprintRows(w, s.nostroLegs); fingerprintRows(w, s.legByPosting); fingerprintRows(w, s.statements); fingerprintRows(w, s.breaks);
+    fingerprintRows(w, s.byBook); fingerprintRows(w, s.byState); fingerprintRows(w, s.byCounterparty); fingerprintRows(w, s.byIsin); fingerprintRows(w, s.breaksByStatus); fingerprintRows(w, s.subledgers);
   };
 }

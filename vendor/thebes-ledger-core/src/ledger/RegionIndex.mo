@@ -22,6 +22,16 @@
 ///   4. **A page free list**, so an index can be emptied and rebuilt **in place**. Stable memory
 ///      is never returned to the system, so a closed month whose per-posting entries are replaced
 ///      by a summary row must reuse its own pages or the packing saves nothing.
+///   5. **A digest of the rows, maintained at `put`.** `digest` is the sum modulo 2^256 of
+///      SHA-256(key ‖ value) over the rows the index holds now: `put` adds the new row's hash and,
+///      when it overwrote, subtracts the old row's; `reset` and `release` zero it. Two indexes
+///      holding the same rows have the same digest whatever order the rows arrived in, so a state
+///      fingerprint reads one 32-byte word per index instead of walking every row; the walk that
+///      exceeded one message at a fifty-thousand-deal book. The construction is the incremental
+///      set hash of Bellare and Micciancio (AdHash, EUROCRYPT 1997; the additive form Facebook's
+///      LtHash keeps for its data-set checksums): it is an equality check between two derivations
+///      of the same log; a replay, a rebuild, the state across an upgrade; and not a commitment
+///      a third party relies on; the commitment is the certified root over the log itself.
 ///
 /// No deletion of single keys is provided, and none is needed: every index in this component is
 /// either append-mostly, overwritten in place by `put`, or rebuilt wholesale for a closed month.
@@ -40,6 +50,9 @@ import Runtime "mo:core/Runtime";
 import VarArray "mo:core/VarArray";
 
 import ByteBuf "ByteBuf";
+import Array "mo:core/Array";
+import Int "mo:core/Int";
+import Sha256 "mo:sha2/Sha256";
 
 module {
 
@@ -96,7 +109,12 @@ module {
     /// its first six bytes.
     var freeHead : Nat64;
     var freeCount : Nat64;
+    /// The sum modulo 2^256 of SHA-256(key ‖ value) over the rows the index holds (improvement 5).
+    var digest : Blob;
   };
+
+  /// Thirty-two zero bytes: the digest of an empty index.
+  public let ZERO_DIGEST : Blob = "\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00";
 
   /// An index in its own arena; its own region.
   public func newState(spec : Spec) : State { newStateIn(newArena(), spec) };
@@ -120,10 +138,52 @@ module {
       var entryCount : Nat = 0;
       var freeHead : Nat64 = NULL_NODE;
       var freeCount : Nat64 = 0;
+      var digest : Blob = ZERO_DIGEST;
     }
   };
 
   public func size(state : State) : Nat { state.entryCount };
+  /// The digest of the rows the index holds now; equal for two indexes holding the same rows.
+  public func digest(state : State) : Blob { state.digest };
+
+  // ═══════════════════════════════════════════════════════
+  //  ROW DIGEST
+  // ═══════════════════════════════════════════════════════
+
+  /// SHA-256 over the row's bytes. Every key of an index has one width and every value another, so
+  /// `key ‖ value` names one row without a separator.
+  func rowHash(key : Blob, val : Blob) : Blob {
+    let d = Sha256.Digest(#sha256);
+    d.writeBlob(key);
+    d.writeBlob(val);
+    d.sum()
+  };
+
+  /// `a + b` or `a − b` modulo 2^256 over 32 big-endian bytes.
+  func addMod(a : Blob, b : Blob, subtract : Bool) : Blob {
+    let x = Blob.toArray(a);
+    let y = Blob.toArray(b);
+    let out = VarArray.repeat<Nat8>(0, 32);
+    var carry : Int = 0;
+    var i = 32;
+    while (i > 0) {
+      i -= 1;
+      let yi : Int = Nat8.toNat(y[i]);
+      let t : Int = Nat8.toNat(x[i]) + (if (subtract) -yi else yi) + carry;
+      if (t < 0) { out[i] := Nat8.fromNat(Int.abs(t + 256)); carry := -1 }
+      else if (t >= 256) { out[i] := Nat8.fromNat(Int.abs(t - 256)); carry := 1 }
+      else { out[i] := Nat8.fromNat(Int.abs(t)); carry := 0 };
+    };
+    Blob.fromArray(Array.fromVarArray(out))
+  };
+
+  /// The digest after a row was written: the new row added, the row it overwrote (if any) taken out.
+  func digestPut(state : State, key : Blob, val : Blob, old : ?Blob) {
+    switch (old) {
+      case (?o) { if (o != val) { state.digest := addMod(addMod(state.digest, rowHash(key, o), true), rowHash(key, val), false) } };
+      case null { state.digest := addMod(state.digest, rowHash(key, val), false) };
+    };
+  };
   public func isEmpty(state : State) : Bool { state.root == NULL_NODE };
 
   // ═══════════════════════════════════════════════════════
@@ -215,6 +275,7 @@ module {
     state.root := NULL_NODE;
     state.entryCount := 0;
     state.pageCount := 0;
+    state.digest := ZERO_DIGEST;
   };
 
   /// Empty the index, returning every page to the free list so a rebuild reuses them.
@@ -238,6 +299,7 @@ module {
     };
     state.root := NULL_NODE;
     state.entryCount := 0;
+    state.digest := ZERO_DIGEST;
   };
 
   // ═══════════════════════════════════════════════════════
@@ -448,6 +510,7 @@ module {
       setCount(state, root, 1);
       state.root := root;
       state.entryCount += 1;
+      digestPut(state, key, val, null);
       return null;
     };
     // split the root first if it is full, so a descent never has to split upwards
@@ -462,7 +525,9 @@ module {
       setCount(state, newRoot, 1);
       state.root := newRoot;
     };
-    insertNonFull(state, state.root, key, val)
+    let old = insertNonFull(state, state.root, key, val);
+    digestPut(state, key, val, old);
+    old
   };
 
   func insertNonFull(state : State, node : Nat64, key : Blob, val : Blob) : ?Blob {

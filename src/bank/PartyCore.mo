@@ -913,15 +913,10 @@ module {
   //  FINGERPRINT
   // ═══════════════════════════════════════════════════════
 
-  func fingerprintRows(w : JC.Writer, idx : RI.State, width : Nat) {
-    let (lo, hi) = R.fullRange(width);
-    var cursor : ?Blob = null;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : JC.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
 
   /// Contribute the party sub-state to `BankCore.fingerprint`, so replay equality covers it. The
   /// rows and the indexes are hashed raw: each is a deterministic function of the log, and what a
@@ -929,16 +924,16 @@ module {
   public func fingerprintInto(w : JC.Writer, s : State) {
     w.nat(RI.size(s.partyRows));
     w.nat(s.reviewGraceDays);
-    fingerprintRows(w, s.partyRows, 8);
-    fingerprintRows(w, s.partyDocuments, 10);
-    fingerprintRows(w, s.partyRelationships, 10);
-    fingerprintRows(w, s.partyIdentifiers, 10);
-    fingerprintRows(w, s.dedupRows, 32);
-    fingerprintRows(w, s.identifierRows, IDENTIFIER_KEY_BYTES);
+    fingerprintRows(w, s.partyRows);
+    fingerprintRows(w, s.partyDocuments);
+    fingerprintRows(w, s.partyRelationships);
+    fingerprintRows(w, s.partyIdentifiers);
+    fingerprintRows(w, s.dedupRows);
+    fingerprintRows(w, s.identifierRows);
     w.nat(RI.size(s.collateralRows));
-    fingerprintRows(w, s.collateralRows, 8);
-    fingerprintRows(w, s.collateralAllocations, 12);
-    fingerprintRows(w, s.collateralByParty, 16);
+    fingerprintRows(w, s.collateralRows);
+    fingerprintRows(w, s.collateralAllocations);
+    fingerprintRows(w, s.collateralByParty);
     for (n in List.values(s.bookNames)) w.text(n);
     for (n in List.values(s.listNames)) w.text(n);
     for ((_, l) in Map.entries(s.lists)) { w.text(l.version); w.blob(l.root); w.nat(l.count); w.text(l.normalisation); w.nat(l.committedAtBlock) };

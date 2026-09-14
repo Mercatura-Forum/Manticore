@@ -732,23 +732,18 @@ module {
 
   // ─── fingerprint ──────────────────────────────────────────────────────────
 
-  func fingerprintRows(w : C.Writer, idx : RI.State, width : Nat) {
-    let (lo, hi) = R.fullRange(width);
-    var cursor : ?Blob = null;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : C.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
   public func fingerprintInto(w : C.Writer, s : State) {
     w.nat(Map.size(s.openByBook));
     for ((k, v) in Map.entries(s.openByBook)) { w.text(k); w.nat(v) };
     w.nat(Map.size(s.openByCurrency));
     for ((k, v) in Map.entries(s.openByCurrency)) { w.text(k); w.nat(v) };
     w.nat(s.facilities); w.nat(s.closed); w.nat(s.drawn); w.nat(s.accruals); w.nat(s.fixingCount);
-    fingerprintRows(w, s.rows, 8); fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byBook, 40); fingerprintRows(w, s.byStage, 9);
-    fingerprintRows(w, s.drawings, 16); fingerprintRows(w, s.drawingOf, 8); fingerprintRows(w, s.shares, 16);
-    fingerprintRows(w, s.receivables, 16); fingerprintRows(w, s.covenants, 16); fingerprintRows(w, s.fixings, 12); fingerprintRows(w, s.subledgers, 32);
+    fingerprintRows(w, s.rows); fingerprintRows(w, s.byParty); fingerprintRows(w, s.byBook); fingerprintRows(w, s.byStage);
+    fingerprintRows(w, s.drawings); fingerprintRows(w, s.drawingOf); fingerprintRows(w, s.shares);
+    fingerprintRows(w, s.receivables); fingerprintRows(w, s.covenants); fingerprintRows(w, s.fixings); fingerprintRows(w, s.subledgers);
   };
 }

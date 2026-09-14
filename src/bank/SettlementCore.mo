@@ -608,18 +608,7 @@ module {
     for ((id, x) in Map.entries(s.windows)) { w.nat(id); w.text(x.scheme); w.nat(x.businessDate); w.text(ST.windowStateName(x.state)); w.nat(x.transfers); w.optNat(x.settlement); w.nat(x.lastBlock) };
     for ((id, x) in Map.entries(s.settlements)) { w.nat(id); w.nat(x.window); w.text(ST.settlementStateName(x.state)); w.nat(x.nets.size()); for (n in x.nets.vals()) { w.nat(n.participant); w.text(n.currency); w.nat(n.debits); w.nat(n.credits) }; w.nat(x.postings.size()); for (p in x.postings.vals()) w.nat(p); w.nat(x.lastBlock) };
     w.nat(s.transferCount); w.nat(s.bulkCount);
-    let (lo, hi) = R.fullRange(8);
-    var cursor : ?Blob = null;
-    label rows loop {
-      let page = RI.range(s.transferRows, lo, hi, cursor, 256);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case (?c) cursor := ?c; case null break rows };
-    };
-    cursor := null;
-    label brows loop {
-      let page = RI.range(s.bulkRows, lo, hi, cursor, 256);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case (?c) cursor := ?c; case null break brows };
-    };
+    // each index as its size and row digest (`RegionIndex` improvement 5), not a walk of its rows
+    for (idx in [s.transferRows, s.bulkRows].vals()) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
   };
 }

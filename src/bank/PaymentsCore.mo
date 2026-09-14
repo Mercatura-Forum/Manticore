@@ -878,29 +878,8 @@ module {
     for ((id, r) in Map.entries(s.rails)) { w.text(id); w.text(r.scheme); w.nat(r.ttlSeconds); w.nat(r.hold.blockedBics.size()); w.nat(r.hold.holdAbove.size()); w.text(PayT.schemeName(r.signatures)); w.nat(r.declaredAt) };
     for (((rl, bic), k) in Map.entries(s.keys)) { w.text(rl); w.text(bic); w.text(PayT.schemeName(k.scheme)); w.blob(k.publicKey) };
     w.nat(s.messageCount); w.nat(s.accepted); w.nat(s.refused); w.nat(s.held);
-    let (lo, hi) = R.fullRange(8);
-    var cursor : ?Blob = null;
-    label rows loop {
-      let page = RI.range(s.messageRows, lo, hi, cursor, 256);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case (?c) cursor := ?c; case null break rows };
-    };
-    cursor := null;
-    label holds loop {
-      let page = RI.range(s.holds, lo, hi, cursor, 256);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case (?c) cursor := ?c; case null break holds };
-    };
-    // ── the extended target list ──
-    let (lo32, hi32) = R.fullRange(32);
-    for (idx in [s.mandates, s.expected, s.liquidity].vals()) {
-      cursor := null;
-      label rows2 loop {
-        let page = RI.range(idx, lo32, hi32, cursor, 256);
-        for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-        switch (page.cursor) { case (?c) cursor := ?c; case null break rows2 };
-      };
-    };
+    // each index as its size and row digest (`RegionIndex` improvement 5), not a walk of its rows
+    for (idx in [s.messageRows, s.holds, s.mandates, s.expected, s.liquidity].vals()) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
     w.nat(s.mandateCount); w.nat(s.expectedCount);
     for (((rl, d, cb, cc), a) in Map.entries(s.authorities)) { w.text(rl); w.nat(d); w.text(cb); w.text(cc); w.nat(a.maxAmount); w.bool(a.active); w.nat(a.grantedAt) };
     for ((sid, r) in Map.entries(s.settlementRequests)) { w.nat(sid); w.nat(r.message); w.nat(r.movements.size()); for (m in r.movements.vals()) { w.text(m.participantBic); w.text(m.currency); w.nat(m.amount); w.bool(m.debit) }; switch (r.judged) { case (?j) { w.byte(1); w.bool(j) }; case null w.byte(0) } };

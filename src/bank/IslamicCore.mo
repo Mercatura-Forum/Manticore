@@ -873,17 +873,10 @@ module {
 
   // ─── fingerprint ──────────────────────────────────────────────────────────
 
-  func fingerprintRows(w : C.Writer, idx : RI.State, keyWidth : Nat) {
-    let (lo, hi) = R.fullRange(keyWidth);
-    var cursor : ?Blob = null;
-    var n = 0;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blob(k); w.blob(v); n += 1 };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-    w.nat(n);
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : C.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
   public func fingerprintInto(w : C.Writer, s : State) {
     w.nat(Map.size(s.openByBook));
     for ((k, v) in Map.entries(s.openByBook)) { w.text(k); w.nat(v) };
@@ -900,7 +893,7 @@ module {
       };
     };
     w.nat(s.opened); w.nat(s.open); w.nat(s.charity); w.nat(s.distributionsTotal);
-    fingerprintRows(w, s.contracts, 8); fingerprintRows(w, s.instalments, 16); fingerprintRows(w, s.pools, 32); fingerprintRows(w, s.distributions, 40);
-    fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byBook, 40); fingerprintRows(w, s.byStage, 9); fingerprintRows(w, s.byReference, 8); fingerprintRows(w, s.approvals, 32); fingerprintRows(w, s.shariaBooks, 32); fingerprintRows(w, s.subledgers, 32);
+    fingerprintRows(w, s.contracts); fingerprintRows(w, s.instalments); fingerprintRows(w, s.pools); fingerprintRows(w, s.distributions);
+    fingerprintRows(w, s.byParty); fingerprintRows(w, s.byBook); fingerprintRows(w, s.byStage); fingerprintRows(w, s.byReference); fingerprintRows(w, s.approvals); fingerprintRows(w, s.shariaBooks); fingerprintRows(w, s.subledgers);
   };
 }

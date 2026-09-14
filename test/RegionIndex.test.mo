@@ -16,7 +16,10 @@
 //   * **depth and fill match the capacity model**: depth 4 at the entry counts the model predicts
 //     it for, and leaf fill near 100% for an append-ordered key;
 //   * **`reset` returns every page** and a rebuild reuses them, so a closed month's packing saves
-//     space rather than adding to it.
+//     space rather than adding to it;
+//   * **the row digest is the sum of the rows' hashes** (improvement 5): equal to an independent
+//     big-number computation over the rows the index holds, the same for two arrival orders, moved
+//     by one byte of one row, restored when the row is overwritten back, zero after a reset.
 //
 // engine: wasi-only; a Region is stable memory, which the interpreter does not provide.
 
@@ -28,6 +31,10 @@ import Array "mo:core/Array";
 import List "mo:core/List";
 import Map "mo:core/Map";
 import Text "mo:core/Text";
+
+import Nat8 "mo:core/Nat8";
+import VarArray "mo:core/VarArray";
+import Sha256 "mo:sha2/Sha256";
 
 import RI "mo:ledger/RegionIndex";
 
@@ -439,5 +446,63 @@ for ((name, kb, vb, cap) in declared.vals()) {
 };
 Debug.print("count: declared index widths whose leaf capacity matches the model = " # Nat.toText(declaredChecked));
 assert (declaredChecked == 8);
+
+// ─── the row digest ──────────────────────────────────────────────────────────
+//
+// The oracle is a big-number sum: every row's SHA-256 read as a 256-bit number, summed modulo 2^256
+// with `Nat` arithmetic; none of the index's byte-wise carry code; and written back big-endian.
+func natOfBlob(b : Blob) : Nat { var n = 0; for (x in b.vals()) { n := n * 256 + Nat8.toNat(x) }; n };
+func blobOfNat(n : Nat) : Blob {
+  var m = n;
+  let v = VarArray.repeat<Nat8>(0, 32);
+  var i = 32;
+  while (i > 0) { i -= 1; v[i] := Nat8.fromNat(m % 256); m := m / 256 };
+  Blob.fromArray(Array.fromVarArray(v))
+};
+let MOD : Nat = 2 ** 256;
+func rowHashOracle(k : Blob, v : Blob) : Nat {
+  let d = Sha256.Digest(#sha256); d.writeBlob(k); d.writeBlob(v); natOfBlob(d.sum())
+};
+let dg = RI.newState({ keyBytes = 8; valBytes = 16 });
+assert (RI.digest(dg) == RI.ZERO_DIGEST);
+let rows = Map.empty<Blob, Blob>();
+var digestRows = 0;
+for (i in Nat.range(0, 3_000)) {
+  let k = RI.key([RI.beBytes(Nat32.toNat(next()) % 100_000, 8)], 8);
+  let v = RI.key([RI.beBytes(Nat32.toNat(next()), 8), RI.beBytes(i, 8)], 16);
+  ignore RI.put(dg, k, v);
+  Map.add(rows, Blob.compare, k, v);   // the map keeps the last value, as the index does
+  digestRows += 1;
+};
+var expected = 0;
+for ((k, v) in Map.entries(rows)) { expected := (expected + rowHashOracle(k, v)) % MOD };
+assert (RI.digest(dg) == blobOfNat(expected));
+Debug.print("count: rows behind a digest equal to the big-number oracle (overwrites included) = " # Nat.toText(digestRows));
+// the same rows in reverse order: the same digest
+let dg2 = RI.newState({ keyBytes = 8; valBytes = 16 });
+let ordered = List.empty<(Blob, Blob)>();
+for (e in Map.entries(rows)) List.add(ordered, e);
+var j = List.size(ordered);
+while (j > 0) { j -= 1; let (k, v) = List.at(ordered, j); ignore RI.put(dg2, k, v) };
+assert (RI.digest(dg2) == RI.digest(dg));
+Debug.print("count: indexes holding the same rows in another order with the same digest = 1");
+// one byte of one row moved, then written back: the digest moves and returns
+let (k0, v0) = List.at(ordered, 0);
+let v0a = Blob.toArray(v0);
+let flipped = Blob.fromArray(Array.tabulate<Nat8>(16, func(i) { if (i == 15) v0a[15] ^ 1 else v0a[i] }));
+assert (RI.put(dg2, k0, flipped) == ?v0);
+assert (RI.digest(dg2) != RI.digest(dg));
+assert (RI.put(dg2, k0, v0) == ?flipped);
+assert (RI.digest(dg2) == RI.digest(dg));
+// a row written again with the same value leaves the digest where it was
+assert (RI.put(dg2, k0, v0) == ?v0);
+assert (RI.digest(dg2) == RI.digest(dg));
+Debug.print("count: digests moved by one byte of one row and restored by the overwrite back = 1");
+// a reset: zero, and a rebuild of the same rows: the same digest
+RI.reset(dg2);
+assert (RI.digest(dg2) == RI.ZERO_DIGEST and RI.size(dg2) == 0);
+for ((k, v) in Map.entries(rows)) ignore RI.put(dg2, k, v);
+assert (RI.digest(dg2) == RI.digest(dg));
+Debug.print("count: digests zero after a reset and equal after the rebuild = 1");
 
 Debug.print("REGION INDEX TEST GREEN");

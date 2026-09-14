@@ -759,17 +759,10 @@ module {
 
   // ─── fingerprint ──────────────────────────────────────────────────────────
 
-  func fingerprintRows(w : C.Writer, idx : RI.State, keyWidth : Nat) {
-    let (lo, hi) = R.fullRange(keyWidth);
-    var cursor : ?Blob = null;
-    var n = 0;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blob(k); w.blob(v); n += 1 };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-    w.nat(n);
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : C.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
   public func fingerprintInto(w : C.Writer, s : State) {
     w.nat(Map.size(s.openByBook));
     for ((k, v) in Map.entries(s.openByBook)) { w.text(k); w.nat(v) };
@@ -777,8 +770,8 @@ module {
     for ((k, v) in Map.entries(s.openByCurrency)) { w.text(k); w.nat(v) };
     switch (s.policy) { case null w.byte(0); case (?p) { w.byte(1); for (t in accountsOf(p).vals()) w.text(t); w.nat(p.provisionalCreditCeiling); w.nat(p.clearingTolerance); w.nat(p.stanReplayDays) } };
     w.nat(s.issued); w.nat(s.active); w.nat(s.authorizations); w.nat(s.approved); w.nat(s.declined); w.nat(s.openHolds); w.nat(s.clearedCount); w.nat(s.exceptions); w.nat(s.disputesTotal); w.nat(s.disputesOpen); w.nat(s.statementCount); w.nat(s.schemeCount); w.nat(s.productCount);
-    fingerprintRows(w, s.cards, 8); fingerprintRows(w, s.byToken, 32); fingerprintRows(w, s.byAccount, 16); fingerprintRows(w, s.byParty, 16); fingerprintRows(w, s.byState, 9); fingerprintRows(w, s.byBook, 40);
-    fingerprintRows(w, s.auths, 8); fingerprintRows(w, s.byCardDay, 20); fingerprintRows(w, s.byHold, 8); fingerprintRows(w, s.byRef, 12); fingerprintRows(w, s.cleared, 8); fingerprintRows(w, s.clearedByCard, 16); fingerprintRows(w, s.batches, 32);
-    fingerprintRows(w, s.disputes, 8); fingerprintRows(w, s.byStage, 9); fingerprintRows(w, s.statements, 12); fingerprintRows(w, s.schemes, 16); fingerprintRows(w, s.products, 32); fingerprintRows(w, s.subledgers, 32);
+    fingerprintRows(w, s.cards); fingerprintRows(w, s.byToken); fingerprintRows(w, s.byAccount); fingerprintRows(w, s.byParty); fingerprintRows(w, s.byState); fingerprintRows(w, s.byBook);
+    fingerprintRows(w, s.auths); fingerprintRows(w, s.byCardDay); fingerprintRows(w, s.byHold); fingerprintRows(w, s.byRef); fingerprintRows(w, s.cleared); fingerprintRows(w, s.clearedByCard); fingerprintRows(w, s.batches);
+    fingerprintRows(w, s.disputes); fingerprintRows(w, s.byStage); fingerprintRows(w, s.statements); fingerprintRows(w, s.schemes); fingerprintRows(w, s.products); fingerprintRows(w, s.subledgers);
   };
 }

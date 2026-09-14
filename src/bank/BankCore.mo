@@ -10814,15 +10814,10 @@ module {
     switch (best) { case (?b) ?b.id; case null null }
   };
 
-  func fingerprintRows(w : JC.Writer, idx : RI.State) {
-    let (lo, hi) = RI.rangeEnds([], 8);
-    var cursor : ?Blob = null;
-    label walk loop {
-      let page = RI.range(idx, lo, hi, cursor, MAX_PAGE);
-      for ((k, v) in page.entries.vals()) { w.blobRaw(k); w.blobRaw(v) };
-      switch (page.cursor) { case null break walk; case (?c) cursor := ?c };
-    };
-  };
+  /// One index into the fingerprint: its size and its row digest (`RegionIndex` improvement 5; the sum of the
+  /// rows' hashes, maintained at every `put`), in place of a walk of every row: two states holding the same rows
+  /// write the same words, and the cost is one word an index whatever the book's size.
+  func fingerprintRows(w : JC.Writer, idx : RI.State) { w.nat(RI.size(idx)); w.blobRaw(RI.digest(idx)) };
 
   public func fingerprint(s : State) : Blob {
     let w = JC.Writer();
@@ -10851,9 +10846,7 @@ module {
     // of the same log write the same bytes, and a fold that saw a different approval or resolution
     // writes different ones. What a row points at; the command, the maker, the checkers; is in the
     // log the fingerprint is compared across, so hashing the rows is hashing that.
-    w.nat(RI.size(s.proposalRows));
     fingerprintRows(w, s.proposalRows);
-    w.nat(RI.size(s.overrideRows));
     fingerprintRows(w, s.overrideRows);
     for (((subj, ccy, day), n) in Map.entries(s.consumed)) { w.principal(subj); w.text(ccy); w.nat(day); w.nat(n) };
     PartyCore.fingerprintInto(w, s.party);
