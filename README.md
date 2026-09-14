@@ -27,6 +27,11 @@ payments over ISO 20022 and Mojaloop. Written in Motoko. Apache 2.0.
   upgrades that keep state; and, when the code's layout of the derived state
   changes, rebuild it from the log in chunks rather than read old bytes as new
   rows.
+- **A fingerprint of the whole state in one word per index.** Every index keeps
+  a running digest of its rows, updated at each write and never recomputed by
+  walking the rows, so the state's fingerprint costs the same on a book of ten
+  deals and a book of fifty thousand; it is proved against an independent
+  computation and checked across every upgrade.
 
 | | |
 |---|---|
