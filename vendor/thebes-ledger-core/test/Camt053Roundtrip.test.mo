@@ -1,4 +1,4 @@
-// Camt053Roundtrip.test.mo; criterion 9: the journal's camt.053 projection
+// Camt053Roundtrip.test.mo: criterion 9: the journal's camt.053 projection
 // round-trips through the published ISO 20022 example's decoder (vendored,
 // unmodified, in test/oracle/iso20022). Every entry field is compared.
 //

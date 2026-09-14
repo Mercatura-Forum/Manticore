@@ -1,4 +1,4 @@
-/// Journal.mo; the double-entry journal canister.
+/// Journal.mo: the double-entry journal canister.
 ///
 /// Composition:
 ///   JournalCore  pure admission and state (heap, persisted across upgrades)

@@ -1,4 +1,4 @@
-// StableLogTruncate.test.mo; a log whose prefix leaves and whose regions come back.
+// StableLogTruncate.test.mo: a log whose prefix leaves and whose regions come back.
 //
 // What is proved: entries read back byte for byte before and after a truncation; the truncated ones
 // answer null and the live ones do not; a data region and an index chunk that held only truncated

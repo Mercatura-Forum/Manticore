@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""permission_audit.py — make the permission catalogue authoritative.
+"""permission_audit.py; make the permission catalogue authoritative.
 
 Apache Fineract keeps 960 permission rows in a table, and a hand-maintained
 catalogue drifts from the code. This audit is what keeps ours from drifting. It

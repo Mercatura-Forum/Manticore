@@ -1,4 +1,4 @@
-// Leadsheet.test.mo; acceptance criterion 8 on the pure mapper: every account
+// Leadsheet.test.mo: acceptance criterion 8 on the pure mapper: every account
 // falls in exactly one range of the 28-range schema; unmapped accounts are
 // reported; overlapping schemas are rejected.
 //

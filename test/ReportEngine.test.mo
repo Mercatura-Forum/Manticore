@@ -1,4 +1,4 @@
-// ReportEngine.test.mo; the report engine, the primary statements, the returns and the
+// ReportEngine.test.mo: the report engine, the primary statements, the returns and the
 // feed, over a real journal.
 //
 // The reporting criteria that are properties of the arithmetic rather than of the bank's wiring.
@@ -12,7 +12,7 @@
 //   R-2  the balance-sheet identity is **asserted**, not presented: it holds for every period,
 //        and the refusal is shown to work by calling the check with figures that do not add up
 //   R-3  the IAS 21 translation posts nothing; the journal fingerprint is identical across it
-//       shows the translation difference as its own line, and its components reconcile to
+//        shows the translation difference as its own line, and its components reconcile to
 //        the native view exactly
 //   R-4  determinism in (definition hash, parameters, journal height): 50 triples evaluated
 //        twice are byte-identical, a closed period's report is unchanged by later activity in
@@ -990,7 +990,7 @@ Debug.print("count: tampered feed pages detected = " # Nat.toText(tampersDetecte
 assert (tampersDetected == tamperTrials);
 assert (tampersDetected >= 50);
 
-// an empty page is legitimate; a caught-up consumer gets one; and is accepted only when its
+// an empty page is legitimate, a caught-up consumer gets one, and is accepted only when its
 // bounds say so
 let empty : FeedM.FeedPage = {
   events = []; from = 200; to = 200; tipCursor = 200; caughtUp = true;

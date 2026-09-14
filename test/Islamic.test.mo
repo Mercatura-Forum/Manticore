@@ -1,4 +1,4 @@
-/// Islamic.test.mo; Islamic banking Islamic banking: the AAOIFI arithmetic, the contract gates, the fold, the pool.
+/// Islamic.test.mo: Islamic banking Islamic banking: the AAOIFI arithmetic, the contract gates, the fold, the pool.
 ///
 /// What is proved here (no journal, no canister; the pure layer):
 ///   1. the standards' arithmetic: a Murabaha's instalments and profit under both methods (the proportionate allocation

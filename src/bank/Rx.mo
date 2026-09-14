@@ -1,4 +1,4 @@
-/// Rx.mo; the regular-expression subset the schemas the bank enforces are written in: the XSD
+/// Rx.mo: the regular-expression subset the schemas the bank enforces are written in: the XSD
 /// patterns of the ISO 20022 base schemas (IsoSchema.mo, twenty distinct patterns across seven
 /// schemas) and the JSON-schema patterns of the FSPIOP v1.1 OpenAPI snippets (FspiopSchema.mo,
 /// eighteen distinct patterns). This module parses that subset and matches a whole text against it

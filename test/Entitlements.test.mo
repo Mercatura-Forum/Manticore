@@ -1,4 +1,4 @@
-// Entitlements.test.mo; scope is evaluated against the operation's own data.
+// Entitlements.test.mo: scope is evaluated against the operation's own data.
 //
 // The property worth proving adversarially is that a caller cannot get past a
 // ceiling by splitting an amount across legs, by naming a currency the grant

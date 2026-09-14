@@ -1,4 +1,4 @@
-// MmrVerifyProof.test.mo; acceptance test for the verifyProof fix
+// MmrVerifyProof.test.mo: acceptance test for the verifyProof fix
 // Over leaf counts 1..300 every
 // proof must verify with the fixed src/ledger/MerkleMMR.verifyProof and with
 // JournalProof.verify; the historical fold (reproduced here verbatim) must

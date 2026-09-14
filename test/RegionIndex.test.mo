@@ -1,4 +1,4 @@
-// RegionIndex.test.mo; the stable-memory index against a brute-force oracle.
+// RegionIndex.test.mo: the stable-memory index against a brute-force oracle.
 //
 // Every criterion of the index design rests on this module being right, so it is proved
 // against a sorted array held in the heap: the same keys go into both, and every read is compared.
@@ -48,7 +48,7 @@ func next() : Nat32 {
   seed
 };
 // The **high** sixteen bits, not the low ones. A linear congruential generator modulo 2^32 has
-// low-order bits with very short periods; with these parameters `next() % 4` has period four; so
+// low-order bits with very short periods, with these parameters `next() % 4` has period four, so
 // `below(4)` was returning a fixed cycle and one whole arm of this test (a posting in two
 // currencies) never ran. The output said so: "multi-currency postings = 0". Using the top bits
 // removes it.
@@ -450,7 +450,7 @@ assert (declaredChecked == 8);
 // ─── the row digest ──────────────────────────────────────────────────────────
 //
 // The oracle is a big-number sum: every row's SHA-256 read as a 256-bit number, summed modulo 2^256
-// with `Nat` arithmetic; none of the index's byte-wise carry code; and written back big-endian.
+// with `Nat` arithmetic, none of the index's byte-wise carry code, and written back big-endian.
 func natOfBlob(b : Blob) : Nat { var n = 0; for (x in b.vals()) { n := n * 256 + Nat8.toNat(x) }; n };
 func blobOfNat(n : Nat) : Blob {
   var m = n;

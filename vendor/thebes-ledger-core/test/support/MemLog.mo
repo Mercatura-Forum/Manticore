@@ -1,4 +1,4 @@
-/// MemLog.mo; test support: an in-heap block chain with the production
+/// MemLog.mo: test support: an in-heap block chain with the production
 /// encoding and hashing (Canonical.mo) but no Region memory, so the pure core
 /// can be driven with realistic blocks in the Motoko interpreter.
 

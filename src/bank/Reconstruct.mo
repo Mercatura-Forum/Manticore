@@ -1,11 +1,11 @@
-/// Reconstruct.mo; a settled proposal's command, rebuilt from the events its execution recorded.
+/// Reconstruct.mo: a settled proposal's command, rebuilt from the events its execution recorded.
 ///
 /// The bank-log ruling of 12 September (measure 1) lets a proposal block's command body be dropped once
 /// the act's events are in the log; but only where the command is reconstructible from those events
 /// byte for byte, proven rather than asserted: the reconstruction is re-hashed and compared with the
 /// `commandHash` the proposal block keeps, and a body whose reconstruction does not hash to it is kept.
 /// This module is the reconstruction; `candidates` answers every command the events could have come
-/// from (a command can carry a default the event records expanded; an empty allocation order; so
+/// from (a command can carry a default the event records expanded, an empty allocation order, so
 /// more than one command may have produced the same events), and the caller keeps the one that hashes
 /// right, or keeps the body when none does.
 ///

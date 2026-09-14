@@ -1,4 +1,4 @@
-/// Products.mo; product validation and schedule generation, as pure functions.
+/// Products.mo: product validation and schedule generation, as pure functions.
 ///
 /// Two jobs, both deliberately free of state so they can be tested against vectors
 /// and against a reference system rather than against themselves:

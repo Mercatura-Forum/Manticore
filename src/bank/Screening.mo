@@ -1,4 +1,4 @@
-/// Screening.mo; what is verifiable about a sanctions check, and what is not.
+/// Screening.mo: what is verifiable about a sanctions check, and what is not.
 ///
 /// Real screening is fuzzy: transliteration, phonetic matching, aliases, partial
 /// dates of birth. That cannot be an on-chain exact-match proof, and pretending

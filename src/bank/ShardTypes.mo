@@ -1,4 +1,4 @@
-/// ShardTypes.mo; accounts routed across bank contracts by a declared, versioned rule.
+/// ShardTypes.mo: accounts routed across bank contracts by a declared, versioned rule.
 ///
 /// A **shard** is a whole bank contract; its own journal, its own indexes, its own accounts. The
 /// rule that says which shard an account lives on is **in the account's identifier**: the first

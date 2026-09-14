@@ -1,4 +1,4 @@
-// PartyCore.test.mo; the party / CIF and KYC state machine.
+// PartyCore.test.mo: the party / CIF and KYC state machine.
 //
 // The criterion that governs this component is K-1: **no plaintext personal data
 // in any block**. It is checked here the only way it can be; by creating a party

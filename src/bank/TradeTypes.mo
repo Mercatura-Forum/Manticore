@@ -1,4 +1,4 @@
-/// TradeTypes.mo; trade finance (trade finance): documentary credits, standbys and demand guarantees, documentary
+/// TradeTypes.mo: trade finance (trade finance): documentary credits, standbys and demand guarantees, documentary
 /// collections and bills as recorded lifecycles under the ICC rules.
 ///
 /// An instrument is an object on the bank log: the block that issued it is its identity, its terms live in that

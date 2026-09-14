@@ -1,4 +1,4 @@
-"""iso_instances_extended.py — schema-valid instances of the extended ISO 20022 target list families, for the
+"""iso_instances_extended.py; schema-valid instances of the extended ISO 20022 target list families, for the
 profile agreement check, the Prowide cross-parse and the canister batteries. Every template is checked
 against the official XSD with `xmllint --schema` by the battery before it is used; the mutation machinery
 of iso_instances.py applies to these as to the core messaging set families.

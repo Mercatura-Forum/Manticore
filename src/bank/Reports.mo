@@ -1,4 +1,4 @@
-/// Reports.mo; the report engine and the primary statements.
+/// Reports.mo: the report engine and the primary statements.
 ///
 /// Everything here **reads**. Nothing in this module posts, and nothing in it stores a
 /// figure: a report is a fold over the journal at a stated height, so a back-dated posting
@@ -653,7 +653,7 @@ module {
   };
 
   /// The bytes that are hashed into the certified tree. They cover the report's identity
-  ///the definition hash, the parameters and **both** heights; and every row, so an
+  /// the definition hash, the parameters and **both** heights; and every row, so an
   /// artefact that leaves the building can be proven to be the report the books produced.
   public func reportBytes(r : RT.Report) : Blob {
     let w = JC.Writer();

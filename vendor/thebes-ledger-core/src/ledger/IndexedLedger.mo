@@ -1,4 +1,4 @@
-/// IndexedLedger.mo; Self-Indexed ICRC-1/ICRC-2/ICRC-3/ICRC-10 Token Ledger
+/// IndexedLedger.mo: Self-Indexed ICRC-1/ICRC-2/ICRC-3/ICRC-10 Token Ledger
 ///
 /// This actor constitutes the entry point of the ICRC-ME ledger. It composes
 /// eleven internal modules into a single canister that provides full ICRC

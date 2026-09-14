@@ -1,4 +1,4 @@
-/// FspiopSchema.mo; a JSON body against the FSPIOP v1.1 request profile (FspiopProfiles.mo,
+/// FspiopSchema.mo: a JSON body against the FSPIOP v1.1 request profile (FspiopProfiles.mo,
 /// generated from the official OpenAPI snippets), the way IsoSchema.mo holds an ISO 20022 message
 /// against its XSD-derived profile. Every issue names a rule, the JSON path and what was found:
 ///

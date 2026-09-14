@@ -1,4 +1,4 @@
-/// ReportTypes.mo; the reporting layer's vocabulary.
+/// ReportTypes.mo: the reporting layer's vocabulary.
 ///
 /// Three things in here are decisions rather than shapes, and they are stated where a
 /// reader meets them:

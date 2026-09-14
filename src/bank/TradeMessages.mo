@@ -1,4 +1,4 @@
-/// TradeMessages.mo; the messages a trade instrument exchanges (trade finance), rendered from the recorded state and read
+/// TradeMessages.mo: the messages a trade instrument exchanges (trade finance), rendered from the recorded state and read
 /// back into terms: SWIFT FIN MT of the 7-series (700 issue, 707 amendment, 750 advice of discrepancy, 752
 /// authorisation to pay, 754 advice of payment / acceptance / negotiation, 760 undertaking, 765 demand, 767
 /// amendment of an undertaking, 768 acknowledgement, 769 reduction or release, 799 free format) and the ISO 20022

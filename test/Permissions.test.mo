@@ -1,4 +1,4 @@
-// Permissions.test.mo; the catalogue is total over the command vocabulary.
+// Permissions.test.mo: the catalogue is total over the command vocabulary.
 //
 // `tools/permission_audit.py` checks the catalogue against the built Candid
 // interface. This checks it from inside the language: one value of every

@@ -1,4 +1,4 @@
-/// ArchiveImage.mo; the child image, in stable memory.
+/// ArchiveImage.mo: the child image, in stable memory.
 ///
 /// The rule: "The operator uploads the child wasm into the parent's stable memory once, in chunks,
 /// pinned by SHA-256, and the parent installs from there; do not embed it in the parent's own wasm."

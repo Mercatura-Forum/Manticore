@@ -1,4 +1,4 @@
-/// CBOR.mo; CBOR encoder + decoder for ICRC-3 block encoding
+/// CBOR.mo: CBOR encoder + decoder for ICRC-3 block encoding
 ///
 /// Implements the subset of CBOR needed for IC hash trees and ICRC-3 blocks:
 ///   - Unsigned integers (major type 0)

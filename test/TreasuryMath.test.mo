@@ -1,4 +1,4 @@
-/// TreasuryMath.test.mo; treasury treasury arithmetic against its Python twin.
+/// TreasuryMath.test.mo: treasury treasury arithmetic against its Python twin.
 ///
 /// Every figure in `TreasuryVectors.mo` was computed by `integration/treasury_twin.py` (via
 /// `tools/gen_treasury_vectors.py`); this test recomputes each with `TreasuryMath.mo` and demands equality; the

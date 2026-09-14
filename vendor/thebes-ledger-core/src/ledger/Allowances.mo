@@ -1,4 +1,4 @@
-/// Allowances.mo; ICRC-2 allowance table (port of approvals.rs)
+/// Allowances.mo: ICRC-2 allowance table (port of approvals.rs)
 ///
 /// Mechanical port of dfinity/ic rs/ledger_suite/common/ledger_core/src/approvals.rs
 ///

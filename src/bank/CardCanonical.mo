@@ -1,4 +1,4 @@
-/// CardCanonical.mo; the canonical bytes of the cards vocabulary (cards): the policy, schemes and their rules,
+/// CardCanonical.mo: the canonical bytes of the cards vocabulary (cards): the policy, schemes and their rules,
 /// products, controls, authorization requests (the bytes the connector signs), decisions, clearing items, and the
 /// events. `BankCanonical` calls these for the commands (extension tag 0xEF, second byte 0x30..) and the event (0x56).
 

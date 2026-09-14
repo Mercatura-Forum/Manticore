@@ -1,4 +1,4 @@
-/// CardTypes.mo; cards (cards): issuance, authorization as a hold on the journal, clearing and settlement as postings,
+/// CardTypes.mo: cards (cards): issuance, authorization as a hold on the journal, clearing and settlement as postings,
 /// disputes as lifecycles, the PAN never in the contract.
 ///
 /// The boundary, stated first (PCI DSS scope): no PAN, no track data, no CVV, no PIN and no key of the card ever

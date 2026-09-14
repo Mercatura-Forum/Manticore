@@ -1,7 +1,7 @@
-/// ArchiveWire.mo; the raw byte shapes the Thebes management contract speaks.
+/// ArchiveWire.mo: the raw byte shapes the Thebes management contract speaks.
 ///
 /// Management (`aaaaa-aa`, `CanisterId(0)`) takes raw arguments and gives
-/// raw replies; not Candid; and every shape below was verified against the engine's own decoders
+/// raw replies, not Candid, and every shape below was verified against the engine's own decoders
 /// in `the substrate's management interface` and `engine.rs`, then exercised on the
 /// live chain (`tools/spawn-proof/evidence.json`). Nothing here awaits; it is pure encoding, so it is
 /// tested in the interpreter byte for byte.
@@ -80,7 +80,7 @@ module {
   };
 
   /// `install_code`'s raw argument: `canister_id(8 LE) ‖ wasm_len(4 LE) ‖ wasm ‖ init_arg`. There is
-  /// **no mode field**; the engine has none; and the init argument is **empty**: an archive child's
+  /// **no mode field**, the engine has none, and the init argument is **empty**: an archive child's
   /// `canister_init` must never write and then trap (a trap after a write in `canister_init` is
   /// fatal to every validator), so the child is given nothing to decode at install and configured afterwards by
   /// a call that can refuse cleanly.
@@ -123,7 +123,7 @@ module {
 
   /// `update_settings`' raw frame: `canister_id(8 LE) ‖ flag(1) ‖ count(4 LE) ‖ [len(1) ‖ principal]…`
   /// (`management.rs`, the raw branch beside the Candid one). The engine **replaces** the controller
-  /// set with this list; it does not add to it; so the parent must be in the list to stay a
+  /// set with this list, it does not add to it, so the parent must be in the list to stay a
   /// controller, and the caller of this function is required to have put it there.
   public func controllersFrame(cid : AT.Cid, controllers : [Principal]) : Result.Result<Blob, AT.ArchiveError> {
     if (controllers.size() == 0) return #err(#InvalidControllers({ reason = "an empty controller set would orphan the child" }));

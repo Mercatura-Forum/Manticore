@@ -1,4 +1,4 @@
-/// CollectionsCore.mo; the exposures' stages, folded from the bank's log, in stable memory (collections and recovery).
+/// CollectionsCore.mo: the exposures' stages, folded from the bank's log, in stable memory (collections and recovery).
 ///
 /// One 100-byte row per lending exposure keyed by account; an index by stage (stage ‖ account → dpd) for the
 /// worklist by stage, an index by collector (collector key ‖ account → stage) for a collector's worklist. Rows
@@ -297,7 +297,7 @@ module {
     #ok(#stageDerived({ account; from = r.stage; to = #closed; dpd = r.dpd; day; reason = #closed; note = "" }))
   };
 
-  /// The promise the end-of-day judges on `day`; the one that fell due before it; with the repaid total
+  /// The promise the end-of-day judges on `day`, the one that fell due before it, with the repaid total
   /// it was made against; kept when what has been repaid since reaches the amount.
   public func duePromise(s : State, account : Nat, day : Nat) : ?{ amount : Nat; by : Nat; baseline : Nat } {
     let ?r = row(s, account) else return null;

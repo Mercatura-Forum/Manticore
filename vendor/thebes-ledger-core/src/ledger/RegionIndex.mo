@@ -1,4 +1,4 @@
-/// RegionIndex.mo; a sorted index in stable memory, with range scans.
+/// RegionIndex.mo: a sorted index in stable memory, with range scans.
 ///
 /// This is a **derivative work** of `RegionBTree.mo`, beside it in this directory (MIT, carried from
 /// ICRC-ME). It lives here rather than in the banking layer because the journal and the banking layer
@@ -30,7 +30,7 @@
 ///      exceeded one message at a fifty-thousand-deal book. The construction is the incremental
 ///      set hash of Bellare and Micciancio (AdHash, EUROCRYPT 1997; the additive form Facebook's
 ///      LtHash keeps for its data-set checksums): it is an equality check between two derivations
-///      of the same log; a replay, a rebuild, the state across an upgrade; and not a commitment
+///      of the same log, a replay, a rebuild, the state across an upgrade, and not a commitment
 ///      a third party relies on; the commitment is the certified root over the log itself.
 ///
 /// No deletion of single keys is provided, and none is needed: every index in this component is
@@ -244,7 +244,7 @@ module {
     state.freeCount += 1;
   };
 
-  /// Give every page of the index; the tree's and its own free list's; back to the arena, so an
+  /// Give every page of the index, the tree's and its own free list's, back to the arena, so an
   /// index built in its place allocates them before any fresh page. The index is empty afterwards
   /// and must not be used again except to be released a second time, which does nothing.
   public func release(state : State) {

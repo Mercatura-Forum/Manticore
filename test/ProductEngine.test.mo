@@ -1,4 +1,4 @@
-// ProductEngine.test.mo; the product engine end to end, through the real core.
+// ProductEngine.test.mo: the product engine end to end, through the real core.
 //
 // The the product engine invariants that are properties of the *state machine* rather than of the
 // arithmetic, each driven through `planCommand` against a real embedded journal, so
@@ -197,7 +197,7 @@ ignore run(#addStaff({ principal_ = cashier; book = "BR01"; title = "Cashier" })
 
 // This battery value-dates postings across the whole of September to exercise the
 // accrual fold, so the branch's back-value window is declared wide enough to admit
-// them. The window itself; and what it refuses; is value dating and the close's battery.
+// them. The window itself, and what it refuses, is value dating and the close's battery.
 ignore run(#setBackValueWindow({ window = { book = "BR01"; freeDays = 30; approvedDays = 30 } }));
 ignore run(#setBackValueWindow({ window = { book = "HQ"; freeDays = 30; approvedDays = 30 } }));
 

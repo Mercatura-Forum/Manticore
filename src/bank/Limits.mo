@@ -1,4 +1,4 @@
-/// Limits.mo; facilities, overdrafts and per-operation ceilings.
+/// Limits.mo: facilities, overdrafts and per-operation ceilings.
 ///
 /// The important decision here is what this module does **not** do. An overdraft
 /// facility is not checked by this layer before a posting is submitted. It is

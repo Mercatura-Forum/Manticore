@@ -1,8 +1,8 @@
-/// AlertCore.mo; the alerts, folded from the bank's log, in stable memory.
+/// AlertCore.mo: the alerts, folded from the bank's log, in stable memory.
 ///
 /// Alerts grow with activity, so the heap holds none of them. The fold keeps one 22-byte row per
 /// alert (the status, the block that resolved it, the account, the day, the source), an index from
-/// the finding's key to the alert that opened it; which is what makes opening idempotent; and
+/// the finding's key to the alert that opened it, which is what makes opening idempotent, and
 /// two ranges a reviewer reads: the open alerts, and an account's alerts. The finding itself is in
 /// the `#alertOpened` block; an `Alert` is rebuilt from the row and that block.
 

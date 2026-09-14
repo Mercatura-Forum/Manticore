@@ -1,4 +1,4 @@
-/// Activity.mo; the aggregates the monitoring rules read: A1..A4 of the approved proposal's
+/// Activity.mo: the aggregates the monitoring rules read: A1..A4 of the approved proposal's
 /// cross-account addendum, maintained in the posting's own message, in stable memory.
 ///
 /// Every row here is **derived**: a pure function of the journal's posted blocks, rebuildable by
@@ -22,7 +22,7 @@
 ///   * the **edges**: from each debited counterparty to each credited counterparty, with amount
 ///     the smaller of the two totals. A counterparty is an indexed account, a general-ledger
 ///     account code (a leg with no registered sub-ledger), or an external beneficiary commitment
-///    the third form is what a payment message will carry; nothing produces it yet, and
+///     the third form is what a payment message will carry; nothing produces it yet, and
 ///     the key space and the rules treat it like the other two. Never personal data.
 ///
 /// ## The rows

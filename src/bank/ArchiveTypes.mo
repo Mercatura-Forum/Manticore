@@ -1,4 +1,4 @@
-/// ArchiveTypes.mo; the archive component's recorded decisions and its spawning state machine.
+/// ArchiveTypes.mo: the archive component's recorded decisions and its spawning state machine.
 ///
 /// An archive is a contract this bank creates and installs on the Thebes substrate to hold what the
 /// journal no longer needs on the operating book. Creating a contract from a contract is a sequence
@@ -9,11 +9,12 @@
 ///
 /// ## Why a step per message, and why the record comes first
 ///
-/// On the current substrate a write made after an awaited management reply is not kept, and the
-/// method replies with the inner call's bytes instead of its own value; `async*` does not change
-/// that, because the raw call primitive is itself a plain `async` wrapper in the compiler's prelude.
-/// So a parent that created a child and then tried to remember it in the same message would forget
-/// it. The shape that holds, proven on a live chain, is four calls:
+/// On this engine a write made after an awaited inter-contract reply is dropped, and the method
+/// replies with the inner call's bytes instead of its own value (the Jun-15 continuation defect;
+/// `tools/spawn-proof/FINDING-async-raw-calls.md`). `async*` does not help, because the raw call
+/// primitive is itself a plain `async` wrapper in the compiler's prelude. So a parent that created a
+/// child and then tried to remember it in the same message would forget it; which is exactly how
+/// child 1,000,000 was left code-less on Sep 10. The proven shape on child 1,000,002 is four calls:
 ///
 ///   1. `createArchiveChild`  ; the parent records that a create was issued, **then** sends
 ///                               `create_canister`; the reply carries the new id;
@@ -46,7 +47,7 @@
 ///     remembers it, or the bank records a dual-authorised judgement that the attempt made nothing;
 ///   * an install is refused for any id the parent has not remembered;
 ///   * an install can be sent again for the same id (the engine refuses a second install onto a child
-///     that holds code, which the driver reads as "installed — confirm it");
+///     that holds code, which the driver reads as "installed; confirm it");
 ///   * a confirmation offering the empty-module hash is recorded as a refusal and leaves the spawn
 ///     where an install can be retried;
 ///   * a spawn with a known id is never abandoned: the id either holds no code (retry) or holds code

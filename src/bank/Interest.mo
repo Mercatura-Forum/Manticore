@@ -1,4 +1,4 @@
-/// Interest.mo; accrual as a fold, and rounding that conserves.
+/// Interest.mo: accrual as a fold, and rounding that conserves.
 ///
 /// Two decisions shape this module, and both are consequences of where the journal
 /// already keeps its state.

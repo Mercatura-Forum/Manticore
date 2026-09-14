@@ -1,4 +1,4 @@
-/// TellerCore.mo; the branch's counted cash, sessions, cash network, cheques and drafts, folded from the bank's log
+/// TellerCore.mo: the branch's counted cash, sessions, cash network, cheques and drafts, folded from the bank's log
 /// in stable memory (branch and teller).
 ///
 /// Rows: a teller session (keyed by the block that opened it) with the till's open session indexed by till; the

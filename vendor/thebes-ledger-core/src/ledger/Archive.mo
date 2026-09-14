@@ -1,4 +1,4 @@
-/// Archive.mo; Read-only archive canister for overflow blocks
+/// Archive.mo: Read-only archive canister for overflow blocks
 ///
 /// When the main ledger's block log exceeds a threshold, it spawns
 /// an Archive canister and moves old blocks there. The archive is

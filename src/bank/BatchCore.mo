@@ -1,4 +1,4 @@
-/// BatchCore.mo; the batch's state, which is the fold of the log.
+/// BatchCore.mo: the batch's state, which is the fold of the log.
 ///
 /// Runs and their cursors, standing instructions, the latest statement cut per account,
 /// and the retry policy per book. The plan itself is not stored: it is a pure function

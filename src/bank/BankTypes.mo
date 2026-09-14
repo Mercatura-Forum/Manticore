@@ -1,4 +1,4 @@
-/// BankTypes.mo; the vocabulary of the banking domain layer.
+/// BankTypes.mo: the vocabulary of the banking domain layer.
 ///
 /// Two logs live in this canister. The journal (the pinned `thebes-ledger-core`
 /// submodule) records what moved: postings, balances, periods, proofs. This

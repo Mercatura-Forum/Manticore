@@ -1,4 +1,4 @@
-// Payments.test.mo; ISO 20022 messaging on the journal, on the pure state machine.
+// Payments.test.mo: ISO 20022 messaging on the journal, on the pure state machine.
 //
 // The world of Settlement.test.mo; scheme, participants with ISO 9362 BICs, three accounts a
 // currency, caps; with a rail declared on the scheme; then messages, each one block:

@@ -1,4 +1,4 @@
-/// TreasuryMessages.mo; the treasury's ISO 20022 documents (treasury): an FX deal's confirmation as fxtr.014.001.04
+/// TreasuryMessages.mo: the treasury's ISO 20022 documents (treasury): an FX deal's confirmation as fxtr.014.001.04
 /// (rendered from the deal, and parsed from the counterparty's so the contract matches it field by field), a
 /// security trade's settlement instruction as sese.023.001.09, and the correspondent's camt.053.001.08 statement
 /// parsed into the entries the nostro reconciliation matches. Schema-valid against the official XSDs the battery

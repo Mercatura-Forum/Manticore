@@ -1,4 +1,4 @@
-/// IndexCore.mo; the indexing component's folded sub-state.
+/// IndexCore.mo: the indexing component's folded sub-state.
 ///
 /// Small by design. Everything the indexes hold is **derived** from the journal's log and lives in
 /// stable memory under `PostingIndex`, rebuildable from the log by replay; what is here is only the

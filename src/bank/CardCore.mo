@@ -1,4 +1,4 @@
-/// CardCore.mo; the card book folded from the bank's log in stable memory (cards): cards by their token digest, every
+/// CardCore.mo: the card book folded from the bank's log in stable memory (cards): cards by their token digest, every
 /// authorization decision, the holds, the cleared transactions, the disputes, the statements; the schemes and
 /// products whose rules are data.
 ///

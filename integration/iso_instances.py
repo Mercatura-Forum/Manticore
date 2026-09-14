@@ -1,4 +1,4 @@
-"""iso_instances.py — schema-valid ISO 20022 instances and their invalid mutations, for the profile
+"""iso_instances.py; schema-valid ISO 20022 instances and their invalid mutations, for the profile
 agreement check and the cross-parser corpus.
 
 Every `valid_*` template is checked against the official XSD with `xmllint --schema` before it is used

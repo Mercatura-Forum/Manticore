@@ -1,4 +1,4 @@
-// PostingIndex.test.mo; the four posting indexes against a brute-force oracle.
+// PostingIndex.test.mo: the four posting indexes against a brute-force oracle.
 //
 // `RegionIndex.test.mo` proves the B-tree. This proves the **meaning** put into it: that the rows
 // `indexBlock` writes for a stream of journal blocks are exactly the rows a straightforward fold
@@ -56,7 +56,7 @@ func next() : Nat32 {
   seed
 };
 // The **high** sixteen bits, not the low ones. A linear congruential generator modulo 2^32 has
-// low-order bits with very short periods; with these parameters `next() % 4` has period four; so
+// low-order bits with very short periods, with these parameters `next() % 4` has period four, so
 // `below(4)` was returning a fixed cycle and one whole arm of this test (a posting in two
 // currencies) never ran. The output said so: "multi-currency postings = 0". Using the top bits
 // removes it.

@@ -1,4 +1,4 @@
-/// Base64.mo; RFC 4648 base64 and base64url, with and without padding, strict on decode.
+/// Base64.mo: RFC 4648 base64 and base64url, with and without padding, strict on decode.
 
 import Blob "mo:core/Blob";
 import Char "mo:core/Char";

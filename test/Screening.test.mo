@@ -1,4 +1,4 @@
-// Screening.test.mo; absence from a committed list is provable.
+// Screening.test.mo: absence from a committed list is provable.
 //
 // The verifiable half of party and KYC's screening design: a sorted Merkle commitment over a
 // normalised list, inclusion proofs for every entry, non-membership by adjacency in

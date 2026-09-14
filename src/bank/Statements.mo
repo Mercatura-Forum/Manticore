@@ -1,4 +1,4 @@
-/// Statements.mo; account statements as ISO 20022 messages.
+/// Statements.mo: account statements as ISO 20022 messages.
 ///
 /// The journal already projects one account, currency and period into the camt.053 shape
 /// and round-trips it against the **deployed** published ISO 20022 example. Three things
@@ -55,7 +55,7 @@ module {
   func net(debits : Nat, credits : Nat) : Int { debits - credits : Int };
 
   /// The balances a camt.053 states for one account and currency. The cut supplies `OPBD`
-  /// and `CLBD`; a record, so they do not move; while `PRCD` is the prior period's close
+  /// and `CLBD`, a record, so they do not move, while `PRCD` is the prior period's close
   /// and `CLAV` is the live available figure, which is the booked figure less what the
   /// journal is holding in reservations.
   public func statementBalances(

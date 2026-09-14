@@ -1,4 +1,4 @@
-/// BankPack.mo; a closed range of bank blocks as one segment: every block's stored bytes kept whole
+/// BankPack.mo: a closed range of bank blocks as one segment: every block's stored bytes kept whole
 /// except the trailer a settled proposal may lose, with a table of offsets so one block is one read.
 ///
 /// The bank-log ruling of 12 September (measure 2) packs the bank log by closed month in the journal's

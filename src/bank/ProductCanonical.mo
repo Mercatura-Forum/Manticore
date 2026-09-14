@@ -1,4 +1,4 @@
-/// ProductCanonical.mo; the canonical bytes of the product engine's vocabulary.
+/// ProductCanonical.mo: the canonical bytes of the product engine's vocabulary.
 ///
 /// Tag per variant, additive, never renumbered: the same rule the journal's own
 /// encoder follows, for the same reason. A product's terms are the single most

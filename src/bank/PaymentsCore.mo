@@ -1,4 +1,4 @@
-/// PaymentsCore.mo; the state and the planners of ISO 20022 messaging on the journal.
+/// PaymentsCore.mo: the state and the planners of ISO 20022 messaging on the journal.
 ///
 /// State: the rails, the connector keys, the message register (one fixed-width row per received
 /// message, keyed by its block; a uniqueness index on (rail, message id) and on the message hash),

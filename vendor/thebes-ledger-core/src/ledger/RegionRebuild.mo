@@ -1,4 +1,4 @@
-/// RegionRebuild.mo; replacing a `RegionIndex` by a copy that leaves some entries out, in chunks,
+/// RegionRebuild.mo: replacing a `RegionIndex` by a copy that leaves some entries out, in chunks,
 /// while the index stays in use.
 ///
 /// A `RegionIndex` cannot delete an entry, by design: a page belongs to an index for ever and the

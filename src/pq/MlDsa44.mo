@@ -1,4 +1,4 @@
-/// MlDsa44.mo; ML-DSA-44 signature verification per FIPS 204 (August 2024), over the byte encodings
+/// MlDsa44.mo: ML-DSA-44 signature verification per FIPS 204 (August 2024), over the byte encodings
 /// of the standard: a 1,312-byte public key, a 2,420-byte signature, the context string, and the
 /// message.
 ///

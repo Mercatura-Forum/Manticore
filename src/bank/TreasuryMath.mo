@@ -1,4 +1,4 @@
-/// TreasuryMath.mo; the valuation arithmetic of the treasury domain (treasury) as pure functions over recorded data,
+/// TreasuryMath.mo: the valuation arithmetic of the treasury domain (treasury) as pure functions over recorded data,
 /// written so that a Python twin reproduces every figure to the minor unit.
 ///
 /// Two number systems, each chosen for what it values:
@@ -237,7 +237,7 @@ module {
   };
 
   /// The yield in millionths per annum (10⁻⁶ of 1) that prices the bond at its dirty cost: bisection over
-  /// [0, 2_000_000); up to 200 %; for the smallest `y` whose present value does not exceed the dirty cost;
+  /// [0, 2_000_000), up to 200 %, for the smallest `y` whose present value does not exceed the dirty cost;
   /// forty halvings, as the Murabaha's implicit rate. Deterministic: the twin runs the same bisection.
   public func effectiveYieldMillionths(face : Nat, periods : [Coupon], conv : DC.Convention, couponsPerYear : Nat, settlement : Nat, dirtyCost : Nat) : Nat {
     var lo = 0; var hi = 2_000_000; var iter = 0;

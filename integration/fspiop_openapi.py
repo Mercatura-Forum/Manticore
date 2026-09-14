@@ -1,4 +1,4 @@
-"""fspiop_openapi.py — the FSPIOP v1.1 OpenAPI snippets (mojaloop/api-snippets, fspiop/v1_1/openapi3) as an
+"""fspiop_openapi.py; the FSPIOP v1.1 OpenAPI snippets (mojaloop/api-snippets, fspiop/v1_1/openapi3) as an
 independent validator for the FSPIOP interoperability battery: the operations with their request schemas and declared
 statuses, every component schema resolved, and `jsonschema` judging request and callback bodies.
 

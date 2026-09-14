@@ -1,4 +1,4 @@
-// PartyPrimitives.test.mo; commitments and account identifiers.
+// PartyPrimitives.test.mo: commitments and account identifiers.
 //
 // Two of the three pure pieces party and KYC rests on, proved before the state machine uses
 // them:

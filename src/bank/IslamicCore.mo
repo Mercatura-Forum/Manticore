@@ -1,4 +1,4 @@
-/// IslamicCore.mo; the Sharia book folded from the bank's log in stable memory (Islamic banking): the contracts, their
+/// IslamicCore.mo: the Sharia book folded from the bank's log in stable memory (Islamic banking): the contracts, their
 /// instalment schedules, the investment-account pools and their distributions, the board approvals and the book
 /// flags.
 ///
@@ -683,7 +683,7 @@ module {
             var n = 0;
             for ((d, a) in x.schedule.vals()) {
               n += 1;
-              // the profit part per instalment: proportionate; equal parts; effective; from the schedule the planner produced;
+              // the profit part per instalment: proportionate, equal parts; effective, from the schedule the planner produced;
               // the event carries amounts only, so the parts are re-derived under the method from the row's figures
               putInstalment(s, { contract = x.contract; number = n; dueDate = d; amount = a; principal = 0; profit = 0; paid = false; charity = 0 });
             };

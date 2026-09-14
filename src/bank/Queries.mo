@@ -1,9 +1,9 @@
-/// Queries.mo; one bounded, paged read over the posting indexes.
+/// Queries.mo: one bounded, paged read over the posting indexes.
 ///
 /// `PostingIndex` is the write side; this is the read side, and it is deliberately the **only** new
 /// read surface the component adds. Proposal §4: the engine picks the narrowest index the filter
 /// allows, applies the rest while walking it, sizes the walk first and refuses a filter wider than
-/// its bound; naming the size; rather than trapping part-way.
+/// its bound, naming the size, rather than trapping part-way.
 ///
 /// ## Why refusal and not truncation
 ///

@@ -1,4 +1,4 @@
-// Canonical.test.mo; every event variant encodes, decodes byte-for-byte, and a
+// Canonical.test.mo: every event variant encodes, decodes byte-for-byte, and a
 // single flipped byte anywhere in a block is detected.
 
 import Debug "mo:core/Debug";

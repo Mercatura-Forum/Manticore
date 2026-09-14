@@ -1,7 +1,7 @@
-/// SettlementTypes.mo; settlement: settlement on the journal.
+/// SettlementTypes.mo: settlement: settlement on the journal.
 ///
 /// A scheme's participants, their positions and the movement of money between them are postings
-/// in the bank's own book; the same Merkle-committed journal as every deposit; so a position
+/// in the bank's own book, the same Merkle-committed journal as every deposit, so a position
 /// cannot breach its net debit cap even if the code above it is wrong: the cap is the journal's
 /// numeric limit on the participant's position sub-ledger, and admission refuses the posting.
 /// A payment is the journal's two-phase posting (reserve on prepare, post on fulfil, void on

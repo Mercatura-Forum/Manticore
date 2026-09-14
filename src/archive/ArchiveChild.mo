@@ -1,4 +1,4 @@
-/// ArchiveChild.mo; the archive contract a bank rolls its packed months to.
+/// ArchiveChild.mo: the archive contract a bank rolls its packed months to.
 ///
 /// What it holds is what `Packing.mo` produced: segments of packed journal blocks, each a
 /// self-contained `Pack` that unpacks byte for byte to the blocks it was made from, registered by

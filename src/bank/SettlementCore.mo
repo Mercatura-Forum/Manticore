@@ -1,4 +1,4 @@
-/// SettlementCore.mo; the fold and the planners of settlement: schemes, participants, transfers,
+/// SettlementCore.mo: the fold and the planners of settlement: schemes, participants, transfers,
 /// windows, settlements and bulks, on the bank's book.
 ///
 /// Shape rule, as everywhere in this layer: the block is the record, a fixed-width row carries the

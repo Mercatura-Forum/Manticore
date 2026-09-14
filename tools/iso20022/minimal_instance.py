@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""minimal_instance.py — a schema-valid instance of an ISO 20022 family generated from its profile (the official
+"""minimal_instance.py; a schema-valid instance of an ISO 20022 family generated from its profile (the official
 XSD's own tree as tools/iso20022/profile_gen.py wrote it), not from a hand-written template.
 
 Every required particle is emitted once; a choice takes its first branch; a simple value is the first enumeration,

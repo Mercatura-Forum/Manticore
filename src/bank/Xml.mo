@@ -1,4 +1,4 @@
-/// Xml.mo; a conforming-enough XML 1.0 parser for ISO 20022 business messages, with stable rule ids.
+/// Xml.mo: a conforming-enough XML 1.0 parser for ISO 20022 business messages, with stable rule ids.
 ///
 /// The payments component reads messages from the network; what it accepts is what this parser
 /// builds. It is a real parser; a tree of elements with their namespaces, attributes and text;

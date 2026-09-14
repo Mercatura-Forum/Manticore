@@ -1,4 +1,4 @@
-/// TradeCanonical.mo; the canonical bytes of the trade-finance vocabulary (trade finance): the policy, the instrument
+/// TradeCanonical.mo: the canonical bytes of the trade-finance vocabulary (trade finance): the policy, the instrument
 /// kinds and their terms, documents and checks, decisions, honours, amendments, messages, and the events.
 /// `BankCanonical` calls these for the commands and the event.
 

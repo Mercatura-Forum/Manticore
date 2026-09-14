@@ -1,4 +1,4 @@
-/// OriginationCanonical.mo; the canonical bytes of the origination vocabulary (origination and underwriting): the models, the
+/// OriginationCanonical.mo: the canonical bytes of the origination vocabulary (origination and underwriting): the models, the
 /// request and the facts, the decision and the offer, the bureau's report, the passkey assertion, and the
 /// events. `BankCanonical` calls these for the commands and the event; `OriginationCore` for the fingerprint.
 /// Every reader refuses what its writer would not have produced.

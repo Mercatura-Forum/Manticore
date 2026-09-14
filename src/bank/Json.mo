@@ -1,4 +1,4 @@
-/// Json.mo; JSON (RFC 8259) parsed to a tree and written back, for the FSPIOP adapter.
+/// Json.mo: JSON (RFC 8259) parsed to a tree and written back, for the FSPIOP adapter.
 ///
 /// Numbers are kept as their text (an FSPIOP `Amount` is a string anyway, and nothing here does
 /// arithmetic on a JSON number); strings are decoded with every escape of the grammar, surrogate

@@ -1,4 +1,4 @@
-/// BTreeIndex.mo; B-tree backed account transaction index
+/// BTreeIndex.mo: B-tree backed account transaction index
 ///
 /// Combines RegionBTree (sorted lookup) with CompactIndex-style block chains
 /// (variable-length tx storage). The B-tree replaces the hash table for account

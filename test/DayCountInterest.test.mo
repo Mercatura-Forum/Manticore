@@ -1,4 +1,4 @@
-// DayCountInterest.test.mo; the arithmetic that is money.
+// DayCountInterest.test.mo: the arithmetic that is money.
 //
 // Day-count fractions and interest accrual, as exact rationals, against published
 // vectors. The one that matters most is the last: the figure Apache Fineract 1.15.0

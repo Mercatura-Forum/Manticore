@@ -1,4 +1,4 @@
-/// Permissions.mo; the permission catalogue.
+/// Permissions.mo: the permission catalogue.
 ///
 /// Apache Fineract carries 960 permission rows in a table. A hand-maintained
 /// catalogue drifts from the code, and the drift is invisible until someone

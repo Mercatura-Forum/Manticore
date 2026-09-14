@@ -1,4 +1,4 @@
-/// MakerChecker.mo; the four-eyes lifecycle, as pure functions.
+/// MakerChecker.mo: the four-eyes lifecycle, as pure functions.
 ///
 /// The hole in the obvious implementation is that the checker approves a stored
 /// *row*. If anything can alter that row between proposal and approval, the

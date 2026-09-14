@@ -1,4 +1,4 @@
-/// Cards.test.mo; cards cards: the decision engine, the lifecycles and the fold, without a journal.
+/// Cards.test.mo: cards cards: the decision engine, the lifecycles and the fold, without a journal.
 ///
 /// What is proved here (the pure layer):
 ///   1. configuration: the policy, a scheme whose rules name their source (a scheme without a source refused), a product

@@ -1,4 +1,4 @@
-/// IslamicTypes.mo; Islamic banking (Islamic banking): the Sharia contracts as recorded sequences of acts with their AAOIFI
+/// IslamicTypes.mo: Islamic banking (Islamic banking): the Sharia contracts as recorded sequences of acts with their AAOIFI
 /// accounting, profit-sharing investment accounts as the bank's funding, and the governance record every contract
 /// names.
 ///

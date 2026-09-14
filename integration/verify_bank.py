@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""verify_bank.py — verify a bank-log entry without trusting the canister.
+"""verify_bank.py; verify a bank-log entry without trusting the canister.
 
 The same five-step check `verify_entry.py` performs on a journal entry, applied
 to the bank log and its own subtree of the combined certified tree:
@@ -3073,7 +3073,7 @@ class Reader(V.Reader):
 
 
 def command_hash(command_bytes, version=CURRENT_COMMAND_ENCODING):
-    """The hash a checker approves, over the canonical command bytes under the recorded encoding version —
+    """The hash a checker approves, over the canonical command bytes under the recorded encoding version;
     the domain names the version, so a body hashed under another version never matches."""
     assert version in SUPPORTED_COMMAND_ENCODINGS, f"command encoding {version} is not one this verifier implements"
     return _domain_hash(command_domain(version), command_bytes)
@@ -3118,7 +3118,7 @@ def _decode_block(raw):
 
 
 def split_trailer(raw):
-    """A stored block's bytes as (head, trailer): the preimage and its hash, then whatever follows —
+    """A stored block's bytes as (head, trailer): the preimage and its hash, then whatever follows;
     a proposal's body behind a 1, or the single 0 a pack leaves once the body is dropped. What a
     bank segment keeps of a settled proposal is exactly head + b"\x00"."""
     r = Reader(raw)

@@ -1,4 +1,4 @@
-// Origination.test.mo; an application for credit as the bank records it (origination and underwriting), on the pure core over a
+// Origination.test.mo: an application for credit as the bank records it (origination and underwriting), on the pure core over a
 // real stable-memory arena.
 //
 // What is proved:

@@ -1,4 +1,4 @@
-/// JournalProof.mo; verification of a journal entry's inclusion proof.
+/// JournalProof.mo: verification of a journal entry's inclusion proof.
 ///
 /// The proof format is the one `src/ledger/MerkleMMR.generateProof` emits:
 ///   siblings   hashes along the path from the leaf to its peak, bottom-up

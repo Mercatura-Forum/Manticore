@@ -1,4 +1,4 @@
-// RegionRebuild.test.mo; a RegionIndex rebuilt by generation, in chunks, while it is written to.
+// RegionRebuild.test.mo: a RegionIndex rebuilt by generation, in chunks, while it is written to.
 //
 // What is proved: the rebuilt index holds exactly the kept entries of the source at the swap,
 // including every write that landed during the rebuild (below and above the cursor); the source's

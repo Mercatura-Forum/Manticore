@@ -1,4 +1,4 @@
-/// BankCert.mo; certified data over both logs at once.
+/// BankCert.mo: certified data over both logs at once.
 ///
 /// A posting must be provable and so must the authority behind it, so one
 /// certificate carries both Merkle roots:

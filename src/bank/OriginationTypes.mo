@@ -1,4 +1,4 @@
-/// OriginationTypes.mo; an application for credit, from the ask to the drawing, every step a block (origination and underwriting).
+/// OriginationTypes.mo: an application for credit, from the ask to the drawing, every step a block (origination and underwriting).
 ///
 /// An application is an object on the bank log: opened for a party (an existing customer) or for a prospect
 /// (no party yet; the onboarding that fulfils it names the application and becomes its party), it moves

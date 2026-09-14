@@ -1,4 +1,4 @@
-/// YearEnd.mo; the year-end retained-earnings roll as ordinary postings.
+/// YearEnd.mo: the year-end retained-earnings roll as ordinary postings.
 ///
 /// At the end of a fiscal year every income and expense account is closed into
 /// retained earnings. This module builds those postings from the journal's own
@@ -54,7 +54,7 @@ module {
   /// the last business day on or before it when a working-day calendar is configured.
   ///
   /// The period's own end date is the accounting answer, but it is not always a
-  /// business day; 31 January 2026 is a Saturday; and a deployment whose calendar
+  /// business day, 31 January 2026 is a Saturday, and a deployment whose calendar
   /// policy is `#reject` would have the roll refused with
   /// `#ValueDateNotBusinessDay`. Moving it back here rather than leaving the caller
   /// to is the right place: the roll is the journal's own arithmetic, and the journal

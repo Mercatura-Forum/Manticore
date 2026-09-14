@@ -1,4 +1,4 @@
-/// BankCore.mo; the banking domain state machine: admission, the fold, views.
+/// BankCore.mo: the banking domain state machine: admission, the fold, views.
 ///
 /// Shaped after `mo:journal/JournalCore`, deliberately. Every state change is
 /// one event applied by `apply`, which is the only place state changes; every
@@ -231,7 +231,7 @@ module {
     /// Cards (cards): cards, decisions, holds, clearing, disputes, statements.
     cards : CardCore.State;
     /// Closed-month packing as the log says it: the pack in progress and the boundary the reads
-    /// honour. The packs themselves; segments, rows, lists; live beside the indexes (`Packing`).
+    /// honour. The packs themselves, segments, rows, lists, live beside the indexes (`Packing`).
     packing : PackingFold;
     /// Shards: the routing rule's versions and the inter-shard transfers.
     shard : ShardCore.State;
@@ -463,7 +463,7 @@ module {
   };
 
   /// The bytes a pack keeps of bank block `index` whose stored bytes are `raw` (§18.2, §18.3): the same,
-  /// or; for an executed proposal whose reconstruction from its act hashes to the kept hash; the preimage
+  /// or, for an executed proposal whose reconstruction from its act hashes to the kept hash, the preimage
   /// and hash with the empty trailer. A proposal still awaiting, rejected or expired keeps its body; so does
   /// one whose family is not reconstructed, or whose reconstruction does not hash right.
   public func keptBytes(s : State, bb : Blocks, index : Nat, raw : Blob) : Blob {
@@ -1333,8 +1333,7 @@ module {
         // may not go credit at all. The limit lives on the journal's
         // (control account, sub-ledger, currency) triple, so it is enforced at
         // admission over posted and pending amounts by the same engine that
-        // enforces the balance invariant: engine-enforced rather than checked by
-        // the application.
+        // enforces the balance invariant.
         let sub = Posting.subledgerOf(identifier);
         let side = ProductCore.normalSideOf(v.terms.kind);
         let limit = Limits.journalLimit(side, v.terms.limits.overdraft);
@@ -1354,7 +1353,7 @@ module {
   /// decision to `recordScreeningDecision`'s, the lifecycle to `setPartyLifecycle`'s (active needs the
   /// due-diligence documents and a screening that permits movement), the extensions to
   /// `setPartyExtension`'s, each account to `openAccount`'s and `setAccountStatus`'s. The party's id is
-  /// the index of its `#partyCreated` block; the first block this act appends, `base`; and each
+  /// the index of its `#partyCreated` block, the first block this act appends, `base`, and each
   /// account's is the index of its `#accountOpened` block, so every id is known before anything is
   /// written. One refusal refuses the whole: nothing is applied unless all of it would be.
   func planCreateCustomer(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, c : T.CreateCustomer, base : Nat) : Result.Result<Plan, T.BankError> {
@@ -1784,7 +1783,7 @@ module {
       };
       case (#psTransfersRecorded) {
         // the attempt is the processing: the window is PROCESSING while the batch is prepared, and
-        // FAILED; re-drivable, back through PROCESSING; when the journal refuses it
+        // FAILED, re-drivable, back through PROCESSING, when the journal refuses it
         if (win.state != #processing) {
           switch (SettlementCore.planWindowTransition(bs.settlement, st.window, #processing, "settling")) { case (#ok(ev)) record(ev); case (#err(e)) return #err(#SettlementError({ error = e })) };
         };
@@ -5315,7 +5314,7 @@ module {
 
   /// A loan's schedule re-derived from an effective day under new terms and a rate (`rescheduleLoan`, a facility's
   /// restructuring across its drawings, a floating drawing's reset). `modification` says whether this is a
-  /// modification of the contract; a restructuring, with collections and recovery's stage move and the IFRS 9 §5.4.3 figure; or a
+  /// modification of the contract, a restructuring, with collections and recovery's stage move and the IFRS 9 §5.4.3 figure, or a
   /// contractual reset, which changes the rate and the schedule and nothing else (IFRS 9 B5.4.5).
   func reschedulePlan(bs : State, bb : Blocks, js : JCore.State, journalCaller : Principal, now : Nat64, authId : Text, account : ProdT.AccountId, effective : Nat, terms_ : ProdT.ScheduleTerms, rate : I.Rate, modification : Bool) : Result.Result<Plan, T.BankError> {
         let ?a = ProductCore.get(bs.product, productBlocks(bb), account) else return #err(#ProductError({ error = #UnknownAccount({ account = account }) }));
@@ -5893,7 +5892,7 @@ module {
   /// Three things happen here and nowhere else:
   ///
   ///   1. the requested date is resolved under the **product's** convention and the
-  ///      bank calendar, so the journal; whose policy is `#reject`; never shifts it;
+  ///      bank calendar, so the journal, whose policy is `#reject`, never shifts it;
   ///   2. a value date in the past is classified against the book's back-value window:
   ///      inside the free window it is admitted, in the approval band it needs a
   ///      recorded approval for that day, and beyond the band nothing admits it;
@@ -6123,7 +6122,7 @@ module {
 
   /// A cross-currency deal: four legs through the position pair, each currency
   /// balancing within itself, at the rate recorded for the day named. The rate is
-  /// read for that day alone; there is no nearest match and no carry-forward; and
+  /// read for that day alone, there is no nearest match and no carry-forward, and
   /// the amounts are checked against it so a deal cannot be booked at a rate it does
   /// not use.
   func fxDealPlan(
@@ -6469,7 +6468,7 @@ module {
   /// version registered at or after that block waits for the next run; the domain features active at that
   /// block, and the redenominations declared for the date. Nothing here counts rows, so nothing the day's work or
   /// the day's acts do can change the plan under a run (the adversarial audit of 13 September, finding B1; the
-  /// counts a chunk used to take on every advance; every account of every product decoded and sorted; were
+  /// counts a chunk used to take on every advance, every account of every product decoded and sorted, were
   /// finding A1). Bounded by the registry, not the customers.
   public func planInput(bs : State, book : Text, businessDate : Nat, asOfBlock : Nat, shardSize : Nat) : Batch.Input {
     let products = List.empty<{ product : Text; currency : JT.Currency; accrues : Bool; credit : Bool; term : Bool; charges : Bool }>();
@@ -6537,7 +6536,7 @@ module {
     n
   };
 
-  /// What one advance did. The run commits as it goes; see `runEndOfDayChunk`; so this
+  /// What one advance did. The run commits as it goes, see `runEndOfDayChunk`, so this
   /// is a report and not a plan the caller still has to apply.
   public type Advance = {
     completed : Bool;
@@ -6876,7 +6875,7 @@ module {
   /// in identifier order, in the item's own half-open position range.
   /// The accounts of the item's product in the run's book, `run.shardSize` a chunk, from where the previous chunk
   /// stopped: one page of the (product, book) index, each id decoded once. An account opened after the run
-  /// (`id > maxAccount`) ends the walk; ids ascend; and one closed since is skipped. The walk also stops before
+  /// (`id > maxAccount`) ends the walk, ids ascend, and one closed since is skipped. The walk also stops before
   /// an account when the chunk's failure list is full, handing back that account's id so nothing is dropped. A
   /// retry names one account and reads it by id, never the walk.
   func walkAccounts(bs : State, bb : Blocks, run : BatchCore.RunEntry, item : Batch.PlanItem, only : ?Text, sub : ?Blob, acc : ChunkAcc, body : (ProductCore.AccountEntry) -> ()) : ?Blob {
@@ -9532,7 +9531,7 @@ module {
   };
   /// The postings at a bill's end: at maturity the acceptor pays the face against bills discounted (and a
   /// rediscounted bill is redeemed across the correspondent account), the discount left is earned; on dishonour the
-  /// face is charged back to the customer under recourse; the discount earned in full; or written to bill losses
+  /// face is charged back to the customer under recourse, the discount earned in full, or written to bill losses
   /// without recourse, the unearned discount reducing the loss.
   func billEndLegs(bs : State, bb : Blocks, js : JCore.State, pol : TrT.Policy, r : TradeCore.InstrumentRow, b : TrT.Bill, dishonour : Bool, day : Nat) : Result.Result<[JT.Leg], T.BankError> {
     let sub = TradeCore.billSub(r.id);
@@ -10851,7 +10850,7 @@ module {
     for ((f, h) in Map.entries(s.features)) { w.text(f); w.nat64(h) };
     // The proposal and override rows, raw: each is a deterministic function of the log, so two folds
     // of the same log write the same bytes, and a fold that saw a different approval or resolution
-    // writes different ones. What a row points at; the command, the maker, the checkers; is in the
+    // writes different ones. What a row points at, the command, the maker, the checkers, is in the
     // log the fingerprint is compared across, so hashing the rows is hashing that.
     fingerprintRows(w, s.proposalRows);
     fingerprintRows(w, s.overrideRows);

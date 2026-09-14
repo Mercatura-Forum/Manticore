@@ -1,4 +1,4 @@
-/// Filings.mo; what leaves the building.
+/// Filings.mo: what leaves the building.
 ///
 /// Five output shapes, all deterministic in (what they report, the journal height) and all
 /// certified by their content hash:

@@ -1,4 +1,4 @@
-/// JournalMemLog.mo; test support: an in-heap *journal* block chain using the
+/// JournalMemLog.mo: test support: an in-heap *journal* block chain using the
 /// journal's production encoding and hashing, with no Region memory, so the bank
 /// core and the journal core can be driven together in the interpreter as well as
 /// under WASI.

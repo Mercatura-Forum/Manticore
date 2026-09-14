@@ -1,4 +1,4 @@
-/// MerkleMMR.mo; Merkle Mountain Range for O(log n) inclusion proofs
+/// MerkleMMR.mo: Merkle Mountain Range for O(log n) inclusion proofs
 ///
 /// Leaf hashes and internal node hashes are stored in Region stable memory.
 /// Proof generation reads O(log n) hashes from Region; no recomputation.

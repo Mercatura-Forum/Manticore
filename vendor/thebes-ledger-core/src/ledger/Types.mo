@@ -1,4 +1,4 @@
-/// Types.mo; ICRC-1/ICRC-2/ICRC-3 compliant types for self-indexed ledger
+/// Types.mo: ICRC-1/ICRC-2/ICRC-3 compliant types for self-indexed ledger
 ///
 /// Matches the official Candid spec exactly. Compatible with all existing
 /// ICRC tooling (wallets, explorers, DEXes).

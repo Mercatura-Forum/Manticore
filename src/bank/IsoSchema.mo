@@ -1,4 +1,4 @@
-/// IsoSchema.mo; validation of a parsed message against a generated ISO 20022 profile (IsoProfiles.mo).
+/// IsoSchema.mo: validation of a parsed message against a generated ISO 20022 profile (IsoProfiles.mo).
 ///
 /// The profile is the schema's own tree: content models with cardinalities, simple types with
 /// facets. This walks an element tree against it and reports every disagreement with a stable rule

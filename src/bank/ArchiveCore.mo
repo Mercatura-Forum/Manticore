@@ -1,8 +1,8 @@
-/// ArchiveCore.mo; the archive component's folded state, and the rule for every step.
+/// ArchiveCore.mo: the archive component's folded state, and the rule for every step.
 ///
 /// Pure. Nothing here sends a message or reads the chain: each `plan*` function looks at the state
 /// the log has produced and answers with the event the step would record, or the refusal. `Bank.mo`
-/// commits the event and; for the steps that have one; sends the management call **afterwards**, so
+/// commits the event and, for the steps that have one, sends the management call **afterwards**, so
 /// the record exists whatever the call's reply does to the continuation. `apply` is the fold, run on
 /// every block at commit time and again on replay, so what a resumer sees after a crash is exactly
 /// what the log says happened.
@@ -324,7 +324,7 @@ module {
 
   /// Step 3. From `#created`, or again from `#installIssued` (a retry with the **same** id; the engine
   /// refuses a second install onto a child that already holds code, which the driver reads as
-  /// "installed — confirm it"). The image is the current, sealed pin.
+  /// "installed; confirm it"). The image is the current, sealed pin.
   public func planInstall(s : State, id : AT.SpawnId) : Result.Result<{ event : AT.ArchiveEvent; cid : AT.Cid; image : Blob }, AT.ArchiveError> {
     let ?sp = spawn(s, id) else return #err(#UnknownSpawn({ spawn = id }));
     let ?img = currentImage(s) else return #err(#NoImagePinned);
@@ -341,7 +341,7 @@ module {
   };
 
   /// Step 4. From `#installIssued`. `offered` is the module hash the caller read from the chain.
-  /// It is compared against the parent's pin of the image it sent (`ArchiveTypes.mo`, the confirmation rule).
+  /// **Compared against the parent's pin of the image it sent; the marked gap** (`ArchiveTypes.mo`).
   /// A wrong hash is recorded as a refusal and leaves the spawn where the install can be retried;
   /// the empty-module hash in particular means the install did not land.
   public func planConfirm(s : State, id : AT.SpawnId, offered : Blob) : Result.Result<{ event : AT.ArchiveEvent; confirmed : Bool }, AT.ArchiveError> {

@@ -1,4 +1,4 @@
-// BatchPlan.test.mo; the end-of-day plan, as arithmetic.
+// BatchPlan.test.mo: the end-of-day plan, as arithmetic.
 //
 // The plan is what makes the batch safe to chunk, so it is proved on its own terms
 // before any of it is run:

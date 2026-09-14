@@ -1,4 +1,4 @@
-/// ArchiveRoll.mo; a sealed pack's segments to an archive child, and the journal's prefix gone.
+/// ArchiveRoll.mo: a sealed pack's segments to an archive child, and the journal's prefix gone.
 ///
 /// The roll is the second half of closed-month packing: the pack holds the range's blocks in a
 /// third of their bytes, and the roll moves those bytes to an archive contract, writes the

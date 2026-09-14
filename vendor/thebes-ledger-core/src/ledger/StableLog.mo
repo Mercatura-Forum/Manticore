@@ -1,4 +1,4 @@
-/// StableLog.mo; Append-only log backed by Region stable memory, with a prefix that can leave.
+/// StableLog.mo: Append-only log backed by Region stable memory, with a prefix that can leave.
 ///
 /// A Motoko equivalent of Rust's ic-stable-structures StableLog: survives upgrades, scales to
 /// gigabytes, O(1) append and O(1) random access. This version also lets a **prefix be truncated**
@@ -16,7 +16,7 @@
 ///   index chunk c; slots for entries [c·INDEX_CHUNK, (c+1)·INDEX_CHUNK): offset(8) ‖ len(4) ‖ region(4);
 ///   data regions; the entries' bytes, contiguous within a region; an entry never straddles two.
 ///
-/// The public surface the readers already use; `append`, `get`, `size`, `getRange`, `dataSize`; is
+/// The public surface the readers already use, `append`, `get`, `size`, `getRange`, `dataSize`, is
 /// unchanged; `get` answers null below the base as it does past the end.
 
 import Region "mo:core/Region";

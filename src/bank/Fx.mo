@@ -1,4 +1,4 @@
-/// Fx.mo; foreign currency, inside the journal's per-currency invariant.
+/// Fx.mo: foreign currency, inside the journal's per-currency invariant.
 ///
 /// The journal balances **per currency** and never converts: a two-leg USD/EGP
 /// posting is `#Unbalanced`, and the correct form is four legs through a position

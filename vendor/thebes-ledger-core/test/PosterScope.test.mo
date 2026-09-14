@@ -1,4 +1,4 @@
-// PosterScope.test.mo; account-scoped posters (proposal entitlements and maker-checker section 1.5).
+// PosterScope.test.mo: account-scoped posters (proposal entitlements and maker-checker section 1.5).
 //
 // The journal's poster set was a flat list: any poster could post to any
 // account. A recorded scope turns "only this principal posts to these control

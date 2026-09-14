@@ -1,4 +1,4 @@
-// CivilDate.test.mo; calendar arithmetic against independently computed vectors
+// CivilDate.test.mo: calendar arithmetic against independently computed vectors
 // (Python datetime, see the comment on each vector) and exhaustive round-trip.
 
 import Debug "mo:core/Debug";

@@ -1,4 +1,4 @@
-// Products.test.mo; the product engine's pure arithmetic and validation.
+// Products.test.mo: the product engine's pure arithmetic and validation.
 //
 // Everything in the product engine that is a function rather than a state machine, proved on its
 // own terms before the state machine uses it:

@@ -1,4 +1,4 @@
-/// OriginationCore.mo; the applications for credit, folded from the bank's log, in stable memory (origination and underwriting).
+/// OriginationCore.mo: the applications for credit, folded from the bank's log, in stable memory (origination and underwriting).
 ///
 /// One 220-byte row per application keyed by its id (the block index that opened it); an index by stage
 /// (stage ‖ application → 0) for the pipeline, by party (party ‖ application → stage) for a customer's

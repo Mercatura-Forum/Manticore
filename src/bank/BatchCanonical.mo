@@ -1,4 +1,4 @@
-/// BatchCanonical.mo; the canonical bytes of the batch vocabulary.
+/// BatchCanonical.mo: the canonical bytes of the batch vocabulary.
 
 import List "mo:core/List";
 

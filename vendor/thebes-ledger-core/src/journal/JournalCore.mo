@@ -1,4 +1,4 @@
-/// JournalCore.mo; the pure double-entry state machine.
+/// JournalCore.mo: the pure double-entry state machine.
 ///
 /// This module holds no Region memory, performs no I/O and reads no clock:
 /// every function takes the current time as an argument and returns either an

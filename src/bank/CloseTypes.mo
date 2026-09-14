@@ -1,4 +1,4 @@
-/// CloseTypes.mo; the vocabulary of value dating, foreign currency and the close.
+/// CloseTypes.mo: the vocabulary of value dating, foreign currency and the close.
 ///
 /// Everything value dating and the close records, in one place, so the bank's own event list can name it
 /// without importing the state module. The shapes follow the same rules as the rest

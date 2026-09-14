@@ -1,4 +1,4 @@
-/// FacadeCert.mo; certified data for the token-ledger facade.
+/// FacadeCert.mo: certified data for the token-ledger facade.
 ///
 /// Below the journal activation height the certified tree is exactly the
 /// ICRC-ME tree (`CertifiedTree.buildTipTree`: labeled "tip" → fork(labeled

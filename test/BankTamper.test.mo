@@ -1,4 +1,4 @@
-// BankTamper.test.mo; the bank log's block encoding, and tamper detection.
+// BankTamper.test.mo: the bank log's block encoding, and tamper detection.
 //
 // Every `Event` variant round-trips byte-for-byte, including a proposal carrying
 // every `Command` variant; a single flipped byte anywhere in a block is detected

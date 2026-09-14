@@ -1,4 +1,4 @@
-/// PartyCore.mo; the party / CIF and KYC sub-state machine.
+/// PartyCore.mo: the party / CIF and KYC sub-state machine.
 ///
 /// Owned by `BankCore.State` as one field and folded by `BankCore.apply`, so
 /// there is still exactly one log and one fold. Everything here is either a
@@ -17,7 +17,7 @@
 /// The heap holds nothing per party. A party *is* its `#partyCreated` block; what happened to it
 /// since is later blocks. The fold keeps one fixed-width **row** per party in stable memory
 /// (`PartyRow`): the lifecycle, the screening as the movement gate needs it, the review date, and
-/// pointers; block indices; to the blocks that hold the current attributes, due-diligence
+/// pointers, block indices, to the blocks that hold the current attributes, due-diligence
 /// decision and extension values; and three small stable indexes list the blocks that added each
 /// document, relationship and identifier. A `PartyEntry` is rebuilt from the row and those blocks
 /// when a reader or a planner needs one. The movement gate reads the row alone, because it runs on

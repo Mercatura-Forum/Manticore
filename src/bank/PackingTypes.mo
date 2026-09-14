@@ -1,4 +1,4 @@
-/// PackingTypes.mo; closed-month packing as the bank records and refuses it.
+/// PackingTypes.mo: closed-month packing as the bank records and refuses it.
 ///
 /// A pack is a closed range of the journal; the blocks from the last pack's end to the block that
 /// closed a period; packed into segments that unpack byte for byte, with one summary row and one

@@ -1,4 +1,4 @@
-/// DayCount.mo; day-count fractions, as exact rationals.
+/// DayCount.mo: day-count fractions, as exact rationals.
 ///
 /// Day counts are where two correct-looking implementations disagree by money, so
 /// nothing here is a floating-point number. A fraction is returned as a rational
@@ -144,7 +144,7 @@ module {
       case (#a001_ActActIcma({ couponsPerYear })) {
         // ICMA Rule 251: the period's actual days over (coupons per year × the
         // days in the coupon period the dates sit in). With `from`/`to` being the
-        // coupon period itself; the usual case; this is exactly 1/couponsPerYear.
+        // coupon period itself, the usual case, this is exactly 1/couponsPerYear.
         let f = if (couponsPerYear == 0) 1 else couponsPerYear;
         { numerator = days; denominator = f * days }
       };

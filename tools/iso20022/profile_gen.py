@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""profile_gen.py — the element-and-cardinality profile of each ISO 20022 family, derived from the
+"""profile_gen.py; the element-and-cardinality profile of each ISO 20022 family, derived from the
 official XSD, written as Motoko data (src/bank/IsoProfiles.mo) and as JSON (tools/iso20022/profiles/).
 
 The canister cannot ship a general XSD processor; what it enforces is this profile: every complex
@@ -194,7 +194,7 @@ def emit(schema, family, const, src_hash):
             parts = GS.join(FS.join([pt["name"], str(idx[pt["type"]] if pt["type"] is not None else 0), str(pt["min"]), opt(pt["max"])]) for pt in t["particles"])
             recs.append(US.join(["Q" if t["model"] == "sequence" else "H", name, parts]))
     body = RS.join(recs)
-    return (f"  /// {family} — generated from {family}.xsd (SHA-256 {src_hash}); {len(recs)} types.\n"
+    return (f"  /// {family}; generated from {family}.xsd (SHA-256 {src_hash}); {len(recs)} types.\n"
             f"  public func {const}() : Schema {{ decode({mo_text(family)}, {mo_text(schema['namespace'])}, {mo_text(schema['rootName'])}, {idx[schema['rootType']]}, {mo_text(src_hash)}, {enc_text(body)}) }};\n")
 
 
@@ -298,7 +298,7 @@ module {
     # the per-function size the compiler accepts (1,000,000) past ~30 families; `byNamespace` builds only the one asked for
     calls = ", ".join(f"{n}()" for n in names)
     cases = "".join(f"      case ({mo_text(ns)}) ?{n}();\n" for n, ns in zip(names, namespaces))
-    footer = (f"  /// The profile of one family by its namespace — the one schema built, nothing else.\n"
+    footer = (f"  /// The profile of one family by its namespace; the one schema built, nothing else.\n"
               f"  public func byNamespace(namespace : Text) : ?Schema {{\n    switch (namespace) {{\n{cases}      case (_) null;\n    }}\n  }};\n"
               f"  /// Every profile, built on each call (the caller keeps it if it needs it more than once).\n"
               f"  public func all() : [Schema] {{ [{calls}] }};\n}}\n")

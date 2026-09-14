@@ -1,4 +1,4 @@
-// Facility.test.mo; corporate lending's facilities as the bank records them (corporate lending), on the pure core over a real
+// Facility.test.mo: corporate lending's facilities as the bank records them (corporate lending), on the pure core over a real
 // stable-memory arena.
 //
 // What is proved:

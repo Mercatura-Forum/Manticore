@@ -1,4 +1,4 @@
-// Monitoring.test.mo; the aggregates and the closed rule set against a brute-force oracle.
+// Monitoring.test.mo: the aggregates and the closed rule set against a brute-force oracle.
 //
 // The addendum's acceptance: "for random journals and every rule type, the incremental alerts equal
 // a brute-force recomputation over the whole journal: same alerts, same cited postings." Here the

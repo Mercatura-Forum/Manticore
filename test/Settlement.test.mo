@@ -1,4 +1,4 @@
-// Settlement.test.mo; settlement on the pure state machine: the cap is the engine's, prefunding
+// Settlement.test.mo: settlement on the pure state machine: the cap is the engine's, prefunding
 // is a posting, netting conserves (INV-P1), settlement is one batch (INV-P2), and every reference
 // state is reached or named unreachable.
 //
@@ -596,7 +596,7 @@ for (k in ["PRINCIPLE_VALUE", "INTERCHANGE_FEE", "HUB_FEE", "SETTLEMENT_NET_RECI
 Debug.print("count: entry kinds produced as posting classes = " # Nat.toText(present));
 // SETTLEMENT_NET_ZERO is a net recorded and not posted (above); POSITION_DEPOSIT and POSITION_WITHDRAWAL are
 // the cap raised and lowered; Mojaloop's seed describes them as "used when increasing/decreasing Net Debit
-// Cap" — here `grantFacility` on the position, the journal's own limit event
+// Cap"; here `grantFacility` on the position, the journal's own limit event
 let capChanged = newParticipant(60, CAP);
 let capAcct = posOf(capChanged, "EGP");
 assert (JCore.balanceLimit(js, "2130", ?entryOf(capAcct).subledger, "EGP") == ?#debitsNotExceedCreditsPlus(CAP));

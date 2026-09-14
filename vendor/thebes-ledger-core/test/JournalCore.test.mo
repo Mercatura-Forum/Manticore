@@ -1,4 +1,4 @@
-// JournalCore.test.mo; the acceptance battery on the pure state machine.
+// JournalCore.test.mo: the acceptance battery on the pure state machine.
 // Criteria 1 (balance invariant), 2 (immutability), 3 (idempotency), 4 (two-phase),
 // 5 (value dating and period close), 6 (trial balance vs independent fold),
 // 8 (leadsheet mapping) and the replay half of 10 (restart), plus authorization

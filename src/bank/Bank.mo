@@ -1,4 +1,4 @@
-/// Bank.mo; the banking domain canister, with the journal embedded.
+/// Bank.mo: the banking domain canister, with the journal embedded.
 ///
 /// Composition (the same shape `src/facade/TokenLedger.mo` uses in the pinned
 /// submodule for the ICRC surface):
@@ -247,7 +247,7 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   /// How the bank reads its own proposals and overrides back: its log. The state keeps a row per
-  /// one; what happened to it; and the block is the thing itself, so nothing holds a command twice.
+  /// one, what happened to it, and the block is the thing itself, so nothing holds a command twice.
   /// A bank block's stored bytes below the log's base: the packs' (§18.3).
   func packedBankBlock(i : Nat) : ?Blob { Packing.bankBlock(packing, i) };
   /// The bank log as every reader sees it: the `StableLog`, and below its base the packs.
@@ -355,7 +355,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// A prepared transfer is reserved in the message that recorded it: the journal's two-phase
   /// posting against the payer's and the payee's positions, expiring with the transfer. The
-  /// engine's refusal; the cap, above all; is recorded as the transfer's failure, so a payment
+  /// engine's refusal, the cap, above all, is recorded as the transfer's failure, so a payment
   /// that could not be reserved is in the trail with the journal's own reason.
   func reserveOnEvent(b : T.Block) {
     switch (b.event) {
@@ -454,7 +454,7 @@ shared (initMsg) persistent actor class Bank(init : {
   func journalBlocks() : JCore.Blocks { { get = func(i : Nat) : ?JT.Block { JLog.get(journalLog, i) } } };
 
   /// The instruction meter over every journal commit: what a posting costs the contract in
-  /// instructions; the log append, the journal's fold, the indexes and the aggregates; read by
+  /// instructions, the log append, the journal's fold, the indexes and the aggregates, read by
   /// the measured runs against `the capacity model` §6. Split by what the index component
   /// added (`indexInstructions`) and the whole.
   var meterCommits : Nat = 0;
@@ -784,7 +784,7 @@ shared (initMsg) persistent actor class Bank(init : {
   /// One bounded step of the open pack. Open to any caller for the same reason `advanceEndOfDay`
   /// is: the pack's range and phases were fixed by the dual-authorised opening, every segment has
   /// round-tripped before it is stored, and the blocks are attributed to the canister. Each step
-  /// is a bank block; a segment, an advance, the seal; so the log carries the pack's progress and
+  /// is a bank block, a segment, an advance, the seal, so the log carries the pack's progress and
   /// a restart resumes from what the engine holds.
   public shared func advancePacking(limit : Nat) : async Result.Result<PackAdvanceResult, T.BankError> {
     switch (rebuildingError()) { case (?e) return #err(e); case null {} };
@@ -2554,7 +2554,7 @@ shared (initMsg) persistent actor class Bank(init : {
   ///
   /// `heapBytes` is the figure that matters most: the heap is resident memory, which is why "the heap
   /// does not grow with the number of postings" matters more than it looks. `indexBytes` is the stable memory the indexes occupy, which is what
-  /// the capacity model predicts; so a measured run reads both
+  /// `the capacity model` predicts; so the measured runs of the directive's Addition 2 read both
   /// here rather than inferring them from the outside.
   public query func runtimeMemory() : async {
     heapBytes : Nat;
@@ -3469,7 +3469,7 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// Step 3: record that an install is issued, then `install_code` with the sealed image and an
   /// **empty** init argument. Repeatable for the same id; the engine refuses a second install onto a
-  /// child that holds code, which the caller reads as "installed — confirm it".
+  /// child that holds code, which the caller reads as "installed; confirm it".
   public shared ({ caller }) func installArchiveChild(spawn : Nat) : async Result.Result<{ spawn : Nat; cid : Nat64; image : Blob; bytes : Nat; block : Nat }, T.BankError> {
     switch (requireMethodPermission(caller, "installArchiveChild")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     let plan = switch (ArchiveCore.planInstall(bank.archive, spawn)) { case (#err(e)) return archiveErr(e); case (#ok(p)) p };
@@ -3489,9 +3489,10 @@ shared (initMsg) persistent actor class Bank(init : {
     #ok({ raw; status = switch (AW.parseStatusReply(raw)) { case (#ok(st)) ?st; case (#err(_)) null } })
   };
 
-  /// Step 4, await-free. `moduleHash` is what the caller read from the chain, and it is compared with
-  /// the parent's own pin of the image it sent (the confirmation rule). A refusal is recorded and the
-  /// install can be retried; the empty-module hash means it never landed.
+  /// Step 4, await-free. **The marked gap:** `moduleHash` is what the caller read from the chain, and
+  /// it is compared with the parent's own pin of the image it sent; not with a hash the parent read
+  /// itself, which it cannot do in a continuation today. A refusal is recorded and the install can
+  /// be retried; the empty-module hash means it never landed.
   public shared ({ caller }) func confirmArchiveChild(spawn : Nat, moduleHash : Blob) : async Result.Result<{ spawn : Nat; cid : Nat64; confirmed : Bool; block : Nat }, T.BankError> {
     switch (requireMethodPermission(caller, "confirmArchiveChild")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     switch (ArchiveCore.planConfirm(bank.archive, spawn, moduleHash)) {
@@ -3754,7 +3755,7 @@ shared (initMsg) persistent actor class Bank(init : {
   public query func listCurrencies() : async [JT.CurrencyInfo] { JCore.listCurrencies(journal) };
   public query func trialBalance(period : JT.PeriodId) : async ?JT.TrialBalance { JCore.trialBalance(journal, period) };
   public query func trialBalanceMapped(period : JT.PeriodId) : async ?JT.MappedTrialBalance { JCore.mappedTrialBalance(journal, period) };
-  /// The general ledger of a period. Its shape is a nest; accounts, each with its entries; so a flat
+  /// The general ledger of a period. Its shape is a nest, accounts, each with its entries, so a flat
   /// cursor would not describe it; it is bounded the way a report is bounded instead. The period's own
   /// posting count is the size, it is checked **before** the fold runs, and a period past the bound is
   /// refused naming its size and what to do about it.

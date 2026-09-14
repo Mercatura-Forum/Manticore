@@ -1,4 +1,4 @@
-/// FspiopTypes.mo; FSPIOP (Mojaloop Open API for FSP Interoperability, v1.1) on the settlement layer
+/// FspiopTypes.mo: FSPIOP (Mojaloop Open API for FSP Interoperability, v1.1) on the settlement layer
 ///: the types.
 ///
 /// The adapter is not a second core. A rail's participants are named by their FSP ids; a

@@ -1,4 +1,4 @@
-// PeriodEnd.test.mo; the close end to end, through the real core.
+// PeriodEnd.test.mo: the close end to end, through the real core.
 //
 // The value dating and the close criteria that are properties of the state machine rather than of the
 // arithmetic, each driven through `planCommand` against a real embedded journal:
@@ -620,7 +620,7 @@ expectNoOp(#recordClosingRates({ book = "HQ"; period = "2026-01" }));
 switch (CloseCore.getRun(bs.close, "HQ", "2026-01")) { case (?r) assert (r.state == #ratesRecorded); case null assert false };
 
 // V5: the accrual cut-off. The business date has not reached the closing date
-// yet; it is the day after the last accrual we posted; so either the roll or a
+// yet, it is the day after the last accrual we posted, so either the roll or a
 // missing day blocks the close, and the refusal says which.
 switch (Core.planCommand(bs, BankMemLog.reader(bchain), js, JMemLog.reader(jchain), bankP, clock, #markAccrualComplete({ book = "HQ"; period = "2026-01" }), nextAuthority())) {
   case (#err(e)) {

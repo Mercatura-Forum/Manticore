@@ -1,4 +1,4 @@
-/// RegionBTree.mo; B-tree in Region stable memory
+/// RegionBTree.mo: B-tree in Region stable memory
 ///
 /// A sorted key-value map stored entirely in IC Region memory. Page-aligned
 /// nodes with configurable branching factor. Supports lookup, insert, and

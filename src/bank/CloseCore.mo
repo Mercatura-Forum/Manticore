@@ -1,4 +1,4 @@
-/// CloseCore.mo; the close layer's state, which is the fold of the log.
+/// CloseCore.mo: the close layer's state, which is the fold of the log.
 ///
 /// Rates, position pairs, deferral schedules, back-value windows and approvals, the
 /// period-end runs and the books closed per period. No balance: a position is a

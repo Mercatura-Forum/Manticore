@@ -1,4 +1,4 @@
-/// TermProducts.mo; fixed deposits, recurring deposits and share accounts.
+/// TermProducts.mo: fixed deposits, recurring deposits and share accounts.
 ///
 /// A term product is a deposit with a maturity and a rate chosen from a chart by
 /// **term**, not by balance: a 180-day deposit earns the 180-day band's rate for

@@ -1,11 +1,11 @@
-/// FspiopCore.mo; the FSPIOP v1.1 adapter's state and its planning.
+/// FspiopCore.mo: the FSPIOP v1.1 adapter's state and its planning.
 ///
 /// State: the participant directory per rail (FSP id ↔ participant, callback endpoints per type),
 /// the account-lookup oracle (party identifier → FSP), the quotes recorded on their way through, and
 /// every FSPIOP transfer bound to its settlement transfer with the ILP condition it must be fulfilled
 /// against. All of it derived from the bank's blocks and rebuilt by replay.
 ///
-/// Planning: `handle` reads one request; method, path, headers, JSON body; validates it the way the
+/// Planning: `handle` reads one request, method, path, headers, JSON body, validates it the way the
 /// specification does (the mandatory elements, the data types' patterns, the FSPIOP headers, the
 /// content type's resource and version) and says what it is: a synchronous refusal with the error
 /// shape, a routing (a forward to the destination FSP), or an act on the settlement layer (a transfer

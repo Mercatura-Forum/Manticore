@@ -1,4 +1,4 @@
-/// Commitments.mo; how the canister verifies data it never holds.
+/// Commitments.mo: how the canister verifies data it never holds.
 ///
 /// A commitment is `SHA-256( domain ‖ salt ‖ normalised value )`, domain-separated
 /// so a commitment for one purpose can never be replayed as a commitment for

@@ -1,4 +1,4 @@
-/// JournalArchive.mo; read-only archive canister for journal blocks.
+/// JournalArchive.mo: read-only archive canister for journal blocks.
 ///
 /// Same mechanism as the canonical ledger's `Archive.mo`: spawned by the
 /// journal, accepts raw block bytes only from its parent, serves them by

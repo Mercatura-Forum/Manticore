@@ -1,4 +1,4 @@
-/// Posting.mo; domain facts become journal postings, deterministically.
+/// Posting.mo: domain facts become journal postings, deterministically.
 ///
 /// Every posting the product engine produces is built here, and every one of them
 /// carries a **derived** idempotency key: a domain-separated digest of the facts

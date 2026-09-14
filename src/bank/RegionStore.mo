@@ -1,4 +1,4 @@
-/// RegionStore.mo; an append-only byte store in one Region.
+/// RegionStore.mo: an append-only byte store in one Region.
 ///
 /// What a pack's bytes and its per-account posting lists are kept in: appended once, read by
 /// offset and length, never rewritten. A store can be **reset** to be filled again; a Region is

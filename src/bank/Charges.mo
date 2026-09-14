@@ -1,4 +1,4 @@
-/// Charges.mo; the fee and charge engine, as pure functions.
+/// Charges.mo: the fee and charge engine, as pure functions.
 ///
 /// A charge definition is (calculation, timing, amount or rate, currency, income
 /// role, waivable). Fineract's `m_charge` is the reference shape, and the

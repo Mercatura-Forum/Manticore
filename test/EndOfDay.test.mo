@@ -1,4 +1,4 @@
-// EndOfDay.test.mo; the end-of-day batch end to end, through the real core.
+// EndOfDay.test.mo: the end-of-day batch end to end, through the real core.
 //
 // The the end-of-day batch criteria that are properties of the run rather than of the plan's
 // arithmetic. `BatchPlan.test.mo` proves the plan on its own terms; this drives
@@ -744,7 +744,7 @@ for (i in runs.keys()) {
     # " examined " # Nat.toText(runs[i].examined) # " zero " # Nat.toText(runs[i].zeroMovement)
     # " chunks " # Nat.toText(runs[i].chunks));
 };
-// the item count no longer changes with the shard size; an item is a walk, the size is its page; so the plan's
+// the item count no longer changes with the shard size, an item is a walk, the size is its page, so the plan's
 // hash is the same at every size and the number of chunks is what moves (S4.1 audit, finding A1)
 assert (runs[0].items == runs[2].items and runs[0].planHash == runs[2].planHash);
 assert (runs[0].chunks > runs[2].chunks);

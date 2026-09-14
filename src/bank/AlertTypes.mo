@@ -1,4 +1,4 @@
-/// AlertTypes.mo; an alert is a finding with a review.
+/// AlertTypes.mo: an alert is a finding with a review.
 ///
 /// A monitoring rule that is met produces a finding (`MonitoringTypes.Finding`); an alert is that
 /// finding **recorded**; in a bank block, at posting time for the cheap rules and by the

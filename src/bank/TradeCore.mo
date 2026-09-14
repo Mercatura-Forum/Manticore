@@ -1,4 +1,4 @@
-/// TradeCore.mo; the trade book folded from the bank's log in stable memory (trade finance): instruments, the claims
+/// TradeCore.mo: the trade book folded from the bank's log in stable memory (trade finance): instruments, the claims
 /// under them, the messages exchanged, and the contingent memoranda.
 ///
 /// Rows: one per instrument (keyed by the block that issued, advised, registered or discounted it) with the fixed

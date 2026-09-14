@@ -1,4 +1,4 @@
-/// TreasuryTypes.mo; treasury (treasury): deals as commands, positions as folds, valuation by declared curves, P&L on
+/// TreasuryTypes.mo: treasury (treasury): deals as commands, positions as folds, valuation by declared curves, P&L on
 /// the journal, nostro reconciliation as a fold over the correspondent's statements.
 ///
 /// A deal is a recorded contract on the bank log: a money-market placement or taking, an FX forward or swap

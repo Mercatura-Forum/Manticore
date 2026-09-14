@@ -1,4 +1,4 @@
-/// Till.mo; cashier drawers, and why a difference can never be absorbed.
+/// Till.mo: cashier drawers, and why a difference can never be absorbed.
 ///
 /// A till is a cash account with a constraint: it is an asset sub-ledger under the
 /// vault's control account, held by one named cashier, and it may not go credit;

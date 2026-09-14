@@ -1,4 +1,4 @@
-// Reporting.test.mo; the reporting layer through the real bank.
+// Reporting.test.mo: the reporting layer through the real bank.
 //
 // `ReportEngine.test.mo` proves the arithmetic against a bare journal. What needs the bank is
 // everything that reads the bank's own state, and it is the part a fixture would have hidden:

@@ -1,4 +1,4 @@
-/// CardMessages.mo; the cards domain's ISO 20022 documents (cards): the acquirer's authorization request as
+/// CardMessages.mo: the cards domain's ISO 20022 documents (cards): the acquirer's authorization request as
 /// cain.001.001.04 parsed into the request the decision engine reads (the token in place of the PAN, the HSM's
 /// verdicts as verification results), and the issuer's response as cain.002.001.04 rendered from the decision with
 /// the ISO 8583 response code and the approval code. ISO 8583 itself is the connector's dialect: the battery's

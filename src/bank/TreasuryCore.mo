@@ -1,4 +1,4 @@
-/// TreasuryCore.mo; the treasury book folded from the bank's log in stable memory (treasury): deals, securities,
+/// TreasuryCore.mo: the treasury book folded from the bank's log in stable memory (treasury): deals, securities,
 /// curves, limits, nostros, the nostro's own postings as an index over the journal, statements and breaks.
 ///
 /// Rows: one per deal (keyed by the block that captured it) with the fixed facts and the running figures the
@@ -49,7 +49,7 @@ module {
   public let NOSTRO_LEG_ROW_BYTES : Nat = 26;
   public let BREAK_ROW_BYTES : Nat = 80;
   public let STATEMENT_ROW_BYTES : Nat = 44;
-  /// Forty pillars; overnight to thirty years on a market grid; and 128 payment periods, a quarterly swap to
+  /// Forty pillars, overnight to thirty years on a market grid, and 128 payment periods, a quarterly swap to
   /// thirty-two years (S4.1, the treasury review raised both from 16 and 64).
   public let MAX_CURVE_POINTS : Nat = 40;
   public let MAX_STATEMENT_ENTRIES : Nat = 500;
@@ -1357,7 +1357,7 @@ module {
   };
   /// The open breaks from a cursor over the status index, one page: what the end-of-day job walks chunk by chunk
   /// (S4.1, the treasury review; the whole-index walk this replaced ran inside one message).
-  /// One page of the breaks; open ones, or every one; of one nostro or of all, off the status index from a cursor;
+  /// One page of the breaks, open ones, or every one, of one nostro or of all, off the status index from a cursor;
   /// `limit` bounds the index entries examined, so a page filtered to one nostro may be short.
   public func breaksFrom(s : State, nostroId : ?Text, includeResolved : Bool, cursor : ?Blob, limit : Nat) : { rows : [BreakRow]; cursor : ?Blob } {
     let h : ?Nat = switch (nostroId) { case (?n) { switch (nostro(s, n)) { case (?nr) ?nr.accountHash; case null return { rows = []; cursor = null } } }; case null null };

@@ -1,4 +1,4 @@
-/// Batch.mo; the end-of-day run's plan, as pure arithmetic.
+/// Batch.mo: the end-of-day run's plan, as pure arithmetic.
 ///
 /// A canister message has a bounded instruction budget, so a run over a portfolio of
 /// any size cannot be one message. The moment it is chunked, three failure modes open
@@ -10,7 +10,7 @@
 /// passed, unless a posting is back-valued into it. So while a run for a date is open
 /// the bank layer refuses any posting value-dated on or before it. The book for the
 /// date is closed to new history for the duration of the run, which is what "close of
-/// business" has always meant. The alternative — letting back-valued postings land and
+/// business" has always meant. The alternative; letting back-valued postings land and
 /// partially recomputing an in-flight run; makes the output a function of arrival
 /// order, which is the class of bug that is invisible in testing and expensive in
 /// production.
@@ -167,7 +167,7 @@ module {
   /// waits for the next run), the domain flags are the features active at that block, the redenominations
   /// are those declared for the date. Nothing here counts rows: an item over a product, a book's
   /// instructions, tills, offers, facilities, instruments, contracts, deals or cards is in the plan whether
-  /// the book holds one of them or none; an item over nothing examines nothing; so no account opening,
+  /// the book holds one of them or none, an item over nothing examines nothing, so no account opening,
   /// closing, capture, settlement or definition during the run can change the plan's hash and leave the
   /// run unadvanceable (the adversarial audit of 13 September, finding B1).
   public type Input = {
@@ -272,7 +272,7 @@ module {
   /// account for each position of a per-account shard, one instruction, one till check.
   ///
   /// This is not the same number as a run's `examined` total and is not meant to be.
-  /// The aggregate accrual names one entity; the product; and examines every account
+  /// The aggregate accrual names one entity, the product, and examines every account
   /// of it, and the till check names one entity and examines every open till of the
   /// book. So `examined` is at least `entities` and usually more. What both figures are
   /// is **independent of the shard size**, which is the property chunking has to have.

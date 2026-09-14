@@ -1,4 +1,4 @@
-/// Feed.mo; the certified pull feed, and the recorded pusher.
+/// Feed.mo: the certified pull feed, and the recorded pusher.
 ///
 /// A canister cannot hold a socket open, so the primary mechanism is a **pull** feed: a
 /// consumer asks for events after a cursor and receives them together with the certified

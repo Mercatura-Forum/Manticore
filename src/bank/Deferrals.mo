@@ -1,4 +1,4 @@
-/// Deferrals.mo; unearned income and prepaid expense, amortised on a schedule.
+/// Deferrals.mo: unearned income and prepaid expense, amortised on a schedule.
 ///
 /// A deferral is the mirror image of an accrual: money received or paid for a period
 /// that has not yet elapsed. Unearned income sits in a liability until it is earned;

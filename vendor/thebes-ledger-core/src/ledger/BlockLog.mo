@@ -1,4 +1,4 @@
-/// BlockLog.mo; Append-only transaction log with cryptographic hash chain
+/// BlockLog.mo: Append-only transaction log with cryptographic hash chain
 ///
 /// Each block is SHA-256 chained to its predecessor; encoded in a compact
 /// binary format (v3); and stored in Region-backed stable memory via StableLog.

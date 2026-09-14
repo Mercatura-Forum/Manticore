@@ -1,4 +1,4 @@
-/// JournalCert.mo; IC certified data for the journal tip.
+/// JournalCert.mo: IC certified data for the journal tip.
 ///
 /// The canister's certified data is the root hash of this tree:
 ///

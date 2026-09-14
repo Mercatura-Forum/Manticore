@@ -1,4 +1,4 @@
-// Archive.test.mo; the archive spawning flow, interrupted after every step.
+// Archive.test.mo: the archive spawning flow, interrupted after every step.
 //
 // The archive rule: "Every step must be safely repeatable and resumable. A
 // crash or rollback between any two steps must leave a state the next call can finish, never a
@@ -485,7 +485,7 @@ assert (AC.counts(bs.archive).refusedConfirmations == 1);
 switch (stepInstall(spawn1)) { case (#ok(c)) assert (c == cid1); case (other) { Debug.print(debug_show (other)); assert false } };
 switch (AC.spawn(bs.archive, spawn1)) { case (?sp) { switch (sp.status) { case (#installIssued(i)) assert (i.attempts == 2); case (_) assert false } }; case null assert false };
 crash(); invariant();
-// a third install is refused by the chain; the child holds code; which the driver reads as "confirm"
+// a third install is refused by the chain, the child holds code, which the driver reads as "confirm"
 switch (stepInstall(spawn1)) { case (#chain(w)) assert (Text.equal(w, "CanisterAlreadyHasWasm")); case (other) { Debug.print(debug_show (other)); assert false } };
 crash(); invariant();
 

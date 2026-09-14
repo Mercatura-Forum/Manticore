@@ -1,4 +1,4 @@
-// MlDsa44.test.mo; ML-DSA-44 verification against the NIST known-answer vectors.
+// MlDsa44.test.mo: ML-DSA-44 verification against the NIST known-answer vectors.
 //
 // What is proved: each KAT signature (pk, ctx, msg, σ from the reference implementation's answer
 // file) verifies under `MlDsa44.verify`; the same signature is refused when one byte of the

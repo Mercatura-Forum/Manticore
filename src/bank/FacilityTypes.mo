@@ -1,4 +1,4 @@
-/// FacilityTypes.mo; corporate lending (corporate lending): the facility as the contract the bank and the borrower sign, of
+/// FacilityTypes.mo: corporate lending (corporate lending): the facility as the contract the bank and the borrower sign, of
 /// which a loan account is one drawing. Bilateral and revolving facilities, syndications with the bank as agent
 /// or participant, restructuring across every drawing, finance and operating leases, factoring and forfaiting,
 /// covenants, pricing as data with recorded rate fixings.

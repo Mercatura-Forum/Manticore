@@ -1,4 +1,4 @@
-/// JournalTypes.mo; the vocabulary of the double-entry journal.
+/// JournalTypes.mo: the vocabulary of the double-entry journal.
 ///
 /// Everything the journal records is one of the `Event` variants below, and
 /// every event is one immutable block in the Merkle-committed journal log.

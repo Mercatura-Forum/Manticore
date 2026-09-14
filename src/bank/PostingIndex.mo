@@ -1,4 +1,4 @@
-/// PostingIndex.mo; the four posting indexes of `the capacity model`, in stable memory,
+/// PostingIndex.mo: the four posting indexes of `the capacity model`, in stable memory,
 /// maintained in the posting's own message.
 ///
 /// The proposal (the index design) asks for four access paths

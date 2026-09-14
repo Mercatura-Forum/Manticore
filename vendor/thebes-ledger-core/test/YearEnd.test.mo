@@ -1,4 +1,4 @@
-// YearEnd.test.mo; the journal calendar year-end roll on the pure core: after the roll every
+// YearEnd.test.mo: the journal calendar year-end roll on the pure core: after the roll every
 // income and expense account has zero cumulative balance per currency, retained
 // earnings moved by the net, the roll is idempotent, and a fresh year starts clean.
 //

@@ -1,4 +1,4 @@
-// Packing.test.mo; closed-month packing against a brute-force oracle, interrupted at every step.
+// Packing.test.mo: closed-month packing against a brute-force oracle, interrupted at every step.
 //
 // What is proved, on a random journal through the real log with two periods and a close between:
 //

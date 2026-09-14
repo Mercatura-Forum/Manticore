@@ -1,4 +1,4 @@
-// Fspiop.test.mo; FSPIOP v1.1 interoperability on the settlement layer, on the pure
+// Fspiop.test.mo: FSPIOP v1.1 interoperability on the settlement layer, on the pure
 // state machine.
 //
 // The world of Settlement.test.mo with a rail and four participants named by FSP ids; then requests

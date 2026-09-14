@@ -1,4 +1,4 @@
-/// MonitoringTypes.mo; the closed rule set, as declared data.
+/// MonitoringTypes.mo: the closed rule set, as declared data.
 ///
 /// A monitoring rule is not an expression: there is no language to write one in. It is one of the
 /// eight types below with its fixed parameters, declared under dual authorisation, versioned, and

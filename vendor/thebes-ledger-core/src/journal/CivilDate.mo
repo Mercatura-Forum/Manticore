@@ -1,4 +1,4 @@
-/// CivilDate.mo; proleptic Gregorian calendar arithmetic on day numbers.
+/// CivilDate.mo: proleptic Gregorian calendar arithmetic on day numbers.
 ///
 /// A `Day` is the number of whole days since 1970-01-01 (UTC). The journal
 /// stores posting dates and value dates as `Day` so that period membership,

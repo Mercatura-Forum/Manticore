@@ -1,4 +1,4 @@
-// BalanceLimits.test.mo; numeric balance limits and chart-of-accounts attributes.
+// BalanceLimits.test.mo: numeric balance limits and chart-of-accounts attributes.
 //
 // The two additive journal changes the product engine needs (operator decision
 // D-2), proved on the pure state machine.

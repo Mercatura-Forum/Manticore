@@ -1,4 +1,4 @@
-// Mayo2.test.mo; MAYO-2 verification against the pq-mayo consensus vectors, through the scheme adapter.
+// Mayo2.test.mo: MAYO-2 verification against the pq-mayo consensus vectors, through the scheme adapter.
 //
 // What is proved: each real vector (compact public key, message, signature from the pq-mayo
 // reference) verifies under `PqSchemes.verifyMayo2`; a bit flipped in the message, in the signature

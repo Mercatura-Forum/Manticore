@@ -1,4 +1,4 @@
-/// Pack.mo; a closed range of journal blocks, re-encoded column-wise, and unpacked to the exact
+/// Pack.mo: a closed range of journal blocks, re-encoded column-wise, and unpacked to the exact
 /// original bytes.
 ///
 /// The packing rule: "a closed month's postings are re-encoded

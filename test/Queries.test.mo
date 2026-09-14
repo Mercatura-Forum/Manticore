@@ -1,4 +1,4 @@
-// Queries.test.mo; the bounded, paged read against a brute-force oracle.
+// Queries.test.mo: the bounded, paged read against a brute-force oracle.
 //
 // `PostingIndex.test.mo` proves the rows are right. This proves the **read** is right: that
 // `Queries.run` pages, unioned, equal a straightforward filter over the same postings; same rows,

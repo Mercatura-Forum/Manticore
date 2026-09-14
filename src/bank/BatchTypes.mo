@@ -1,4 +1,4 @@
-/// BatchTypes.mo; the end-of-day batch's vocabulary.
+/// BatchTypes.mo: the end-of-day batch's vocabulary.
 ///
 /// Every transition of a run is a block, so a claim about last night's accrual is
 /// answered with an inclusion proof rather than a log file. The chunk event carries the

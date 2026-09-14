@@ -1,4 +1,4 @@
-/// BankCanonical.mo; the byte encoding of the bank log, and of a command.
+/// BankCanonical.mo: the byte encoding of the bank log, and of a command.
 ///
 /// Two things are encoded here, for two reasons.
 ///
@@ -2923,7 +2923,7 @@ module {
     { bytes = w.toBlob(); hash }
   };
 
-  /// A stored block's bytes without its trailer; the preimage and the hash; for a packer that drops a
+  /// A stored block's bytes without its trailer, the preimage and the hash, for a packer that drops a
   /// proposal's body, and the trailer on its own.
   public func splitTrailer(bytes : Blob) : ?{ head : Blob; trailer : Blob } {
     let data = Blob.toArray(bytes);

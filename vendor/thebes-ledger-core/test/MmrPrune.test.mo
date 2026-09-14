@@ -1,4 +1,4 @@
-// MmrPrune.test.mo; the MMR pruned below an archived boundary, its proofs still whole.
+// MmrPrune.test.mo: the MMR pruned below an archived boundary, its proofs still whole.
 //
 // What is proved: after pruning through a boundary, every live leaf's proof still verifies against
 // the same root; an archived leaf has no whole proof here (null, never a wrong one) but its upper

@@ -1,4 +1,4 @@
-/// PartyTypes.mo; the party / CIF and KYC vocabulary.
+/// PartyTypes.mo: the party / CIF and KYC vocabulary.
 ///
 /// The design rule this file exists to enforce is stated before the types:
 ///

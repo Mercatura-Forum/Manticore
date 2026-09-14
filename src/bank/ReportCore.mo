@@ -1,4 +1,4 @@
-/// ReportCore.mo; the reporting layer's state, as a fold over its own blocks.
+/// ReportCore.mo: the reporting layer's state, as a fold over its own blocks.
 ///
 /// The reporting layer **reads**. The only state it holds is what was registered or issued:
 /// report definitions, return templates, the statement map a deployment declares, the

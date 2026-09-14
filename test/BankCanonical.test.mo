@@ -1,4 +1,4 @@
-// BankCanonical.test.mo; the command hash a checker approves.
+// BankCanonical.test.mo: the command hash a checker approves.
 //
 // `commandHash` is the hash the maker-checker path binds a proposal to: a
 // deterministic function of the command, sensitive to every field, so "the

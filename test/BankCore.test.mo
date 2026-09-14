@@ -1,4 +1,4 @@
-// BankCore.test.mo; the four-eyes state machine, adversarially.
+// BankCore.test.mo: the four-eyes state machine, adversarially.
 //
 // The battery for proposal entitlements and maker-checker's criteria A-2, A-3, A-4, A-6 … A-14 on the pure
 // core. What is proved here, and what each check exists to stop:

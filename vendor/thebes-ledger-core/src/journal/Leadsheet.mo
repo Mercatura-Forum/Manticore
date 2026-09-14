@@ -1,4 +1,4 @@
-/// Leadsheet.mo; mapping of chart-of-accounts codes to audit leadsheets.
+/// Leadsheet.mo: mapping of chart-of-accounts codes to audit leadsheets.
 ///
 /// The schema is the `account_leadsheet_map` of the audit product's
 /// `tb_schema.json`: a list of inclusive four-digit prefix ranges, each naming

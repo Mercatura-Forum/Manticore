@@ -1,4 +1,4 @@
-// Collections.test.mo; the life of a troubled exposure as the bank records it (collections and recovery), against the rule
+// Collections.test.mo: the life of a troubled exposure as the bank records it (collections and recovery), against the rule
 // written once here and once in the Python oracle of bank_s31.py.
 //
 // What is proved, on the pure core over a real stable-memory arena:

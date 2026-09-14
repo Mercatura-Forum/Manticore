@@ -1,4 +1,4 @@
-/// IsoMessages.mo; the ISO 20022 messages the bank acts on, read from a validated tree, and the ones
+/// IsoMessages.mo: the ISO 20022 messages the bank acts on, read from a validated tree, and the ones
 /// it emits, written schema-valid.
 ///
 /// Reading: a pacs.008 (FI-to-FI customer credit transfer) or pacs.009 (FI credit transfer) into
@@ -14,7 +14,7 @@
 /// and camt.054 notification of a participant's account in the schema's own shape (the compact
 /// `iso20022-xml-subset-v1` shape the deployed example reads stays in Statements.mo). Everything
 /// written here validates under `xmllint --schema` against the official XSD; the harness asserts
-/// it on every instance; and parses under an independent ISO 20022 library.
+/// it on every instance; and parses under Prowide.
 
 import Array "mo:core/Array";
 import Char "mo:core/Char";

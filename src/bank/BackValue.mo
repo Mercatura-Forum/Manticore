@@ -1,4 +1,4 @@
-/// BackValue.mo; the correction for a back-dated posting, computed and never estimated.
+/// BackValue.mo: the correction for a back-dated posting, computed and never estimated.
 ///
 /// A posting whose value date precedes the last accrual is the hard case in retail
 /// banking, and it is the case an engine that *stores* accrued interest gets wrong:

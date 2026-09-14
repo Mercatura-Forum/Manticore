@@ -1,4 +1,4 @@
-/// TellerCanonical.mo; the canonical bytes of the branch-and-teller vocabulary (branch and teller): denominations, the policy,
+/// TellerCanonical.mo: the canonical bytes of the branch-and-teller vocabulary (branch and teller): denominations, the policy,
 /// the payee of a presented cheque, a return's reason, the cash source of a draft, and the events. `BankCanonical`
 /// calls these for the commands and the event.
 

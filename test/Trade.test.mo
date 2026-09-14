@@ -1,4 +1,4 @@
-/// Trade.test.mo; trade finance trade finance: the ICC gates in the planners, the fold, the messages.
+/// Trade.test.mo: trade finance trade finance: the ICC gates in the planners, the fold, the messages.
 ///
 /// What is proved here (no journal, no canister; the pure layer):
 ///   1. the policy and terms gates: rules, expiry, presentation period, incoterms, tolerance, BICs, reductions;

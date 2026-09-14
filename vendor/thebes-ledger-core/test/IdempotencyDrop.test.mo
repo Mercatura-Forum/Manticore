@@ -1,4 +1,4 @@
-// IdempotencyDrop.test.mo; the idempotency keys of a packed range dropped, in chunks, while the
+// IdempotencyDrop.test.mo: the idempotency keys of a packed range dropped, in chunks, while the
 // journal keeps refusing duplicates.
 //
 // What is proved: after the drop, a key of a posting at or below the boundary no longer refuses

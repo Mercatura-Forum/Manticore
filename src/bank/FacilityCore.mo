@@ -1,4 +1,4 @@
-/// FacilityCore.mo; the facilities of corporate lending, folded from the bank's log, in stable memory (corporate lending).
+/// FacilityCore.mo: the facilities of corporate lending, folded from the bank's log, in stable memory (corporate lending).
 ///
 /// One 304-byte row per facility keyed by the block that opened it; indexes by party and by stage; the drawings
 /// (facility ‖ account → open) and the drawing's facility (account → facility); the syndicate's shares

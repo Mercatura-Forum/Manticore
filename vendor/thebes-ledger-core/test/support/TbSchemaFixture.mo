@@ -1,4 +1,4 @@
-/// TbSchemaFixture.mo; the 28 account ranges of the audit product's tb_schema.json.
+/// TbSchemaFixture.mo: the 28 account ranges of the audit product's tb_schema.json.
 ///
 /// Source: tb_schema.json, md5 9c318db8872149469bca42831bc6c384, generated_at 2026-02-08T17:05:14.260862,
 /// total_account_ranges 28, total_leadsheets_mapped 21.

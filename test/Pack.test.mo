@@ -1,8 +1,8 @@
-// Pack.test.mo; the closed-range codec round-trips every block byte for byte.
+// Pack.test.mo: the closed-range codec round-trips every block byte for byte.
 //
 // The codec is checked at pack time by the code itself (`Pack.pack` unpacks its own output and
 // compares); this battery is the second, independent check: a random journal through the real
-// log; so the raw bytes are the journal's own encoding, not the test's; packed in ranges,
+// log, so the raw bytes are the journal's own encoding, not the test's, packed in ranges,
 // unpacked, and compared with the stored bytes and the stored hashes; every event kind the journal
 // can write; a pack that is tampered with anywhere is refused or unpacks to different bytes; the
 // delta-coded posting list round-trips; and the measured size ratio is printed for the capacity

@@ -1,4 +1,4 @@
-/// IndexTypes.mo; the declared configuration of the posting indexes.
+/// IndexTypes.mo: the declared configuration of the posting indexes.
 ///
 /// `PostingIndex.mo` holds the indexes themselves, in stable memory, derived from the log. This
 /// module holds the part of the index that is a **recorded decision** rather than a derivation: a

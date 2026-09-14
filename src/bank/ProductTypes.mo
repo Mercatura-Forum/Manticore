@@ -1,4 +1,4 @@
-/// ProductTypes.mo; the product engine's vocabulary.
+/// ProductTypes.mo: the product engine's vocabulary.
 ///
 /// A product is a named, **versioned** composition of property groups: interest,
 /// charges, limits, schedule, accounting and tax. That decomposition is Temenos

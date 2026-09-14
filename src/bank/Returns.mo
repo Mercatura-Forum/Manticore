@@ -1,4 +1,4 @@
-/// Returns.mo; regulatory returns as mapped data and declared arithmetic.
+/// Returns.mo: regulatory returns as mapped data and declared arithmetic.
 ///
 /// A return is a mapping from the chart of accounts to return lines, plus arithmetic over
 /// the mapped figures. Two properties make the difference between a return a regulator can

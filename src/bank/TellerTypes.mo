@@ -1,4 +1,4 @@
-/// TellerTypes.mo; branch and teller (branch and teller): cash as counted objects, the vault and the cash network, and the paper
+/// TellerTypes.mo: branch and teller (branch and teller): cash as counted objects, the vault and the cash network, and the paper
 /// instruments a branch handles.
 ///
 /// A teller's drawer is already a till (the product engine, `Till.mo`): a journal sub-ledger that never absorbs a difference.

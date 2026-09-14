@@ -1,4 +1,4 @@
-/// ProductCore.mo; the product engine's state, which holds no money.
+/// ProductCore.mo: the product engine's state, which holds no money.
 ///
 /// Shaped exactly like `PartyCore`: every field is the fold of the bank log, `apply`
 /// is the only place state changes, and `fingerprintInto` digests it so "the

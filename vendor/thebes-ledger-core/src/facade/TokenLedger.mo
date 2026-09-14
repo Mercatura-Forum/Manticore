@@ -1,4 +1,4 @@
-/// TokenLedger.mo; the ICRC-1/2/3/10 token ledger as a consumer of the journal.
+/// TokenLedger.mo: the ICRC-1/2/3/10 token ledger as a consumer of the journal.
 ///
 /// Derived from the canonical ICRC-ME `IndexedLedger.mo` (src/ledger/, MIT; the
 /// derivation is `docs/patches/tokenledger-vs-indexedledger.diff`) by embedding

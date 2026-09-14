@@ -1,4 +1,4 @@
-/// Loans.mo; repayment allocation, arrears, delinquency and impairment figures.
+/// Loans.mo: repayment allocation, arrears, delinquency and impairment figures.
 ///
 /// Schedule generation lives in `Products.mo` (it is shared with term products);
 /// what is here is everything that happens to a loan after it is disbursed, and
@@ -286,7 +286,7 @@ module {
   /// `round(cashFlow × 1 / (1 + rate × fraction(effective, dueDate)))`; simple discounting per flow over the
   /// product's day-count convention, each flow rounded on its own under the product's rounding, so the
   /// figure is exact, bounded and identical on both sides. What had fallen due and was unpaid at the
-  /// effective day (`pastDueUnpaid`) is present-valued at par; it is due now; and the retained instalments
+  /// effective day (`pastDueUnpaid`) is present-valued at par, it is due now, and the retained instalments
   /// of the old schedule are not flows of the modification. A positive result is a loss (the modified flows
   /// are worth less than the carrying amount), a negative one a gain.
   public func modificationGainLoss(

@@ -1,4 +1,4 @@
-/// CollectionsTypes.mo; the life of a troubled exposure, as the bank records it (collections and recovery).
+/// CollectionsTypes.mo: the life of a troubled exposure, as the bank records it (collections and recovery).
 ///
 /// A lending exposure is in one stage at a time: current → overdue → delinquent → default → collections →
 /// restructuring → write-off → recovery → closed. The *computed* transitions are the end-of-day batch's; days

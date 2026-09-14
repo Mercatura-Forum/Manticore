@@ -1,4 +1,4 @@
-/// ByteBuf.mo; a growable byte buffer on a mutable array.
+/// ByteBuf.mo: a growable byte buffer on a mutable array.
 ///
 /// Every row, key and block in this family is built byte by byte, and the measured runs found the
 /// building to be the cost of a posting: a `List<Nat8>` boxes and chunks, and `List.toArray` then

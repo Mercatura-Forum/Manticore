@@ -1,4 +1,4 @@
-// Closing.test.mo; value dating, foreign currency, deferrals and the close, as
+// Closing.test.mo: value dating, foreign currency, deferrals and the close, as
 // arithmetic and as a state machine, before the state machine uses them.
 //
 //   * V1/V2 the six value-date conventions reproduce their definitions over a full
@@ -158,7 +158,7 @@ assert (eff(#modifiedFollowing, day(2026, 1, 2)) == eff(#following, day(2026, 1,
 Debug.print("count: modified-following month-end crossings verified = 2");
 
 // modifiedPreceding is the mirror: 1 May 2026 is a holiday and 2 May is a Saturday,
-// so the previous business day is 30 April; inside the previous month; and the
+// so the previous business day is 30 April, inside the previous month, and the
 // convention goes forward instead
 assert (not Conv.isBusinessDay(calendar, day(2026, 5, 1)));
 assert (eff(#preceding, day(2026, 5, 1)) == day(2026, 4, 30));

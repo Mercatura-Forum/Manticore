@@ -1,4 +1,4 @@
-/// Monitoring.mo; evaluating the closed rule set over the aggregates.
+/// Monitoring.mo: evaluating the closed rule set over the aggregates.
 ///
 /// Pure over a context: the aggregates (`Activity`), the account's own postings (the I1 range of
 /// `PostingIndex`, sized before it is read) and each account's currency. Two entry points, one per

@@ -1,4 +1,4 @@
-// PaymentsBreadth.test.mo; the declared the extended target list target list on the pure state machine: the
+// PaymentsBreadth.test.mo: the declared the extended target list target list on the pure state machine: the
 // 22 families added to the seven of the core messaging set, each read, acted on and recorded.
 //
 // The world of Payments.test.mo (a rail over the settlement scheme, six participants by BIC), then:

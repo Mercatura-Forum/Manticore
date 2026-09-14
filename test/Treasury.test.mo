@@ -1,4 +1,4 @@
-/// Treasury.test.mo; treasury treasury: the planners, the legs they build, the fold and the nostro reconciliation.
+/// Treasury.test.mo: treasury treasury: the planners, the legs they build, the fold and the nostro reconciliation.
 ///
 /// What is proved here (no journal, no canister; the pure layer):
 ///   1. configuration: the policy, a security whose maturity is off the coupon grid refused, curves (a duplicate

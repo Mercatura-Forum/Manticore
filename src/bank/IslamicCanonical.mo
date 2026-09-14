@@ -1,4 +1,4 @@
-/// IslamicCanonical.mo; the canonical bytes of the Islamic-banking vocabulary (Islamic banking): the policy, the contract
+/// IslamicCanonical.mo: the canonical bytes of the Islamic-banking vocabulary (Islamic banking): the policy, the contract
 /// kinds and their terms, the pool and a distribution, and the events. `BankCanonical` calls these for the commands
 /// and the event.
 

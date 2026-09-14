@@ -1,4 +1,4 @@
-// Checkpoint.test.mo; the derived state written into its own log, and the fold that starts from it.
+// Checkpoint.test.mo: the derived state written into its own log, and the fold that starts from it.
 //
 // What is proved, on a journal with pendings, resolutions, voids, a reversal, limits, scopes and
 // two periods: the checkpoint parts round-trip through the canonical codec; a state restored from

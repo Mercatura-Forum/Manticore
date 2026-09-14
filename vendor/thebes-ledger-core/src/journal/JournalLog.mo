@@ -1,4 +1,4 @@
-/// JournalLog.mo; the Merkle-committed journal log.
+/// JournalLog.mo: the Merkle-committed journal log.
 ///
 /// Every journal event becomes one block: canonical bytes (Canonical.mo)
 /// appended to a Region-backed StableLog, SHA-256 chained to its parent, and

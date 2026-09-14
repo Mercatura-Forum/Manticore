@@ -1,4 +1,4 @@
-// BlockVersion.test.mo; a version-3 block stream stays readable and replays to
+// BlockVersion.test.mo: a version-3 block stream stays readable and replays to
 // the same state under the version-4 decoder (operator decision D-2).
 //
 // Adding the banking event tags made the written version 4. The decoder previously

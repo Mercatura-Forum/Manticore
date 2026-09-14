@@ -1,4 +1,4 @@
-/// Packing.mo; closed-month packing: a closed range of the journal packed, its index rows replaced
+/// Packing.mo: closed-month packing: a closed range of the journal packed, its index rows replaced
 /// by one summary row per account and a delta-coded list, its aggregates rolled up, in chunks.
 ///
 /// The unit is a **pack**: the journal blocks from the block after the last pack's end up to the
