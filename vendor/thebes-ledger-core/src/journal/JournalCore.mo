@@ -1762,7 +1762,7 @@ module {
 
   /// Apply a committed block. Blocks must be applied in order; the block's
   /// index must equal the current height. Any inconsistency traps, which on
-  /// the IC rolls back the whole message; a corrupt apply never half-lands.
+  /// the substrate rolls back the whole message; a corrupt apply never half-lands.
   public func apply(state : State, blocks : Blocks, block : T.Block) {
     if (block.index != state.height) Runtime.trap("JournalCore: block index " # Nat.toText(block.index) # " != height " # Nat.toText(state.height));
     switch (block.event) {

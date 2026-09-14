@@ -341,7 +341,7 @@ module {
   };
 
   /// Step 4. From `#installIssued`. `offered` is the module hash the caller read from the chain.
-  /// **Compared against the parent's pin of the image it sent; the marked gap** (`ArchiveTypes.mo`).
+  /// It is compared against the parent's pin of the image it sent (`ArchiveTypes.mo`, the confirmation rule).
   /// A wrong hash is recorded as a refusal and leaves the spawn where the install can be retried;
   /// the empty-module hash in particular means the install did not land.
   public func planConfirm(s : State, id : AT.SpawnId, offered : Blob) : Result.Result<{ event : AT.ArchiveEvent; confirmed : Bool }, AT.ArchiveError> {

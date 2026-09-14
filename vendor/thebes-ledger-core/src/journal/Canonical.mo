@@ -61,7 +61,7 @@ module {
   /// log unreadable the moment a tag was added.
   public let SUPPORTED_BLOCK_VERSIONS : [Nat8] = [0x03, 0x04];
 
-  /// An IC principal is at most 29 bytes. The decoder must check this before
+  /// A principal is at most 29 bytes. The decoder must check this before
   /// constructing one: `Principal.fromBlob` traps on a longer blob, and a
   /// decoder that traps on malformed input cannot reject it. Found by the bank
   /// log's byte-flip test, which tampers with the length byte of a principal

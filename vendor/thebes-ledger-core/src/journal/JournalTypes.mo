@@ -208,7 +208,7 @@ module {
   /// Where the journal's "today" comes from when no business date has been rolled, and whether a roll is
   /// measured against the substrate's clock. `#substrateClock`: the clock's day is today until a business date
   /// is set, and a business date may not pass the clock's day; right where the substrate's time is consensus
-  /// time (the IC). `#businessDate`: the rolled business date is the calendar and the clock is not consulted for
+  /// time (the substrate). `#businessDate`: the rolled business date is the calendar and the clock is not consulted for
   /// days; a substrate whose `Time.now()` is not wall time (Thebes: the block height in seconds) cannot be the
   /// bank's calendar; the act that sets this authority carries the first business date when none is set, so
   /// under it a business date always exists, and a roll may advance by at most `maxRollDays`.
@@ -286,7 +286,7 @@ module {
   /// chains blocks; the MMR commits `hash` of every block.
   public type Block = {
     index : Nat;
-    timestamp : Nat64;    // IC time (ns) when the block was appended
+    timestamp : Nat64;    // chain time (ns) when the block was appended
     caller : Principal;   // principal whose call produced the block
     parentHash : ?Blob;
     hash : Blob;

@@ -14,7 +14,7 @@
 /// and camt.054 notification of a participant's account in the schema's own shape (the compact
 /// `iso20022-xml-subset-v1` shape the deployed example reads stays in Statements.mo). Everything
 /// written here validates under `xmllint --schema` against the official XSD; the harness asserts
-/// it on every instance; and parses under Prowide.
+/// it on every instance; and parses under an independent ISO 20022 library.
 
 import Array "mo:core/Array";
 import Char "mo:core/Char";

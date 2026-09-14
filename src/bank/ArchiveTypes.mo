@@ -9,12 +9,11 @@
 ///
 /// ## Why a step per message, and why the record comes first
 ///
-/// On this engine a write made after an awaited inter-contract reply is dropped, and the method
-/// replies with the inner call's bytes instead of its own value (the Jun-15 continuation defect;
-/// `tools/spawn-proof/FINDING-async-raw-calls.md`). `async*` does not help, because the raw call
-/// primitive is itself a plain `async` wrapper in the compiler's prelude. So a parent that created a
-/// child and then tried to remember it in the same message would forget it; which is exactly how
-/// child 1,000,000 was left code-less on Sep 10. The proven shape on child 1,000,002 is four calls:
+/// On the current substrate a write made after an awaited management reply is not kept, and the
+/// method replies with the inner call's bytes instead of its own value; `async*` does not change
+/// that, because the raw call primitive is itself a plain `async` wrapper in the compiler's prelude.
+/// So a parent that created a child and then tried to remember it in the same message would forget
+/// it. The shape that holds, proven on a live chain, is four calls:
 ///
 ///   1. `createArchiveChild`  ; the parent records that a create was issued, **then** sends
 ///                               `create_canister`; the reply carries the new id;

@@ -100,7 +100,7 @@ module {
     }
   };
 
-  /// Day number of a nanosecond timestamp (IC `Time.now()` units).
+  /// Day number of a nanosecond timestamp (`Time.now()` units).
   public func fromNanos(ns : Nat) : Day { ns / NANOS_PER_DAY };
 
   /// Nanosecond timestamp of midnight UTC at the start of `day`.

@@ -2554,7 +2554,7 @@ shared (initMsg) persistent actor class Bank(init : {
   ///
   /// `heapBytes` is the figure that matters most: the heap is resident memory, which is why "the heap
   /// does not grow with the number of postings" matters more than it looks. `indexBytes` is the stable memory the indexes occupy, which is what
-  /// `the capacity model` predicts; so the measured runs of the directive's Addition 2 read both
+  /// the capacity model predicts; so a measured run reads both
   /// here rather than inferring them from the outside.
   public query func runtimeMemory() : async {
     heapBytes : Nat;
@@ -3489,10 +3489,9 @@ shared (initMsg) persistent actor class Bank(init : {
     #ok({ raw; status = switch (AW.parseStatusReply(raw)) { case (#ok(st)) ?st; case (#err(_)) null } })
   };
 
-  /// Step 4, await-free. **The marked gap:** `moduleHash` is what the caller read from the chain, and
-  /// it is compared with the parent's own pin of the image it sent; not with a hash the parent read
-  /// itself, which it cannot do in a continuation today. A refusal is recorded and the install can
-  /// be retried; the empty-module hash means it never landed.
+  /// Step 4, await-free. `moduleHash` is what the caller read from the chain, and it is compared with
+  /// the parent's own pin of the image it sent (the confirmation rule). A refusal is recorded and the
+  /// install can be retried; the empty-module hash means it never landed.
   public shared ({ caller }) func confirmArchiveChild(spawn : Nat, moduleHash : Blob) : async Result.Result<{ spawn : Nat; cid : Nat64; confirmed : Bool; block : Nat }, T.BankError> {
     switch (requireMethodPermission(caller, "confirmArchiveChild")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     switch (ArchiveCore.planConfirm(bank.archive, spawn, moduleHash)) {

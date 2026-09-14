@@ -1,16 +1,16 @@
-/// CertifiedTree.mo: Merkle hash tree for IC certified data
+/// CertifiedTree.mo: Merkle hash tree for certified data
 ///
-/// Provides verifiable query responses via the IC's BLS certification mechanism.
+/// Provides verifiable query responses via the network's BLS certification.
 /// The canister maintains a hash tree over key data (last_block_hash, total_supply).
 /// On each state change, the root hash is updated via CertifiedData.set().
 /// Query responses include the subnet certificate + Merkle witness.
 ///
-/// Architecture (matching DFINITY ICRC-3 icrc3_get_tip_certificate):
+/// Architecture (matching ICRC-3 icrc3_get_tip_certificate):
 ///   - Root hash = SHA256(labeled "last_block_index" || labeled "last_block_hash")
 ///   - CertifiedData.set(root_hash) on every transfer
 ///   - icrc3_get_tip_certificate returns { certificate, hash_tree }
 ///
-/// The IC subnet signs the root hash with BLS. Clients verify:
+/// The network signs the root hash with BLS. Clients verify:
 ///   1. BLS signature on the certificate is valid (subnet key)
 ///   2. Certificate contains the canister's certified_data = root_hash
 ///   3. Hash tree witnesses the specific value they queried
@@ -40,10 +40,10 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════
-  //  CBOR HASH TREE ENCODING (IC spec)
+  //  CBOR HASH TREE ENCODING
   // ═══════════════════════════════════════════════════════
 
-  // IC hash tree node types (CBOR tag values):
+  // hash tree node types (CBOR tag values):
   // 0 = Empty
   // 1 = Fork(left, right)
   // 2 = Labeled(label, subtree)
@@ -59,9 +59,9 @@ module {
     #pruned : Blob;
   };
 
-  /// Compute hash of a hash tree node per IC Interface Spec §Certificate.
+  /// Compute hash of a hash tree node per the certificate format.
   /// domain_sep(s) = SHA256(|s| as single byte ∥ s ∥ ...).
-  /// Reference: https://internetcomputer.org/docs/references/ic-interface-spec/#hash-tree
+  /// Reference: https://<reference>
   public func hashTree(tree : HashTree) : Blob {
     switch (tree) {
       case (#empty) {
@@ -82,7 +82,7 @@ module {
     };
   };
 
-  /// IC domain separation: H( len_byte ∥ domain_string ∥ parts... )
+  /// domain separation: H( len_byte ∥ domain_string ∥ parts... )
   func domainHash(domain : Text, parts : [Blob]) : Blob {
     let digest = Sha256.Digest(#sha256);
     let domainBytes = Text.encodeUtf8(domain);

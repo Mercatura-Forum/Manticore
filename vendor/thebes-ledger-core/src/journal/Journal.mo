@@ -8,7 +8,7 @@
 /// Every update method follows one shape: validate with the core (no state
 /// change), append the resulting event to the log, apply it to the core,
 /// re-certify the tip. There is no `await` anywhere on that path, so each call
-/// is atomic on the IC: it either commits one block and its consequences or
+/// is atomic: it either commits one block and its consequences or
 /// changes nothing.
 ///
 /// Gate: financial writes are refused until an administrator sets an
@@ -481,7 +481,7 @@ shared (initMsg) persistent actor class Journal() = self {
   //  LIFECYCLE
   // ═══════════════════════════════════════════════════════
 
-  // The IC clears certified data on upgrade; restore it from persisted state.
+  // The substrate clears certified data on upgrade; restore it from persisted state.
   JCert.recertify(cert);
 
   // Expiry sweep: pending postings past their expiry are voided, recorded, and

@@ -1,4 +1,4 @@
-/// JournalCert.mo: IC certified data for the journal tip.
+/// JournalCert.mo: certified data for the journal tip.
 ///
 /// The canister's certified data is the root hash of this tree:
 ///
@@ -11,14 +11,14 @@
 ///
 /// The subnet signs the certified data with its BLS key on every state
 /// change. A reader who does not trust the canister verifies: the certificate
-/// signature against the IC root key (with delegation), the certified_data
+/// signature against the network root key (with delegation), the certified_data
 /// entry for this canister against the hash of the tree below, the mmr_root
 /// leaf inside that tree, and finally the entry's inclusion proof against that
 /// root. Unlike the token ledger's tip tree (src/ledger/CertifiedTree.mo), the
 /// MMR root is inside the certified tree; that is what makes an inclusion
 /// proof verifiable without any uncertified query.
 ///
-/// Labels are ordered lexicographically inside each fork, as IC hash-tree
+/// Labels are ordered lexicographically inside each fork, as hash-tree
 /// lookup requires.
 
 import Blob "mo:core/Blob";
@@ -83,7 +83,7 @@ module {
     CertifiedData.set(rootHash(index, hash, root));
   };
 
-  /// Re-set certified data from persisted state (the IC clears it on upgrade).
+  /// Re-set certified data from persisted state (the substrate clears it on upgrade).
   public func recertify(state : State) {
     if (state.committed) CertifiedData.set(rootHash(state.lastBlockIndex, state.lastBlockHash, state.mmrRoot));
   };

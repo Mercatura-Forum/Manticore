@@ -1,6 +1,6 @@
 /// Allowances.mo: ICRC-2 allowance table (port of approvals.rs)
 ///
-/// Mechanical port of dfinity/ic rs/ledger_suite/common/ledger_core/src/approvals.rs
+/// Mechanical port of the reference ledger's approvals module
 ///
 /// Key behaviors matching Rust:
 ///   - AllowanceTable manages (owner, spender) → Allowance

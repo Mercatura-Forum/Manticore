@@ -1,10 +1,10 @@
 /// RegionBTree.mo: B-tree in Region stable memory
 ///
-/// A sorted key-value map stored entirely in IC Region memory. Page-aligned
+/// A sorted key-value map stored entirely in Region memory. Page-aligned
 /// nodes with configurable branching factor. Supports lookup, insert, and
 /// sorted iteration. No deletion (append-only ledger semantics).
 ///
-/// Design follows DFINITY's ic-stable-structures BTreeMap but adapted for
+/// Design follows the stable-structures BTreeMap but adapted for
 /// Motoko's Region API with fixed-size keys and values for zero-overhead
 /// serialisation.
 ///

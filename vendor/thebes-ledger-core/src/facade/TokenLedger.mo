@@ -934,10 +934,10 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
   public query func icrc1_supported_standards() : async [{ name : Text; url : Text }] {
     [
-      { name = "ICRC-1"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-1" },
-      { name = "ICRC-2"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-2" },
-      { name = "ICRC-3"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3" },
-      { name = "ICRC-10"; url = "https://github.com/dfinity/ICRC/tree/main/ICRCs/ICRC-10" },
+      { name = "ICRC-1"; url = "https://<reference>" },
+      { name = "ICRC-2"; url = "https://<reference>" },
+      { name = "ICRC-3"; url = "https://<reference>" },
+      { name = "ICRC-10"; url = "https://<reference>" },
     ]
   };
 
@@ -976,11 +976,11 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
   /// ICRC-3: Supported block types
   public query func icrc3_supported_block_types() : async [{ block_type : Text; url : Text }] {
     [
-      { block_type = "1xfer"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3" },
-      { block_type = "2xfer"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3" },
-      { block_type = "1burn"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3" },
-      { block_type = "1mint"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3" },
-      { block_type = "2approve"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3" },
+      { block_type = "1xfer"; url = "https://<reference>" },
+      { block_type = "2xfer"; url = "https://<reference>" },
+      { block_type = "1burn"; url = "https://<reference>" },
+      { block_type = "1mint"; url = "https://<reference>" },
+      { block_type = "2approve"; url = "https://<reference>" },
     ]
   };
 
@@ -1176,10 +1176,10 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
 
   public query func icrc10_supported_standards() : async [{ name : Text; url : Text }] {
     [
-      { name = "ICRC-1"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-1" },
-      { name = "ICRC-2"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-2" },
-      { name = "ICRC-3"; url = "https://github.com/dfinity/ICRC-1/tree/main/standards/ICRC-3" },
-      { name = "ICRC-10"; url = "https://github.com/dfinity/ICRC/tree/main/ICRCs/ICRC-10" },
+      { name = "ICRC-1"; url = "https://<reference>" },
+      { name = "ICRC-2"; url = "https://<reference>" },
+      { name = "ICRC-3"; url = "https://<reference>" },
+      { name = "ICRC-10"; url = "https://<reference>" },
     ]
   };
 
@@ -1547,7 +1547,7 @@ shared(initMsg) persistent actor class TokenLedger(args : T.InitArgs) = self {
     initBalances();
   };
 
-  // IC resets CertifiedData on upgrade; recertify from persisted state
+  // The substrate resets CertifiedData on upgrade; recertify from persisted state
   certifyCurrent();
 
   // ═══════════════════════════════════════════════════════
