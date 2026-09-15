@@ -482,7 +482,7 @@ for (x in P.catalogue().vals()) {
 Debug.print("count: catalogue entries guarding a command = " # Nat.toText(commandEntries));
 Debug.print("count: catalogue entries guarding a method = " # Nat.toText(methodEntries));
 assert (commandEntries == commands.size());
-assert (methodEntries == 24);   // 6 maker-checker, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending), the card authorization (fields and cain.001) and clearing batch (cards)
+assert (methodEntries == 25);   // 6 maker-checker, the rebuild on demand, 11 archive steps, the message ingest, the FSPIOP request, the bureau report (origination and underwriting), the agent's notice (corporate lending), the card authorization (fields and cain.001) and clearing batch (cards)
 assert (commandEntries == 292);   // 143 + createCustomer (one dual act) + journalSetCalendarAuthority (the Thebes clock finding of the same day) + the six collections acts (collections and recovery) + the seventeen origination acts (origination and underwriting) + the seventeen facility acts (corporate lending) + the twenty teller acts (branch and teller) + the twenty-eight trade acts (trade finance) + the twenty-seven Islamic acts (Islamic banking) + the thirteen treasury acts (treasury) + the seventeen card acts (cards) + the two currency acts (S4.1)
 
 // Identifiers are unique, and every identifier resolves through `find`.

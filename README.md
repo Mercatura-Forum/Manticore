@@ -38,7 +38,7 @@ payments over ISO 20022 and Mojaloop. Written in Motoko. Apache 2.0.
 | Journal | append-only, hash-chained block log; Merkle mountain range with a certified root |
 | Controls | maker-checker, entitlements, permission audit with a negative control |
 | Payments | ISO 20022 (43 families, official XSDs), SWIFT MT bridge, Mojaloop FSPIOP, post-quantum connector signatures (ML-DSA-44, MAYO-2) |
-| Status | verified in the Motoko battery and the integration runs against the reference systems |
+| Status | verified in the Motoko battery and in the integration runs on a local Thebes chain (the production node binary, every validator agreeing) against the reference systems |
 
 Manticore is written in Motoko for the Thebes substrate. Its ISO 20022 layer is
 built from the official schemas; its settlement and FSPIOP layers follow the

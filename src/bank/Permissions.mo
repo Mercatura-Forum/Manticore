@@ -44,6 +44,10 @@ module {
     p("command.perform", "command", #update, #method("perform"), false, false),
     p("command.breakGlass", "command", #breakGlass, #method("emergencyOverride"), true, false),
     p("override.review", "override", #approve, #method("reviewOverride"), false, false),
+    // the derived state rebuilt from the log on demand (S4.10's machinery as an operation): the holder drops the
+    // folds and starts the chunked fold, which any caller then advances; the rebuild's completion block records the
+    // fingerprints, so a rebuild is also the on-chain proof that the live state is the fold of its log
+    p("state.rebuild", "state", #update, #method("requestRebuild"), false, false),
 
     // ── entitlements and organisation ──
     p("role.create", "role", #create, #command("defineRole"), false, true),

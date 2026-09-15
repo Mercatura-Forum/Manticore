@@ -113,7 +113,26 @@ def _canister_ranges(dtree, subnet_id):
 
 
 def verify_certificate(cert_bytes, root_key_der, canister_id_bytes):
-    """Verify signature and delegation; return the certificate tree."""
+    """Verify the certificate and return its tree.
+
+    Two anchors. A DER-encoded BLS root key: the certificate is the network's signed statement over
+    its tree (with a delegation where there is one), and the tree carries the canister's
+    `certified_data`. A Thebes anchor (`{"substrate": "thebes", "timestamp_ns", "canister_id",
+    "hash_tree"}`): the chain has no signed data certificate yet; its engine hands the contract
+    `SHA-256(timestamp_ns LE ‖ canister_id LE ‖ certified_data)` as the certificate, the timestamp
+    the one the contract itself reads (`clock`) in the same state. The check is that the certificate
+    is exactly that word over the hash tree's root, which binds the tree to what the contract
+    certified; the network's agreement on it (every validator answering the same bytes at one
+    height) is the caller's to establish, and the caller does. When the signed certificate lands,
+    this branch becomes a signature check with the network root key."""
+    if isinstance(root_key_der, dict) and root_key_der.get("substrate") == "thebes":
+        a = root_key_der
+        cert = bytes(cert_bytes)
+        assert len(cert) == 32, f"a Thebes certificate placeholder is 32 bytes, got {len(cert)}"
+        certified = hash_tree(cbor2.loads(bytes(a["hash_tree"])))
+        want = hashlib.sha256(int(a["timestamp_ns"]).to_bytes(8, "little") + int(a["canister_id"]).to_bytes(8, "little") + certified).digest()
+        assert cert == want, "certificate placeholder is not the engine's word over this tree's root at this clock"
+        return [2, b"canister", [2, bytes(canister_id_bytes), [2, b"certified_data", [3, certified]]]]
     cert = cbor2.loads(cert_bytes)
     tree = cert["tree"]
     sig = bytes(cert["signature"])

@@ -770,6 +770,10 @@ module {
     /// The derived state is being rebuilt from the log after a layout change (S4.10): every update waits; the cursors
     /// say how far the fold has come.
     #Rebuilding : { bankCursor : Nat; bankBlocks : Nat; journalCursor : Nat; journalBlocks : Nat };
+    /// The module's layout of a store with no rebuild path (the posting, activity and pack stores) differs from the
+    /// state's: the contract serves nothing but this and `layoutVersions` until a module whose layout matches is installed;
+    /// the state is never read under it, so it is intact for that module.
+    #LayoutUnsupported : { store : Text; stored : Nat; code : Nat };
     #AnonymousCaller;
     #NotBankAdmin;
     #NoGrant : { permission : PermissionId };

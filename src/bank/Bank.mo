@@ -200,7 +200,10 @@ shared (initMsg) persistent actor class Bank(init : {
   var bankLayout : Nat = BankCore.LAYOUT_VERSION;
   var journalLayout : Nat = JCore.LAYOUT_VERSION;
   var indexLayout : Nat = PIdx.LAYOUT_VERSION;
-  var rebuild : ?{ layoutFrom : Nat; layoutTo : Nat; journalLayoutFrom : Nat; journalLayoutTo : Nat; var bankCursor : Nat; var journalCursor : Nat; bankBlocks : Nat; journalBlocks : Nat } = null;
+  var rebuild : ?{ layoutFrom : Nat; layoutTo : Nat; journalLayoutFrom : Nat; journalLayoutTo : Nat; var bankCursor : Nat; var journalCursor : Nat; bankBlocks : Nat; journalBlocks : Nat;
+                   // the fingerprints of the rebuilt states as the fold crosses the block counts the rebuild started with: the
+                   // fold of exactly the blocks the live state was the fold of, which is what the completion block records
+                   var bankFingerprintAtStart : ?Blob; var journalFingerprintAtStart : ?Blob; packedThroughAtStart : Nat } = null;
   transient let REBUILD_CHUNK : Nat = 500;
 
   // ─── helpers ──────────────────────────────────────────────────────────────
@@ -268,7 +271,17 @@ shared (initMsg) persistent actor class Bank(init : {
     b
   };
 
+  /// The posting, activity and pack stores have no fold from the log: a module whose layout of them differs from the
+  /// state's must never read them. The upgrade lands (a lifecycle trap does not restore the old module on every
+  /// substrate: on Thebes it leaves the contract answering "unexpected state" to everything, measured on 14 September),
+  /// and the contract serves nothing but this refusal and `layoutVersions` until a module whose layout matches is
+  /// installed; the state is intact for it. Computed at every start of the actor from the recorded layout.
+  transient let layoutRefusal : ?T.BankError = if (indexLayout != PIdx.LAYOUT_VERSION) ?#LayoutUnsupported({ store = "postingIndex"; stored = indexLayout; code = PIdx.LAYOUT_VERSION }) else null;
+  func requireLayout() { switch (layoutRefusal) { case (?e) Runtime.trap("Bank: " # debug_show e); case null {} } };
+
+  /// Why the state cannot be served now: a layout the module cannot read, or a rebuild in progress.
   func rebuildingError() : ?T.BankError {
+    switch (layoutRefusal) { case (?e) return ?e; case null {} };
     switch (rebuild) {
       case (?r) ?#Rebuilding({ bankCursor = r.bankCursor; bankBlocks = r.bankBlocks; journalCursor = r.journalCursor; journalBlocks = r.journalBlocks });
       case null null;
@@ -282,9 +295,11 @@ shared (initMsg) persistent actor class Bank(init : {
     let journalBlocks_ = JLog.length(journalLog);
     let cp = switch (JCore.checkpointPosition(journal)) { case (?c) { switch (c.last) { case (?l) ?{ first = c.first; last = l }; case null null } }; case null null };
     let started = JCore.rebuildStart(me(), RI.newArena(), journalBlocks(), cp);
+    let packedThroughAtStart = bank.packing.packedThroughBlock;
     journal := started.state;
     bank := BankCore.newState(installer);
-    rebuild := ?{ layoutFrom = bankLayout; layoutTo; journalLayoutFrom = journalLayout; journalLayoutTo; var bankCursor = 0; var journalCursor = started.next; bankBlocks = bankBlocks_; journalBlocks = journalBlocks_ };
+    rebuild := ?{ layoutFrom = bankLayout; layoutTo; journalLayoutFrom = journalLayout; journalLayoutTo; var bankCursor = 0; var journalCursor = started.next; bankBlocks = bankBlocks_; journalBlocks = journalBlocks_;
+                  var bankFingerprintAtStart = null; var journalFingerprintAtStart = null; packedThroughAtStart };
     bankLayout := layoutTo;
     journalLayout := journalLayoutTo;
     ignore appendForTheFold(#rebuild(#started({ layoutFrom = bankLayout; layoutTo; journalLayoutFrom = journalLayout; journalLayoutTo; bankBlocks = bankBlocks_; journalBlocks = journalBlocks_ })));
@@ -296,6 +311,19 @@ shared (initMsg) persistent actor class Bank(init : {
     let b = BLog.append(bankLog, now(), me(), event);
     recertify();
     b
+  };
+
+  /// The derived state rebuilt from the log on demand, under `state.rebuild`: the same rebuild the upgrade's layout check
+  /// starts, from the layout the code declares to itself; the states are dropped here and the chunked fold starts, and
+  /// `advanceRebuild` carries it to the tip, where `#rebuild(#completed)` records the fingerprints of the rebuilt state.
+  /// A rebuild that reaches the fingerprints the live state had is the on-chain proof that the state is the fold of its
+  /// log, which a replay inside a query cannot give on a substrate that refuses stable-memory writes in query mode.
+  /// The old arenas stay allocated (the cost §28 states), so this is an operation, not a read.
+  public shared ({ caller }) func requestRebuild() : async Result.Result<{ bankBlocks : Nat; journalBlocks : Nat }, T.BankError> {
+    switch (requireMethodPermission(caller, "requestRebuild")) { case (#err(e)) return #err(e); case (#ok(_)) {} };
+    startRebuild(BankCore.LAYOUT_VERSION, JCore.LAYOUT_VERSION);
+    let ?r = rebuild else Runtime.trap("Bank: the rebuild did not start");
+    #ok({ bankBlocks = r.bankBlocks; journalBlocks = r.journalBlocks })
   };
 
   /// One chunk of the rebuild: up to `REBUILD_CHUNK` bank blocks and as many journal blocks folded, the cursors recorded.
@@ -312,18 +340,30 @@ shared (initMsg) persistent actor class Bank(init : {
     while (r.bankCursor < bankEnd and n < REBUILD_CHUNK) {
       switch (bankBlock(r.bankCursor)) { case (?b) BankCore.apply(bank, bankBlocks(), b); case null {} };
       r.bankCursor += 1; n += 1;
+      // the fold has crossed the block count the rebuild started with: this is the state the live one was
+      if (r.bankCursor == r.bankBlocks) { r.bankFingerprintAtStart := ?BankCore.fingerprint(bank) };
     };
     n := 0;
     while (r.journalCursor < journalEnd and n < REBUILD_CHUNK) {
       switch (JLog.get(journalLog, r.journalCursor)) { case (?b) JCore.apply(journal, journalBlocks(), b); case null {} };
       r.journalCursor += 1; n += 1;
+      if (r.journalCursor == r.journalBlocks) {
+        // the live journal had dropped the idempotency keys of every packed range; the rebuilt one does the same here
+        JCore.dropIdempotencyThrough(journal, r.packedThroughAtStart);
+        r.journalFingerprintAtStart := ?JCore.fingerprint(journal);
+      };
     };
     let completed = r.bankCursor >= BLog.length(bankLog) and r.journalCursor >= JLog.length(journalLog);
     if (completed) {
       // the live journal drops the idempotency keys of every packed range; the rebuilt one must too
       JCore.dropIdempotencyThrough(journal, bank.packing.packedThroughBlock);
       rebuild := null;
-      ignore commitBank(me(), #rebuild(#completed({ layout = bankLayout; journalLayout; bankBlocks = r.bankCursor; journalBlocks = r.journalCursor; bankFingerprint = BankCore.fingerprint(bank); journalFingerprint = JCore.fingerprint(journal) })));
+      // the completion records the fingerprints of the rebuilt states as of the block counts the rebuild started with:
+      // the fold of exactly the blocks the live state was the fold of (the trail the rebuild appended folds as nothing
+      // but counts in the height, so the fingerprints at the tip would differ by it)
+      let bankFp = switch (r.bankFingerprintAtStart) { case (?f) f; case null BankCore.fingerprint(bank) };
+      let journalFp = switch (r.journalFingerprintAtStart) { case (?f) f; case null JCore.fingerprint(journal) };
+      ignore commitBank(me(), #rebuild(#completed({ layout = bankLayout; journalLayout; bankBlocks = r.bankBlocks; journalBlocks = r.journalBlocks; bankFingerprint = bankFp; journalFingerprint = journalFp })));
     } else {
       ignore appendForTheFold(#rebuild(#chunk({ bankFrom; bankTo = r.bankCursor; journalFrom; journalTo = r.journalCursor })));
     };
@@ -2265,11 +2305,13 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// What the indexes hold, and what they cost. Every figure here is one the capacity model
   /// predicts, so a measured run reads it rather than guessing from the contract's total memory.
-  public query func indexStats() : async PIdx.Stats { PIdx.stats(postingIndex) };
+  public query func indexStats() : async PIdx.Stats { requireLayout(); PIdx.stats(postingIndex) };
 
   /// The instruction meter: every journal commit's instructions, the index component's share, the
   /// last one. What the measured runs read for instructions per posting.
   public query func instructionMeter() : async { commits : Nat; instructions : Nat; indexInstructions : Nat; append : Nat; apply : Nat; index : Nat; activity : Nat; last : Nat } {
+    requireLayout();
+   
     { commits = meterCommits; instructions = meterInstructions; indexInstructions = meterIndexInstructions; append = meterAppend; apply = meterApply; index = meterIndex; activity = meterActivity; last = meterLast }
   };
 
@@ -2288,6 +2330,8 @@ shared (initMsg) persistent actor class Bank(init : {
   /// figure is its component's high-water mark). `bankLog` is the bank's `StableLog` regions and its MMR;
   /// `bankPackStores` the bank segments of the packs (§18.3), which the `StableLog`'s prefix left for.
   public query func stableMemory() : async { bankArena : Nat; postingArena : Nat; journalArena : Nat; journalLog : Nat; mmr : Nat; packStores : Nat; packLists : Nat; bankLog : Nat; bankPackStores : Nat; bankLogBase : Nat; total : Nat } {
+    requireLayout();
+   
     let bankArena = RI.arenaStats(bank.arena).pages * 8_192;
     let postingArena = RI.arenaStats(postingIndex.arena).pages * 8_192;
     let journalArena = RI.arenaStats(journal.arena).pages * 8_192;
@@ -2313,11 +2357,15 @@ shared (initMsg) persistent actor class Bank(init : {
   /// The account id a sub-ledger key belongs to, which is the lookup every per-account index key is
   /// built on. Public because a caller holding a statement row can check that the row is about the
   /// account it claims to be about.
-  public query func indexedAccountOf(subledger : Blob) : async ?Nat { PIdx.accountOf(postingIndex, subledger) };
+  public query func indexedAccountOf(subledger : Blob) : async ?Nat { requireLayout(); PIdx.accountOf(postingIndex, subledger) };
 
   /// One posting's index header: the effective dates, the primary currency, the leg count, the
   /// status and the period. This is what a query page reads per row instead of decoding a block.
   public query func postingIndexHeader(postingNo : Nat) : async ?PIdx.Header {
+    requireLayout();
+   
+   
+   
     PIdx.header(postingIndex, postingNo)
   };
 
@@ -2396,6 +2444,9 @@ shared (initMsg) persistent actor class Bank(init : {
   /// read; refused past the bound naming the size. Days after the boundary are answered by
   /// `queryEntries`.
   public shared query ({ caller }) func packedAccountEntries(account : Nat, from : Nat, to : Nat, bound : Nat) : async Result.Result<{ entries : [Pack.AccountEntry]; size : Nat; packedThroughDay : Nat }, T.BankError> {
+    requireLayout();
+   
+   
     switch (scopedAccount(caller, account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     if (to < from) return #err(#QueryError({ error = #InvalidRange({ reason = "to before from" }) }));
     let n = Nat.min(Nat.max(bound, 1), Queries.MAX_SCAN);
@@ -2406,14 +2457,22 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// An account's summary row and list for one pack.
   public shared query ({ caller }) func packedAccount(account : Nat, pack : Nat) : async Result.Result<?Packing.PackedAccount, T.BankError> {
+    requireLayout();
+   
+   
+   
     switch (scopedAccount(caller, account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     #ok(Packing.packedAccount(packing, account, pack))
   };
 
   public query func packingStatus() : async {
+   
+   
     current : ?Packing.Current;
     packedThroughBlock : Nat; packedThroughDay : Nat; packs : Nat; valueDayFloor : Nat; requiredAgeDays : Nat;
   } {
+    requireLayout();
+   
     {
       current = Packing.current(packing);
       packedThroughBlock = bank.packing.packedThroughBlock; packedThroughDay = bank.packing.packedThroughDay; packs = bank.packing.packs;
@@ -2421,19 +2480,22 @@ shared (initMsg) persistent actor class Bank(init : {
       requiredAgeDays = Nat.max(MonitoringCore.longestWindow(bank.monitoring), Packing.DEDUP_WINDOW_DAYS) + 1;
     }
   };
-  public query func listPacks() : async Result.Result<[Packing.PackView], T.BankError> { bounded(Packing.packCount(packing), "packsPage", func() : [Packing.PackView] { Packing.listPacks(packing) }) };
+  public query func listPacks() : async Result.Result<[Packing.PackView], T.BankError> { requireLayout(); bounded(Packing.packCount(packing), "packsPage", func() : [Packing.PackView] { Packing.listPacks(packing) }) };
   public query func packsPage(cursor : ?Nat, limit : Nat) : async Result.Result<{ rows : [Packing.PackView]; next : ?Nat }, T.BankError> {
+    requireLayout();
+   
+   
     switch (pageLimitOf(limit)) { case (#err(e)) #err(e); case (#ok(n)) #ok(Packing.packsFrom(packing, cursor, n)) }
   };
-  public query func getPack(pack : Nat) : async ?Packing.PackView { Packing.getPack(packing, pack) };
-  public query func packSegments(pack : Nat) : async [Packing.Segment] { Packing.segmentsOf(packing, pack) };
+  public query func getPack(pack : Nat) : async ?Packing.PackView { requireLayout(); Packing.getPack(packing, pack) };
+  public query func packSegments(pack : Nat) : async [Packing.Segment] { requireLayout(); Packing.segmentsOf(packing, pack) };
   /// A segment's bytes; what an archive is given, and what `Pack.unpack` turns back into the
   /// journal's blocks, byte for byte.
-  public query func packSegmentBytes(pack : Nat, seq : Nat) : async ?Blob { Packing.segmentBytes(packing, pack, seq) };
-  public query func packingStats() : async Packing.Stats { Packing.stats(packing) };
+  public query func packSegmentBytes(pack : Nat, seq : Nat) : async ?Blob { requireLayout(); Packing.segmentBytes(packing, pack, seq) };
+  public query func packingStats() : async Packing.Stats { requireLayout(); Packing.stats(packing) };
   /// The bank segments of a pack (§18.3), and one segment's bytes.
-  public query func bankPackSegments(pack : Nat) : async [Packing.BankSegment] { Packing.bankSegmentsOf(packing, pack) };
-  public query func bankPackSegmentBytes(pack : Nat, seq : Nat) : async ?Blob { Packing.bankSegmentBytes(packing, pack, seq) };
+  public query func bankPackSegments(pack : Nat) : async [Packing.BankSegment] { requireLayout(); Packing.bankSegmentsOf(packing, pack) };
+  public query func bankPackSegmentBytes(pack : Nat, seq : Nat) : async ?Blob { requireLayout(); Packing.bankSegmentBytes(packing, pack, seq) };
   /// Every block of a bank segment read back from the pack, decoded, its hash checked against the MMR
   /// leaf the chain committed (the proof of the packed block), and its index its own.
   /// Every block of `lo … hi` read back; from the pack below the log's base, from the StableLog above it;
@@ -2463,6 +2525,8 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   public query func verifyBankPackSegment(pack : Nat, seq : Nat) : async ?{ blocks : Nat; verified : Nat; bodiesDropped : Nat; hashOk : Bool; firstFault : ?Nat } {
+    requireLayout();
+   
     let ?sg = Array.find<Packing.BankSegment>(Packing.bankSegmentsOf(packing, pack), func(g) { g.seq == seq }) else return null;
     let ?bytes = Packing.bankSegmentBytes(packing, pack, seq) else return null;
     let hashOk = Sha256.fromBlob(#sha256, bytes) == sg.sha256;
@@ -2483,11 +2547,15 @@ shared (initMsg) persistent actor class Bank(init : {
   };
 
   public query func archiveRollStatus() : async {
+   
+   
     current : ?{ pack : Nat; cid : Nat64; archive : Principal; hi : Nat; phase : Text; foldNext : Nat; checkpointParts : Nat; sent : Nat; acked : Nat; segments : Nat };
     archivedThroughBlock : Nat; archivedPacks : Nat; journalBase : Nat; journalHeight : Nat;
     checkpoint : ?{ through : Nat; first : Nat; last : ?Nat };
     shadow : { pages : Nat; free : Nat }; logRegions : { regions : Nat; free : Nat; pages : Nat };
   } {
+    requireLayout();
+   
     let st = ArchiveRoll.stats(roll);
     {
       current = ArchiveRoll.current(roll);
@@ -2500,6 +2568,8 @@ shared (initMsg) persistent actor class Bank(init : {
 
   /// Where a journal block is: here, in an archive (the pack and segment that hold it), or not yet.
   public query func journalBlockLocation(index : Nat) : async { #live; #archived : { pack : Nat; cid : Nat64; archive : Principal; seq : ?Nat }; #none } {
+    requireLayout();
+   
     if (index >= JLog.length(journalLog)) return #none;
     if (index >= JLog.base(journalLog)) return #live;
     for ((pack, a) in Map.entries(bank.packing.archives)) {
@@ -2524,6 +2594,8 @@ shared (initMsg) persistent actor class Bank(init : {
   /// every block compared with the log's own bytes. `firstDifference` names the first block that
   /// differs, if any; `reason` is the codec's, when the bytes do not unpack at all.
   public query func verifyPackSegment(pack : Nat, seq : Nat) : async ?{ blocks : Nat; equal : Bool; hashOk : Bool; firstDifference : ?Nat; reason : ?Text } {
+    requireLayout();
+   
     let ?sg = Packing.segment(packing, pack, seq) else return null;
     let ?bytes = Packing.segmentBytes(packing, pack, seq) else return null;
     let hashOk = Sha256.fromBlob(#sha256, bytes) == sg.sha256;
@@ -2557,11 +2629,15 @@ shared (initMsg) persistent actor class Bank(init : {
   /// the capacity model predicts; so a measured run reads both
   /// here rather than inferring them from the outside.
   public query func runtimeMemory() : async {
+   
+   
     heapBytes : Nat;
     totalAllocatedBytes : Nat;
     maxLiveBytes : Nat;
     indexBytes : Nat;
   } {
+    requireLayout();
+   
     {
       heapBytes = Prim.rts_heap_size();
       totalAllocatedBytes = Prim.rts_total_allocation();
@@ -2580,25 +2656,35 @@ shared (initMsg) persistent actor class Bank(init : {
   // alert component records what an evaluation finds; here the findings are readable on demand, so
   // the engine is reachable and testable from outside before an alert exists.
 
-  public query func listMonitoringRules() : async [MT.Rule] { MonitoringCore.list(bank.monitoring) };
-  public query func getMonitoringRule(id : MT.RuleId) : async ?MT.Rule { MonitoringCore.get(bank.monitoring, id) };
-  public query func monitoringRuleVersion(id : MT.RuleId, version : Nat) : async ?MT.Rule { MonitoringCore.version(bank.monitoring, id, version) };
-  public query func monitoringRuleCost(spec : MT.RuleSpec) : async Text { Monitoring.costBound(spec) };
+  public query func listMonitoringRules() : async [MT.Rule] { requireLayout(); MonitoringCore.list(bank.monitoring) };
+  public query func getMonitoringRule(id : MT.RuleId) : async ?MT.Rule { requireLayout(); MonitoringCore.get(bank.monitoring, id) };
+  public query func monitoringRuleVersion(id : MT.RuleId, version : Nat) : async ?MT.Rule { requireLayout(); MonitoringCore.version(bank.monitoring, id, version) };
+  public query func monitoringRuleCost(spec : MT.RuleSpec) : async Text { requireLayout(); Monitoring.costBound(spec) };
 
   public query func accountActivity(account : Nat, from : Nat, to : Nat) : async Result.Result<[(Nat, Activity.DayActivity)], T.BankError> {
+    requireLayout();
+   
+   
+   
     if (to < from or to + 1 - from > MT.MAX_WINDOW_DAYS) return #err(#QueryError({ error = #InvalidRange({ reason = "a window of at most " # Nat.toText(MT.MAX_WINDOW_DAYS) # " days" }) }));
     #ok(Activity.activityOver(activity, account, from, to))
   };
 
-  public query func accountDormancy(account : Nat) : async ?Activity.Dormancy { Activity.dormancy(activity, account) };
+  public query func accountDormancy(account : Nat) : async ?Activity.Dormancy { requireLayout(); Activity.dormancy(activity, account) };
 
   public query func accountEdges(account : Nat, from : Nat, to : Nat, outward : Bool, limit : Nat) : async Result.Result<{ rows : [Activity.Neighbour]; more : Bool }, T.BankError> {
+    requireLayout();
+   
+   
     if (to < from or to + 1 - from > MT.MAX_WINDOW_DAYS) return #err(#QueryError({ error = #InvalidRange({ reason = "a window of at most " # Nat.toText(MT.MAX_WINDOW_DAYS) # " days" }) }));
     let n = Nat.min(Nat.max(limit, 1), MT.MAX_SCAN);
     #ok(if (outward) Activity.edgesOut(activity, #account(account), from, to, n) else Activity.edgesIn(activity, #account(account), from, to, n))
   };
 
   public query func edgesBetweenAccounts(from : Nat, to : Nat, fromDay : Nat, toDay : Nat, limit : Nat) : async Result.Result<{ rows : [Activity.EdgeRow]; more : Bool }, T.BankError> {
+    requireLayout();
+   
+   
     if (toDay < fromDay or toDay + 1 - fromDay > MT.MAX_WINDOW_DAYS) return #err(#QueryError({ error = #InvalidRange({ reason = "a window of at most " # Nat.toText(MT.MAX_WINDOW_DAYS) # " days" }) }));
     #ok(Activity.edgesBetween(activity, #account(from), #account(to), fromDay, toDay, Nat.min(Nat.max(limit, 1), MT.MAX_SCAN)))
   };
@@ -2616,6 +2702,10 @@ shared (initMsg) persistent actor class Bank(init : {
   /// own message made, because the latest activity before a day is a range over A1 that the
   /// posting itself does not change.
   public query func evaluatePostingRules(postingNo : Nat) : async Result.Result<[MT.Finding], T.BankError> {
+    requireLayout();
+   
+   
+   
     switch (BankCore.blockArchived(bank, postingNo)) { case (?e) return #err(e); case null {} };
     let ?b = JLog.get(journalLog, postingNo) else return #err(#JournalError({ error = #UnknownPosting({ index = postingNo }) }));
     let (rec, day) = switch (b.event) {
@@ -2628,7 +2718,7 @@ shared (initMsg) persistent actor class Bank(init : {
     #ok(Monitoring.atPosting(monitoringContext(), MonitoringCore.active(bank.monitoring, #atPosting), { posted = ?posted; before }))
   };
 
-  public query func activityStats() : async Activity.Stats { Activity.stats(activity) };
+  public query func activityStats() : async Activity.Stats { requireLayout(); Activity.stats(activity) };
 
   // ─── alerts: what monitoring found, under review ───
 
@@ -3341,6 +3431,10 @@ shared (initMsg) persistent actor class Bank(init : {
   /// the account's issued identifier (never a name), each cited posting's dates, legs and the
   /// movement on the reported account. An open or cleared alert has no report.
   public shared query ({ caller }) func suspiciousTransactionReport(alert : Nat) : async Result.Result<AlT.SuspiciousTransactionReport, T.BankError> {
+    requireLayout();
+   
+   
+   
     let ?a = AlertCore.get(bank.alerts, alertBlocks(), alert) else return #err(#AlertError({ error = #UnknownAlert({ alert }) }));
     switch (scopedAccount(caller, a.finding.account)) { case (#err(e)) return #err(e); case (#ok(_)) {} };
     let (escalatedAt, reportRef) = switch (a.status) {
@@ -3677,9 +3771,13 @@ shared (initMsg) persistent actor class Bank(init : {
   /// Fingerprints of both derived states, live and replayed from their logs. The replay is the whole log in one
   /// query, so this read is bounded by the log's size: a long log is checked by the external verifier instead.
   public query func fingerprints() : async {
+   
+   
     bankLive : Blob; bankReplayed : Blob; journalLive : Blob; journalReplayed : Blob;
     bankHeight : Nat; journalHeight : Nat;
   } {
+    requireLayout();
+   
     let freshBank = BankCore.replay(installer, BLog.getRangeWith(bankLog, packedBankBlock, 0, BLog.length(bankLog)));
     // a log whose prefix has left is folded from its checkpoint series; one still whole from genesis
     let freshJournal = switch (JCore.checkpointPosition(journal)) {
@@ -3729,6 +3827,10 @@ shared (initMsg) persistent actor class Bank(init : {
   /// again rather than by searching the log. The index this returns is the block to fetch
   /// and prove; the batch's own duplicate rule reads the same index.
   public query func journalPostingByKey(key : Blob) : async ?Nat {
+    requireLayout();
+   
+   
+   
     JCore.postingIndexByKey(journal, me(), key)
   };
   public query func verifyJournalChain() : async { checked : Nat; fault : ?Text } {
@@ -3816,6 +3918,9 @@ shared (initMsg) persistent actor class Bank(init : {
   };
   public query func businessDate() : async ?JT.Day { JCore.businessDate(journal) };
   public query func accountingToday() : async JT.Day { JCore.effectiveToday(journal, now()) };
+  /// The substrate's clock as the contract reads it: on Thebes a block's time, one second a block, which a query
+  /// reads as the last execution's; the harness anchors the certificate placeholder and its clock checks to it.
+  public query func clock() : async Nat64 { now() };
   public query func calendar() : async ?JT.CalendarConfig { JCore.calendar(journal) };
   public query func leadsheetSchema() : async [JT.LeadsheetRange] { JCore.leadsheetSchema(journal) };
   public query func periodPostingIndices(period : JT.PeriodId, cursor : Nat, limit : Nat) : async JCore.PostingIndexPage {
@@ -3910,10 +4015,9 @@ shared (initMsg) persistent actor class Bank(init : {
 
   // The layout check (S4.10). A store without a fold from the log refuses the upgrade whole; the two that have one
   // start their rebuild here, in the upgrade's own message, so no read ever sees old bytes as new rows.
-  if (indexLayout != PIdx.LAYOUT_VERSION) {
-    Runtime.trap("Bank: the posting index layout is " # Nat.toText(indexLayout) # " and this code expects " # Nat.toText(PIdx.LAYOUT_VERSION) # "; no rebuild path exists for it — the upgrade is refused");
-  };
-  if ((switch (rebuild) { case null true; case (?_) false }) and (bankLayout != BankCore.LAYOUT_VERSION or journalLayout != JCore.LAYOUT_VERSION)) {
+  // a posting-index layout the module cannot read: the contract refuses to serve (`layoutRefusal`) rather than trap
+  // here; no rebuild starts under it either, since the whole contract stands refused until a matching module lands
+  if (layoutRefusal == null and (switch (rebuild) { case null true; case (?_) false }) and (bankLayout != BankCore.LAYOUT_VERSION or journalLayout != JCore.LAYOUT_VERSION)) {
     startRebuild(BankCore.LAYOUT_VERSION, JCore.LAYOUT_VERSION);
   };
 
